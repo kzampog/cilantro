@@ -27,3 +27,9 @@
 *.exe
 *.out
 *.app
+
+# Build/IDE folders
+build/*
+.idea/*
+cmake-build-debug/*
+cmake-build-release/*
