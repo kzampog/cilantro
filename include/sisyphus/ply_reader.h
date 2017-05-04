@@ -11,7 +11,7 @@
 
 class PlyReader {
 public:
-    void read_ply_file(const std::string &filename, PointCloud &poClo);
+    static void read_ply_file(const std::string &filename, PointCloud &poClo);
 };
 
 #endif //SISYPHUS_PLY_READER_H
