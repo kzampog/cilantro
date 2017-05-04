@@ -14,5 +14,9 @@ PCA::PCA(const std::vector<Eigen::Vector3f> &points) {
 
 void PCA::compute_() {
 	mean_ = Eigen::Map<Eigen::MatrixXf>(data_, 3, num_points_).rowwise().mean();
+	Eigen::MatrixXf centered = Eigen::Map<Eigen::MatrixXf>(data_, 3, num_points_).colwise() - mean_;
 
+	Eigen::JacobiSVD<Eigen::Matrix3f> svd(centered, Eigen::ComputeFullU | Eigen::ComputeThinV);
+	eigenvectors_ = svd.matrixU();
+	eigenvalues_ = svd.singularValues().array().square();
 }

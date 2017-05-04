@@ -16,7 +16,7 @@ public:
 	inline Eigen::Matrix3f getEigenVectors() { return eigenvectors_; }
 
 private:
-	int num_points_;
+	unsigned long num_points_;
 	float * data_;
 
 	Eigen::Vector3f mean_;

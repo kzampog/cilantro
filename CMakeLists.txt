@@ -29,8 +29,8 @@ target_link_libraries(sisyphus ${Pangolin_LIBRARIES})
 add_executable(ply_reader_example examples/ply_reader_example.cpp)
 target_link_libraries(ply_reader_example sisyphus ${Pangolin_LIBRARIES})
 
-add_executable(taka examples/taka.cpp)
-target_link_libraries(taka sisyphus ${Pangolin_LIBRARIES})
+add_executable(pca_example examples/pca_example.cpp)
+target_link_libraries(pca_example sisyphus ${Pangolin_LIBRARIES})
 
 # Install target
 
