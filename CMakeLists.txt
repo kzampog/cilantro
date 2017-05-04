@@ -14,18 +14,23 @@ find_package(Pangolin REQUIRED)
 
 include_directories(${Pangolin_INCLUDE_DIRS})
 include_directories(include)
+include_directories(3rd_party)
 
 # Build library
 
-file(GLOB lib_src src/*.cpp)
+file(GLOB_RECURSE lib_src src/*.cpp)
+file(GLOB_RECURSE 3rd_src 3rd_party/*.cpp)
 
-add_library(sisyphus SHARED ${lib_src})
+add_library(sisyphus SHARED ${3rd_src} ${lib_src})
 target_link_libraries(sisyphus ${Pangolin_LIBRARIES})
 
 # Build examples
 
 add_executable(taka examples/taka.cpp)
 target_link_libraries(taka sisyphus ${Pangolin_LIBRARIES})
+
+add_executable(dok examples/dok.cpp)
+target_link_libraries(dok sisyphus ${Pangolin_LIBRARIES})
 
 # Install target
 
