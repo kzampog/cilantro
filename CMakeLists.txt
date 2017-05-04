@@ -26,11 +26,11 @@ target_link_libraries(sisyphus ${Pangolin_LIBRARIES})
 
 # Build examples
 
-add_executable(taka examples/taka.cpp)
+add_executable(ply_reader_example examples/ply_reader_example.cpp)
 target_link_libraries(taka sisyphus ${Pangolin_LIBRARIES})
 
-add_executable(dok examples/dok.cpp)
-target_link_libraries(dok sisyphus ${Pangolin_LIBRARIES})
+add_executable(taka examples/taka.cpp)
+target_link_libraries(taka sisyphus ${Pangolin_LIBRARIES})
 
 # Install target
 
@@ -39,8 +39,8 @@ install(DIRECTORY include/ DESTINATION /usr/local/include)
 
 # Uninstall target
 configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
-	"${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-	IMMEDIATE @ONLY)
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+        IMMEDIATE @ONLY)
 
 add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
