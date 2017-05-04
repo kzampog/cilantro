@@ -4,7 +4,7 @@
 int main(int argc, char **argv) {
     PointCloud pointCloud;
 
-    PlyReader::read_ply_file("../examples/test_clouds/kustas.ply", pointCloud);
+    PlyReader::read_ply_file(argv[1], pointCloud);
 
     std::cout << pointCloud.num_points << std::endl;
     return 0;
