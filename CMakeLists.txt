@@ -15,7 +15,7 @@ file(GLOB src_files src/*.cpp)
 
 set(LIB_NAME "sisyphus")
 
-add_library(${LIB_NAME} SHARED ${src_files})
+add_library(${LIB_NAME} SHARED ${src_files} src/pca.cpp include/sisyphus/pca.h)
 target_link_libraries(${LIB_NAME} ${Pangolin_LIBRARIES})
 
 install(TARGETS ${LIB_NAME} LIBRARY DESTINATION /usr/local/lib)
