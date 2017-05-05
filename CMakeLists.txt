@@ -32,12 +32,16 @@ target_link_libraries(ply_io_example sisyphus ${Pangolin_LIBRARIES})
 add_executable(pca_example examples/pca_example.cpp)
 target_link_libraries(pca_example sisyphus ${Pangolin_LIBRARIES})
 
+add_executable(voxel_grid_example examples/voxel_grid_example.cpp)
+target_link_libraries(voxel_grid_example sisyphus ${Pangolin_LIBRARIES})
+
 # Install target
 
 install(TARGETS sisyphus LIBRARY DESTINATION /usr/local/lib)
 install(DIRECTORY include/ DESTINATION /usr/local/include)
 
 # Uninstall target
+
 configure_file(
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
         "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"

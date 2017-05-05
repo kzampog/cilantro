@@ -1,5 +1,5 @@
 #include <iostream>
-#include <sisyphus/ply_io.h>
+#include <sisyphus/ply_io.hpp>
 
 int main(int argc, char **argv) {
     PointCloud cloud;
