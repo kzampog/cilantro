@@ -2,7 +2,6 @@
 
 #include <fstream>
 #include <Eigen/Dense>
-#include <opencv2/core/core.hpp>
 
 template<class Matrix>
 void readEigenMatrixFromFile(const std::string &filename, Matrix& matrix) {
