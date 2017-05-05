@@ -35,6 +35,9 @@ target_link_libraries(pca_example sisyphus ${Pangolin_LIBRARIES})
 add_executable(voxel_grid_example examples/voxel_grid_example.cpp)
 target_link_libraries(voxel_grid_example sisyphus ${Pangolin_LIBRARIES})
 
+add_executable(kd_tree_example examples/kd_tree_example.cpp)
+target_link_libraries(kd_tree_example sisyphus ${Pangolin_LIBRARIES})
+
 # Install target
 
 install(TARGETS sisyphus LIBRARY DESTINATION /usr/local/lib)
