@@ -22,7 +22,7 @@ void KDTree::kNearestNeighbors(const Eigen::Vector3f &query_pt, size_t k, std::v
     neighbors.resize(k);
     distances.resize(k);
 
-    size_t num_results = kd_tree_->knnSearch(&(query_pt(0)), k, neighbors.data(), distances.data());
+    size_t num_results = kd_tree_->knnSearch(query_pt.data(), k, neighbors.data(), distances.data());
 
     neighbors.resize(num_results);
     distances.resize(num_results);
@@ -33,7 +33,7 @@ void KDTree::nearestNeighborsInRadius(const Eigen::Vector3f &query_pt, float rad
 
     nanoflann::SearchParams params;
     params.sorted = true;
-    size_t num_results = kd_tree_->radiusSearch(&(query_pt(0)), radius*radius, matches, params);
+    size_t num_results = kd_tree_->radiusSearch(query_pt.data(), radius*radius, matches, params);
 
     neighbors.resize(num_results);
     distances.resize(num_results);

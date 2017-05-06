@@ -21,8 +21,7 @@ int main(int argc, char ** argv) {
     std::vector<size_t> ind;
     std::vector<float> dist;
 
-    tree.kNearestNeighborsInRadius(Eigen::Vector3f(0, 0, 0), 2, 900.0f, ind, dist);
-
+    tree.kNearestNeighborsInRadius(Eigen::Vector3f(0, 0, 0), 3, 900.0f, ind, dist);
 
     std::cout << "Neighbor indices: ";
     for (int i = 0; i < ind.size(); i++) {

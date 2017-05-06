@@ -11,6 +11,7 @@ add_definitions("-std=c++11 -O3 -msse2 -msse3")
 # Packages
 
 find_package(Pangolin REQUIRED)
+# find_package(OpenMP REQUIRED)
 
 include_directories(${Pangolin_INCLUDE_DIRS})
 include_directories(include)
@@ -37,6 +38,9 @@ target_link_libraries(voxel_grid_example sisyphus ${Pangolin_LIBRARIES})
 
 add_executable(kd_tree_example examples/kd_tree_example.cpp)
 target_link_libraries(kd_tree_example sisyphus ${Pangolin_LIBRARIES})
+
+add_executable(normal_estimation_example examples/normal_estimation_example.cpp)
+target_link_libraries(normal_estimation_example sisyphus ${Pangolin_LIBRARIES})
 
 # Install target
 
