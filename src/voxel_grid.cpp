@@ -2,7 +2,7 @@
 
 VoxelGrid::VoxelGrid(const PointCloud &cloud, float bin_size)
         : bin_size_(bin_size),
-          cloud_ptr_(&cloud),
+          cloud_ref_(cloud),
           num_points_(cloud.points.size())
 {
     min_pt_ = Eigen::Map<Eigen::MatrixXf>((float *)cloud.points.data(), 3, num_points_).rowwise().minCoeff();
@@ -29,30 +29,30 @@ PointCloud VoxelGrid::getDownsampledCloud(int min_points_in_bin) {
         if (it->second.size() < min_points_in_bin) continue;
         Eigen::MatrixXf bin_points(3, it->second.size());
         for (int i = 0; i < it->second.size(); i++) {
-            bin_points.col(i) = cloud_ptr_->points[it->second[i]];
+            bin_points.col(i) = cloud_ref_.points[it->second[i]];
         }
         res.points.push_back(bin_points.rowwise().mean());
     }
 
-    if (cloud_ptr_->points.size() == cloud_ptr_->normals.size()) {
+    if (cloud_ref_.points.size() == cloud_ref_.normals.size()) {
         res.normals.reserve(grid_lookup_table_.size());
         for (auto it = grid_lookup_table_.begin(); it != grid_lookup_table_.end(); ++it) {
             if (it->second.size() < min_points_in_bin) continue;
             Eigen::MatrixXf bin_normals(3, it->second.size());
             for (int i = 0; i < it->second.size(); i++) {
-                bin_normals.col(i) = cloud_ptr_->normals[it->second[i]];
+                bin_normals.col(i) = cloud_ref_.normals[it->second[i]];
             }
             res.normals.push_back(bin_normals.rowwise().mean().normalized());
         }
     }
 
-    if (cloud_ptr_->points.size() == cloud_ptr_->colors.size()) {
+    if (cloud_ref_.points.size() == cloud_ref_.colors.size()) {
         res.colors.reserve(grid_lookup_table_.size());
         for (auto it = grid_lookup_table_.begin(); it != grid_lookup_table_.end(); ++it) {
             if (it->second.size() < min_points_in_bin) continue;
             Eigen::MatrixXf bin_colors(3, it->second.size());
             for (int i = 0; i < it->second.size(); i++) {
-                bin_colors.col(i) = cloud_ptr_->colors[it->second[i]];
+                bin_colors.col(i) = cloud_ref_.colors[it->second[i]];
             }
             res.colors.push_back(bin_colors.rowwise().mean());
         }
@@ -72,5 +72,5 @@ std::vector<int> VoxelGrid::getGridBinNeighbors(const Eigen::Vector3f &point) {
 }
 
 std::vector<int> VoxelGrid::getGridBinNeighbors(int point_ind) {
-    return VoxelGrid::getGridBinNeighbors(cloud_ptr_->points[point_ind]);
+    return VoxelGrid::getGridBinNeighbors(cloud_ref_.points[point_ind]);
 }

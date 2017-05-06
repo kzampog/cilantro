@@ -17,16 +17,17 @@ public:
     std::vector<int> getGridBinNeighbors(int point_ind);
 
 private:
-    class EigenVector3iHasher_ {
-    public:
-        inline size_t operator()(const Eigen::Vector3i &p) const {
-            size_t seed = 0;
-            for (size_t i = 0; i < 3; ++i) {
-                seed ^= std::hash<float>()(p(i)) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-            }
-            return seed;
-        }
-    };
+
+//    class EigenVector3iHasher_ {
+//    public:
+//        inline size_t operator()(const Eigen::Vector3i &p) const {
+//            size_t seed = 0;
+//            for (size_t i = 0; i < 3; ++i) {
+//                seed ^= std::hash<float>()(p(i)) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+//            }
+//            return seed;
+//        }
+//    };
 
     class EigenVector3iComparator_ {
     public:
@@ -41,7 +42,7 @@ private:
         }
     };
 
-    const PointCloud * cloud_ptr_;
+    const PointCloud &cloud_ref_;
     int num_points_;
     Eigen::Vector3f min_pt_;
     float bin_size_;

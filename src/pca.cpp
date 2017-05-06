@@ -21,4 +21,7 @@ void PCA::compute_() {
     Eigen::JacobiSVD<Eigen::Matrix3f> svd(centered, Eigen::ComputeFullU | Eigen::ComputeThinV);
     eigenvectors_ = svd.matrixU();
     eigenvalues_ = svd.singularValues().array().square();
+    if (eigenvectors_.determinant() < 0.0f) {
+        eigenvectors_.col(0) *= -1.0f;
+    }
 }
