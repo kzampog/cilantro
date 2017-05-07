@@ -21,7 +21,7 @@ NormalEstimation::~NormalEstimation() {
     if (kd_tree_owned_) delete kd_tree_ptr_;
 }
 
-void NormalEstimation::computeNormalsKNN(PointCloud &cloud, size_t num_neighbors) {
+void NormalEstimation::computeNormalsKNN(PointCloud &cloud, size_t num_neighbors) const {
 
     Eigen::Vector3f nan(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
     if (input_cloud_.points.size() < 3) {
@@ -52,7 +52,7 @@ void NormalEstimation::computeNormalsKNN(PointCloud &cloud, size_t num_neighbors
     }
 }
 
-void NormalEstimation::computeNormalsRadius(PointCloud &cloud, float radius) {
+void NormalEstimation::computeNormalsRadius(PointCloud &cloud, float radius) const {
 
     Eigen::Vector3f nan(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
 

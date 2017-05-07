@@ -11,9 +11,9 @@ struct PointCloud {
     std::vector<Eigen::Vector3f> normals;
     std::vector<Eigen::Vector3f> colors;
 
-    inline size_t size() { return points.size(); };
-    inline bool hasColors() { return size() > 0 && colors.size() == size(); };
-    inline bool hasNormals() { return size() > 0 && normals.size() == size(); };
+    inline size_t size() const { return points.size(); };
+    inline bool hasColors() const { return size() > 0 && colors.size() == size(); };
+    inline bool hasNormals() const { return size() > 0 && normals.size() == size(); };
 
     // TODO: add empty() and clear() methods
 };

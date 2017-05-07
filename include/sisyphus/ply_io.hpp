@@ -4,4 +4,4 @@
 
 void readPointCloudFromPLYFile(const std::string &filename, PointCloud &cloud);
 
-void writePointCloudToPLYFile(const std::string &filename, PointCloud &cloud);
+void writePointCloudToPLYFile(const std::string &filename, const PointCloud &cloud);

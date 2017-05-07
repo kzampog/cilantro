@@ -21,7 +21,7 @@ VoxelGrid::VoxelGrid(const PointCloud &cloud, float bin_size)
     }
 }
 
-PointCloud VoxelGrid::getDownsampledCloud(int min_points_in_bin) {
+PointCloud VoxelGrid::getDownsampledCloud(int min_points_in_bin) const {
     PointCloud res;
 
     res.points.reserve(grid_lookup_table_.size());
@@ -105,7 +105,7 @@ PointCloud VoxelGrid::getDownsampledCloud(int min_points_in_bin) {
     return res;
 }
 
-std::vector<int> VoxelGrid::getGridBinNeighbors(const Eigen::Vector3f &point) {
+std::vector<int> VoxelGrid::getGridBinNeighbors(const Eigen::Vector3f &point) const {
     Eigen::Vector3i grid_coords = ((point-min_pt_)/bin_size_).array().floor().cast<int>();
     if ((grid_coords.array() < Eigen::Vector3i::Zero().array()).any()) return std::vector<int>(0);
 
@@ -115,6 +115,6 @@ std::vector<int> VoxelGrid::getGridBinNeighbors(const Eigen::Vector3f &point) {
     return it->second;
 }
 
-std::vector<int> VoxelGrid::getGridBinNeighbors(int point_ind) {
+std::vector<int> VoxelGrid::getGridBinNeighbors(int point_ind) const {
     return VoxelGrid::getGridBinNeighbors(cloud_ref_.points[point_ind]);
 }
