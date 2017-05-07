@@ -41,7 +41,7 @@ private:
     };
 
     const PointCloud &cloud_ref_;
-    int num_points_;
+    size_t num_points_;
     Eigen::Vector3f min_pt_;
     float bin_size_;
 

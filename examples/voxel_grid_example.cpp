@@ -5,21 +5,18 @@
 #include <ctime>
 
 int main(int argc, char ** argv) {
+
 //    PointCloud cloud;
 //    cloud.points.push_back(Eigen::Vector3f(0, 0, 0));
 //    cloud.points.push_back(Eigen::Vector3f(1, 0, 0));
-//    cloud.points.push_back(Eigen::Vector3f(0, 100, 0));
-//    cloud.points.push_back(Eigen::Vector3f(0, 0, 1000));
-//    cloud.points.push_back(Eigen::Vector3f(0, 100, 1000));
-//    cloud.points.push_back(Eigen::Vector3f(1, 0, 1000));
-//    cloud.points.push_back(Eigen::Vector3f(1, 100, 0));
-//    cloud.points.push_back(Eigen::Vector3f(1, 100, 1000));
+//    cloud.normals.push_back(Eigen::Vector3f(0, 0, 1));
+//    cloud.normals.push_back(Eigen::Vector3f(0, 0, -1));
 //
-//    VoxelGrid vg(cloud, 150);
+//    VoxelGrid vg(cloud, 10);
 //    PointCloud cloud_d = vg.getDownsampledCloud();
 //
-//    std::cout << "Before: " << cloud.points.size() << std::endl;
-//    std::cout << "After: " << cloud_d.points.size() << std::endl;
+//    std::cout << cloud_d.normals[0] << std::endl;
+
 
     clock_t begin, end;
     double build_time, ds_time;
@@ -31,6 +28,7 @@ int main(int argc, char ** argv) {
     VoxelGrid vg(cloud, 0.010f);
     end = clock();
     build_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
+
     begin = clock();
     PointCloud cloud_d = vg.getDownsampledCloud();
     end = clock();

@@ -31,7 +31,9 @@ int main(int argc, char ** argv) {
 
     std::cout << "Data mean: " << pca.getMean().transpose() << std::endl;
     std::cout << "Eigenvalues: " << pca.getEigenValues().transpose() << std::endl;
-    std::cout << "Eigenvectors: " << std::endl << pca.getEigenVectors().transpose() << std::endl;
+    std::cout << "Eigenvectors: " << std::endl << pca.getEigenVectors() << std::endl;
+
+    std::cout << "Determinant: " << pca.getEigenVectors().determinant() << std::endl;
 
     return 0;
 }
