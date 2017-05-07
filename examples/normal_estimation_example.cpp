@@ -18,7 +18,8 @@ int main(int argc, char ** argv) {
 
     cloud.normals.clear();
     begin = clock();
-    estimatePointCloudNormals(cloud, 0.01, Eigen::Vector3f(0, 0, 0));
+    estimatePointCloudNormalsRadius(cloud, 0.01, Eigen::Vector3f(0, 0, 0));
+//    estimatePointCloudNormalsKNN(cloud, 11, Eigen::Vector3f(0, 0, 0));
     end = clock();
     est_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
 
