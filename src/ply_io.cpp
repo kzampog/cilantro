@@ -37,7 +37,7 @@ void readPointCloudFromPLYFile(const std::string &filename, PointCloud &cloud) {
     }
 }
 
-void writePointCloudToPLYFile(const std::string &filename, PointCloud &cloud) {
+void writePointCloudToPLYFile(const std::string &filename, const PointCloud &cloud) {
     // Populate data holders
     std::vector<float> vertex_data(3*cloud.points.size());
     std::memcpy(vertex_data.data(), cloud.points.data(), 3*cloud.points.size()*sizeof(float));

@@ -10,9 +10,9 @@ public:
 
     ~PCA() {}
 
-    inline Eigen::Vector3f getMean() { return mean_; }
-    inline Eigen::Vector3f getEigenValues() { return eigenvalues_; }
-    inline Eigen::Matrix3f getEigenVectors() { return eigenvectors_; }
+    inline Eigen::Vector3f getMean() const { return mean_; }
+    inline Eigen::Vector3f getEigenValues() const { return eigenvalues_; }
+    inline Eigen::Matrix3f getEigenVectors() const { return eigenvectors_; }
 
 private:
     size_t num_points_;

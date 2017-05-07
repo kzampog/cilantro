@@ -9,9 +9,9 @@ public:
     KDTree(const PointCloud &cloud, size_t max_leaf_size = 10);
     ~KDTree();
 
-    void kNearestNeighbors(const Eigen::Vector3f &query_pt, size_t k, std::vector<size_t> &neighbors, std::vector<float> &distances);
-    void nearestNeighborsInRadius(const Eigen::Vector3f &query_pt, float radius, std::vector<size_t> &neighbors, std::vector<float> &distances);
-    void kNearestNeighborsInRadius(const Eigen::Vector3f &query_pt, size_t k, float radius, std::vector<size_t> &neighbors, std::vector<float> &distances);
+    void kNearestNeighbors(const Eigen::Vector3f &query_pt, size_t k, std::vector<size_t> &neighbors, std::vector<float> &distances) const;
+    void nearestNeighborsInRadius(const Eigen::Vector3f &query_pt, float radius, std::vector<size_t> &neighbors, std::vector<float> &distances) const;
+    void kNearestNeighborsInRadius(const Eigen::Vector3f &query_pt, size_t k, float radius, std::vector<size_t> &neighbors, std::vector<float> &distances) const;
 
 private:
     // std::vector<Eigen::Vector3f> to kd-tree adaptor class

@@ -9,10 +9,10 @@ public:
     VoxelGrid(const PointCloud &cloud, float bin_size);
     ~VoxelGrid() {}
 
-    PointCloud getDownsampledCloud(int min_points_in_bin = 1);
+    PointCloud getDownsampledCloud(int min_points_in_bin = 1) const;
 
-    std::vector<int> getGridBinNeighbors(const Eigen::Vector3f &point);
-    std::vector<int> getGridBinNeighbors(int point_ind);
+    std::vector<int> getGridBinNeighbors(const Eigen::Vector3f &point) const;
+    std::vector<int> getGridBinNeighbors(int point_ind) const;
 
 private:
 
