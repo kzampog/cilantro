@@ -18,7 +18,7 @@ void PCA::compute_() {
     mean_ = Eigen::Map<Eigen::MatrixXf>(data_, 3, num_points_).rowwise().mean();
     Eigen::MatrixXf centered = Eigen::Map<Eigen::MatrixXf>(data_, 3, num_points_).colwise() - mean_;
 
-    Eigen::JacobiSVD<Eigen::Matrix3f> svd(centered, Eigen::ComputeFullU | Eigen::ComputeThinV);
+    Eigen::JacobiSVD<Eigen::Matrix<float, 3, Eigen::Dynamic> > svd(centered, Eigen::ComputeFullU | Eigen::ComputeThinV);
     eigenvectors_ = svd.matrixU();
     eigenvalues_ = svd.singularValues().array().square();
     if (eigenvectors_.determinant() < 0.0f) {

@@ -13,12 +13,12 @@ int main(int argc, char ** argv) {
     PointCloud cloud;
     readPointCloudFromPLYFile(argv[1], cloud);
 
-    VoxelGrid vg(cloud, 0.01);
+    VoxelGrid vg(cloud, 0.005);
     cloud = vg.getDownsampledCloud();
 
     cloud.normals.clear();
     begin = clock();
-    estimatePointCloudNormals(cloud, 0.015, Eigen::Vector3f(0, 0, 0));
+    estimatePointCloudNormals(cloud, 0.01, Eigen::Vector3f(0, 0, 0));
     end = clock();
     est_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
 
