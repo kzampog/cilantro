@@ -22,3 +22,9 @@ PointCloud::PointCloud(const PointCloud &cloud, const std::vector<size_t> &indic
         }
     }
 }
+
+void PointCloud::clear() {
+    points.clear();
+    normals.clear();
+    colors.clear();
+}
