@@ -1,6 +1,5 @@
 #pragma once
 
-#include <sisyphus/point_cloud.hpp>
 #include <sisyphus/kd_tree.hpp>
 
 class NormalEstimation {

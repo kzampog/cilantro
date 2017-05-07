@@ -1,9 +1,7 @@
 #pragma once
 
-#include <vector>
 //#include <unordered_map>
 #include <map>
-#include <Eigen/Dense>
 #include <sisyphus/point_cloud.hpp>
 
 class VoxelGrid {

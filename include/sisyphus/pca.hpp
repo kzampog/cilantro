@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-#include <Eigen/Dense>
 #include <sisyphus/point_cloud.hpp>
 
 class PCA {
