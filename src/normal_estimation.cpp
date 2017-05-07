@@ -24,16 +24,16 @@ NormalEstimation::~NormalEstimation() {
 void NormalEstimation::computeNormalsKNN(PointCloud &cloud, size_t num_neighbors) const {
 
     Eigen::Vector3f nan(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
-    if (input_cloud_.points.size() < 3) {
-        cloud.normals.resize(input_cloud_.points.size());
+    if (input_cloud_.size() < 3) {
+        cloud.normals.resize(input_cloud_.size());
         for (size_t i = 0; i < cloud.normals.size(); i++) {
             cloud.normals[i] = nan;
         }
         return;
     }
 
-    cloud.normals.resize(input_cloud_.points.size());
-    for (size_t i = 0; i < input_cloud_.points.size(); i++) {
+    cloud.normals.resize(input_cloud_.size());
+    for (size_t i = 0; i < input_cloud_.size(); i++) {
         std::vector<size_t> neighbors;
         std::vector<float> distances;
         kd_tree_ptr_->kNearestNeighbors(input_cloud_.points[i], num_neighbors, neighbors, distances);
@@ -56,8 +56,8 @@ void NormalEstimation::computeNormalsRadius(PointCloud &cloud, float radius) con
 
     Eigen::Vector3f nan(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
 
-    cloud.normals.resize(input_cloud_.points.size());
-    for (size_t i = 0; i < input_cloud_.points.size(); i++) {
+    cloud.normals.resize(input_cloud_.size());
+    for (size_t i = 0; i < input_cloud_.size(); i++) {
         std::vector<size_t> neighbors;
         std::vector<float> distances;
         kd_tree_ptr_->nearestNeighborsInRadius(input_cloud_.points[i], radius, neighbors, distances);

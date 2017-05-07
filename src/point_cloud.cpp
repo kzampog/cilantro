@@ -8,14 +8,14 @@ PointCloud::PointCloud(const PointCloud &cloud, const std::vector<size_t> &indic
         points[i] = cloud.points[indices[i]];
     }
 
-    if (cloud.normals.size() == cloud.points.size()) {
+    if (cloud.hasNormals()) {
         normals.resize(indices.size());
         for (size_t i = 0; i < indices.size(); i++) {
             normals[i] = cloud.normals[indices[i]];
         }
     }
 
-    if (cloud.colors.size() == cloud.points.size()) {
+    if (cloud.hasColors()) {
         colors.resize(indices.size());
         for (size_t i = 0; i < indices.size(); i++) {
             colors[i] = cloud.colors[indices[i]];

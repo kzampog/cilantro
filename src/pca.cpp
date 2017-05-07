@@ -1,7 +1,7 @@
 #include <sisyphus/pca.hpp>
 
 PCA::PCA(const PointCloud &pc)
-        : num_points_(pc.points.size()),
+        : num_points_(pc.size()),
           data_((float *)pc.points.data())
 {
     compute_();

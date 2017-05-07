@@ -4,7 +4,7 @@
 VoxelGrid::VoxelGrid(const PointCloud &cloud, float bin_size)
         : bin_size_(bin_size),
           cloud_ref_(cloud),
-          num_points_(cloud.points.size())
+          num_points_(cloud.size())
 {
     min_pt_ = Eigen::Map<Eigen::MatrixXf>((float *)cloud.points.data(), 3, num_points_).rowwise().minCoeff();
 
@@ -35,7 +35,7 @@ PointCloud VoxelGrid::getDownsampledCloud(int min_points_in_bin) const {
         res.points.push_back(bin_points.rowwise().mean());
     }
 
-//    if (cloud_ref_.points.size() == cloud_ref_.normals.size()) {
+//    if (cloud_ref_.hasNormals()) {
 //        res.normals.reserve(grid_lookup_table_.size());
 //        for (auto it = grid_lookup_table_.begin(); it != grid_lookup_table_.end(); ++it) {
 //            if (it->second.size() < min_points_in_bin) continue;
@@ -61,7 +61,7 @@ PointCloud VoxelGrid::getDownsampledCloud(int min_points_in_bin) const {
 //        }
 //    }
 
-    if (cloud_ref_.points.size() == cloud_ref_.normals.size()) {
+    if (cloud_ref_.hasNormals()) {
         res.normals.reserve(grid_lookup_table_.size());
         for (auto it = grid_lookup_table_.begin(); it != grid_lookup_table_.end(); ++it) {
             if (it->second.size() < min_points_in_bin) continue;
@@ -89,7 +89,7 @@ PointCloud VoxelGrid::getDownsampledCloud(int min_points_in_bin) const {
         }
     }
 
-    if (cloud_ref_.points.size() == cloud_ref_.colors.size()) {
+    if (cloud_ref_.hasColors()) {
         res.colors.reserve(grid_lookup_table_.size());
         for (auto it = grid_lookup_table_.begin(); it != grid_lookup_table_.end(); ++it) {
             if (it->second.size() < min_points_in_bin) continue;

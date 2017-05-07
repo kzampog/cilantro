@@ -34,8 +34,8 @@ int main(int argc, char ** argv) {
     end = clock();
     ds_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
 
-    std::cout << "Before: " << cloud.points.size() << std::endl;
-    std::cout << "After: " << cloud_d.points.size() << std::endl;
+    std::cout << "Before: " << cloud.size() << std::endl;
+    std::cout << "After: " << cloud_d.size() << std::endl;
 
     std::cout << "Build time: " << build_time << std::endl;
     std::cout << "Downsampling time: " << ds_time << std::endl;

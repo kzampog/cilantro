@@ -39,14 +39,14 @@ void readPointCloudFromPLYFile(const std::string &filename, PointCloud &cloud) {
 
 void writePointCloudToPLYFile(const std::string &filename, const PointCloud &cloud) {
     // Populate data holders
-    std::vector<float> vertex_data(3*cloud.points.size());
-    std::memcpy(vertex_data.data(), cloud.points.data(), 3*cloud.points.size()*sizeof(float));
+    std::vector<float> vertex_data(3*cloud.size());
+    std::memcpy(vertex_data.data(), cloud.points.data(), 3*cloud.size()*sizeof(float));
 
-    std::vector<float> normal_data(3*cloud.normals.size());
-    std::memcpy(normal_data.data(), cloud.normals.data(), 3*cloud.normals.size()*sizeof(float));
+    std::vector<float> normal_data(3*cloud.size());
+    std::memcpy(normal_data.data(), cloud.normals.data(), 3*cloud.size()*sizeof(float));
 
-    std::vector<uint8_t> color_data(3*cloud.colors.size());
-    for (int i = 0; i < cloud.colors.size(); i++) {
+    std::vector<uint8_t> color_data(3*cloud.size());
+    for (int i = 0; i < cloud.size(); i++) {
         color_data[3*i + 0] = (uint8_t)(cloud.colors[i](0)*255.0f);
         color_data[3*i + 1] = (uint8_t)(cloud.colors[i](1)*255.0f);
         color_data[3*i + 2] = (uint8_t)(cloud.colors[i](2)*255.0f);
