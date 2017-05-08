@@ -51,7 +51,7 @@ PointCloud VoxelGrid::getDownsampledCloud(int min_points_in_bin) const {
 //            }
 //            if (neg > pos) ref_dir = -ref_dir;
 //
-//            PCA pca(bin_normals.data(), it->second.size()*2);
+//            PCA pca(bin_normals.data(), 3, it->second.size()*2);
 //            Eigen::Vector3f avg = pca.getEigenVectors().col(0);
 //            if (ref_dir.dot(avg) < 0.0f) {
 //                res.normals.push_back(-avg);

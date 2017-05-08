@@ -6,7 +6,7 @@ class PCA {
 public:
     PCA(const PointCloud &pc);
     PCA(const std::vector<Eigen::Vector3f> &points);
-    PCA(float * data, size_t num_points);
+    PCA(float * data, size_t dim, size_t num_points);
 
     ~PCA() {}
 
@@ -15,6 +15,7 @@ public:
     inline Eigen::Matrix3f getEigenVectors() const { return eigenvectors_; }
 
 private:
+    size_t dim_;
     size_t num_points_;
     float * data_;
 
@@ -24,4 +25,3 @@ private:
 
     void compute_();
 };
-
