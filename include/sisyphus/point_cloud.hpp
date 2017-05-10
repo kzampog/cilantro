@@ -17,4 +17,3 @@ struct PointCloud {
     inline bool empty() const { return points.empty(); }
     void clear();
 };
-
