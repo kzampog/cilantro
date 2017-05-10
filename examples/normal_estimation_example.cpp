@@ -25,8 +25,8 @@ int main(int argc, char ** argv) {
     kd_tree_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
 
     begin = clock();
-    ne.computeNormalsRadius(cloud, 0.01);
-//    ne.computeNormalsKNN(cloud, 7);
+//    ne.computeNormalsRadius(0.01);
+    ne.computeNormalsKNN(7);
     end = clock();
     estimation_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
 
