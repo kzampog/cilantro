@@ -10,6 +10,27 @@ void CloudVisualizer::NormalsRenderable_::render() {
     pangolin::RenderVbo(lineEndPointsBuffer, GL_LINES);
 }
 
+CloudVisualizer::CloudVisualizer(const std::string &window_name, const std::string &display_name)
+        : clear_color_(Eigen::Vector3f(0.7f, 0.7f, 1.0f))
+{
+    gl_context_ = pangolin::FindContext(window_name);
+    if (!gl_context_) {
+        pangolin::CreateWindowAndBind(window_name);
+        gl_context_ = pangolin::FindContext(window_name);
+    }
+
+    // Pangolin searches internally for existing named displays
+    gl_context_->MakeCurrent();
+    display_ = &(pangolin::Display(display_name));
+
+    gl_render_state_.reset(new pangolin::OpenGlRenderState(pangolin::ProjectionMatrix(640, 480, 528, 528, 320, 240, 0.2, 100), pangolin::ModelViewLookAt(0, 0, 0, 0, 0, 1, pangolin::AxisNegY)));
+    input_handler_.reset(new pangolin::Handler3D(*gl_render_state_));
+    display_->SetHandler(input_handler_.get());
+    display_->SetAspect(-4.0f/3.0f);
+}
+
+CloudVisualizer::~CloudVisualizer() {}
+
 void CloudVisualizer::addPointCloud(const std::string &name, const PointCloud &cloud) {
     renderables_[name] = std::unique_ptr<PointsRenderable_>(new PointsRenderable_);
 
@@ -41,27 +62,6 @@ void CloudVisualizer::clear() {
 void CloudVisualizer::remove(const std::string &name) {
     renderables_.erase(name);
 }
-
-CloudVisualizer::CloudVisualizer(const std::string &window_name, const std::string &display_name)
-        : clear_color_(Eigen::Vector3f(0.7f, 0.7f, 1.0f))
-{
-    gl_context_ = pangolin::FindContext(window_name);
-    if (!gl_context_) {
-        pangolin::CreateWindowAndBind(window_name);
-        gl_context_ = pangolin::FindContext(window_name);
-    }
-
-    // Pangolin searches internally for existing named displays
-    gl_context_->MakeCurrent();
-    display_ = &(pangolin::Display(display_name));
-
-    gl_render_state_.reset(new pangolin::OpenGlRenderState(pangolin::ProjectionMatrix(640, 480, 528, 528, 320, 240, 0.2, 100), pangolin::ModelViewLookAt(0, 0, 0, 0, 0, 1, pangolin::AxisNegY)));
-    input_handler_.reset(new pangolin::Handler3D(*gl_render_state_));
-    display_->SetHandler(input_handler_.get());
-    display_->SetAspect(-4.0f/3.0f);
-}
-
-CloudVisualizer::~CloudVisualizer() {}
 
 void CloudVisualizer::render() {
     gl_context_->MakeCurrent();
