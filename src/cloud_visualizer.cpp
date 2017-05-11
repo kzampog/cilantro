@@ -1,12 +1,48 @@
 #include <sisyphus/cloud_visualizer.hpp>
 
+void CloudVisualizer::PointsRenderable_::applyRenderingProperties() {
+    pointsBuffer.Reinitialise(pangolin::GlArrayBuffer, points.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+    pointsBuffer.Upload(points.data(), sizeof(float)*points.size()*3);
+
+    if (renderingProperties.overrideColors || colors.size() != points.size()) {
+        std::vector<Eigen::Vector3f> render_colors(points.size(), renderingProperties.drawingColor);
+        colorsBuffer.Reinitialise(pangolin::GlArrayBuffer, render_colors.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+        colorsBuffer.Upload(render_colors.data(), sizeof(float)*render_colors.size()*3);
+    } else {
+        colorsBuffer.Reinitialise(pangolin::GlArrayBuffer, colors.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+        colorsBuffer.Upload(colors.data(), sizeof(float)*colors.size()*3);
+    }
+}
+
 void CloudVisualizer::PointsRenderable_::render() {
+    glPointSize(renderingProperties.pointSize);
     pangolin::RenderVboCbo(pointsBuffer, colorsBuffer);
 }
 
+void CloudVisualizer::NormalsRenderable_::applyRenderingProperties() {
+    if (renderingProperties.normalsPercentage <= 0.0f) {
+        renderingProperties.normalsPercentage = 0.0;
+        lineEndPointsBuffer.Resize(0);
+        return;
+    }
+    if (renderingProperties.normalsPercentage > 1.0f) renderingProperties.normalsPercentage = 1.0;
+
+    size_t step = std::floor(1.0/renderingProperties.normalsPercentage);
+    std::vector<Eigen::Vector3f> tmp(2*((points.size() - 1)/step + 1));
+
+    for (size_t i = 0; i < points.size(); i += step) {
+        tmp[2*i/step + 0] = points[i];
+        tmp[2*i/step + 1] = points[i] + renderingProperties.normalLength * normals[i];
+    }
+
+    lineEndPointsBuffer.Reinitialise(pangolin::GlArrayBuffer, tmp.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+    lineEndPointsBuffer.Upload(tmp.data(), sizeof(float)*tmp.size()*3);
+}
+
 void CloudVisualizer::NormalsRenderable_::render() {
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glLineWidth(0.1f);
+    glPointSize(renderingProperties.pointSize);
+    glColor3f(renderingProperties.drawingColor(0), renderingProperties.drawingColor(1), renderingProperties.drawingColor(2));
+    glLineWidth(renderingProperties.lineWidth);
     pangolin::RenderVbo(lineEndPointsBuffer, GL_LINES);
 }
 
@@ -29,45 +65,32 @@ CloudVisualizer::CloudVisualizer(const std::string &window_name, const std::stri
     display_->SetAspect(-4.0f/3.0f);
 }
 
-CloudVisualizer::~CloudVisualizer() {}
-
-void CloudVisualizer::addPointCloud(const std::string &name, const PointCloud &cloud) {
+void CloudVisualizer::addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rendering_properties) {
     renderables_[name] = std::unique_ptr<PointsRenderable_>(new PointsRenderable_);
-
-    // Populate buffer objects
-    ((PointsRenderable_ *)renderables_[name].get())->pointsBuffer.Reinitialise(pangolin::GlArrayBuffer, cloud.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-    ((PointsRenderable_ *)renderables_[name].get())->pointsBuffer.Upload(cloud.points.data(), sizeof(float)*cloud.size()*3);
-
-    ((PointsRenderable_ *)renderables_[name].get())->colorsBuffer.Reinitialise(pangolin::GlArrayBuffer, cloud.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-    ((PointsRenderable_ *)renderables_[name].get())->colorsBuffer.Upload(cloud.colors.data(), sizeof(float)*cloud.size()*3);
+    PointsRenderable_ *obj_ptr = (PointsRenderable_ *)renderables_[name].get();
+    // Copy fields
+    obj_ptr->points = cloud.points;
+    obj_ptr->colors = cloud.colors;
+    // Update buffers
+    ((Renderable_ *)obj_ptr)->applyRenderingProperties(rendering_properties);
 }
 
-void CloudVisualizer::addPointCloudNormals(const std::string &name, const PointCloud &cloud) {
+void CloudVisualizer::addPointCloudNormals(const std::string &name, const PointCloud &cloud, const RenderingProperties &rendering_properties) {
+    if (!cloud.hasNormals()) return;
+
     renderables_[name] = std::unique_ptr<NormalsRenderable_>(new NormalsRenderable_);
-
-    std::vector<Eigen::Vector3f> tmp(cloud.size()*2);
-    for (size_t i = 0; i < cloud.size(); i++) {
-        tmp[2*i + 0] = cloud.points[i];
-        tmp[2*i + 1] = cloud.points[i] + 0.05f*cloud.normals[i];
-    }
-
-    ((NormalsRenderable_ *)renderables_[name].get())->lineEndPointsBuffer.Reinitialise(pangolin::GlArrayBuffer, tmp.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-    ((NormalsRenderable_ *)renderables_[name].get())->lineEndPointsBuffer.Upload(tmp.data(), sizeof(float)*tmp.size()*3);
-}
-
-void CloudVisualizer::clear() {
-    renderables_.clear();
-}
-
-void CloudVisualizer::remove(const std::string &name) {
-    renderables_.erase(name);
+    NormalsRenderable_ *obj_ptr = (NormalsRenderable_ *)renderables_[name].get();
+    // Copy fields
+    obj_ptr->points = cloud.points;
+    obj_ptr->normals = cloud.normals;
+    // Update buffers
+    ((Renderable_ *)obj_ptr)->applyRenderingProperties(rendering_properties);
 }
 
 void CloudVisualizer::render() {
     gl_context_->MakeCurrent();
     display_->Activate(*gl_render_state_);
     glEnable(GL_DEPTH_TEST);
-    glPointSize(5.0f);
     glClearColor(clear_color_(0), clear_color_(1), clear_color_(2), 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for (auto it = renderables_.begin(); it != renderables_.end(); ++it) {
@@ -79,7 +102,6 @@ void CloudVisualizer::render(const std::string &obj_name) {
     gl_context_->MakeCurrent();
     display_->Activate(*gl_render_state_);
     glEnable(GL_DEPTH_TEST);
-    glPointSize(5.0f);
     glClearColor(clear_color_(0), clear_color_(1), clear_color_(2), 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     auto it = renderables_.find(obj_name);
