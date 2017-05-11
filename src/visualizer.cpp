@@ -1,4 +1,4 @@
-#include <sisyphus/visualizer.hpp>
+#include <cilantro/visualizer.hpp>
 
 void Visualizer::PointsRenderable_::applyRenderingProperties() {
     pointsBuffer.Reinitialise(pangolin::GlArrayBuffer, points.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);

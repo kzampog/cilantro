@@ -1,5 +1,5 @@
-#include <sisyphus/pca.hpp>
-#include <sisyphus/ply_io.hpp>
+#include <cilantro/pca.hpp>
+#include <cilantro/ply_io.hpp>
 
 #include <iostream>
 #include <ctime>

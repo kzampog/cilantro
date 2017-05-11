@@ -1,4 +1,4 @@
-#include <sisyphus/matrix_io.hpp>
+#include <cilantro/matrix_io.hpp>
 #include <iostream>
 
 int main(int argc, char ** argv) {

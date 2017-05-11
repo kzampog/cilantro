@@ -1,7 +1,7 @@
 #pragma once
 
 #include <nanoflann/nanoflann.hpp>
-#include <sisyphus/point_cloud.hpp>
+#include <cilantro/point_cloud.hpp>
 
 class KDTree {
 public:

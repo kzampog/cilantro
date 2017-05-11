@@ -1,6 +1,6 @@
-#include <sisyphus/visualizer.hpp>
-#include <sisyphus/ply_io.hpp>
-#include <sisyphus/voxel_grid.hpp>
+#include <cilantro/visualizer.hpp>
+#include <cilantro/ply_io.hpp>
+#include <cilantro/voxel_grid.hpp>
 
 #include <iostream>
 

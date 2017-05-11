@@ -1,5 +1,5 @@
-#include <sisyphus/normal_estimation.hpp>
-#include <sisyphus/pca.hpp>
+#include <cilantro/normal_estimation.hpp>
+#include <cilantro/pca.hpp>
 
 NormalEstimation::NormalEstimation(const PointCloud &cloud)
         : input_cloud_((PointCloud&)cloud),

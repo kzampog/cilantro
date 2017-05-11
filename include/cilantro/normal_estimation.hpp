@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sisyphus/kd_tree.hpp>
+#include <cilantro/kd_tree.hpp>
 
 class NormalEstimation {
 public:

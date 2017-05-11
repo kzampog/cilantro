@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(sisyphus)
+project(cilantro)
 
 # Build setup
 
@@ -22,35 +22,35 @@ include_directories(3rd_party)
 file(GLOB_RECURSE lib_src src/*.cpp)
 file(GLOB_RECURSE 3rd_src 3rd_party/*.cpp)
 
-add_library(sisyphus SHARED ${3rd_src} ${lib_src})
-target_link_libraries(sisyphus ${Pangolin_LIBRARIES})
+add_library(cilantro SHARED ${3rd_src} ${lib_src})
+target_link_libraries(cilantro ${Pangolin_LIBRARIES})
 
 # Build examples
 
 add_executable(ply_io_example examples/ply_io_example.cpp)
-target_link_libraries(ply_io_example sisyphus ${Pangolin_LIBRARIES})
+target_link_libraries(ply_io_example cilantro ${Pangolin_LIBRARIES})
 
 add_executable(pca_example examples/pca_example.cpp)
-target_link_libraries(pca_example sisyphus ${Pangolin_LIBRARIES})
+target_link_libraries(pca_example cilantro ${Pangolin_LIBRARIES})
 
 add_executable(voxel_grid_example examples/voxel_grid_example.cpp)
-target_link_libraries(voxel_grid_example sisyphus ${Pangolin_LIBRARIES})
+target_link_libraries(voxel_grid_example cilantro ${Pangolin_LIBRARIES})
 
 add_executable(kd_tree_example examples/kd_tree_example.cpp)
-target_link_libraries(kd_tree_example sisyphus ${Pangolin_LIBRARIES})
+target_link_libraries(kd_tree_example cilantro ${Pangolin_LIBRARIES})
 
 add_executable(normal_estimation_example examples/normal_estimation_example.cpp)
-target_link_libraries(normal_estimation_example sisyphus ${Pangolin_LIBRARIES})
+target_link_libraries(normal_estimation_example cilantro ${Pangolin_LIBRARIES})
 
 add_executable(matrix_io_example examples/matrix_io_example.cpp)
-target_link_libraries(matrix_io_example sisyphus ${Pangolin_LIBRARIES})
+target_link_libraries(matrix_io_example cilantro ${Pangolin_LIBRARIES})
 
 add_executable(visualizer_example examples/visualizer_example.cpp)
-target_link_libraries(visualizer_example sisyphus ${Pangolin_LIBRARIES})
+target_link_libraries(visualizer_example cilantro ${Pangolin_LIBRARIES})
 
 # Install target
 
-install(TARGETS sisyphus LIBRARY DESTINATION /usr/local/lib)
+install(TARGETS cilantro LIBRARY DESTINATION /usr/local/lib)
 install(DIRECTORY include/ DESTINATION /usr/local/include)
 
 # Uninstall target

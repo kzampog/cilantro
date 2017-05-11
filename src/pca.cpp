@@ -1,4 +1,4 @@
-#include <sisyphus/pca.hpp>
+#include <cilantro/pca.hpp>
 
 PCA::PCA(const PointCloud &pc)
         : dim_(3),

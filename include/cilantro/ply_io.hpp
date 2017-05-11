@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sisyphus/point_cloud.hpp>
+#include <cilantro/point_cloud.hpp>
 
 void readPointCloudFromPLYFile(const std::string &filename, PointCloud &cloud);
 

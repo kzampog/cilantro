@@ -1,8 +1,8 @@
-#include <sisyphus/normal_estimation.hpp>
-#include <sisyphus/ply_io.hpp>
+#include <cilantro/normal_estimation.hpp>
+#include <cilantro/ply_io.hpp>
 #include <iostream>
 
-#include <sisyphus/voxel_grid.hpp>
+#include <cilantro/voxel_grid.hpp>
 
 #include <ctime>
 

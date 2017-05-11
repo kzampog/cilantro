@@ -1,5 +1,5 @@
-#include <sisyphus/kd_tree.hpp>
-#include <sisyphus/ply_io.hpp>
+#include <cilantro/kd_tree.hpp>
+#include <cilantro/ply_io.hpp>
 
 #include <iostream>
 #include <ctime>

@@ -1,4 +1,4 @@
-#include <sisyphus/kd_tree.hpp>
+#include <cilantro/kd_tree.hpp>
 
 KDTree::KDTree(const std::vector<Eigen::Vector3f> &points, size_t max_leaf_size)
         : pcd_to_kd_(VectorOfEigenVectorsAdaptor_(points)),

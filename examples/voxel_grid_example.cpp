@@ -1,5 +1,5 @@
-#include <sisyphus/voxel_grid.hpp>
-#include <sisyphus/ply_io.hpp>
+#include <cilantro/voxel_grid.hpp>
+#include <cilantro/ply_io.hpp>
 #include <iostream>
 
 #include <ctime>

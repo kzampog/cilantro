@@ -1,6 +1,6 @@
 #include <iostream>
 #include <pangolin/utils/file_utils.h>
-#include <sisyphus/ply_io.hpp>
+#include <cilantro/ply_io.hpp>
 
 
 int main(int argc, char **argv) {
