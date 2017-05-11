@@ -1,6 +1,6 @@
-#include <sisyphus/cloud_visualizer.hpp>
+#include <sisyphus/visualizer.hpp>
 
-void CloudVisualizer::PointsRenderable_::applyRenderingProperties() {
+void Visualizer::PointsRenderable_::applyRenderingProperties() {
     pointsBuffer.Reinitialise(pangolin::GlArrayBuffer, points.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
     pointsBuffer.Upload(points.data(), sizeof(float)*points.size()*3);
 
@@ -14,12 +14,12 @@ void CloudVisualizer::PointsRenderable_::applyRenderingProperties() {
     }
 }
 
-void CloudVisualizer::PointsRenderable_::render() {
+void Visualizer::PointsRenderable_::render() {
     glPointSize(renderingProperties.pointSize);
     pangolin::RenderVboCbo(pointsBuffer, colorsBuffer);
 }
 
-void CloudVisualizer::NormalsRenderable_::applyRenderingProperties() {
+void Visualizer::NormalsRenderable_::applyRenderingProperties() {
     if (renderingProperties.normalsPercentage <= 0.0f) {
         renderingProperties.normalsPercentage = 0.0;
         lineEndPointsBuffer.Resize(0);
@@ -39,14 +39,14 @@ void CloudVisualizer::NormalsRenderable_::applyRenderingProperties() {
     lineEndPointsBuffer.Upload(tmp.data(), sizeof(float)*tmp.size()*3);
 }
 
-void CloudVisualizer::NormalsRenderable_::render() {
+void Visualizer::NormalsRenderable_::render() {
     glPointSize(renderingProperties.pointSize);
     glColor3f(renderingProperties.drawingColor(0), renderingProperties.drawingColor(1), renderingProperties.drawingColor(2));
     glLineWidth(renderingProperties.lineWidth);
     pangolin::RenderVbo(lineEndPointsBuffer, GL_LINES);
 }
 
-CloudVisualizer::CloudVisualizer(const std::string &window_name, const std::string &display_name)
+Visualizer::Visualizer(const std::string &window_name, const std::string &display_name)
         : clear_color_(Eigen::Vector3f(0.7f, 0.7f, 1.0f))
 {
     gl_context_ = pangolin::FindContext(window_name);
@@ -65,17 +65,17 @@ CloudVisualizer::CloudVisualizer(const std::string &window_name, const std::stri
     display_->SetAspect(-4.0f/3.0f);
 }
 
-void CloudVisualizer::addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rendering_properties) {
+void Visualizer::addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp) {
     renderables_[name] = std::unique_ptr<PointsRenderable_>(new PointsRenderable_);
     PointsRenderable_ *obj_ptr = (PointsRenderable_ *)renderables_[name].get();
     // Copy fields
     obj_ptr->points = cloud.points;
     obj_ptr->colors = cloud.colors;
     // Update buffers
-    ((Renderable_ *)obj_ptr)->applyRenderingProperties(rendering_properties);
+    ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
 
-void CloudVisualizer::addPointCloudNormals(const std::string &name, const PointCloud &cloud, const RenderingProperties &rendering_properties) {
+void Visualizer::addPointCloudNormals(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp) {
     if (!cloud.hasNormals()) return;
 
     renderables_[name] = std::unique_ptr<NormalsRenderable_>(new NormalsRenderable_);
@@ -84,10 +84,10 @@ void CloudVisualizer::addPointCloudNormals(const std::string &name, const PointC
     obj_ptr->points = cloud.points;
     obj_ptr->normals = cloud.normals;
     // Update buffers
-    ((Renderable_ *)obj_ptr)->applyRenderingProperties(rendering_properties);
+    ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
 
-void CloudVisualizer::render() {
+void Visualizer::render() {
     gl_context_->MakeCurrent();
     display_->Activate(*gl_render_state_);
     glEnable(GL_DEPTH_TEST);
@@ -98,7 +98,7 @@ void CloudVisualizer::render() {
     }
 }
 
-void CloudVisualizer::render(const std::string &obj_name) {
+void Visualizer::render(const std::string &obj_name) {
     gl_context_->MakeCurrent();
     display_->Activate(*gl_render_state_);
     glEnable(GL_DEPTH_TEST);
@@ -108,7 +108,7 @@ void CloudVisualizer::render(const std::string &obj_name) {
     if (it != renderables_.end()) it->second->render();
 }
 
-void CloudVisualizer::setProjectionMatrix(int w, int h, pangolin::GLprecision fu, pangolin::GLprecision fv, pangolin::GLprecision u0, pangolin::GLprecision v0, pangolin::GLprecision zNear, pangolin::GLprecision zFar) {
+void Visualizer::setProjectionMatrix(int w, int h, pangolin::GLprecision fu, pangolin::GLprecision fv, pangolin::GLprecision u0, pangolin::GLprecision v0, pangolin::GLprecision zNear, pangolin::GLprecision zFar) {
     gl_render_state_->SetProjectionMatrix(pangolin::ProjectionMatrix(w, h, fu, fv, u0, v0, zNear, zFar));
     display_->SetAspect(-(double)w/((double)h));
 }

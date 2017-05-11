@@ -45,8 +45,8 @@ target_link_libraries(normal_estimation_example sisyphus ${Pangolin_LIBRARIES})
 add_executable(matrix_io_example examples/matrix_io_example.cpp)
 target_link_libraries(matrix_io_example sisyphus ${Pangolin_LIBRARIES})
 
-add_executable(cloud_visualizer_example examples/cloud_visualizer_example.cpp)
-target_link_libraries(cloud_visualizer_example sisyphus ${Pangolin_LIBRARIES})
+add_executable(visualizer_example examples/visualizer_example.cpp)
+target_link_libraries(visualizer_example sisyphus ${Pangolin_LIBRARIES})
 
 # Install target
 

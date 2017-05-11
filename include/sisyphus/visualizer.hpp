@@ -4,7 +4,7 @@
 #include <pangolin/pangolin.h>
 #include <pangolin/display/display_internal.h>
 
-class CloudVisualizer {
+class Visualizer {
 public:
     struct RenderingProperties {
         inline RenderingProperties() : drawingColor(Eigen::Vector3f(1.0f, 1.0f, 1.0f)),
@@ -31,11 +31,11 @@ public:
         inline RenderingProperties& setNormalsPercentage(float np) { normalsPercentage = np; return *this; }
     };
 
-    CloudVisualizer(const std::string & window_name, const std::string &display_name);
-    inline ~CloudVisualizer() {}
+    Visualizer(const std::string & window_name, const std::string &display_name);
+    inline ~Visualizer() {}
 
-    void addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rendering_properties = RenderingProperties());
-    void addPointCloudNormals(const std::string &name, const PointCloud &cloud, const RenderingProperties &rendering_properties = RenderingProperties());
+    void addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp = RenderingProperties());
+    void addPointCloudNormals(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp = RenderingProperties());
 
     inline void clear() { renderables_.clear(); }
     inline void remove(const std::string &name) { renderables_.erase(name); }
