@@ -160,6 +160,18 @@ void Visualizer::addPointCorrespondences(const std::string &name, const PointClo
     addPointCorrespondences(name, cloud_src.points, cloud_dst.points, rp);
 }
 
+void Visualizer::render(const std::string &obj_name) {
+    gl_context_->MakeCurrent();
+    display_->Activate(*gl_render_state_);
+    glEnable(GL_DEPTH_TEST);
+    glEnable (GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glClearColor(clear_color_(0), clear_color_(1), clear_color_(2), 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    auto it = renderables_.find(obj_name);
+    if (it != renderables_.end()) it->second->render();
+}
+
 void Visualizer::render() {
     gl_context_->MakeCurrent();
     display_->Activate(*gl_render_state_);
@@ -173,16 +185,9 @@ void Visualizer::render() {
     }
 }
 
-void Visualizer::render(const std::string &obj_name) {
-    gl_context_->MakeCurrent();
-    display_->Activate(*gl_render_state_);
-    glEnable(GL_DEPTH_TEST);
-    glEnable (GL_BLEND);
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glClearColor(clear_color_(0), clear_color_(1), clear_color_(2), 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    auto it = renderables_.find(obj_name);
-    if (it != renderables_.end()) it->second->render();
+void Visualizer::spinOnce() {
+    render();
+    pangolin::FinishFrame();
 }
 
 Visualizer::RenderingProperties Visualizer::getRenderingProperties(const std::string &name) {

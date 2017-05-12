@@ -16,28 +16,32 @@ int main(int argc, char ** argv) {
     VoxelGrid vg(cloud, 0.01);
     cloud = vg.getDownsampledCloud();
 
+    // First
+    Visualizer viz("win", "disp");
+
+    std::vector<int> keys;
+    keys.push_back('a');
+    keys.push_back('z');
+    viz.registerKeyboardCallback(keys, test, NULL);
+
+    viz.addPointCloud("pcd", cloud);
+
+    // Second
     PointCloud cloud2(cloud);
     for (size_t i = 0; i < cloud2.size(); i++) {
         cloud2.points[i] += Eigen::Vector3f(1.0, 0.0, 1.0);
     }
 
-    Visualizer viz("win", "disp");
+    Visualizer viz2("win2", "disp2");
+    viz2.addPointCloud("pcd1", cloud, Visualizer::RenderingProperties().setDrawingColor(1,0,0).setOverrideColors(true).setOpacity(0.2));
+    viz2.addPointCloud("pcd2", cloud2, Visualizer::RenderingProperties().setDrawingColor(0,0,1).setOverrideColors(true));
+    viz2.addPointCloudNormals("nrm1", cloud, Visualizer::RenderingProperties().setCorrespondencesFraction(0.20).setDrawingColor(0,1,0).setOpacity(0.2));
+    viz2.addPointCloudNormals("nrm2", cloud2, Visualizer::RenderingProperties().setCorrespondencesFraction(0.20).setDrawingColor(0,1,0));
+    viz2.addPointCorrespondences("corr", cloud, cloud2, Visualizer::RenderingProperties().setCorrespondencesFraction(0.01));
 
-    viz.addPointCloud("pcd1", cloud, Visualizer::RenderingProperties().setDrawingColor(1,0,0).setOverrideColors(true).setOpacity(0.2));
-    viz.addPointCloud("pcd2", cloud2, Visualizer::RenderingProperties().setDrawingColor(0,0,1).setOverrideColors(true));
-    viz.addPointCloudNormals("nrm1", cloud, Visualizer::RenderingProperties().setCorrespondencesFraction(0.20).setDrawingColor(0,1,0).setOpacity(0.2));
-    viz.addPointCloudNormals("nrm2", cloud2, Visualizer::RenderingProperties().setCorrespondencesFraction(0.20).setDrawingColor(0,1,0));
-    viz.addPointCorrespondences("corr", cloud, cloud2, Visualizer::RenderingProperties().setCorrespondencesFraction(0.01));
-
-    std::vector<int> keys;
-    keys.push_back('a');
-    keys.push_back('z');
-
-    viz.registerKeyboardCallback(keys, test, NULL);
-
-    while (!pangolin::ShouldQuit()) {
-        viz.render();
-        pangolin::FinishFrame();
+    while (!viz.wasStopped() || !viz2.wasStopped()) {
+        viz.spinOnce();
+        viz2.spinOnce();
     }
 
     return 0;

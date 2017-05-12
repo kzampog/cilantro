@@ -51,8 +51,10 @@ public:
     inline void clear() { renderables_.clear(); }
     inline void remove(const std::string &name) { renderables_.erase(name); }
 
-    void render();
     void render(const std::string &obj_name);
+    void render();
+    void spinOnce();
+    inline bool wasStopped() { return gl_context_->quit; }
 
     RenderingProperties getRenderingProperties(const std::string &name);
     void setRenderingProperties(const std::string &name, const RenderingProperties &rp);
