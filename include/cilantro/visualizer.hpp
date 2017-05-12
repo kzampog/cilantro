@@ -49,6 +49,8 @@ public:
 
     void setProjectionMatrix(int w, int h, pangolin::GLprecision fu, pangolin::GLprecision fv, pangolin::GLprecision u0, pangolin::GLprecision v0, pangolin::GLprecision zNear, pangolin::GLprecision zFar);
 
+//    void registerKeyboardCallback(const std::vector<int> &keys, std::function<void(void)> fun);
+
 private:
     struct Renderable_ {
         RenderingProperties renderingProperties;
@@ -85,5 +87,4 @@ private:
     Eigen::Vector3f clear_color_;
 
     std::map<std::string, std::unique_ptr<Renderable_> > renderables_;
-
 };

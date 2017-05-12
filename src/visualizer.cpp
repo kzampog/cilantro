@@ -57,6 +57,8 @@ Visualizer::Visualizer(const std::string &window_name, const std::string &displa
 
     // Pangolin searches internally for existing named displays
     gl_context_->MakeCurrent();
+    pangolin::RegisterKeyPressCallback('q', pangolin::Quit);
+    pangolin::RegisterKeyPressCallback('Q', pangolin::Quit);
     display_ = &(pangolin::Display(display_name));
 
     gl_render_state_.reset(new pangolin::OpenGlRenderState(pangolin::ProjectionMatrix(640, 480, 528, 528, 320, 240, 0.2, 100), pangolin::ModelViewLookAt(0, 0, 0, 0, 0, 1, pangolin::AxisNegY)));
@@ -112,3 +114,12 @@ void Visualizer::setProjectionMatrix(int w, int h, pangolin::GLprecision fu, pan
     gl_render_state_->SetProjectionMatrix(pangolin::ProjectionMatrix(w, h, fu, fv, u0, v0, zNear, zFar));
     display_->SetAspect(-(double)w/((double)h));
 }
+
+//void Visualizer::registerKeyboardCallback(const std::vector<int> &keys, std::function<void(void)> func) {
+//    gl_context_->MakeCurrent();
+//    for (size_t i = 0; i < keys.size(); i++) {
+//        auto fun = std::bind(func, keys[i], std::cref(*this));
+//        std::function<void(void)> * fun_ptr = (std::function<void(void)> *)(&fun);
+//        pangolin::RegisterKeyPressCallback(keys[i], *fun_ptr);
+//    }
+//}
