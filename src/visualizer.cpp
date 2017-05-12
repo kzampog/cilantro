@@ -185,11 +185,6 @@ void Visualizer::render() {
     }
 }
 
-void Visualizer::spinOnce() {
-    render();
-    pangolin::FinishFrame();
-}
-
 Visualizer::RenderingProperties Visualizer::getRenderingProperties(const std::string &name) {
     auto it = renderables_.find(name);
     if (it == renderables_.end()) return RenderingProperties();

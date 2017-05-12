@@ -53,7 +53,8 @@ public:
 
     void render(const std::string &obj_name);
     void render();
-    void spinOnce();
+
+    inline void spinOnce() { render(); pangolin::FinishFrame();}
     inline bool wasStopped() { return gl_context_->quit; }
 
     RenderingProperties getRenderingProperties(const std::string &name);
