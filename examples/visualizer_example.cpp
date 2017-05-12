@@ -16,10 +16,18 @@ int main(int argc, char ** argv) {
     VoxelGrid vg(cloud, 0.01);
     cloud = vg.getDownsampledCloud();
 
+    PointCloud cloud2(cloud);
+    for (size_t i = 0; i < cloud2.size(); i++) {
+        cloud2.points[i] += Eigen::Vector3f(1.0, 0.0, 1.0);
+    }
+
     Visualizer viz("win", "disp");
 
-    viz.addPointCloud("pcd", cloud);
-    viz.addPointCloudNormals("nrm", cloud, Visualizer::RenderingProperties().setNormalsPercentage(0.05));
+    viz.addPointCloud("pcd1", cloud, Visualizer::RenderingProperties().setDrawingColor(1,0,0).setOverrideColors(true).setOpacity(0.2));
+    viz.addPointCloud("pcd2", cloud2, Visualizer::RenderingProperties().setDrawingColor(0,0,1).setOverrideColors(true));
+    viz.addPointCloudNormals("nrm1", cloud, Visualizer::RenderingProperties().setCorrespondencesFraction(0.20).setDrawingColor(0,1,0).setOpacity(0.2));
+    viz.addPointCloudNormals("nrm2", cloud2, Visualizer::RenderingProperties().setCorrespondencesFraction(0.20).setDrawingColor(0,1,0));
+    viz.addPointCorrespondences("corr", cloud, cloud2, Visualizer::RenderingProperties().setCorrespondencesFraction(0.01));
 
     std::vector<int> keys;
     keys.push_back('a');

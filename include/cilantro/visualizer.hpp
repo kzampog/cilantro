@@ -12,7 +12,7 @@ public:
                                        lineWidth(1.0f),
                                        opacity(1.0f),
                                        normalLength(0.05f),
-                                       normalsPercentage(0.5),
+                                       correspondencesFraction(0.5),
                                        overrideColors(false)
         {}
         inline ~RenderingProperties() {}
@@ -22,7 +22,7 @@ public:
         float lineWidth;
         float opacity;
         float normalLength;
-        float normalsPercentage;
+        float correspondencesFraction;
         bool overrideColors;
 
         inline RenderingProperties& setDrawingColor(const Eigen::Vector3f &color) { drawingColor = color; return *this; }
@@ -31,15 +31,22 @@ public:
         inline RenderingProperties& setLineWidth(float lw) { lineWidth = lw; return *this; }
         inline RenderingProperties& setOpacity(float op) { opacity = op; return *this; }
         inline RenderingProperties& setNormalLength(float nl) { normalLength = nl; return *this; }
-        inline RenderingProperties& setNormalsPercentage(float np) { normalsPercentage = np; return *this; }
+        inline RenderingProperties& setCorrespondencesFraction(float cf) { correspondencesFraction = cf; return *this; }
         inline RenderingProperties& setOverrideColors(bool oc) { overrideColors = oc; return *this; }
     };
 
     Visualizer(const std::string & window_name, const std::string &display_name);
     inline ~Visualizer() {}
 
+    void addPointCloud(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &colors, const RenderingProperties &rp = RenderingProperties());
+    void addPointCloud(const std::string &name, const std::vector<Eigen::Vector3f> &points, const RenderingProperties &rp = RenderingProperties());
     void addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp = RenderingProperties());
+
+    void addPointCloudNormals(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const RenderingProperties &rp = RenderingProperties());
     void addPointCloudNormals(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp = RenderingProperties());
+
+    void addPointCorrespondences(const std::string &name, const std::vector<Eigen::Vector3f> &points_src, const std::vector<Eigen::Vector3f> &points_dst, const RenderingProperties &rp = RenderingProperties());
+    void addPointCorrespondences(const std::string &name, const PointCloud &cloud_src, const PointCloud &cloud_dst, const RenderingProperties &rp = RenderingProperties());
 
     inline void clear() { renderables_.clear(); }
     inline void remove(const std::string &name) { renderables_.erase(name); }
@@ -87,15 +94,26 @@ private:
         void render();
     };
 
+    struct CorrespondencesRenderable_ : public Renderable_
+    {
+        pangolin::GlBuffer lineEndPointsBuffer;
+        std::vector<Eigen::Vector3f> points_src;
+        std::vector<Eigen::Vector3f> points_dst;
+        void applyRenderingProperties();
+        void render();
+    };
+
     pangolin::PangolinGl *gl_context_;
     pangolin::View *display_;
 
     std::unique_ptr<pangolin::OpenGlRenderState> gl_render_state_;
     std::unique_ptr<pangolin::Handler3D> input_handler_;
+    pangolin::OpenGlMatrix initial_model_view_;
 
     Eigen::Vector3f clear_color_;
 
     std::map<std::string, std::unique_ptr<Renderable_> > renderables_;
 
     static void point_size_callback_(Visualizer &viz, int key);
+    static void reset_view_callback_(Visualizer &viz);
 };

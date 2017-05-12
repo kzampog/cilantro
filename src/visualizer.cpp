@@ -27,14 +27,14 @@ void Visualizer::PointsRenderable_::render() {
 }
 
 void Visualizer::NormalsRenderable_::applyRenderingProperties() {
-    if (renderingProperties.normalsPercentage <= 0.0f) {
-        renderingProperties.normalsPercentage = 0.0;
+    if (renderingProperties.correspondencesFraction <= 0.0f) {
+        renderingProperties.correspondencesFraction = 0.0;
         lineEndPointsBuffer.Resize(0);
         return;
     }
-    if (renderingProperties.normalsPercentage > 1.0f) renderingProperties.normalsPercentage = 1.0;
+    if (renderingProperties.correspondencesFraction > 1.0f) renderingProperties.correspondencesFraction = 1.0;
 
-    size_t step = std::floor(1.0/renderingProperties.normalsPercentage);
+    size_t step = std::floor(1.0/renderingProperties.correspondencesFraction);
     std::vector<Eigen::Vector3f> tmp(2*((points.size() - 1)/step + 1));
 
     for (size_t i = 0; i < points.size(); i += step) {
@@ -47,6 +47,33 @@ void Visualizer::NormalsRenderable_::applyRenderingProperties() {
 }
 
 void Visualizer::NormalsRenderable_::render() {
+    glPointSize(renderingProperties.pointSize);
+    glColor4f(renderingProperties.drawingColor(0), renderingProperties.drawingColor(1), renderingProperties.drawingColor(2), renderingProperties.opacity);
+    glLineWidth(renderingProperties.lineWidth);
+    pangolin::RenderVbo(lineEndPointsBuffer, GL_LINES);
+}
+
+void Visualizer::CorrespondencesRenderable_::applyRenderingProperties() {
+    if (renderingProperties.correspondencesFraction <= 0.0f) {
+        renderingProperties.correspondencesFraction = 0.0;
+        lineEndPointsBuffer.Resize(0);
+        return;
+    }
+    if (renderingProperties.correspondencesFraction > 1.0f) renderingProperties.correspondencesFraction = 1.0;
+
+    size_t step = std::floor(1.0/renderingProperties.correspondencesFraction);
+    std::vector<Eigen::Vector3f> tmp(2*((points_src.size() - 1)/step + 1));
+
+    for (size_t i = 0; i < points_src.size(); i += step) {
+        tmp[2*i/step + 0] = points_src[i];
+        tmp[2*i/step + 1] = points_dst[i];
+    }
+
+    lineEndPointsBuffer.Reinitialise(pangolin::GlArrayBuffer, tmp.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+    lineEndPointsBuffer.Upload(tmp.data(), sizeof(float)*tmp.size()*3);
+}
+
+void Visualizer::CorrespondencesRenderable_::render() {
     glPointSize(renderingProperties.pointSize);
     glColor4f(renderingProperties.drawingColor(0), renderingProperties.drawingColor(1), renderingProperties.drawingColor(2), renderingProperties.opacity);
     glLineWidth(renderingProperties.lineWidth);
@@ -71,35 +98,66 @@ Visualizer::Visualizer(const std::string &window_name, const std::string &displa
     pangolin::RegisterKeyPressCallback('+', inc_fun);
     auto dec_fun = std::bind(point_size_callback_, std::ref(*this), '-');
     pangolin::RegisterKeyPressCallback('-', dec_fun);
+    auto reset_fun = std::bind(reset_view_callback_, std::ref(*this));
+    pangolin::RegisterKeyPressCallback('r', reset_fun);
+    pangolin::RegisterKeyPressCallback('R', reset_fun);
 
     // Pangolin searches internally for existing named displays
     display_ = &(pangolin::Display(display_name));
 
-    gl_render_state_.reset(new pangolin::OpenGlRenderState(pangolin::ProjectionMatrix(640, 480, 528, 528, 320, 240, 0.2, 100), pangolin::ModelViewLookAt(0, 0, 0, 0, 0, 1, pangolin::AxisNegY)));
+    initial_model_view_ = pangolin::ModelViewLookAt(0, 0, 0, 0, 0, 1, pangolin::AxisNegY);
+    gl_render_state_.reset(new pangolin::OpenGlRenderState(pangolin::ProjectionMatrix(640, 480, 528, 528, 320, 240, 0.2, 100), initial_model_view_));
     input_handler_.reset(new pangolin::Handler3D(*gl_render_state_));
     display_->SetHandler(input_handler_.get());
     display_->SetAspect(-4.0f/3.0f);
 }
 
-void Visualizer::addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp) {
+void Visualizer::addPointCloud(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &colors, const RenderingProperties &rp) {
     renderables_[name] = std::unique_ptr<PointsRenderable_>(new PointsRenderable_);
     PointsRenderable_ *obj_ptr = (PointsRenderable_ *)renderables_[name].get();
     // Copy fields
-    obj_ptr->points = cloud.points;
-    obj_ptr->colors = cloud.colors;
+    obj_ptr->points = points;
+    obj_ptr->colors = colors;
+    // Update buffers
+    ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
+}
+
+void Visualizer::addPointCloud(const std::string &name, const std::vector<Eigen::Vector3f> &points, const RenderingProperties &rp) {
+    addPointCloud(name, points, std::vector<Eigen::Vector3f>(), rp);
+}
+
+void Visualizer::addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp) {
+    addPointCloud(name, cloud.points, cloud.colors, rp);
+}
+
+void Visualizer::addPointCloudNormals(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const RenderingProperties &rp) {
+    if (points.size() != normals.size()) return;
+    renderables_[name] = std::unique_ptr<NormalsRenderable_>(new NormalsRenderable_);
+    NormalsRenderable_ *obj_ptr = (NormalsRenderable_ *)renderables_[name].get();
+    // Copy fields
+    obj_ptr->points = points;
+    obj_ptr->normals = normals;
     // Update buffers
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
 
 void Visualizer::addPointCloudNormals(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp) {
-    if (!cloud.hasNormals()) return;
-    renderables_[name] = std::unique_ptr<NormalsRenderable_>(new NormalsRenderable_);
-    NormalsRenderable_ *obj_ptr = (NormalsRenderable_ *)renderables_[name].get();
+    addPointCloudNormals(name, cloud.points, cloud.normals, rp);
+}
+
+void Visualizer::addPointCorrespondences(const std::string &name, const std::vector<Eigen::Vector3f> &points_src, const std::vector<Eigen::Vector3f> &points_dst, const RenderingProperties &rp) {
+    if (points_src.size() != points_dst.size()) return;
+    renderables_[name] = std::unique_ptr<CorrespondencesRenderable_>(new CorrespondencesRenderable_);
+    CorrespondencesRenderable_ *obj_ptr = (CorrespondencesRenderable_ *)renderables_[name].get();
     // Copy fields
-    obj_ptr->points = cloud.points;
-    obj_ptr->normals = cloud.normals;
+    obj_ptr->points_src = points_src;
+    obj_ptr->points_dst = points_dst;
     // Update buffers
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
+}
+
+void Visualizer::addPointCorrespondences(const std::string &name, const PointCloud &cloud_src, const PointCloud &cloud_dst, const RenderingProperties &rp) {
+    addPointCorrespondences(name, cloud_src.points, cloud_dst.points, rp);
 }
 
 void Visualizer::render() {
@@ -176,4 +234,8 @@ void Visualizer::point_size_callback_(Visualizer &viz, int key) {
             viz.setRenderingProperties(it->first, rp);
         }
     }
+}
+
+void Visualizer::reset_view_callback_(Visualizer &viz) {
+    viz.gl_render_state_->SetModelViewMatrix(viz.initial_model_view_);
 }
