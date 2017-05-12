@@ -26,7 +26,7 @@ int main(int argc, char ** argv) {
 
     viz.addPointCloud("pcd", cloud);
     viz.addPointCloudNormals("nrm", cloud, Visualizer::RenderingProperties().setCorrespondencesFraction(0.20).setOpacity(0.5));
-
+    viz.addCoordinateSystem("axis", 0.4f, Eigen::Matrix4f::Identity(), Visualizer::RenderingProperties().setLineWidth(10.0f));
 
     // Second
     PointCloud cloud2(cloud);
@@ -38,6 +38,7 @@ int main(int argc, char ** argv) {
     viz2.addPointCloud("pcd1", cloud, Visualizer::RenderingProperties().setDrawingColor(1,0,0).setOverrideColors(true).setOpacity(0.5));
     viz2.addPointCloud("pcd2", cloud2, Visualizer::RenderingProperties().setDrawingColor(0,0,1).setOverrideColors(true));
     viz2.addPointCorrespondences("corr", cloud, cloud2, Visualizer::RenderingProperties().setCorrespondencesFraction(0.01).setOpacity(0.4));
+    viz2.addCoordinateSystem("axis", 0.4f, Eigen::Matrix4f::Identity(), Visualizer::RenderingProperties().setLineWidth(10.0f));
 
     while (!viz.wasStopped() || !viz2.wasStopped()) {
         viz.spinOnce();

@@ -62,11 +62,11 @@ void Visualizer::CorrespondencesRenderable_::applyRenderingProperties() {
     if (renderingProperties.correspondencesFraction > 1.0f) renderingProperties.correspondencesFraction = 1.0;
 
     size_t step = std::floor(1.0/renderingProperties.correspondencesFraction);
-    std::vector<Eigen::Vector3f> tmp(2*((points_src.size() - 1)/step + 1));
+    std::vector<Eigen::Vector3f> tmp(2*((srcPoints.size() - 1)/step + 1));
 
-    for (size_t i = 0; i < points_src.size(); i += step) {
-        tmp[2*i/step + 0] = points_src[i];
-        tmp[2*i/step + 1] = points_dst[i];
+    for (size_t i = 0; i < srcPoints.size(); i += step) {
+        tmp[2*i/step + 0] = srcPoints[i];
+        tmp[2*i/step + 1] = dstPoints[i];
     }
 
     lineEndPointsBuffer.Reinitialise(pangolin::GlArrayBuffer, tmp.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
@@ -78,6 +78,13 @@ void Visualizer::CorrespondencesRenderable_::render() {
     glColor4f(renderingProperties.drawingColor(0), renderingProperties.drawingColor(1), renderingProperties.drawingColor(2), renderingProperties.opacity);
     glLineWidth(renderingProperties.lineWidth);
     pangolin::RenderVbo(lineEndPointsBuffer, GL_LINES);
+}
+
+void Visualizer::AxisRenderable_::applyRenderingProperties() {}
+
+void Visualizer::AxisRenderable_::render() {
+    glLineWidth(renderingProperties.lineWidth);
+    pangolin::glDrawAxis<float>(transform, scale);
 }
 
 Visualizer::Visualizer(const std::string &window_name, const std::string &display_name)
@@ -150,14 +157,24 @@ void Visualizer::addPointCorrespondences(const std::string &name, const std::vec
     renderables_[name] = std::unique_ptr<CorrespondencesRenderable_>(new CorrespondencesRenderable_);
     CorrespondencesRenderable_ *obj_ptr = (CorrespondencesRenderable_ *)renderables_[name].get();
     // Copy fields
-    obj_ptr->points_src = points_src;
-    obj_ptr->points_dst = points_dst;
+    obj_ptr->srcPoints = points_src;
+    obj_ptr->dstPoints = points_dst;
     // Update buffers
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
 
 void Visualizer::addPointCorrespondences(const std::string &name, const PointCloud &cloud_src, const PointCloud &cloud_dst, const RenderingProperties &rp) {
     addPointCorrespondences(name, cloud_src.points, cloud_dst.points, rp);
+}
+
+void Visualizer::addCoordinateSystem(const std::string &name, float scale, const Eigen::Matrix4f &tf, const RenderingProperties &rp) {
+    renderables_[name] = std::unique_ptr<AxisRenderable_>(new AxisRenderable_);
+    AxisRenderable_ *obj_ptr = (AxisRenderable_ *)renderables_[name].get();
+    // Copy fields
+    obj_ptr->scale = scale;
+    obj_ptr->transform = tf;
+    // Update buffers
+    ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
 
 void Visualizer::render(const std::string &obj_name) const {

@@ -48,6 +48,8 @@ public:
     void addPointCorrespondences(const std::string &name, const std::vector<Eigen::Vector3f> &points_src, const std::vector<Eigen::Vector3f> &points_dst, const RenderingProperties &rp = RenderingProperties());
     void addPointCorrespondences(const std::string &name, const PointCloud &cloud_src, const PointCloud &cloud_dst, const RenderingProperties &rp = RenderingProperties());
 
+    void addCoordinateSystem(const std::string &name, float scale = 1.0f, const Eigen::Matrix4f &tf = Eigen::Matrix4f::Identity(), const RenderingProperties &rp = RenderingProperties());
+
     inline void clear() { renderables_.clear(); }
     inline void remove(const std::string &name) { renderables_.erase(name); }
 
@@ -100,8 +102,16 @@ private:
     struct CorrespondencesRenderable_ : public Renderable_
     {
         pangolin::GlBuffer lineEndPointsBuffer;
-        std::vector<Eigen::Vector3f> points_src;
-        std::vector<Eigen::Vector3f> points_dst;
+        std::vector<Eigen::Vector3f> srcPoints;
+        std::vector<Eigen::Vector3f> dstPoints;
+        void applyRenderingProperties();
+        void render();
+    };
+
+    struct AxisRenderable_ : public Renderable_
+    {
+        float scale;
+        Eigen::Matrix4f transform;
         void applyRenderingProperties();
         void render();
     };
