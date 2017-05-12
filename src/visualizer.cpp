@@ -160,32 +160,46 @@ void Visualizer::addPointCorrespondences(const std::string &name, const PointClo
     addPointCorrespondences(name, cloud_src.points, cloud_dst.points, rp);
 }
 
-void Visualizer::render(const std::string &obj_name) {
+void Visualizer::render(const std::string &obj_name) const {
     gl_context_->MakeCurrent();
     display_->Activate(*gl_render_state_);
     glEnable(GL_DEPTH_TEST);
-    glEnable (GL_BLEND);
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(clear_color_(0), clear_color_(1), clear_color_(2), 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     auto it = renderables_.find(obj_name);
     if (it != renderables_.end()) it->second->render();
 }
 
-void Visualizer::render() {
+void Visualizer::render() const {
+    struct {
+        bool operator()(Visualizer::Renderable_ *o1, Visualizer::Renderable_ *o2) const {
+            return o1->renderingProperties.opacity > o2->renderingProperties.opacity;
+        }
+    } alpha_comparator;
+
+    size_t k = 0;
+    std::vector<Visualizer::Renderable_*> objects(renderables_.size());
+    for (auto it = renderables_.begin(); it != renderables_.end(); ++it) {
+        objects[k++] = it->second.get();
+    }
+    std::sort(objects.begin(), objects.end(), alpha_comparator);
+
     gl_context_->MakeCurrent();
     display_->Activate(*gl_render_state_);
     glEnable(GL_DEPTH_TEST);
-    glEnable (GL_BLEND);
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(clear_color_(0), clear_color_(1), clear_color_(2), 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    for (auto it = renderables_.begin(); it != renderables_.end(); ++it) {
-        it->second->render();
+
+    for (size_t i = 0; i < objects.size(); i++) {
+        objects[i]->render();
     }
 }
 
-Visualizer::RenderingProperties Visualizer::getRenderingProperties(const std::string &name) {
+Visualizer::RenderingProperties Visualizer::getRenderingProperties(const std::string &name) const {
     auto it = renderables_.find(name);
     if (it == renderables_.end()) return RenderingProperties();
     return it->second->renderingProperties;
@@ -197,7 +211,7 @@ void Visualizer::setRenderingProperties(const std::string &name, const Rendering
     it->second->applyRenderingProperties(rp);
 }
 
-std::vector<std::string> Visualizer::getObjectNames() {
+std::vector<std::string> Visualizer::getObjectNames() const {
     std::vector<std::string> res;
     for (auto it = renderables_.begin(); it != renderables_.end(); ++it) {
         res.push_back(it->first);

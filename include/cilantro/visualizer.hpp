@@ -51,16 +51,16 @@ public:
     inline void clear() { renderables_.clear(); }
     inline void remove(const std::string &name) { renderables_.erase(name); }
 
-    void render(const std::string &obj_name);
-    void render();
+    void render(const std::string &obj_name) const;
+    void render() const;
 
-    inline void spinOnce() { render(); pangolin::FinishFrame();}
-    inline bool wasStopped() { return gl_context_->quit; }
+    inline void spinOnce() const { render(); pangolin::FinishFrame(); }
+    inline bool wasStopped() const { return gl_context_->quit; }
 
-    RenderingProperties getRenderingProperties(const std::string &name);
+    RenderingProperties getRenderingProperties(const std::string &name) const;
     void setRenderingProperties(const std::string &name, const RenderingProperties &rp);
 
-    std::vector<std::string> getObjectNames();
+    std::vector<std::string> getObjectNames() const;
 
     inline Eigen::Vector3f getClearColor() const { return clear_color_; }
     inline void setClearColor(const Eigen::Vector3f &color) { clear_color_ = color; }

@@ -25,6 +25,8 @@ int main(int argc, char ** argv) {
     viz.registerKeyboardCallback(keys, test, NULL);
 
     viz.addPointCloud("pcd", cloud);
+    viz.addPointCloudNormals("nrm", cloud, Visualizer::RenderingProperties().setCorrespondencesFraction(0.20).setOpacity(0.5));
+
 
     // Second
     PointCloud cloud2(cloud);
@@ -33,11 +35,9 @@ int main(int argc, char ** argv) {
     }
 
     Visualizer viz2("win2", "disp2");
-    viz2.addPointCloud("pcd1", cloud, Visualizer::RenderingProperties().setDrawingColor(1,0,0).setOverrideColors(true).setOpacity(0.2));
+    viz2.addPointCloud("pcd1", cloud, Visualizer::RenderingProperties().setDrawingColor(1,0,0).setOverrideColors(true).setOpacity(0.5));
     viz2.addPointCloud("pcd2", cloud2, Visualizer::RenderingProperties().setDrawingColor(0,0,1).setOverrideColors(true));
-    viz2.addPointCloudNormals("nrm1", cloud, Visualizer::RenderingProperties().setCorrespondencesFraction(0.20).setDrawingColor(0,1,0).setOpacity(0.2));
-    viz2.addPointCloudNormals("nrm2", cloud2, Visualizer::RenderingProperties().setCorrespondencesFraction(0.20).setDrawingColor(0,1,0));
-    viz2.addPointCorrespondences("corr", cloud, cloud2, Visualizer::RenderingProperties().setCorrespondencesFraction(0.01));
+    viz2.addPointCorrespondences("corr", cloud, cloud2, Visualizer::RenderingProperties().setCorrespondencesFraction(0.01).setOpacity(0.4));
 
     while (!viz.wasStopped() || !viz2.wasStopped()) {
         viz.spinOnce();
