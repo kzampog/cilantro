@@ -125,6 +125,7 @@ void Visualizer::addPointCloud(const std::string &name, const std::vector<Eigen:
     // Copy fields
     obj_ptr->points = points;
     obj_ptr->colors = colors;
+    obj_ptr->position = Eigen::Map<Eigen::MatrixXf>((float *)points.data(), 3, points.size()).rowwise().mean();
     // Update buffers
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
@@ -144,6 +145,7 @@ void Visualizer::addPointCloudNormals(const std::string &name, const std::vector
     // Copy fields
     obj_ptr->points = points;
     obj_ptr->normals = normals;
+    obj_ptr->position = Eigen::Map<Eigen::MatrixXf>((float *)points.data(), 3, points.size()).rowwise().mean();
     // Update buffers
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
@@ -159,6 +161,8 @@ void Visualizer::addPointCorrespondences(const std::string &name, const std::vec
     // Copy fields
     obj_ptr->srcPoints = points_src;
     obj_ptr->dstPoints = points_dst;
+    obj_ptr->position = (  Eigen::Map<Eigen::MatrixXf>((float *)points_src.data(), 3, points_src.size()).rowwise().mean()
+                         + Eigen::Map<Eigen::MatrixXf>((float *)points_dst.data(), 3, points_dst.size()).rowwise().mean() ) / 2.0f;
     // Update buffers
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
@@ -173,6 +177,7 @@ void Visualizer::addCoordinateSystem(const std::string &name, float scale, const
     // Copy fields
     obj_ptr->scale = scale;
     obj_ptr->transform = tf;
+    obj_ptr->position = tf.topRightCorner(3,1);
     // Update buffers
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
@@ -190,10 +195,22 @@ void Visualizer::render(const std::string &obj_name) const {
 }
 
 void Visualizer::render() const {
+    // Set render sequence
+    pangolin::OpenGlMatrix mv = gl_render_state_->GetModelViewMatrix();
+    Eigen::Matrix3f R;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            R(i,j) = mv(i,j);
+        }
+    }
+    Eigen::Vector3f t(mv(0,3), mv(1,3), mv(2,3));
+
     size_t k = 0;
-    std::vector<Visualizer::Renderable_*> objects(renderables_.size());
+    std::vector<std::pair<Visualizer::Renderable_*, float> > objects(renderables_.size());
     for (auto it = renderables_.begin(); it != renderables_.end(); ++it) {
-        objects[k++] = it->second.get();
+        objects[k].first = it->second.get();
+        objects[k].second = (R*(it->second.get()->position) + t).norm();
+        k++;
     }
     std::sort(objects.begin(), objects.end(), render_priority_comparator_);
 
@@ -206,7 +223,7 @@ void Visualizer::render() const {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     for (size_t i = 0; i < objects.size(); i++) {
-        objects[i]->render();
+        objects[i].first->render();
     }
 }
 

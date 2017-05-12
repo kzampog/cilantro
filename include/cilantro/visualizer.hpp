@@ -74,6 +74,7 @@ public:
 
 private:
     struct Renderable_ {
+        Eigen::Vector3f position;                       // For render priority...
         RenderingProperties renderingProperties;
         virtual void applyRenderingProperties() = 0;    // Updates GPU buffers
         inline void applyRenderingProperties(const RenderingProperties &rp) { renderingProperties = rp; applyRenderingProperties(); }
@@ -131,8 +132,12 @@ private:
     static void reset_view_callback_(Visualizer &viz);
 
     struct {
-        bool operator()(Renderable_ *o1, Renderable_ *o2) const {
-            return o1->renderingProperties.opacity > o2->renderingProperties.opacity;
+        bool operator()(const std::pair<Visualizer::Renderable_*, float> &p1, const std::pair<Visualizer::Renderable_*, float> &p2) const {
+            if (p1.first->renderingProperties.opacity == 1.0f && p2.first->renderingProperties.opacity < 1.0f) {
+                return true;
+            } else {
+                return p1.second > p2.second;
+            }
         }
     } render_priority_comparator_;
 };
