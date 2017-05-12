@@ -4,9 +4,9 @@
 
 #include <iostream>
 
-//void test(int key, const Visualizer &viz, int asdf) {
-//    std::cout << key << std::endl;
-//}
+void test(Visualizer &viz, int key, void *cookie) {
+    std::cout << ((char)key) << std::endl;
+}
 
 int main(int argc, char ** argv) {
 
@@ -18,14 +18,14 @@ int main(int argc, char ** argv) {
 
     Visualizer viz("win", "disp");
 
-    viz.addPointCloud("pcd", cloud, Visualizer::RenderingProperties().setPointSize(10));
-    viz.addPointCloudNormals("nrm", cloud, Visualizer::RenderingProperties().setNormalsPercentage(0.05).setDrawingColor(0,1,0));
+    viz.addPointCloud("pcd", cloud);
+    viz.addPointCloudNormals("nrm", cloud, Visualizer::RenderingProperties().setNormalsPercentage(0.05));
 
-//    std::vector<int> keys;
-//    keys.push_back('a');
-//    keys.push_back('z');
+    std::vector<int> keys;
+    keys.push_back('a');
+    keys.push_back('z');
 
-//    viz.registerKeyboardCallback(keys, pangolin::ShouldQuit);
+    viz.registerKeyboardCallback(keys, test, NULL);
 
     while (!pangolin::ShouldQuit()) {
         viz.render();

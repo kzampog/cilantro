@@ -4,14 +4,21 @@ void Visualizer::PointsRenderable_::applyRenderingProperties() {
     pointsBuffer.Reinitialise(pangolin::GlArrayBuffer, points.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
     pointsBuffer.Upload(points.data(), sizeof(float)*points.size()*3);
 
+    std::vector<Eigen::Vector4f> color_alpha;
     if (renderingProperties.overrideColors || colors.size() != points.size()) {
-        std::vector<Eigen::Vector3f> render_colors(points.size(), renderingProperties.drawingColor);
-        colorsBuffer.Reinitialise(pangolin::GlArrayBuffer, render_colors.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-        colorsBuffer.Upload(render_colors.data(), sizeof(float)*render_colors.size()*3);
+        Eigen::Vector4f tmp;
+        tmp.head(3) = renderingProperties.drawingColor;
+        tmp(3) = renderingProperties.opacity;
+        color_alpha = std::vector<Eigen::Vector4f>(points.size(), tmp);
     } else {
-        colorsBuffer.Reinitialise(pangolin::GlArrayBuffer, colors.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-        colorsBuffer.Upload(colors.data(), sizeof(float)*colors.size()*3);
+        color_alpha.resize(colors.size());
+        for(size_t i = 0; i < colors.size(); i++) {
+            color_alpha[i].head(3) = colors[i];
+            color_alpha[i](3) = renderingProperties.opacity;
+        }
     }
+    colorsBuffer.Reinitialise(pangolin::GlArrayBuffer, color_alpha.size(), GL_FLOAT, 4, GL_DYNAMIC_DRAW);
+    colorsBuffer.Upload(color_alpha.data(), sizeof(float)*color_alpha.size()*4);
 }
 
 void Visualizer::PointsRenderable_::render() {
@@ -41,7 +48,7 @@ void Visualizer::NormalsRenderable_::applyRenderingProperties() {
 
 void Visualizer::NormalsRenderable_::render() {
     glPointSize(renderingProperties.pointSize);
-    glColor3f(renderingProperties.drawingColor(0), renderingProperties.drawingColor(1), renderingProperties.drawingColor(2));
+    glColor4f(renderingProperties.drawingColor(0), renderingProperties.drawingColor(1), renderingProperties.drawingColor(2), renderingProperties.opacity);
     glLineWidth(renderingProperties.lineWidth);
     pangolin::RenderVbo(lineEndPointsBuffer, GL_LINES);
 }
@@ -55,10 +62,17 @@ Visualizer::Visualizer(const std::string &window_name, const std::string &displa
         gl_context_ = pangolin::FindContext(window_name);
     }
 
-    // Pangolin searches internally for existing named displays
     gl_context_->MakeCurrent();
+
+    // Default callbacks
     pangolin::RegisterKeyPressCallback('q', pangolin::Quit);
     pangolin::RegisterKeyPressCallback('Q', pangolin::Quit);
+    auto inc_fun = std::bind(point_size_callback_, std::ref(*this), '+');
+    pangolin::RegisterKeyPressCallback('+', inc_fun);
+    auto dec_fun = std::bind(point_size_callback_, std::ref(*this), '-');
+    pangolin::RegisterKeyPressCallback('-', dec_fun);
+
+    // Pangolin searches internally for existing named displays
     display_ = &(pangolin::Display(display_name));
 
     gl_render_state_.reset(new pangolin::OpenGlRenderState(pangolin::ProjectionMatrix(640, 480, 528, 528, 320, 240, 0.2, 100), pangolin::ModelViewLookAt(0, 0, 0, 0, 0, 1, pangolin::AxisNegY)));
@@ -79,7 +93,6 @@ void Visualizer::addPointCloud(const std::string &name, const PointCloud &cloud,
 
 void Visualizer::addPointCloudNormals(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp) {
     if (!cloud.hasNormals()) return;
-
     renderables_[name] = std::unique_ptr<NormalsRenderable_>(new NormalsRenderable_);
     NormalsRenderable_ *obj_ptr = (NormalsRenderable_ *)renderables_[name].get();
     // Copy fields
@@ -93,6 +106,8 @@ void Visualizer::render() {
     gl_context_->MakeCurrent();
     display_->Activate(*gl_render_state_);
     glEnable(GL_DEPTH_TEST);
+    glEnable (GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(clear_color_(0), clear_color_(1), clear_color_(2), 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for (auto it = renderables_.begin(); it != renderables_.end(); ++it) {
@@ -104,10 +119,32 @@ void Visualizer::render(const std::string &obj_name) {
     gl_context_->MakeCurrent();
     display_->Activate(*gl_render_state_);
     glEnable(GL_DEPTH_TEST);
+    glEnable (GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(clear_color_(0), clear_color_(1), clear_color_(2), 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     auto it = renderables_.find(obj_name);
     if (it != renderables_.end()) it->second->render();
+}
+
+Visualizer::RenderingProperties Visualizer::getRenderingProperties(const std::string &name) {
+    auto it = renderables_.find(name);
+    if (it == renderables_.end()) return RenderingProperties();
+    return it->second->renderingProperties;
+}
+
+void Visualizer::setRenderingProperties(const std::string &name, const RenderingProperties &rp) {
+    auto it = renderables_.find(name);
+    if (it == renderables_.end()) return;
+    it->second->applyRenderingProperties(rp);
+}
+
+std::vector<std::string> Visualizer::getObjectNames() {
+    std::vector<std::string> res;
+    for (auto it = renderables_.begin(); it != renderables_.end(); ++it) {
+        res.push_back(it->first);
+    }
+    return res;
 }
 
 void Visualizer::setProjectionMatrix(int w, int h, pangolin::GLprecision fu, pangolin::GLprecision fv, pangolin::GLprecision u0, pangolin::GLprecision v0, pangolin::GLprecision zNear, pangolin::GLprecision zFar) {
@@ -115,11 +152,28 @@ void Visualizer::setProjectionMatrix(int w, int h, pangolin::GLprecision fu, pan
     display_->SetAspect(-(double)w/((double)h));
 }
 
-//void Visualizer::registerKeyboardCallback(const std::vector<int> &keys, std::function<void(void)> func) {
-//    gl_context_->MakeCurrent();
-//    for (size_t i = 0; i < keys.size(); i++) {
-//        auto fun = std::bind(func, keys[i], std::cref(*this));
-//        std::function<void(void)> * fun_ptr = (std::function<void(void)> *)(&fun);
-//        pangolin::RegisterKeyPressCallback(keys[i], *fun_ptr);
-//    }
-//}
+void Visualizer::registerKeyboardCallback(const std::vector<int> &keys, std::function<void(Visualizer&,int,void*)> func, void *cookie) {
+    gl_context_->MakeCurrent();
+    for (size_t i = 0; i < keys.size(); i++) {
+        auto fun = std::bind(func, std::ref(*this), keys[i], cookie);
+        pangolin::RegisterKeyPressCallback(keys[i], fun);
+    }
+}
+
+void Visualizer::point_size_callback_(Visualizer &viz, int key) {
+    if (key == '+') {
+        for (auto it = viz.renderables_.begin(); it != viz.renderables_.end(); ++it) {
+            RenderingProperties rp = viz.getRenderingProperties(it->first);
+            rp.pointSize += 1.0;
+            rp.lineWidth = rp.pointSize/5.0f;
+            viz.setRenderingProperties(it->first, rp);
+        }
+    } else if (key == '-') {
+        for (auto it = viz.renderables_.begin(); it != viz.renderables_.end(); ++it) {
+            RenderingProperties rp = viz.getRenderingProperties(it->first);
+            rp.pointSize = std::max(rp.pointSize - 1.0f, 1.0f);
+            rp.lineWidth = rp.pointSize/5.0f;
+            viz.setRenderingProperties(it->first, rp);
+        }
+    }
+}

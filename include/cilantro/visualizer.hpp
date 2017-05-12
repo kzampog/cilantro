@@ -10,6 +10,7 @@ public:
         inline RenderingProperties() : drawingColor(Eigen::Vector3f(1.0f, 1.0f, 1.0f)),
                                        pointSize(5.0f),
                                        lineWidth(1.0f),
+                                       opacity(1.0f),
                                        normalLength(0.05f),
                                        normalsPercentage(0.5),
                                        overrideColors(false)
@@ -19,6 +20,7 @@ public:
         Eigen::Vector3f drawingColor;
         float pointSize;
         float lineWidth;
+        float opacity;
         float normalLength;
         float normalsPercentage;
         bool overrideColors;
@@ -27,8 +29,10 @@ public:
         inline RenderingProperties& setDrawingColor(float r, float g, float b) { drawingColor = Eigen::Vector3f(r,g,b); return *this; }
         inline RenderingProperties& setPointSize(float sz) { pointSize = sz; return *this; }
         inline RenderingProperties& setLineWidth(float lw) { lineWidth = lw; return *this; }
+        inline RenderingProperties& setOpacity(float op) { opacity = op; return *this; }
         inline RenderingProperties& setNormalLength(float nl) { normalLength = nl; return *this; }
         inline RenderingProperties& setNormalsPercentage(float np) { normalsPercentage = np; return *this; }
+        inline RenderingProperties& setOverrideColors(bool oc) { overrideColors = oc; return *this; }
     };
 
     Visualizer(const std::string & window_name, const std::string &display_name);
@@ -43,13 +47,18 @@ public:
     void render();
     void render(const std::string &obj_name);
 
+    RenderingProperties getRenderingProperties(const std::string &name);
+    void setRenderingProperties(const std::string &name, const RenderingProperties &rp);
+
+    std::vector<std::string> getObjectNames();
+
     inline Eigen::Vector3f getClearColor() const { return clear_color_; }
     inline void setClearColor(const Eigen::Vector3f &color) { clear_color_ = color; }
     inline void setClearColor(float r, float g, float b) { clear_color_ = Eigen::Vector3f(r,g,b); }
 
     void setProjectionMatrix(int w, int h, pangolin::GLprecision fu, pangolin::GLprecision fv, pangolin::GLprecision u0, pangolin::GLprecision v0, pangolin::GLprecision zNear, pangolin::GLprecision zFar);
 
-//    void registerKeyboardCallback(const std::vector<int> &keys, std::function<void(void)> fun);
+    void registerKeyboardCallback(const std::vector<int> &keys, std::function<void(Visualizer&,int,void*)> func, void *cookie);
 
 private:
     struct Renderable_ {
@@ -87,4 +96,6 @@ private:
     Eigen::Vector3f clear_color_;
 
     std::map<std::string, std::unique_ptr<Renderable_> > renderables_;
+
+    static void point_size_callback_(Visualizer &viz, int key);
 };
