@@ -129,4 +129,10 @@ private:
 
     static void point_size_callback_(Visualizer &viz, int key);
     static void reset_view_callback_(Visualizer &viz);
+
+    struct {
+        bool operator()(Renderable_ *o1, Renderable_ *o2) const {
+            return o1->renderingProperties.opacity > o2->renderingProperties.opacity;
+        }
+    } render_priority_comparator_;
 };

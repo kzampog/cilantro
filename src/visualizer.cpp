@@ -190,18 +190,12 @@ void Visualizer::render(const std::string &obj_name) const {
 }
 
 void Visualizer::render() const {
-    struct {
-        bool operator()(Visualizer::Renderable_ *o1, Visualizer::Renderable_ *o2) const {
-            return o1->renderingProperties.opacity > o2->renderingProperties.opacity;
-        }
-    } alpha_comparator;
-
     size_t k = 0;
     std::vector<Visualizer::Renderable_*> objects(renderables_.size());
     for (auto it = renderables_.begin(); it != renderables_.end(); ++it) {
         objects[k++] = it->second.get();
     }
-    std::sort(objects.begin(), objects.end(), alpha_comparator);
+    std::sort(objects.begin(), objects.end(), render_priority_comparator_);
 
     gl_context_->MakeCurrent();
     display_->Activate(*gl_render_state_);
