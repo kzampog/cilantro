@@ -59,6 +59,10 @@ public:
     inline void spinOnce() const { render(); pangolin::FinishFrame(); }
     inline bool wasStopped() const { return gl_context_->quit; }
 
+    bool getVisibility(const std::string &name) const;
+    void setVisibility(const std::string &name, bool visible);
+    inline void toggleVisibility(const std::string &name) { setVisibility(name, !getVisibility(name)); }
+
     RenderingProperties getRenderingProperties(const std::string &name) const;
     void setRenderingProperties(const std::string &name, const RenderingProperties &rp);
 
@@ -74,6 +78,8 @@ public:
 
 private:
     struct Renderable_ {
+        Renderable_() : visible(true), position(Eigen::Vector3f::Zero()) {}
+        bool visible;
         Eigen::Vector3f position;                       // For render priority...
         RenderingProperties renderingProperties;
         virtual void applyRenderingProperties() = 0;    // Updates GPU buffers
@@ -83,28 +89,28 @@ private:
 
     struct PointsRenderable_ : public Renderable_
     {
-        pangolin::GlBuffer pointsBuffer;
-        pangolin::GlBuffer colorsBuffer;
         std::vector<Eigen::Vector3f> points;
         std::vector<Eigen::Vector3f> colors;
+        pangolin::GlBuffer pointsBuffer;
+        pangolin::GlBuffer colorsBuffer;
         void applyRenderingProperties();
         void render();
     };
 
     struct NormalsRenderable_ : public Renderable_
     {
-        pangolin::GlBuffer lineEndPointsBuffer;
         std::vector<Eigen::Vector3f> points;
         std::vector<Eigen::Vector3f> normals;
+        pangolin::GlBuffer lineEndPointsBuffer;
         void applyRenderingProperties();
         void render();
     };
 
     struct CorrespondencesRenderable_ : public Renderable_
     {
-        pangolin::GlBuffer lineEndPointsBuffer;
         std::vector<Eigen::Vector3f> srcPoints;
         std::vector<Eigen::Vector3f> dstPoints;
+        pangolin::GlBuffer lineEndPointsBuffer;
         void applyRenderingProperties();
         void render();
     };

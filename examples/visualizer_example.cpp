@@ -4,8 +4,10 @@
 
 #include <iostream>
 
-void test(Visualizer &viz, int key, void *cookie) {
-    std::cout << ((char)key) << std::endl;
+void callback_test(Visualizer &viz, int key, void *cookie) {
+    std::string name = *((std::string *)cookie);
+    std::cout << ((char)key) << " " << name << std::endl;
+    viz.toggleVisibility(name);
 }
 
 int main(int argc, char ** argv) {
@@ -19,14 +21,13 @@ int main(int argc, char ** argv) {
     // First
     Visualizer viz("win", "disp");
 
-    std::vector<int> keys;
-    keys.push_back('a');
-    keys.push_back('z');
-    viz.registerKeyboardCallback(keys, test, NULL);
-
     viz.addPointCloud("pcd", cloud);
     viz.addPointCloudNormals("nrm", cloud, Visualizer::RenderingProperties().setCorrespondencesFraction(0.20).setOpacity(0.5));
     viz.addCoordinateSystem("axis", 0.4f, Eigen::Matrix4f::Identity(), Visualizer::RenderingProperties().setLineWidth(10.0f));
+
+    std::string name = "nrm";
+    viz.registerKeyboardCallback(std::vector<int>(1,'n'), callback_test, &name);
+
 
     // Second
     PointCloud cloud2(cloud);
@@ -39,6 +40,9 @@ int main(int argc, char ** argv) {
     viz2.addPointCloud("pcd2", cloud2, Visualizer::RenderingProperties().setDrawingColor(0,0,1).setOverrideColors(true).setOpacity(0.4));
     viz2.addPointCorrespondences("corr", cloud, cloud2, Visualizer::RenderingProperties().setCorrespondencesFraction(0.01).setOpacity(0.4));
     viz2.addCoordinateSystem("axis", 0.4f, Eigen::Matrix4f::Identity(), Visualizer::RenderingProperties().setLineWidth(10.0f));
+
+    std::string name2 = "corr";
+    viz2.registerKeyboardCallback(std::vector<int>(1,'c'), callback_test, &name2);
 
     while (!viz.wasStopped() || !viz2.wasStopped()) {
         viz.spinOnce();

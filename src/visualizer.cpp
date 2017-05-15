@@ -161,8 +161,8 @@ void Visualizer::addPointCorrespondences(const std::string &name, const std::vec
     // Copy fields
     obj_ptr->srcPoints = points_src;
     obj_ptr->dstPoints = points_dst;
-    obj_ptr->position = (  Eigen::Map<Eigen::MatrixXf>((float *)points_src.data(), 3, points_src.size()).rowwise().mean()
-                         + Eigen::Map<Eigen::MatrixXf>((float *)points_dst.data(), 3, points_dst.size()).rowwise().mean() ) / 2.0f;
+    obj_ptr->position = (Eigen::Map<Eigen::MatrixXf>((float *)points_src.data(), 3, points_src.size()).rowwise().mean() +
+                         Eigen::Map<Eigen::MatrixXf>((float *)points_dst.data(), 3, points_dst.size()).rowwise().mean()) / 2.0f;
     // Update buffers
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
@@ -208,10 +208,14 @@ void Visualizer::render() const {
     size_t k = 0;
     std::vector<std::pair<Visualizer::Renderable_*, float> > objects(renderables_.size());
     for (auto it = renderables_.begin(); it != renderables_.end(); ++it) {
-        objects[k].first = it->second.get();
-        objects[k].second = (R*(it->second.get()->position) + t).norm();
-        k++;
+        if (it->second->visible) {
+            objects[k].first = it->second.get();
+            objects[k].second = (R*(it->second->position) + t).norm();
+            k++;
+        }
     }
+    objects.resize(k);
+
     std::sort(objects.begin(), objects.end(), render_priority_comparator_);
 
     gl_context_->MakeCurrent();
@@ -225,6 +229,18 @@ void Visualizer::render() const {
     for (size_t i = 0; i < objects.size(); i++) {
         objects[i].first->render();
     }
+}
+
+bool Visualizer::getVisibility(const std::string &name) const {
+    auto it = renderables_.find(name);
+    if (it == renderables_.end()) return false;
+    return it->second->visible;
+}
+
+void Visualizer::setVisibility(const std::string &name, bool visible) {
+    auto it = renderables_.find(name);
+    if (it == renderables_.end()) return;
+    it->second->visible = visible;
 }
 
 Visualizer::RenderingProperties Visualizer::getRenderingProperties(const std::string &name) const {
