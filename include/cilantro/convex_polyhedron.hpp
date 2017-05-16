@@ -9,4 +9,6 @@
 
 #include <cilantro/point_cloud.hpp>
 
-void test();
+void VtoH(const std::vector<Eigen::Vector3f> &points);
+
+void HtoV(const std::vector<Eigen::Vector4f> &faces);
