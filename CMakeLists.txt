@@ -20,7 +20,7 @@ include_directories(3rd_party)
 # Build library
 
 file(GLOB_RECURSE lib_src src/*.cpp)
-file(GLOB_RECURSE 3rd_src 3rd_party/*.cpp)
+file(GLOB_RECURSE 3rd_src 3rd_party/*.cpp 3rd_party/*.c)
 
 add_library(cilantro SHARED ${3rd_src} ${lib_src})
 target_link_libraries(cilantro ${Pangolin_LIBRARIES})
@@ -47,6 +47,9 @@ target_link_libraries(matrix_io_example cilantro ${Pangolin_LIBRARIES})
 
 add_executable(visualizer_example examples/visualizer_example.cpp)
 target_link_libraries(visualizer_example cilantro ${Pangolin_LIBRARIES})
+
+add_executable(convex_polyhedron_example examples/convex_polyhedron_example.cpp)
+target_link_libraries(convex_polyhedron_example cilantro ${Pangolin_LIBRARIES})
 
 # Install target
 
