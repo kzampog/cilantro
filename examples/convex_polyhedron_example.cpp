@@ -20,6 +20,13 @@ int main(int argc, char ** argv) {
 
     VtoH(points);
 
+    std::vector<Eigen::Vector4f> faces;
+    faces.push_back(Eigen::Vector4f(-1,0,0,0));
+    faces.push_back(Eigen::Vector4f(0,-1,0,0));
+    faces.push_back(Eigen::Vector4f(0,0,-1,0));
+    faces.push_back(Eigen::Vector4f(1,1,1,-1));
+
+    HtoV(faces);
 
     return 0;
 }
