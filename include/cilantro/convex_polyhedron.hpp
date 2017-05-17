@@ -18,8 +18,10 @@ std::vector<FaceVectorOutT> VtoH(const std::vector<VectorInT> &points) {
             Eigen::Map<Eigen::Matrix<typename VectorInT::Scalar, Eigen::Dynamic, Eigen::Dynamic> >((typename VectorInT::Scalar *)points.data(), dim, points.size()).template cast<realT>()
     );
 
-    orgQhull::Qhull q("", dim, points.size(), data.data(), "");
-    orgQhull::QhullFacetList facets = q.facetList();
+    orgQhull::Qhull qh;
+    qh.qh()->TRIangulate = True;
+    qh.runQhull("", dim, points.size(), data.data(), "");
+    orgQhull::QhullFacetList facets = qh.facetList();
 
     size_t k = 0;
     std::vector<FaceVectorOutT> res(facets.size());
@@ -31,6 +33,14 @@ std::vector<FaceVectorOutT> VtoH(const std::vector<VectorInT> &points) {
         }
         hp(dim) = fi->hyperplane().offset();
         res[k++] = hp.cast<typename FaceVectorOutT::Scalar>();
+
+//        398       // Needed by FOREACHvertex_i_
+//        399       int vertex_n, vertex_i;
+//        400       FOREACHvertex_i_ ((*facet).vertices)
+//        401       //facet_vertices.vertices.push_back (qhid_to_pcidx[vertex->id]);
+//        402       polygons[dd].vertices[vertex_i] = qhid_to_pcidx[vertex->id];
+//        403       ++dd;
+
     }
 
     return res;
@@ -50,11 +60,11 @@ std::vector<VectorOutT> HtoV(const std::vector<FaceVectorInT> &faces, const Vect
     std::vector<coordT> fpv(dim);
     Eigen::Matrix<coordT, Eigen::Dynamic, 1>::Map(fpv.data(), dim) = feasible_point;
 
-    orgQhull::Qhull q;
-    q.setFeasiblePoint(orgQhull::Coordinates(fpv));
-    q.qh()->HALFspace = True;
-    q.runQhull("", dim+1, faces.size(), data.data(), "");
-    orgQhull::QhullFacetList facets = q.facetList();
+    orgQhull::Qhull qh;
+    qh.qh()->HALFspace = True;
+    qh.setFeasiblePoint(orgQhull::Coordinates(fpv));
+    qh.runQhull("", dim+1, faces.size(), data.data(), "");
+    orgQhull::QhullFacetList facets = qh.facetList();
 
     size_t k = 0;
     std::vector<VectorOutT> res(facets.size());
