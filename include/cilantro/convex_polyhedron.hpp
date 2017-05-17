@@ -11,4 +11,4 @@
 
 void VtoH(const std::vector<Eigen::Vector3f> &points);
 
-void HtoV(const std::vector<Eigen::Vector4f> &faces);
+void HtoV(const std::vector<Eigen::Vector4f> &faces, const Eigen::Vector3f &interior_point);

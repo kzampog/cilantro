@@ -18,7 +18,7 @@ int main(int argc, char ** argv) {
 //    points.push_back(Eigen::Vector3f(1,1,0));
 //    points.push_back(Eigen::Vector3f(1,1,1));
 
-    VtoH(points);
+//    VtoH(points);
 
     std::vector<Eigen::Vector4f> faces;
     faces.push_back(Eigen::Vector4f(-1,0,0,0));
@@ -26,7 +26,9 @@ int main(int argc, char ** argv) {
     faces.push_back(Eigen::Vector4f(0,0,-1,0));
     faces.push_back(Eigen::Vector4f(1,1,1,-1));
 
-    HtoV(faces);
+    Eigen::Vector3f interior_pt(0.1, 0.1, 0.1);
+
+    HtoV(faces, interior_pt);
 
     return 0;
 }
