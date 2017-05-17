@@ -6,6 +6,7 @@
 #include <libqhullcpp/QhullFacetList.h>
 //#include <libqhullcpp/QhullLinkedList.h>
 #include <libqhullcpp/Qhull.h>
+#include <libqhullcpp/QhullVertexSet.h>
 
 #include <cilantro/point_cloud.hpp>
 
@@ -33,6 +34,16 @@ std::vector<FaceVectorOutT> VtoH(const std::vector<VectorInT> &points) {
         }
         hp(dim) = fi->hyperplane().offset();
         res[k++] = hp.cast<typename FaceVectorOutT::Scalar>();
+
+        orgQhull::QhullVertexSet vs = fi->vertices();
+        for (auto vi = vs.begin(); vi != vs.end(); ++vi) {
+            std::cout << (*vi).point().id() << "  ";
+        }
+        std::cout << std::endl;
+
+//        for (auto vi = fi->vertices().begin(); vi != fi->vertices().end(); ++vi) {
+//            std::cout << "asdf" << std::endl;
+//        }
 
 //        398       // Needed by FOREACHvertex_i_
 //        399       int vertex_n, vertex_i;
