@@ -4,6 +4,7 @@
 //#include <libqhullcpp/QhullError.h>
 #include <libqhullcpp/QhullQh.h>
 #include <libqhullcpp/QhullFacetList.h>
+#include <libqhullcpp/QhullPoints.h>
 //#include <libqhullcpp/QhullLinkedList.h>
 #include <libqhullcpp/Qhull.h>
 #include <libqhullcpp/QhullVertexSet.h>
@@ -11,7 +12,7 @@
 #include <cilantro/point_cloud.hpp>
 
 template <class PointInT, class PointOutT, class HalfspaceOutT>
-void VtoH(const std::vector<PointInT> &points, std::vector<PointOutT> &hull_points, std::vector<HalfspaceOutT> &halfspaces, std::vector<size_t> &faces, std::vector<size_t> &hull_pt_indices, bool simplicial_faces = true) {
+void VtoH(const std::vector<PointInT> &points, std::vector<PointOutT> &hull_points, std::vector<HalfspaceOutT> &halfspaces, std::vector<std::vector<size_t> > &faces, std::vector<size_t> &hull_point_indices, bool simplicial_faces = true) {
     if (points.empty()) return;
 
     size_t dim = points[0].size();
@@ -20,31 +21,52 @@ void VtoH(const std::vector<PointInT> &points, std::vector<PointOutT> &hull_poin
     );
 
     orgQhull::Qhull qh;
-    qh.qh()->TRIangulate = True;
+    if (simplicial_faces) qh.qh()->TRIangulate = True;
     qh.runQhull("", dim, points.size(), data.data(), "");
     orgQhull::QhullFacetList facets = qh.facetList();
 
+    // Establish mapping between hull vertex ids and hull points indices
+    size_t max_id = 0;
+    for (auto vi = qh.vertexList().begin(); vi != qh.vertexList().end(); ++vi)
+        if (max_id < vi->id()) max_id = vi->id();
+    std::vector<size_t> vid_to_ptidx(max_id + 1);
     size_t k = 0;
-    halfspaces.resize(facets.size());
-    for (auto fi = facets.begin(); fi != facets.end(); ++fi) {
-        Eigen::Matrix<coordT, Eigen::Dynamic, 1> hp(dim+1);
+    for (auto vi = qh.vertexList().begin(); vi != qh.vertexList().end(); ++vi) vid_to_ptidx[vi->id()] = k++;
+
+    // Populate hull points and their indices in the input cloud
+    k = 0;
+    hull_points.resize(qh.vertexCount());
+    hull_point_indices.resize(qh.vertexCount());
+    for (auto vi = qh.vertexList().begin(); vi != qh.vertexList().end(); ++vi) {
         size_t i = 0;
+        Eigen::Matrix<coordT, Eigen::Dynamic, 1> v(dim);
+        for (auto ci = vi->point().begin(); ci != vi->point().end(); ++ci) {
+            v(i++) = *ci;
+        }
+        hull_points[k] = v.cast<typename PointOutT::Scalar>();
+        hull_point_indices[k] = vi->point().id();
+        k++;
+    }
+
+    // Populate halfspaces and faces (indices in the hull cloud)
+    k = 0;
+    halfspaces.resize(facets.size());
+    faces.resize(facets.size());
+    for (auto fi = facets.begin(); fi != facets.end(); ++fi) {
+        size_t i = 0;
+        Eigen::Matrix<coordT, Eigen::Dynamic, 1> hp(dim+1);
         for (auto hpi = fi->hyperplane().begin(); hpi != fi->hyperplane().end(); ++hpi) {
             hp(i++) = *hpi;
         }
         hp(dim) = fi->hyperplane().offset();
-        halfspaces[k++] = hp.cast<typename HalfspaceOutT::Scalar>();
+        halfspaces[k] = hp.cast<typename HalfspaceOutT::Scalar>();
 
-        orgQhull::QhullVertexSet vs = fi->vertices();
-        for (auto vi = vs.begin(); vi != vs.end(); ++vi) {
-            std::cout << (*vi).point().id() << "  ";
+        i = 0;
+        faces[k].resize(fi->vertices().size());
+        for (auto vi = fi->vertices().begin(); vi != fi->vertices().end(); ++vi) {
+            faces[k][i++] = vid_to_ptidx[(*vi).id()];
         }
-        std::cout << "    ";
-        for (auto vi = vs.begin(); vi != vs.end(); ++vi) {
-            std::cout << (*vi).id() << "  ";
-        }
-        std::cout << std::endl;
-
+        k++;
     }
 
 }
