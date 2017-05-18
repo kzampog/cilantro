@@ -10,13 +10,13 @@
 
 #include <cilantro/point_cloud.hpp>
 
-template <class VectorInT, class FaceVectorOutT>
-std::vector<FaceVectorOutT> VtoH(const std::vector<VectorInT> &points) {
-    if (points.empty()) return std::vector<FaceVectorOutT>(0);
+template <class PointInT, class PointOutT, class HalfspaceOutT>
+void VtoH(const std::vector<PointInT> &points, std::vector<PointOutT> &hull_points, std::vector<HalfspaceOutT> &halfspaces, std::vector<size_t> &faces, bool simplicial_faces = true) {
+    if (points.empty()) return;
 
     size_t dim = points[0].size();
     Eigen::Matrix<realT, Eigen::Dynamic, Eigen::Dynamic> data(
-            Eigen::Map<Eigen::Matrix<typename VectorInT::Scalar, Eigen::Dynamic, Eigen::Dynamic> >((typename VectorInT::Scalar *)points.data(), dim, points.size()).template cast<realT>()
+            Eigen::Map<Eigen::Matrix<typename PointInT::Scalar, Eigen::Dynamic, Eigen::Dynamic> >((typename PointInT::Scalar *)points.data(), dim, points.size()).template cast<realT>()
     );
 
     orgQhull::Qhull qh;
@@ -25,7 +25,7 @@ std::vector<FaceVectorOutT> VtoH(const std::vector<VectorInT> &points) {
     orgQhull::QhullFacetList facets = qh.facetList();
 
     size_t k = 0;
-    std::vector<FaceVectorOutT> res(facets.size());
+    halfspaces.resize(facets.size());
     for (auto fi = facets.begin(); fi != facets.end(); ++fi) {
         Eigen::Matrix<coordT, Eigen::Dynamic, 1> hp(dim+1);
         size_t i = 0;
@@ -33,28 +33,20 @@ std::vector<FaceVectorOutT> VtoH(const std::vector<VectorInT> &points) {
             hp(i++) = *hpi;
         }
         hp(dim) = fi->hyperplane().offset();
-        res[k++] = hp.cast<typename FaceVectorOutT::Scalar>();
+        halfspaces[k++] = hp.cast<typename HalfspaceOutT::Scalar>();
 
         orgQhull::QhullVertexSet vs = fi->vertices();
         for (auto vi = vs.begin(); vi != vs.end(); ++vi) {
             std::cout << (*vi).point().id() << "  ";
         }
+        std::cout << "    ";
+        for (auto vi = vs.begin(); vi != vs.end(); ++vi) {
+            std::cout << (*vi).id() << "  ";
+        }
         std::cout << std::endl;
-
-//        for (auto vi = fi->vertices().begin(); vi != fi->vertices().end(); ++vi) {
-//            std::cout << "asdf" << std::endl;
-//        }
-
-//        398       // Needed by FOREACHvertex_i_
-//        399       int vertex_n, vertex_i;
-//        400       FOREACHvertex_i_ ((*facet).vertices)
-//        401       //facet_vertices.vertices.push_back (qhid_to_pcidx[vertex->id]);
-//        402       polygons[dd].vertices[vertex_i] = qhid_to_pcidx[vertex->id];
-//        403       ++dd;
 
     }
 
-    return res;
 }
 
 template <class FaceVectorInT, class VectorInT, class VectorOutT>
