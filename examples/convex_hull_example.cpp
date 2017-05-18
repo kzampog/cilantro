@@ -1,4 +1,4 @@
-#include <cilantro/convex_polyhedron.hpp>
+#include <cilantro/convex_hull.hpp>
 #include <cilantro/ply_io.hpp>
 #include <cilantro/visualizer.hpp>
 
@@ -21,8 +21,9 @@ int main(int argc, char ** argv) {
     std::vector<Eigen::Vector3f> hull_points1;
     std::vector<Eigen::Vector4f> halfspaces1;
     std::vector<size_t> faces1;
+    std::vector<size_t> hull_pt_indices1;
 
-    VtoH<Eigen::Vector3f,Eigen::Vector3f,Eigen::Vector4f>(points1, hull_points1, halfspaces1, faces1, true);
+    VtoH<Eigen::Vector3f,Eigen::Vector3f,Eigen::Vector4f>(points1, hull_points1, halfspaces1, faces1, hull_pt_indices1, true);
 
     for (size_t i = 0; i < halfspaces1.size(); ++i) {
         std::cout << halfspaces1[i].transpose() << std::endl;

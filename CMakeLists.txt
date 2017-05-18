@@ -6,7 +6,8 @@ project(cilantro)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 set(CMAKE_BUILD_TYPE "Release")
-add_definitions("-std=c++11 -O3 -msse2 -msse3")
+add_definitions("-O3 -msse2 -msse3")
+set(CMAKE_CXX_FLAGS "-std=c++11")
 
 # Packages
 
@@ -48,8 +49,8 @@ target_link_libraries(matrix_io_example cilantro ${Pangolin_LIBRARIES})
 add_executable(visualizer_example examples/visualizer_example.cpp)
 target_link_libraries(visualizer_example cilantro ${Pangolin_LIBRARIES})
 
-add_executable(convex_polyhedron_example examples/convex_polyhedron_example.cpp)
-target_link_libraries(convex_polyhedron_example cilantro ${Pangolin_LIBRARIES})
+add_executable(convex_hull_example examples/convex_hull_example.cpp)
+target_link_libraries(convex_hull_example cilantro ${Pangolin_LIBRARIES})
 
 # Install target
 

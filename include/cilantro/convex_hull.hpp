@@ -11,7 +11,7 @@
 #include <cilantro/point_cloud.hpp>
 
 template <class PointInT, class PointOutT, class HalfspaceOutT>
-void VtoH(const std::vector<PointInT> &points, std::vector<PointOutT> &hull_points, std::vector<HalfspaceOutT> &halfspaces, std::vector<size_t> &faces, bool simplicial_faces = true) {
+void VtoH(const std::vector<PointInT> &points, std::vector<PointOutT> &hull_points, std::vector<HalfspaceOutT> &halfspaces, std::vector<size_t> &faces, std::vector<size_t> &hull_pt_indices, bool simplicial_faces = true) {
     if (points.empty()) return;
 
     size_t dim = points[0].size();
