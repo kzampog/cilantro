@@ -159,8 +159,6 @@ private:
             } else if (p2.first->renderingProperties.opacity == 1.0f) {
                 return false;
             } else {
-                std::cout << p1.first->renderingProperties.opacity << std::endl;
-                std::cout << p2.first->renderingProperties.opacity << std::endl;
                 return p1.second > p2.second;
             }
         }
