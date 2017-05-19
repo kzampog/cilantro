@@ -71,14 +71,14 @@ void VtoH(const std::vector<PointInT> &points, std::vector<PointOutT> &hull_poin
 
 }
 
-template <class FaceVectorInT, class VectorInT, class VectorOutT>
-std::vector<VectorOutT> HtoV(const std::vector<FaceVectorInT> &faces, const VectorInT &interior_point) {
-    if (faces.empty()) return std::vector<VectorOutT>(0);
+template <class HalfspaceInT, class PointInT, class PointOutT>
+void HtoV(const std::vector<HalfspaceInT> &halfspaces, const PointInT &interior_point, std::vector<PointOutT> &hull_points) {
+    if (halfspaces.empty()) return;
 
     size_t dim = interior_point.size();
 
     Eigen::Matrix<realT, Eigen::Dynamic, Eigen::Dynamic> data(
-            Eigen::Map<Eigen::Matrix<typename FaceVectorInT::Scalar, Eigen::Dynamic, Eigen::Dynamic> >((typename FaceVectorInT::Scalar *)faces.data(), dim+1, faces.size()).template cast<realT>()
+            Eigen::Map<Eigen::Matrix<typename HalfspaceInT::Scalar, Eigen::Dynamic, Eigen::Dynamic> >((typename HalfspaceInT::Scalar *)halfspaces.data(), dim+1, halfspaces.size()).template cast<realT>()
     );
 
     Eigen::Matrix<coordT, Eigen::Dynamic, 1> feasible_point(interior_point.template cast<coordT>());
@@ -88,24 +88,17 @@ std::vector<VectorOutT> HtoV(const std::vector<FaceVectorInT> &faces, const Vect
     orgQhull::Qhull qh;
     qh.qh()->HALFspace = True;
     qh.setFeasiblePoint(orgQhull::Coordinates(fpv));
-    qh.runQhull("", dim+1, faces.size(), data.data(), "");
+    qh.runQhull("", dim+1, halfspaces.size(), data.data(), "");
     orgQhull::QhullFacetList facets = qh.facetList();
 
     size_t k = 0;
-    std::vector<VectorOutT> res(facets.size());
+    hull_points.resize(facets.size());
     for (auto fi = facets.begin(); fi != facets.end(); ++fi) {
         Eigen::Matrix<coordT, Eigen::Dynamic, 1> normal(dim);
         size_t i = 0;
         for (auto hpi = fi->hyperplane().begin(); hpi != fi->hyperplane().end(); ++hpi) {
             normal(i++) = *hpi;
         }
-//        hp(dim) = fi->hyperplane().offset();
-        res[k++] = (-normal/fi->hyperplane().offset() + feasible_point).cast<typename VectorOutT::Scalar>();
+        hull_points[k++] = (-normal/fi->hyperplane().offset() + feasible_point).cast<typename PointOutT::Scalar>();
     }
-
-    return res;
-
-//    for (k=qh->hull_dim; k--; )
-//        *(coordp++)= (*(normp++) / - facet->offset) + *(feasiblep++);
-
 }

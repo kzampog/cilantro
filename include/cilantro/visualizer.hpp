@@ -13,7 +13,8 @@ public:
                                        opacity(1.0f),
                                        normalLength(0.05f),
                                        correspondencesFraction(0.5),
-                                       overrideColors(false)
+                                       overrideColors(false),
+                                       drawWireFrame(false)
         {}
         inline ~RenderingProperties() {}
 
@@ -24,6 +25,7 @@ public:
         float normalLength;
         float correspondencesFraction;
         bool overrideColors;
+        bool drawWireFrame;
 
         inline RenderingProperties& setDrawingColor(const Eigen::Vector3f &color) { drawingColor = color; return *this; }
         inline RenderingProperties& setDrawingColor(float r, float g, float b) { drawingColor = Eigen::Vector3f(r,g,b); return *this; }
@@ -33,6 +35,7 @@ public:
         inline RenderingProperties& setNormalLength(float nl) { normalLength = nl; return *this; }
         inline RenderingProperties& setCorrespondencesFraction(float cf) { correspondencesFraction = cf; return *this; }
         inline RenderingProperties& setOverrideColors(bool oc) { overrideColors = oc; return *this; }
+        inline RenderingProperties& setDrawWireframe(bool dw) { drawWireFrame = dw; return *this; }
     };
 
     Visualizer(const std::string & window_name, const std::string &display_name);
@@ -49,6 +52,9 @@ public:
     void addPointCorrespondences(const std::string &name, const PointCloud &cloud_src, const PointCloud &cloud_dst, const RenderingProperties &rp = RenderingProperties());
 
     void addCoordinateSystem(const std::string &name, float scale = 1.0f, const Eigen::Matrix4f &tf = Eigen::Matrix4f::Identity(), const RenderingProperties &rp = RenderingProperties());
+
+    void addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &vertices, const RenderingProperties &rp = RenderingProperties());
+    void addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp = RenderingProperties());
 
     inline void clear() { renderables_.clear(); }
     inline void remove(const std::string &name) { renderables_.erase(name); }
@@ -87,8 +93,7 @@ private:
         virtual void render() = 0;
     };
 
-    struct PointsRenderable_ : public Renderable_
-    {
+    struct PointsRenderable_ : public Renderable_ {
         std::vector<Eigen::Vector3f> points;
         std::vector<Eigen::Vector3f> colors;
         pangolin::GlBuffer pointsBuffer;
@@ -97,8 +102,7 @@ private:
         void render();
     };
 
-    struct NormalsRenderable_ : public Renderable_
-    {
+    struct NormalsRenderable_ : public Renderable_ {
         std::vector<Eigen::Vector3f> points;
         std::vector<Eigen::Vector3f> normals;
         pangolin::GlBuffer lineEndPointsBuffer;
@@ -106,8 +110,7 @@ private:
         void render();
     };
 
-    struct CorrespondencesRenderable_ : public Renderable_
-    {
+    struct CorrespondencesRenderable_ : public Renderable_ {
         std::vector<Eigen::Vector3f> srcPoints;
         std::vector<Eigen::Vector3f> dstPoints;
         pangolin::GlBuffer lineEndPointsBuffer;
@@ -115,10 +118,16 @@ private:
         void render();
     };
 
-    struct AxisRenderable_ : public Renderable_
-    {
+    struct AxisRenderable_ : public Renderable_ {
         float scale;
         Eigen::Matrix4f transform;
+        void applyRenderingProperties();
+        void render();
+    };
+
+    struct TriangleMeshRenderable_ : public Renderable_ {
+        std::vector<Eigen::Vector3f> vertices;
+        pangolin::GlBuffer verticesBuffer;
         void applyRenderingProperties();
         void render();
     };
@@ -136,6 +145,7 @@ private:
 
     static void point_size_callback_(Visualizer &viz, int key);
     static void reset_view_callback_(Visualizer &viz);
+    static void wireframe_toggle_callback_(Visualizer &viz);
 
     struct {
         bool operator()(const std::pair<Visualizer::Renderable_*, float> &p1, const std::pair<Visualizer::Renderable_*, float> &p2) const {

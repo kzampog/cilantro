@@ -87,6 +87,24 @@ void Visualizer::AxisRenderable_::render() {
     pangolin::glDrawAxis<float>(transform, scale);
 }
 
+void Visualizer::TriangleMeshRenderable_::applyRenderingProperties() {
+    verticesBuffer.Reinitialise(pangolin::GlArrayBuffer, vertices.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+    verticesBuffer.Upload(vertices.data(), sizeof(float)*vertices.size()*3);
+}
+
+void Visualizer::TriangleMeshRenderable_::render() {
+    glPointSize(renderingProperties.pointSize);
+    glColor4f(renderingProperties.drawingColor(0), renderingProperties.drawingColor(1), renderingProperties.drawingColor(2), renderingProperties.opacity);
+    glLineWidth(renderingProperties.lineWidth);
+    if (renderingProperties.drawWireFrame) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        pangolin::RenderVbo(verticesBuffer, GL_TRIANGLES);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    } else {
+        pangolin::RenderVbo(verticesBuffer, GL_TRIANGLES);
+    }
+}
+
 Visualizer::Visualizer(const std::string &window_name, const std::string &display_name)
         : clear_color_(Eigen::Vector3f(0.7f, 0.7f, 1.0f))
 {
@@ -108,6 +126,9 @@ Visualizer::Visualizer(const std::string &window_name, const std::string &displa
     auto reset_fun = std::bind(reset_view_callback_, std::ref(*this));
     pangolin::RegisterKeyPressCallback('r', reset_fun);
     pangolin::RegisterKeyPressCallback('R', reset_fun);
+    auto wireframe_fun = std::bind(wireframe_toggle_callback_, std::ref(*this));
+    pangolin::RegisterKeyPressCallback('w', wireframe_fun);
+    pangolin::RegisterKeyPressCallback('W', wireframe_fun);
 
     // Pangolin searches internally for existing named displays
     display_ = &(pangolin::Display(display_name));
@@ -180,6 +201,27 @@ void Visualizer::addCoordinateSystem(const std::string &name, float scale, const
     obj_ptr->position = tf.topRightCorner(3,1);
     // Update buffers
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
+}
+
+void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &vertices, const RenderingProperties &rp) {
+    renderables_[name] = std::unique_ptr<TriangleMeshRenderable_>(new TriangleMeshRenderable_);
+    TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)renderables_[name].get();
+    // Copy fields
+    obj_ptr->vertices = vertices;
+    obj_ptr->position = Eigen::Map<Eigen::MatrixXf>((float *)vertices.data(), 3, vertices.size()).rowwise().mean();
+    // Update buffers
+    ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
+}
+
+void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
+    size_t k = 0;
+    std::vector<Eigen::Vector3f> vertices(faces.size()*3);
+    for (size_t i = 0; i < faces.size(); i++) {
+        for (size_t j = 0; j < faces[i].size(); j++) {
+            vertices[k++] = points[faces[i][j]];
+        }
+    }
+    addTriangleMesh(name, vertices, rp);
 }
 
 void Visualizer::render(const std::string &obj_name) const {
@@ -296,4 +338,13 @@ void Visualizer::point_size_callback_(Visualizer &viz, int key) {
 
 void Visualizer::reset_view_callback_(Visualizer &viz) {
     viz.gl_render_state_->SetModelViewMatrix(viz.initial_model_view_);
+}
+
+void Visualizer::wireframe_toggle_callback_(Visualizer &viz) {
+    for (auto it = viz.renderables_.begin(); it != viz.renderables_.end(); ++it) {
+        RenderingProperties rp = viz.getRenderingProperties(it->first);
+        bool wireframe = rp.drawWireFrame;
+        rp.setDrawWireframe(!wireframe);
+        viz.setRenderingProperties(it->first, rp);
+    }
 }
