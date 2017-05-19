@@ -1,8 +1,8 @@
 #include <cilantro/visualizer.hpp>
 
 void Visualizer::PointsRenderable_::applyRenderingProperties() {
-    pointsBuffer.Reinitialise(pangolin::GlArrayBuffer, points.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-    pointsBuffer.Upload(points.data(), sizeof(float)*points.size()*3);
+    pointBuffer.Reinitialise(pangolin::GlArrayBuffer, points.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+    pointBuffer.Upload(points.data(), sizeof(float)*points.size()*3);
 
     std::vector<Eigen::Vector4f> color_alpha;
     if (renderingProperties.overrideColors || colors.size() != points.size()) {
@@ -17,19 +17,19 @@ void Visualizer::PointsRenderable_::applyRenderingProperties() {
             color_alpha[i](3) = renderingProperties.opacity;
         }
     }
-    colorsBuffer.Reinitialise(pangolin::GlArrayBuffer, color_alpha.size(), GL_FLOAT, 4, GL_DYNAMIC_DRAW);
-    colorsBuffer.Upload(color_alpha.data(), sizeof(float)*color_alpha.size()*4);
+    colorBuffer.Reinitialise(pangolin::GlArrayBuffer, color_alpha.size(), GL_FLOAT, 4, GL_DYNAMIC_DRAW);
+    colorBuffer.Upload(color_alpha.data(), sizeof(float)*color_alpha.size()*4);
 }
 
 void Visualizer::PointsRenderable_::render() {
     glPointSize(renderingProperties.pointSize);
-    pangolin::RenderVboCbo(pointsBuffer, colorsBuffer);
+    pangolin::RenderVboCbo(pointBuffer, colorBuffer);
 }
 
 void Visualizer::NormalsRenderable_::applyRenderingProperties() {
     if (renderingProperties.correspondencesFraction <= 0.0f) {
         renderingProperties.correspondencesFraction = 0.0;
-        lineEndPointsBuffer.Resize(0);
+        lineEndPointBuffer.Resize(0);
         return;
     }
     if (renderingProperties.correspondencesFraction > 1.0f) renderingProperties.correspondencesFraction = 1.0;
@@ -42,21 +42,21 @@ void Visualizer::NormalsRenderable_::applyRenderingProperties() {
         tmp[2*i/step + 1] = points[i] + renderingProperties.normalLength * normals[i];
     }
 
-    lineEndPointsBuffer.Reinitialise(pangolin::GlArrayBuffer, tmp.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-    lineEndPointsBuffer.Upload(tmp.data(), sizeof(float)*tmp.size()*3);
+    lineEndPointBuffer.Reinitialise(pangolin::GlArrayBuffer, tmp.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+    lineEndPointBuffer.Upload(tmp.data(), sizeof(float)*tmp.size()*3);
 }
 
 void Visualizer::NormalsRenderable_::render() {
     glPointSize(renderingProperties.pointSize);
     glColor4f(renderingProperties.drawingColor(0), renderingProperties.drawingColor(1), renderingProperties.drawingColor(2), renderingProperties.opacity);
     glLineWidth(renderingProperties.lineWidth);
-    pangolin::RenderVbo(lineEndPointsBuffer, GL_LINES);
+    pangolin::RenderVbo(lineEndPointBuffer, GL_LINES);
 }
 
 void Visualizer::CorrespondencesRenderable_::applyRenderingProperties() {
     if (renderingProperties.correspondencesFraction <= 0.0f) {
         renderingProperties.correspondencesFraction = 0.0;
-        lineEndPointsBuffer.Resize(0);
+        lineEndPointBuffer.Resize(0);
         return;
     }
     if (renderingProperties.correspondencesFraction > 1.0f) renderingProperties.correspondencesFraction = 1.0;
@@ -69,15 +69,15 @@ void Visualizer::CorrespondencesRenderable_::applyRenderingProperties() {
         tmp[2*i/step + 1] = dstPoints[i];
     }
 
-    lineEndPointsBuffer.Reinitialise(pangolin::GlArrayBuffer, tmp.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-    lineEndPointsBuffer.Upload(tmp.data(), sizeof(float)*tmp.size()*3);
+    lineEndPointBuffer.Reinitialise(pangolin::GlArrayBuffer, tmp.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+    lineEndPointBuffer.Upload(tmp.data(), sizeof(float)*tmp.size()*3);
 }
 
 void Visualizer::CorrespondencesRenderable_::render() {
     glPointSize(renderingProperties.pointSize);
     glColor4f(renderingProperties.drawingColor(0), renderingProperties.drawingColor(1), renderingProperties.drawingColor(2), renderingProperties.opacity);
     glLineWidth(renderingProperties.lineWidth);
-    pangolin::RenderVbo(lineEndPointsBuffer, GL_LINES);
+    pangolin::RenderVbo(lineEndPointBuffer, GL_LINES);
 }
 
 void Visualizer::AxisRenderable_::applyRenderingProperties() {}
@@ -88,20 +88,46 @@ void Visualizer::AxisRenderable_::render() {
 }
 
 void Visualizer::TriangleMeshRenderable_::applyRenderingProperties() {
-    verticesBuffer.Reinitialise(pangolin::GlArrayBuffer, vertices.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-    verticesBuffer.Upload(vertices.data(), sizeof(float)*vertices.size()*3);
+    vertexBuffer.Reinitialise(pangolin::GlArrayBuffer, vertices.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+    vertexBuffer.Upload(vertices.data(), sizeof(float)*vertices.size()*3);
+    if (renderingProperties.useFaceNormals) {
+        normalBuffer.Reinitialise(pangolin::GlArrayBuffer, faceNormals.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+        normalBuffer.Upload(faceNormals.data(), sizeof(float)*faceNormals.size()*3);
+    } else {
+        normalBuffer.Reinitialise(pangolin::GlArrayBuffer, vertexNormals.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+        normalBuffer.Upload(vertexNormals.data(), sizeof(float)*vertexNormals.size()*3);
+    }
 }
 
 void Visualizer::TriangleMeshRenderable_::render() {
     glPointSize(renderingProperties.pointSize);
     glColor4f(renderingProperties.drawingColor(0), renderingProperties.drawingColor(1), renderingProperties.drawingColor(2), renderingProperties.opacity);
     glLineWidth(renderingProperties.lineWidth);
-    if (renderingProperties.drawWireFrame) {
+
+    bool use_normals = (renderingProperties.useFaceNormals && faceNormals.size() == vertices.size()) ||
+            (!renderingProperties.useFaceNormals && vertexNormals.size() == vertices.size());
+
+    if (use_normals) {
+        normalBuffer.Bind();
+        glNormalPointer(normalBuffer.datatype, (GLsizei)(normalBuffer.count_per_element * pangolin::GlDataTypeBytes(normalBuffer.datatype)), 0);
+        glEnableClientState(GL_NORMAL_ARRAY);
+    }
+    if (renderingProperties.drawWireframe) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        pangolin::RenderVbo(verticesBuffer, GL_TRIANGLES);
+        pangolin::RenderVbo(vertexBuffer, GL_TRIANGLES);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     } else {
-        pangolin::RenderVbo(verticesBuffer, GL_TRIANGLES);
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+        glEnable(GL_COLOR_MATERIAL);
+        pangolin::RenderVbo(vertexBuffer, GL_TRIANGLES);
+        glDisable(GL_COLOR_MATERIAL);
+        glDisable(GL_LIGHT0);
+        glDisable(GL_LIGHTING);
+    }
+    if (use_normals) {
+        glDisableClientState(GL_NORMAL_ARRAY);
+        normalBuffer.Unbind();
     }
 }
 
@@ -203,38 +229,28 @@ void Visualizer::addCoordinateSystem(const std::string &name, float scale, const
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
 
-void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &vertices, const RenderingProperties &rp) {
+void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &vertices, const std::vector<Eigen::Vector3f> &vertex_normals, const std::vector<Eigen::Vector3f> &face_normals, const RenderingProperties &rp) {
     renderables_[name] = std::unique_ptr<TriangleMeshRenderable_>(new TriangleMeshRenderable_);
     TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)renderables_[name].get();
     // Copy fields
     obj_ptr->vertices = vertices;
+    if (vertices.size() == vertex_normals.size()) obj_ptr->vertexNormals = vertex_normals;
+    if (vertices.size() == face_normals.size()) obj_ptr->faceNormals = face_normals;
     obj_ptr->position = Eigen::Map<Eigen::MatrixXf>((float *)vertices.data(), 3, vertices.size()).rowwise().mean();
     // Update buffers
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
 
-void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
-    size_t k = 0;
-    std::vector<Eigen::Vector3f> vertices(faces.size()*3);
-    for (size_t i = 0; i < faces.size(); i++) {
-        for (size_t j = 0; j < faces[i].size(); j++) {
-            vertices[k++] = points[faces[i][j]];
-        }
-    }
-    addTriangleMesh(name, vertices, rp);
-}
-
-void Visualizer::render(const std::string &obj_name) const {
-    gl_context_->MakeCurrent();
-    display_->Activate(*gl_render_state_);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glClearColor(clear_color_(0), clear_color_(1), clear_color_(2), 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    auto it = renderables_.find(obj_name);
-    if (it != renderables_.end()) it->second->render();
-}
+//void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
+//    size_t k = 0;
+//    std::vector<Eigen::Vector3f> vertices(faces.size()*3);
+//    for (size_t i = 0; i < faces.size(); i++) {
+//        for (size_t j = 0; j < faces[i].size(); j++) {
+//            vertices[k++] = points[faces[i][j]];
+//        }
+//    }
+//    addTriangleMesh(name, vertices, rp);
+//}
 
 void Visualizer::render() const {
     // Set render sequence
@@ -343,7 +359,7 @@ void Visualizer::reset_view_callback_(Visualizer &viz) {
 void Visualizer::wireframe_toggle_callback_(Visualizer &viz) {
     for (auto it = viz.renderables_.begin(); it != viz.renderables_.end(); ++it) {
         RenderingProperties rp = viz.getRenderingProperties(it->first);
-        bool wireframe = rp.drawWireFrame;
+        bool wireframe = rp.drawWireframe;
         rp.setDrawWireframe(!wireframe);
         viz.setRenderingProperties(it->first, rp);
     }

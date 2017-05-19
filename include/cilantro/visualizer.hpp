@@ -14,7 +14,8 @@ public:
                                        normalLength(0.05f),
                                        correspondencesFraction(0.5),
                                        overrideColors(false),
-                                       drawWireFrame(false)
+                                       drawWireframe(false),
+                                       useFaceNormals(true)
         {}
         inline ~RenderingProperties() {}
 
@@ -25,7 +26,8 @@ public:
         float normalLength;
         float correspondencesFraction;
         bool overrideColors;
-        bool drawWireFrame;
+        bool drawWireframe;
+        bool useFaceNormals;
 
         inline RenderingProperties& setDrawingColor(const Eigen::Vector3f &color) { drawingColor = color; return *this; }
         inline RenderingProperties& setDrawingColor(float r, float g, float b) { drawingColor = Eigen::Vector3f(r,g,b); return *this; }
@@ -35,7 +37,8 @@ public:
         inline RenderingProperties& setNormalLength(float nl) { normalLength = nl; return *this; }
         inline RenderingProperties& setCorrespondencesFraction(float cf) { correspondencesFraction = cf; return *this; }
         inline RenderingProperties& setOverrideColors(bool oc) { overrideColors = oc; return *this; }
-        inline RenderingProperties& setDrawWireframe(bool dw) { drawWireFrame = dw; return *this; }
+        inline RenderingProperties& setDrawWireframe(bool dw) { drawWireframe = dw; return *this; }
+        inline RenderingProperties& setUseFaceNormals(bool fn) { useFaceNormals = fn; return *this; }
     };
 
     Visualizer(const std::string & window_name, const std::string &display_name);
@@ -53,13 +56,12 @@ public:
 
     void addCoordinateSystem(const std::string &name, float scale = 1.0f, const Eigen::Matrix4f &tf = Eigen::Matrix4f::Identity(), const RenderingProperties &rp = RenderingProperties());
 
-    void addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &vertices, const RenderingProperties &rp = RenderingProperties());
-    void addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp = RenderingProperties());
+    void addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &vertices, const std::vector<Eigen::Vector3f> &vertex_normals, const std::vector<Eigen::Vector3f> &face_normals, const RenderingProperties &rp = RenderingProperties());
+//    void addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp = RenderingProperties());
 
     inline void clear() { renderables_.clear(); }
     inline void remove(const std::string &name) { renderables_.erase(name); }
 
-    void render(const std::string &obj_name) const;
     void render() const;
 
     inline void spinOnce() const { render(); pangolin::FinishFrame(); }
@@ -96,8 +98,8 @@ private:
     struct PointsRenderable_ : public Renderable_ {
         std::vector<Eigen::Vector3f> points;
         std::vector<Eigen::Vector3f> colors;
-        pangolin::GlBuffer pointsBuffer;
-        pangolin::GlBuffer colorsBuffer;
+        pangolin::GlBuffer pointBuffer;
+        pangolin::GlBuffer colorBuffer;
         void applyRenderingProperties();
         void render();
     };
@@ -105,7 +107,7 @@ private:
     struct NormalsRenderable_ : public Renderable_ {
         std::vector<Eigen::Vector3f> points;
         std::vector<Eigen::Vector3f> normals;
-        pangolin::GlBuffer lineEndPointsBuffer;
+        pangolin::GlBuffer lineEndPointBuffer;
         void applyRenderingProperties();
         void render();
     };
@@ -113,7 +115,7 @@ private:
     struct CorrespondencesRenderable_ : public Renderable_ {
         std::vector<Eigen::Vector3f> srcPoints;
         std::vector<Eigen::Vector3f> dstPoints;
-        pangolin::GlBuffer lineEndPointsBuffer;
+        pangolin::GlBuffer lineEndPointBuffer;
         void applyRenderingProperties();
         void render();
     };
@@ -127,7 +129,10 @@ private:
 
     struct TriangleMeshRenderable_ : public Renderable_ {
         std::vector<Eigen::Vector3f> vertices;
-        pangolin::GlBuffer verticesBuffer;
+        std::vector<Eigen::Vector3f> vertexNormals;
+        std::vector<Eigen::Vector3f> faceNormals;
+        pangolin::GlBuffer vertexBuffer;
+        pangolin::GlBuffer normalBuffer;
         void applyRenderingProperties();
         void render();
     };
@@ -148,10 +153,14 @@ private:
     static void wireframe_toggle_callback_(Visualizer &viz);
 
     struct {
-        bool operator()(const std::pair<Visualizer::Renderable_*, float> &p1, const std::pair<Visualizer::Renderable_*, float> &p2) const {
-            if (p1.first->renderingProperties.opacity == 1.0f && p2.first->renderingProperties.opacity < 1.0f) {
+        inline bool operator()(const std::pair<Visualizer::Renderable_*, float> &p1, const std::pair<Visualizer::Renderable_*, float> &p2) const {
+            if (p1.first->renderingProperties.opacity == 1.0f) {
                 return true;
+            } else if (p2.first->renderingProperties.opacity == 1.0f) {
+                return false;
             } else {
+                std::cout << p1.first->renderingProperties.opacity << std::endl;
+                std::cout << p2.first->renderingProperties.opacity << std::endl;
                 return p1.second > p2.second;
             }
         }
