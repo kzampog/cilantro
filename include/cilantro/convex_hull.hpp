@@ -1,6 +1,5 @@
 #pragma once
 
-//#include <libqhullcpp/RboxPoints.h>
 //#include <libqhullcpp/QhullError.h>
 #include <libqhullcpp/QhullQh.h>
 #include <libqhullcpp/QhullFacetList.h>
@@ -11,18 +10,16 @@
 
 #include <cilantro/point_cloud.hpp>
 
-template <class PointInT, class PointOutT, class HalfspaceOutT>
-void VtoH(const std::vector<PointInT> &points, std::vector<PointOutT> &hull_points, std::vector<HalfspaceOutT> &halfspaces, std::vector<std::vector<size_t> > &faces, std::vector<size_t> &hull_point_indices, bool simplicial_faces = true) {
-    if (points.empty()) return;
+template <class PointInDataT, class PointOutT, class HalfspaceOutT>
+void VtoH(PointInDataT * points, size_t dim, size_t num_points, std::vector<PointOutT> &hull_points, std::vector<HalfspaceOutT> &halfspaces, std::vector<std::vector<size_t> > &faces, std::vector<size_t> &hull_point_indices, bool simplicial_faces = true) {
 
-    size_t dim = points[0].size();
     Eigen::Matrix<realT, Eigen::Dynamic, Eigen::Dynamic> data(
-            Eigen::Map<Eigen::Matrix<typename PointInT::Scalar, Eigen::Dynamic, Eigen::Dynamic> >((typename PointInT::Scalar *)points.data(), dim, points.size()).template cast<realT>()
+            Eigen::Map<Eigen::Matrix<PointInDataT, Eigen::Dynamic, Eigen::Dynamic> >((PointInDataT *)points, dim, num_points).template cast<realT>()
     );
 
     orgQhull::Qhull qh;
     if (simplicial_faces) qh.qh()->TRIangulate = True;
-    qh.runQhull("", dim, points.size(), data.data(), "");
+    qh.runQhull("", dim, num_points, data.data(), "");
     orgQhull::QhullFacetList facets = qh.facetList();
 
     // Establish mapping between hull vertex ids and hull points indices
@@ -78,24 +75,26 @@ void VtoH(const std::vector<PointInT> &points, std::vector<PointOutT> &hull_poin
     }
 }
 
-template <class HalfspaceInT, class PointInT, class PointOutT>
-void HtoV(const std::vector<HalfspaceInT> &halfspaces, const PointInT &interior_point, std::vector<PointOutT> &hull_points) {
-    if (halfspaces.empty()) return;
+template <class PointInT, class PointOutT, class HalfspaceOutT>
+void VtoH(const std::vector<PointInT> &points, std::vector<PointOutT> &hull_points, std::vector<HalfspaceOutT> &halfspaces, std::vector<std::vector<size_t> > &faces, std::vector<size_t> &hull_point_indices, bool simplicial_faces = true) {
+    if (points.empty()) return;
+    VtoH<typename PointInT::Scalar,PointOutT,HalfspaceOutT>((typename PointInT::Scalar *)points.data(), points[0].size(), points.size(), hull_points, halfspaces, faces, hull_point_indices, simplicial_faces);
+}
 
-    size_t dim = interior_point.size();
-
+template <class HalfspaceInDataT, class PointInT, class PointOutT>
+void HtoV(HalfspaceInDataT * halfspaces, size_t dim, size_t num_halfspaces, const PointInT &interior_point, std::vector<PointOutT> &hull_points) {
     Eigen::Matrix<realT, Eigen::Dynamic, Eigen::Dynamic> data(
-            Eigen::Map<Eigen::Matrix<typename HalfspaceInT::Scalar, Eigen::Dynamic, Eigen::Dynamic> >((typename HalfspaceInT::Scalar *)halfspaces.data(), dim+1, halfspaces.size()).template cast<realT>()
+            Eigen::Map<Eigen::Matrix<HalfspaceInDataT, Eigen::Dynamic, Eigen::Dynamic> >((HalfspaceInDataT *)halfspaces, dim+1, num_halfspaces).template cast<realT>()
     );
 
-    Eigen::Matrix<coordT, Eigen::Dynamic, 1> feasible_point(interior_point.template cast<coordT>());
+    Eigen::Matrix<coordT, Eigen::Dynamic, 1> feasible_point(interior_point.head(dim).template cast<coordT>());
     std::vector<coordT> fpv(dim);
     Eigen::Matrix<coordT, Eigen::Dynamic, 1>::Map(fpv.data(), dim) = feasible_point;
 
     orgQhull::Qhull qh;
     qh.qh()->HALFspace = True;
     qh.setFeasiblePoint(orgQhull::Coordinates(fpv));
-    qh.runQhull("", dim+1, halfspaces.size(), data.data(), "");
+    qh.runQhull("", dim+1, num_halfspaces, data.data(), "");
     orgQhull::QhullFacetList facets = qh.facetList();
 
     size_t k = 0;
@@ -108,4 +107,10 @@ void HtoV(const std::vector<HalfspaceInT> &halfspaces, const PointInT &interior_
         }
         hull_points[k++] = (-normal/fi->hyperplane().offset() + feasible_point).cast<typename PointOutT::Scalar>();
     }
+}
+
+template <class HalfspaceInT, class PointInT, class PointOutT>
+void HtoV(const std::vector<HalfspaceInT> &halfspaces, const PointInT &interior_point, std::vector<PointOutT> &hull_points) {
+    if (halfspaces.empty()) return;
+    HtoV<typename HalfspaceInT::Scalar,PointInT,PointOutT>((typename HalfspaceInT::Scalar *)halfspaces.data(), halfspaces[0].size()-1, halfspaces.size(), interior_point, hull_points);
 }
