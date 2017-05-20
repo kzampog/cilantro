@@ -61,23 +61,21 @@ void VtoH(const std::vector<PointInT> &points, std::vector<PointOutT> &hull_poin
         hp(dim) = fi->hyperplane().offset();
         halfspaces[k] = hp.cast<typename HalfspaceOutT::Scalar>();
 
-        i = 0;
         faces[k].resize(fi->vertices().size());
         if (fi->isTopOrient()) {
-            auto vi = fi->vertices().end();
-            while (vi != fi->vertices().begin()) {
-                --vi;
-                faces[k][i++] = vid_to_ptidx[(*vi).id()];
+            i = faces[k].size() - 1;
+            for (auto vi = fi->vertices().begin(); vi != fi->vertices().end(); ++vi) {
+                faces[k][i--] = vid_to_ptidx[(*vi).id()];
             }
         } else {
+            i = 0;
             for (auto vi = fi->vertices().begin(); vi != fi->vertices().end(); ++vi) {
                 faces[k][i++] = vid_to_ptidx[(*vi).id()];
             }
         }
-        
+
         k++;
     }
-
 }
 
 template <class HalfspaceInT, class PointInT, class PointOutT>
