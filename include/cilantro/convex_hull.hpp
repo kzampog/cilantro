@@ -1,12 +1,12 @@
 #pragma once
 
-//#include <libqhullcpp/QhullError.h>
 #include <libqhullcpp/QhullQh.h>
 #include <libqhullcpp/QhullFacetList.h>
 #include <libqhullcpp/QhullPoints.h>
-//#include <libqhullcpp/QhullLinkedList.h>
 #include <libqhullcpp/Qhull.h>
 #include <libqhullcpp/QhullVertexSet.h>
+
+//#include <eigen_quadprog/eiquadprog.hpp>
 
 #include <cilantro/point_cloud.hpp>
 
@@ -114,3 +114,61 @@ void HtoV(const std::vector<HalfspaceInT> &halfspaces, const PointInT &interior_
     if (halfspaces.empty()) return;
     HtoV<typename HalfspaceInT::Scalar,PointInT,PointOutT>((typename HalfspaceInT::Scalar *)halfspaces.data(), halfspaces[0].size()-1, halfspaces.size(), interior_point, hull_points);
 }
+
+//template <class HalfspaceInDataT, class PointOutT>
+//void HtoV(HalfspaceInDataT * halfspaces, size_t dim, size_t num_halfspaces, std::vector<PointOutT> &hull_points) {
+//    // Find a feasible point with LP
+//
+////    Eigen::MatrixXd G(Eigen::MatrixXd::Zero(dim+2,dim+2));
+//    Eigen::MatrixXd G(Eigen::MatrixXd::Identity(dim+2,dim+2)/1000000.0);
+//    Eigen::VectorXd g0(Eigen::VectorXd::Zero(dim+2));
+//    g0(dim+1) = -1.0;
+//
+//    Eigen::MatrixXd CE(dim+2,0);
+//    Eigen::VectorXd ce0(0);
+//
+//    Eigen::MatrixXd ineq_data(Eigen::Map<Eigen::Matrix<HalfspaceInDataT,Eigen::Dynamic,Eigen::Dynamic> >((HalfspaceInDataT *)halfspaces, dim+1, num_halfspaces).template cast<double>());
+//    Eigen::MatrixXd CI(dim+2,num_halfspaces);
+//    CI.topRows(dim+1) = ineq_data;
+//    CI.row(dim+1) = Eigen::VectorXd::Ones(num_halfspaces);
+//    Eigen::VectorXd ci0(Eigen::VectorXd::Zero(num_halfspaces));
+//
+//    Eigen::VectorXd x(dim+2);
+//
+//    double opt_val = solve_quadprog(G, g0, CE, ce0, CI, ci0, x);
+//
+//    std::cout << "G" << std::endl;
+//    std::cout << G << std::endl;
+//
+//    std::cout << "g0" << std::endl;
+//    std::cout << g0 << std::endl;
+//
+//    std::cout << "CE" << std::endl;
+//    std::cout << CE << std::endl;
+//
+//    std::cout << "ce0" << std::endl;
+//    std::cout << ce0 << std::endl;
+//
+//    std::cout << "CI" << std::endl;
+//    std::cout << CI << std::endl;
+//
+//    std::cout << "ci0" << std::endl;
+//    std::cout << ci0 << std::endl;
+//
+//
+//    std::cout << "opt f is: " << opt_val << std::endl;
+//    std::cout << "opt x is: " << x.transpose() << std::endl;
+//
+//
+//    Eigen::VectorXd feasible_point(dim);
+//
+//
+//    Eigen::Matrix<HalfspaceInDataT,Eigen::Dynamic,1> interior_point(feasible_point.cast<HalfspaceInDataT>());
+//    HtoV<HalfspaceInDataT,Eigen::Matrix<HalfspaceInDataT,Eigen::Dynamic,1>,PointOutT>(halfspaces, dim, num_halfspaces, interior_point, hull_points);
+//}
+//
+//template <class HalfspaceInT, class PointOutT>
+//void HtoV(const std::vector<HalfspaceInT> &halfspaces, std::vector<PointOutT> &hull_points) {
+//    if (halfspaces.empty()) return;
+//    HtoV<typename HalfspaceInT::Scalar,PointOutT>((typename HalfspaceInT::Scalar *)halfspaces.data(), halfspaces[0].size()-1, halfspaces.size(), hull_points);
+//}

@@ -266,6 +266,17 @@ void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eige
             face_normals_flat[k++] = face_normals[i];
         }
         obj_ptr->faceNormals = face_normals_flat;
+    } else {
+        k = 0;
+        std::vector<Eigen::Vector3f> face_normals_flat(faces.size()*3);
+        for (size_t i = 0; i < faces.size(); i++) {
+            Eigen::Vector3f pt0(points[faces[i][0]]), pt1(points[faces[i][1]]), pt2(points[faces[i][2]]);
+            Eigen::Vector3f normal = ((pt1-pt0).cross(pt2-pt0)).normalized();
+            face_normals_flat[k++] = normal;
+            face_normals_flat[k++] = normal;
+            face_normals_flat[k++] = normal;
+        }
+        obj_ptr->faceNormals = face_normals_flat;
     }
 
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
