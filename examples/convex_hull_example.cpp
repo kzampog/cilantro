@@ -65,7 +65,6 @@ int main(int argc, char ** argv) {
 //        std::cout << hull_points2[i].transpose() << std::endl;
 //    }
 
-
     PointCloud cloud;
     readPointCloudFromPLYFile(argv[1], cloud);
 
@@ -78,28 +77,11 @@ int main(int argc, char ** argv) {
 
     Visualizer viz("win", "disp");
 
-//    viz.addPointCloud("orig_cloud", cloud, Visualizer::RenderingProperties());
-//    viz.addPointCloud("hull_pts", hull_points, Visualizer::RenderingProperties().setDrawingColor(0,0,1));
-
-    size_t k = 0;
-    std::vector<Eigen::Vector3f> vertices(faces.size()*3);
-    std::vector<Eigen::Vector3f> vnormals(faces.size()*3);
-    std::vector<Eigen::Vector3f> fnormals(faces.size()*3);
-    for (size_t i = 0; i < faces.size(); i++) {
-        for (size_t j = 0; j < faces[i].size(); j++) {
-            vertices[k] = hull_points[faces[i][j]];
-            vnormals[k] = cloud.normals[hull_pt_indices[faces[i][j]]];
-            fnormals[k] = halfspaces[i].head(3).normalized();
-            k++;
-        }
-    }
+    PointCloud hull_cloud(cloud, hull_pt_indices);
 
     viz.addPointCloud("cloud", cloud, Visualizer::RenderingProperties().setOpacity(1.0));
-    viz.addTriangleMesh("mesh", vertices, vnormals, fnormals, Visualizer::RenderingProperties().setDrawingColor(1,0,0).setUseFaceNormals(true).setOpacity(0.8));
-//    viz.addTriangleMesh("mesh", vertices, std::vector<Eigen::Vector3f>(0), std::vector<Eigen::Vector3f>(0), Visualizer::RenderingProperties().setDrawingColor(1,0,0).setUseFaceNormals(true));
-
-//    PointCloud hull_cloud(cloud, hull_pt_indices);
-//    viz.addPointCloud("hull_cloud", hull_cloud, Visualizer::RenderingProperties().setDrawingColor(1,0,0).setOverrideColors(true));
+//    viz.addTriangleMesh("mesh", hull_points, faces, Visualizer::RenderingProperties().setDrawingColor(1,0,0).setUseFaceNormals(true).setOpacity(0.8));
+    viz.addTriangleMesh("mesh", hull_cloud, faces, Visualizer::RenderingProperties().setDrawingColor(1,0,0).setUseFaceNormals(true).setOpacity(0.8));
 
     while (!viz.wasStopped()) {
         viz.spinOnce();
