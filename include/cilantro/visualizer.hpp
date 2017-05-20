@@ -56,8 +56,11 @@ public:
 
     void addCoordinateSystem(const std::string &name, float scale = 1.0f, const Eigen::Matrix4f &tf = Eigen::Matrix4f::Identity(), const RenderingProperties &rp = RenderingProperties());
 
-    void addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp = RenderingProperties());
+    void addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &point_normals, const std::vector<std::vector<size_t> > &faces, const std::vector<Eigen::Vector3f> &face_normals, const RenderingProperties &rp = RenderingProperties());
+    void addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &point_normals, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp = RenderingProperties());
+    void addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<std::vector<size_t> > &faces, const std::vector<Eigen::Vector3f> &face_normals, const RenderingProperties &rp = RenderingProperties());
     void addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp = RenderingProperties());
+    void addTriangleMesh(const std::string &name, const PointCloud &cloud, const std::vector<std::vector<size_t> > &faces, const std::vector<Eigen::Vector3f> &face_normals, const RenderingProperties &rp = RenderingProperties());
     void addTriangleMesh(const std::string &name, const PointCloud &cloud, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp = RenderingProperties());
 
     inline void clear() { renderables_.clear(); }

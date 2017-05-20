@@ -229,7 +229,7 @@ void Visualizer::addCoordinateSystem(const std::string &name, float scale, const
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
 
-void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
+void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &point_normals, const std::vector<std::vector<size_t> > &faces, const std::vector<Eigen::Vector3f> &face_normals, const RenderingProperties &rp) {
     renderables_[name] = std::unique_ptr<TriangleMeshRenderable_>(new TriangleMeshRenderable_);
     TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)renderables_[name].get();
 
@@ -245,39 +245,50 @@ void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eige
     obj_ptr->position = Eigen::Map<Eigen::MatrixXf>((float *)vertices.data(), 3, vertices.size()).rowwise().mean();
 
     // Populate vertex normals
-    if (points.size() == normals.size()) {
+    if (points.size() == point_normals.size()) {
         k = 0;
         std::vector<Eigen::Vector3f> vertex_normals(faces.size()*3);
         for (size_t i = 0; i < faces.size(); i++) {
             for (size_t j = 0; j < faces[i].size(); j++) {
-                vertex_normals[k++] = normals[faces[i][j]];
+                vertex_normals[k++] = point_normals[faces[i][j]];
             }
         }
         obj_ptr->vertexNormals = vertex_normals;
     }
 
     // Populate face normals
-    k = 0;
-    std::vector<Eigen::Vector3f> face_normals(faces.size()*3);
-    for (size_t i = 0; i < faces.size(); i++) {
-        Eigen::Vector3f normal = ((points[faces[i][1]] - points[faces[i][0]]).cross(points[faces[i][2]] - points[faces[i][0]])).normalized();
-        Eigen::Vector3f ref_dir = points[faces[i][0]] - obj_ptr->position;
-        if (normal.dot(ref_dir) < 0.0f) normal *= -1.0f;
-        face_normals[k++] = normal;
-        face_normals[k++] = normal;
-        face_normals[k++] = normal;
+    if (faces.size() == face_normals.size()) {
+        k = 0;
+        std::vector<Eigen::Vector3f> face_normals_flat(faces.size()*3);
+        for (size_t i = 0; i < faces.size(); i++) {
+            face_normals_flat[k++] = face_normals[i];
+            face_normals_flat[k++] = face_normals[i];
+            face_normals_flat[k++] = face_normals[i];
+        }
+        obj_ptr->faceNormals = face_normals_flat;
     }
-    obj_ptr->faceNormals = face_normals;
 
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
 
+void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &point_normals, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
+    addTriangleMesh(name, points, point_normals, faces, std::vector<Eigen::Vector3f>(0), rp);
+}
+
+void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<std::vector<size_t> > &faces, const std::vector<Eigen::Vector3f> &face_normals, const RenderingProperties &rp) {
+    addTriangleMesh(name, points, std::vector<Eigen::Vector3f>(0), faces, face_normals, rp);
+}
+
 void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
-    addTriangleMesh(name, points, std::vector<Eigen::Vector3f>(0), faces, rp);
+    addTriangleMesh(name, points, std::vector<Eigen::Vector3f>(0), faces, std::vector<Eigen::Vector3f>(0), rp);
+}
+
+void Visualizer::addTriangleMesh(const std::string &name, const PointCloud &cloud, const std::vector<std::vector<size_t> > &faces, const std::vector<Eigen::Vector3f> &face_normals, const RenderingProperties &rp) {
+    addTriangleMesh(name, cloud.points, cloud.normals, faces, face_normals, rp);
 }
 
 void Visualizer::addTriangleMesh(const std::string &name, const PointCloud &cloud, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
-    addTriangleMesh(name, cloud.points, cloud.normals, faces, rp);
+    addTriangleMesh(name, cloud.points, cloud.normals, faces, std::vector<Eigen::Vector3f>(0), rp);
 }
 
 void Visualizer::render() const {

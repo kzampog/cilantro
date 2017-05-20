@@ -63,9 +63,18 @@ void VtoH(const std::vector<PointInT> &points, std::vector<PointOutT> &hull_poin
 
         i = 0;
         faces[k].resize(fi->vertices().size());
-        for (auto vi = fi->vertices().begin(); vi != fi->vertices().end(); ++vi) {
-            faces[k][i++] = vid_to_ptidx[(*vi).id()];
+        if (fi->isTopOrient()) {
+            auto vi = fi->vertices().end();
+            while (vi != fi->vertices().begin()) {
+                --vi;
+                faces[k][i++] = vid_to_ptidx[(*vi).id()];
+            }
+        } else {
+            for (auto vi = fi->vertices().begin(); vi != fi->vertices().end(); ++vi) {
+                faces[k][i++] = vid_to_ptidx[(*vi).id()];
+            }
         }
+        
         k++;
     }
 

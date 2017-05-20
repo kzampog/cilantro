@@ -81,7 +81,13 @@ int main(int argc, char ** argv) {
 
     viz.addPointCloud("cloud", cloud, Visualizer::RenderingProperties().setOpacity(1.0));
 //    viz.addTriangleMesh("mesh", hull_points, faces, Visualizer::RenderingProperties().setDrawingColor(1,0,0).setUseFaceNormals(true).setOpacity(0.8));
-    viz.addTriangleMesh("mesh", hull_cloud, faces, Visualizer::RenderingProperties().setDrawingColor(1,0,0).setUseFaceNormals(true).setOpacity(0.8));
+
+    std::vector<Eigen::Vector3f> face_normals(halfspaces.size());
+    for (size_t i = 0; i < face_normals.size(); ++i) {
+        face_normals[i] = halfspaces[i].head(3);
+    }
+
+    viz.addTriangleMesh("mesh", hull_cloud, faces, face_normals, Visualizer::RenderingProperties().setDrawingColor(1,0,0).setUseFaceNormals(true).setOpacity(0.8));
 
     while (!viz.wasStopped()) {
         viz.spinOnce();
