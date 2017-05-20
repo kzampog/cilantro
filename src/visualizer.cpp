@@ -280,18 +280,6 @@ void Visualizer::addTriangleMesh(const std::string &name, const PointCloud &clou
     addTriangleMesh(name, cloud.points, cloud.normals, faces, rp);
 }
 
-//void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &vertices, const std::vector<Eigen::Vector3f> &vertex_normals, const std::vector<Eigen::Vector3f> &face_normals, const RenderingProperties &rp) {
-//    renderables_[name] = std::unique_ptr<TriangleMeshRenderable_>(new TriangleMeshRenderable_);
-//    TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)renderables_[name].get();
-//    // Copy fields
-//    obj_ptr->vertices = vertices;
-//    if (vertices.size() == vertex_normals.size()) obj_ptr->vertexNormals = vertex_normals;
-//    if (vertices.size() == face_normals.size()) obj_ptr->faceNormals = face_normals;
-//    obj_ptr->position = Eigen::Map<Eigen::MatrixXf>((float *)vertices.data(), 3, vertices.size()).rowwise().mean();
-//    // Update buffers
-//    ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
-//}
-
 void Visualizer::render() const {
     // Set render sequence
     pangolin::OpenGlMatrix mv = gl_render_state_->GetModelViewMatrix();

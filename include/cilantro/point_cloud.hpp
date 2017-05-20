@@ -16,4 +16,8 @@ struct PointCloud {
     inline bool hasNormals() const { return size() > 0 && normals.size() == size(); }
     inline bool empty() const { return points.empty(); }
     void clear();
+
+    inline Eigen::Map<Eigen::MatrixXf> pointsMatrixMap() { return Eigen::Map<Eigen::MatrixXf>((float *)points.data(), 3, points.size()); }
+    inline Eigen::Map<Eigen::MatrixXf> normalsMatrixMap() { return Eigen::Map<Eigen::MatrixXf>((float *)normals.data(), 3, normals.size()); }
+    inline Eigen::Map<Eigen::MatrixXf> colorsMatrixMap() { return Eigen::Map<Eigen::MatrixXf>((float *)colors.data(), 3, colors.size()); }
 };
