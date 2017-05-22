@@ -1,22 +1,42 @@
 #pragma once
 
-#include <libqhullcpp/QhullQh.h>
-#include <libqhullcpp/QhullFacetList.h>
-#include <libqhullcpp/QhullPoints.h>
 #include <libqhullcpp/Qhull.h>
+#include <libqhullcpp/QhullFacetList.h>
 #include <libqhullcpp/QhullVertexSet.h>
-
 #include <eigen_quadprog/eiquadprog.hpp>
-
 #include <cilantro/point_cloud.hpp>
 
-template <class PointInDataT, class PointOutT, class HalfspaceOutT>
-void VtoH(PointInDataT * points, size_t dim, size_t num_points, std::vector<PointOutT> &hull_points, std::vector<HalfspaceOutT> &halfspaces, std::vector<std::vector<size_t> > &faces, std::vector<size_t> &hull_point_indices, bool simplicial_faces = true) {
+class ConvexHull {
+public:
+    ConvexHull();
+    ~ConvexHull();
 
+private:
+    size_t dim_;
+
+    std::vector<Eigen::VectorXf> hull_points_;
+    std::vector<Eigen::VectorXf> halfspaces_;
+    std::vector<std::vector<size_t> > faces_;
+    std::vector<size_t> hull_point_indices_;
+
+};
+
+template <class PointInDataT, class PointOutT, class HalfspaceOutT>
+void VtoH(PointInDataT * points,
+          size_t dim, size_t num_points,
+          std::vector<PointOutT> &hull_points,
+          std::vector<HalfspaceOutT> &halfspaces,
+          std::vector<std::vector<size_t> > &faces,
+          std::vector<size_t> &hull_point_indices,
+          double &area, double &volume,
+          bool simplicial_faces = true,
+          realT merge_tol = 0.0)
+{
     Eigen::Matrix<realT, Eigen::Dynamic, Eigen::Dynamic> data(Eigen::Map<Eigen::Matrix<PointInDataT, Eigen::Dynamic, Eigen::Dynamic> >(points, dim, num_points).template cast<realT>());
 
     orgQhull::Qhull qh;
     if (simplicial_faces) qh.qh()->TRIangulate = True;
+    qh.qh()->premerge_centrum = merge_tol;
     qh.runQhull("", dim, num_points, data.data(), "");
     orgQhull::QhullFacetList facets = qh.facetList();
 
@@ -71,16 +91,32 @@ void VtoH(PointInDataT * points, size_t dim, size_t num_points, std::vector<Poin
 
         k++;
     }
+
+    area = qh.area();
+    volume = qh.volume();
 }
 
 template <class PointInT, class PointOutT, class HalfspaceOutT>
-void VtoH(const std::vector<PointInT> &points, std::vector<PointOutT> &hull_points, std::vector<HalfspaceOutT> &halfspaces, std::vector<std::vector<size_t> > &faces, std::vector<size_t> &hull_point_indices, bool simplicial_faces = true) {
+inline void VtoH(const std::vector<PointInT> &points,
+                 std::vector<PointOutT> &hull_points,
+                 std::vector<HalfspaceOutT> &halfspaces,
+                 std::vector<std::vector<size_t> > &faces,
+                 std::vector<size_t> &hull_point_indices,
+                 double &area, double &volume,
+                 bool simplicial_faces = true,
+                 realT merge_tol = 0.0)
+{
     if (points.empty()) return;
-    VtoH<typename PointInT::Scalar,PointOutT,HalfspaceOutT>((typename PointInT::Scalar *)points.data(), points[0].size(), points.size(), hull_points, halfspaces, faces, hull_point_indices, simplicial_faces);
+    VtoH<typename PointInT::Scalar,PointOutT,HalfspaceOutT>((typename PointInT::Scalar *)points.data(), points[0].size(), points.size(), hull_points, halfspaces, faces, hull_point_indices, area, volume, simplicial_faces, merge_tol);
 }
 
 template <class HalfspaceInDataT, class PointInT, class PointOutT>
-void HtoV(HalfspaceInDataT * halfspaces, size_t dim, size_t num_halfspaces, const PointInT &interior_point, std::vector<PointOutT> &hull_points, realT merge_tol = 0.000001) {
+void HtoVaux(HalfspaceInDataT * halfspaces,
+             size_t dim, size_t num_halfspaces,
+             const PointInT &interior_point,
+             std::vector<PointOutT> &hull_points,
+             realT merge_tol = 0.0)
+{
     Eigen::Matrix<realT, Eigen::Dynamic, Eigen::Dynamic> data(Eigen::Map<Eigen::Matrix<HalfspaceInDataT, Eigen::Dynamic, Eigen::Dynamic> >(halfspaces, dim+1, num_halfspaces).template cast<realT>());
 
     Eigen::Matrix<coordT, Eigen::Dynamic, 1> feasible_point(interior_point.head(dim).template cast<coordT>());
@@ -108,13 +144,21 @@ void HtoV(HalfspaceInDataT * halfspaces, size_t dim, size_t num_halfspaces, cons
 }
 
 template <class HalfspaceInT, class PointInT, class PointOutT>
-void HtoV(const std::vector<HalfspaceInT> &halfspaces, const PointInT &interior_point, std::vector<PointOutT> &hull_points, realT merge_tol = 0.000001) {
+inline void HtoVaux(const std::vector<HalfspaceInT> &halfspaces,
+                    const PointInT &interior_point,
+                    std::vector<PointOutT> &hull_points,
+                    realT merge_tol = 0.0)
+{
     if (halfspaces.empty()) return;
-    HtoV<typename HalfspaceInT::Scalar,PointInT,PointOutT>((typename HalfspaceInT::Scalar *)halfspaces.data(), halfspaces[0].size()-1, halfspaces.size(), interior_point, hull_points, merge_tol);
+    HtoVaux<typename HalfspaceInT::Scalar,PointInT,PointOutT>((typename HalfspaceInT::Scalar *)halfspaces.data(), halfspaces[0].size()-1, halfspaces.size(), interior_point, hull_points, merge_tol);
 }
 
 template <class HalfspaceInDataT, class PointOutT>
-void HtoV(HalfspaceInDataT * halfspaces, size_t dim, size_t num_halfspaces, std::vector<PointOutT> &hull_points, realT merge_tol = 0.000001) {
+void HtoVaux(HalfspaceInDataT * halfspaces,
+             size_t dim, size_t num_halfspaces,
+             std::vector<PointOutT> &hull_points,
+             realT merge_tol = 0.0)
+{
     // Find a feasible point
     // Objective
     //Eigen::MatrixXd G(Eigen::MatrixXd::Zero(dim+2,dim+2));
@@ -140,11 +184,78 @@ void HtoV(HalfspaceInDataT * halfspaces, size_t dim, size_t num_halfspaces, std:
     Eigen::VectorXd feasible_point(x.head(dim)/x(dim));
     Eigen::Matrix<HalfspaceInDataT,Eigen::Dynamic,1> interior_point(feasible_point.cast<HalfspaceInDataT>());
 
-    HtoV<HalfspaceInDataT,Eigen::Matrix<HalfspaceInDataT,Eigen::Dynamic,1>,PointOutT>(halfspaces, dim, num_halfspaces, interior_point, hull_points, merge_tol);
+    HtoVaux<HalfspaceInDataT,Eigen::Matrix<HalfspaceInDataT,Eigen::Dynamic,1>,PointOutT>(halfspaces, dim, num_halfspaces, interior_point, hull_points, merge_tol);
 }
 
 template <class HalfspaceInT, class PointOutT>
-void HtoV(const std::vector<HalfspaceInT> &halfspaces, std::vector<PointOutT> &hull_points, realT merge_tol = 0.000001) {
+inline void HtoVaux(const std::vector<HalfspaceInT> &halfspaces,
+                    std::vector<PointOutT> &hull_points,
+                    realT merge_tol = 0.0)
+{
     if (halfspaces.empty()) return;
-    HtoV<typename HalfspaceInT::Scalar,PointOutT>((typename HalfspaceInT::Scalar *)halfspaces.data(), halfspaces[0].size()-1, halfspaces.size(), hull_points, merge_tol);
+    HtoVaux<typename HalfspaceInT::Scalar,PointOutT>((typename HalfspaceInT::Scalar *)halfspaces.data(), halfspaces[0].size()-1, halfspaces.size(), hull_points, merge_tol);
+}
+
+template <class HalfspaceInDataT, class PointInT, class PointOutT, class HalfspaceOutT>
+inline void HtoV(HalfspaceInDataT * halfspaces,
+          size_t dim, size_t num_halfspaces,
+          const PointInT &interior_point,
+          std::vector<PointOutT> &hull_points,
+          std::vector<HalfspaceOutT> &halfspaces_out,
+          std::vector<std::vector<size_t> > &faces,
+          std::vector<size_t> &hull_point_indices,
+          double &area, double &volume,
+          bool simplicial_faces = true,
+          realT merge_tol = 0.0)
+{
+    std::vector<PointOutT> hull_points_tmp;
+    HtoVaux<HalfspaceInDataT,PointInT,PointOutT>(halfspaces, dim, num_halfspaces, interior_point, hull_points_tmp, merge_tol);
+    VtoH<PointOutT,PointOutT,HalfspaceOutT>(hull_points_tmp, hull_points, halfspaces_out, faces, hull_point_indices, area, volume, simplicial_faces, merge_tol);
+}
+
+template <class HalfspaceInT, class PointInT, class PointOutT, class HalfspaceOutT>
+inline void HtoV(const std::vector<HalfspaceInT> &halfspaces,
+                 const PointInT &interior_point,
+                 std::vector<PointOutT> &hull_points,
+                 std::vector<HalfspaceOutT> &halfspaces_out,
+                 std::vector<std::vector<size_t> > &faces,
+                 std::vector<size_t> &hull_point_indices,
+                 double &area, double &volume,
+                 bool simplicial_faces = true,
+                 realT merge_tol = 0.0)
+{
+    std::vector<PointOutT> hull_points_tmp;
+    HtoVaux<HalfspaceInT,PointInT,PointOutT>(halfspaces, interior_point, hull_points_tmp, merge_tol);
+    VtoH<PointOutT,PointOutT,HalfspaceOutT>(hull_points_tmp, hull_points, halfspaces_out, faces, hull_point_indices, area, volume, simplicial_faces, merge_tol);
+}
+
+template <class HalfspaceInDataT, class PointOutT, class HalfspaceOutT>
+inline void HtoV(HalfspaceInDataT * halfspaces,
+                 size_t dim, size_t num_halfspaces,
+                 std::vector<PointOutT> &hull_points,
+                 std::vector<HalfspaceOutT> &halfspaces_out,
+                 std::vector<std::vector<size_t> > &faces,
+                 std::vector<size_t> &hull_point_indices,
+                 double &area, double &volume,
+                 bool simplicial_faces = true,
+                 realT merge_tol = 0.0)
+{
+    std::vector<PointOutT> hull_points_tmp;
+    HtoVaux<HalfspaceInDataT,PointOutT>(halfspaces, dim, num_halfspaces, hull_points_tmp, merge_tol);
+    VtoH<PointOutT,PointOutT,HalfspaceOutT>(hull_points_tmp, hull_points, halfspaces_out, faces, hull_point_indices, area, volume, simplicial_faces, merge_tol);
+}
+
+template <class HalfspaceInT, class PointOutT, class HalfspaceOutT>
+inline void HtoV(const std::vector<HalfspaceInT> &halfspaces,
+                 std::vector<PointOutT> &hull_points,
+                 std::vector<HalfspaceOutT> &halfspaces_out,
+                 std::vector<std::vector<size_t> > &faces,
+                 std::vector<size_t> &hull_point_indices,
+                 double &area, double &volume,
+                 bool simplicial_faces = true,
+                 realT merge_tol = 0.0)
+{
+    std::vector<PointOutT> hull_points_tmp;
+    HtoVaux<HalfspaceInT,PointOutT>(halfspaces, hull_points_tmp, merge_tol);
+    VtoH<PointOutT,PointOutT,HalfspaceOutT>(hull_points_tmp, hull_points, halfspaces_out, faces, hull_point_indices, area, volume, simplicial_faces, merge_tol);
 }
