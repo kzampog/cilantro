@@ -8,7 +8,12 @@ void Visualizer::PointsRenderable_::applyRenderingProperties() {
     pointBuffer.Upload(points.data(), sizeof(float)*points.size()*3);
 
     std::vector<Eigen::Vector4f> color_alpha;
-    if (renderingProperties.drawingColor != no_color_) {
+    if (scalars.size() == points.size()) {
+        color_alpha = colormap(scalars, renderingProperties.scalarsMin, renderingProperties.scalarsMax, renderingProperties.colormapType);
+        for(size_t i = 0; i < colors.size(); i++) {
+            color_alpha[i](3) = renderingProperties.opacity;
+        }
+    } else if (renderingProperties.drawingColor != no_color_) {
         Eigen::Vector4f tmp;
         tmp.head(3) = renderingProperties.drawingColor;
         tmp(3) = renderingProperties.opacity;
@@ -200,6 +205,21 @@ void Visualizer::addPointCloud(const std::string &name, const std::vector<Eigen:
 
 void Visualizer::addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp) {
     addPointCloud(name, cloud.points, cloud.colors, rp);
+}
+
+void Visualizer::addPointCloudWithScalars(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<float> &scalars, const RenderingProperties &rp) {
+    renderables_[name] = std::unique_ptr<PointsRenderable_>(new PointsRenderable_);
+    PointsRenderable_ *obj_ptr = (PointsRenderable_ *)renderables_[name].get();
+    // Copy fields
+    obj_ptr->points = points;
+    obj_ptr->scalars = scalars;
+    obj_ptr->position = Eigen::Map<Eigen::MatrixXf>((float *)points.data(), 3, points.size()).rowwise().mean();
+    // Update buffers
+    ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
+}
+
+void Visualizer::addPointCloudWithScalars(const std::string &name, const PointCloud &cloud, const std::vector<float> &scalars, const RenderingProperties &rp) {
+    addPointCloudWithScalars(name, cloud.points, scalars, rp);
 }
 
 void Visualizer::addPointCloudNormals(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const RenderingProperties &rp) {

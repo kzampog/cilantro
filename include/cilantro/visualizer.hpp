@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cilantro/point_cloud.hpp>
+#include <cilantro/colormaps.h>
 #include <pangolin/pangolin.h>
 #include <pangolin/display/display_internal.h>
 
@@ -14,7 +15,10 @@ public:
                                        normalLength(0.05f),
                                        correspondencesFraction(0.5),
                                        drawWireframe(false),
-                                       useFaceNormals(true)
+                                       useFaceNormals(true),
+                                       scalarsMin(std::numeric_limits<float>::quiet_NaN()),
+                                       scalarsMax(std::numeric_limits<float>::quiet_NaN()),
+                                       colormapType(ColormapType::COLORMAP_JET)
         {}
         inline ~RenderingProperties() {}
 
@@ -26,6 +30,9 @@ public:
         float correspondencesFraction;
         bool drawWireframe;
         bool useFaceNormals;
+        float scalarsMin;
+        float scalarsMax;
+        ColormapType colormapType;
 
         inline RenderingProperties& setDrawingColor(const Eigen::Vector3f &color) { drawingColor = color; return *this; }
         inline RenderingProperties& setDrawingColor(float r, float g, float b) { drawingColor = Eigen::Vector3f(r,g,b); return *this; }
@@ -36,6 +43,8 @@ public:
         inline RenderingProperties& setCorrespondencesFraction(float cf) { correspondencesFraction = cf; return *this; }
         inline RenderingProperties& setDrawWireframe(bool dw) { drawWireframe = dw; return *this; }
         inline RenderingProperties& setUseFaceNormals(bool fn) { useFaceNormals = fn; return *this; }
+        inline RenderingProperties& setScalarsRange(const float min, const float max) { scalarsMin = min; scalarsMax = max; return *this; }
+        inline RenderingProperties& setColormapType(const ColormapType ct) { colormapType = ct; return *this; }
     };
 
     Visualizer(const std::string & window_name, const std::string &display_name);
@@ -44,6 +53,9 @@ public:
     void addPointCloud(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &colors, const RenderingProperties &rp = RenderingProperties());
     void addPointCloud(const std::string &name, const std::vector<Eigen::Vector3f> &points, const RenderingProperties &rp = RenderingProperties());
     void addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp = RenderingProperties());
+
+    void addPointCloudWithScalars(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<float> &scalars, const RenderingProperties &rp = RenderingProperties());
+    void addPointCloudWithScalars(const std::string &name, const PointCloud &cloud, const std::vector<float> &scalars, const RenderingProperties &rp = RenderingProperties());
 
     void addPointCloudNormals(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const RenderingProperties &rp = RenderingProperties());
     void addPointCloudNormals(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp = RenderingProperties());
