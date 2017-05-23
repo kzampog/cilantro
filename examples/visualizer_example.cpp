@@ -21,8 +21,14 @@ int main(int argc, char ** argv) {
     // First
     Visualizer viz("win", "disp");
 
-    viz.addPointCloud("pcd", cloud);
-    viz.addPointCloudNormals("nrm", cloud, Visualizer::RenderingProperties().setCorrespondencesFraction(0.20).setOpacity(0.5));
+    std::vector<float> scalars (cloud.size());
+    for (size_t i = 0; i < cloud.size(); i++)
+        scalars[i] = cloud.points[i].norm();
+    viz.addPointCloudWithScalars("pcd", cloud, scalars, Visualizer::RenderingProperties().setColormapType(COLORMAP_JET));
+    
+//    viz.addPointCloud("pcd", cloud);
+//    viz.addPointCloudNormals("nrm", cloud, Visualizer::RenderingProperties().setCorrespondencesFraction(0.20).setOpacity(0.5));
+
     viz.addCoordinateSystem("axis", 0.4f, Eigen::Matrix4f::Identity(), Visualizer::RenderingProperties().setLineWidth(10.0f));
 
     std::string name = "nrm";
@@ -44,7 +50,7 @@ int main(int argc, char ** argv) {
     std::string name2 = "corr";
     viz2.registerKeyboardCallback(std::vector<int>(1,'c'), callback_test, &name2);
 
-    while (!viz.wasStopped() || !viz2.wasStopped()) {
+    while (!viz.wasStopped() && !viz2.wasStopped()) {
         viz.spinOnce();
         viz2.spinOnce();
     }
