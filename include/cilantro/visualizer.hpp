@@ -7,13 +7,12 @@
 class Visualizer {
 public:
     struct RenderingProperties {
-        inline RenderingProperties() : drawingColor(Eigen::Vector3f(1.0f, 1.0f, 1.0f)),
+        inline RenderingProperties() : drawingColor(no_color_),
                                        pointSize(5.0f),
                                        lineWidth(1.0f),
                                        opacity(1.0f),
                                        normalLength(0.05f),
                                        correspondencesFraction(0.5),
-                                       overrideColors(false),
                                        drawWireframe(false),
                                        useFaceNormals(true)
         {}
@@ -25,7 +24,6 @@ public:
         float opacity;
         float normalLength;
         float correspondencesFraction;
-        bool overrideColors;
         bool drawWireframe;
         bool useFaceNormals;
 
@@ -36,7 +34,6 @@ public:
         inline RenderingProperties& setOpacity(float op) { opacity = op; return *this; }
         inline RenderingProperties& setNormalLength(float nl) { normalLength = nl; return *this; }
         inline RenderingProperties& setCorrespondencesFraction(float cf) { correspondencesFraction = cf; return *this; }
-        inline RenderingProperties& setOverrideColors(bool oc) { overrideColors = oc; return *this; }
         inline RenderingProperties& setDrawWireframe(bool dw) { drawWireframe = dw; return *this; }
         inline RenderingProperties& setUseFaceNormals(bool fn) { useFaceNormals = fn; return *this; }
     };
@@ -89,6 +86,10 @@ public:
     void registerKeyboardCallback(const std::vector<int> &keys, std::function<void(Visualizer&,int,void*)> func, void *cookie);
 
 private:
+
+    static Eigen::Vector3f no_color_;
+    static Eigen::Vector3f default_color_;
+
     struct Renderable_ {
         Renderable_() : visible(true), position(Eigen::Vector3f::Zero()) {}
         bool visible;
@@ -102,6 +103,7 @@ private:
     struct PointsRenderable_ : public Renderable_ {
         std::vector<Eigen::Vector3f> points;
         std::vector<Eigen::Vector3f> colors;
+        std::vector<float> scalars;
         pangolin::GlBuffer pointBuffer;
         pangolin::GlBuffer colorBuffer;
         void applyRenderingProperties();

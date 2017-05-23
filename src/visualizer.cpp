@@ -1,13 +1,21 @@
 #include <cilantro/visualizer.hpp>
 
+Eigen::Vector3f Visualizer::no_color_ = Eigen::Vector3f(-1,-1,-1);
+Eigen::Vector3f Visualizer::default_color_ = Eigen::Vector3f(1,1,1);
+
 void Visualizer::PointsRenderable_::applyRenderingProperties() {
     pointBuffer.Reinitialise(pangolin::GlArrayBuffer, points.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
     pointBuffer.Upload(points.data(), sizeof(float)*points.size()*3);
 
     std::vector<Eigen::Vector4f> color_alpha;
-    if (renderingProperties.overrideColors || colors.size() != points.size()) {
+    if (renderingProperties.drawingColor != no_color_) {
         Eigen::Vector4f tmp;
         tmp.head(3) = renderingProperties.drawingColor;
+        tmp(3) = renderingProperties.opacity;
+        color_alpha = std::vector<Eigen::Vector4f>(points.size(), tmp);
+    } else if (colors.size() != points.size()) {
+        Eigen::Vector4f tmp;
+        tmp.head(3) = default_color_;
         tmp(3) = renderingProperties.opacity;
         color_alpha = std::vector<Eigen::Vector4f>(points.size(), tmp);
     } else {
@@ -48,7 +56,10 @@ void Visualizer::NormalsRenderable_::applyRenderingProperties() {
 
 void Visualizer::NormalsRenderable_::render() {
     glPointSize(renderingProperties.pointSize);
-    glColor4f(renderingProperties.drawingColor(0), renderingProperties.drawingColor(1), renderingProperties.drawingColor(2), renderingProperties.opacity);
+    if (renderingProperties.drawingColor == no_color_)
+        glColor4f(default_color_(0), default_color_(1), default_color_(2), renderingProperties.opacity);
+    else
+        glColor4f(renderingProperties.drawingColor(0), renderingProperties.drawingColor(1), renderingProperties.drawingColor(2), renderingProperties.opacity);
     glLineWidth(renderingProperties.lineWidth);
     pangolin::RenderVbo(lineEndPointBuffer, GL_LINES);
 }
@@ -75,7 +86,10 @@ void Visualizer::CorrespondencesRenderable_::applyRenderingProperties() {
 
 void Visualizer::CorrespondencesRenderable_::render() {
     glPointSize(renderingProperties.pointSize);
-    glColor4f(renderingProperties.drawingColor(0), renderingProperties.drawingColor(1), renderingProperties.drawingColor(2), renderingProperties.opacity);
+    if (renderingProperties.drawingColor == no_color_)
+        glColor4f(default_color_(0), default_color_(1), default_color_(2), renderingProperties.opacity);
+    else
+        glColor4f(renderingProperties.drawingColor(0), renderingProperties.drawingColor(1), renderingProperties.drawingColor(2), renderingProperties.opacity);
     glLineWidth(renderingProperties.lineWidth);
     pangolin::RenderVbo(lineEndPointBuffer, GL_LINES);
 }
@@ -101,7 +115,10 @@ void Visualizer::TriangleMeshRenderable_::applyRenderingProperties() {
 
 void Visualizer::TriangleMeshRenderable_::render() {
     glPointSize(renderingProperties.pointSize);
-    glColor4f(renderingProperties.drawingColor(0), renderingProperties.drawingColor(1), renderingProperties.drawingColor(2), renderingProperties.opacity);
+    if (renderingProperties.drawingColor == no_color_)
+        glColor4f(default_color_(0), default_color_(1), default_color_(2), renderingProperties.opacity);
+    else
+        glColor4f(renderingProperties.drawingColor(0), renderingProperties.drawingColor(1), renderingProperties.drawingColor(2), renderingProperties.opacity);
     glLineWidth(renderingProperties.lineWidth);
 
     bool use_normals = (renderingProperties.useFaceNormals && faceNormals.size() == vertices.size()) ||
