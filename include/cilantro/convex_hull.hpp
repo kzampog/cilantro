@@ -245,21 +245,17 @@ inline void convexHullFromHalfspaces(const std::vector<Eigen::Matrix<InputScalar
 template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
 class ConvexHull {
 public:
-    ConvexHull(const std::vector<Eigen::Matrix<InputScalarT,EigenDim,1> > &points, bool simplicial_facets = true, double merge_tol = 0.0)
-            : data_((InputScalarT *)points.data()),
-              num_points_(points.size()),
-              simplicial_facets_(simplicial_facets),
-              merge_tol_(merge_tol)
-    {
-        compute_();
+    ConvexHull(InputScalarT * data, size_t dim, size_t num_points, bool simplicial_facets = true, double merge_tol = 0.0) {
+        if (dim == EigenDim)
+            convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(data, num_points, hull_points_, halfspaces_, faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
+        else
+            convexHullFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(data, num_points, hull_points_, halfspaces_, faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
     }
-    ConvexHull(InputScalarT * data, size_t num_points, bool simplicial_facets = true, double merge_tol = 0.0)
-            : data_(data),
-              num_points_(num_points),
-              simplicial_facets_(simplicial_facets),
-              merge_tol_(merge_tol)
-    {
-        compute_();
+    ConvexHull(const std::vector<Eigen::Matrix<InputScalarT,EigenDim,1> > &points, bool simplicial_facets = true, double merge_tol = 0.0) {
+        convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(points, hull_points_, halfspaces_, faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
+    }
+    ConvexHull(const std::vector<Eigen::Matrix<InputScalarT,EigenDim+1,1> > &halfspaces, bool simplicial_facets = true, double merge_tol = 0.0) {
+        convexHullFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(halfspaces, hull_points_, halfspaces_, faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
     }
 
     ~ConvexHull() {}
@@ -272,31 +268,40 @@ public:
     inline double getArea() const { return area_; }
     inline double getVolume() const { return volume_; }
 
-private:
-    InputScalarT * data_;
-    size_t num_points_;
-    bool simplicial_facets_;
-    double merge_tol_;
+    bool isPointInHull(const Eigen::Matrix<OutputScalarT,EigenDim,1> &point) const {
+        for (size_t i = 0; i < halfspaces_.size(); i++) {
+            if (point.dot(halfspaces_[i].head(3)) + halfspaces_[i](EigenDim) > 0.0) return false;
+        }
+        return true;
+    }
 
+    std::vector<size_t> getInteriorPointIndices(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points) const {
+        std::vector<size_t> indices;
+        indices.reserve(points.size());
+        // TODO
+        return indices;
+    }
+
+private:
     std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > hull_points_;
     std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > halfspaces_;
     std::vector<std::vector<size_t> > faces_;
     std::vector<size_t> hull_point_indices_;
     double area_;
     double volume_;
-
-    void compute_() {
-        convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(data_, num_points_, hull_points_, halfspaces_, faces_, hull_point_indices_, area_, volume_, simplicial_facets_, merge_tol_);
-    }
 };
 
 class ConvexHull2D : public ConvexHull<float,float,2> {
 public:
+    ConvexHull2D(float * data, size_t dim, size_t num_points, bool simplicial_facets = true, double merge_tol = 0.0);
     ConvexHull2D(const std::vector<Eigen::Vector2f> &points, bool simplicial_facets = true, double merge_tol = 0.0);
+    ConvexHull2D(const std::vector<Eigen::Vector3f> &halfspaces, bool simplicial_facets = true, double merge_tol = 0.0);
 };
 
 class ConvexHull3D : public ConvexHull<float,float,3> {
 public:
+    ConvexHull3D(float * data, size_t dim, size_t num_points, bool simplicial_facets = true, double merge_tol = 0.0);
     ConvexHull3D(const std::vector<Eigen::Vector3f> &points, bool simplicial_facets = true, double merge_tol = 0.0);
+    ConvexHull3D(const std::vector<Eigen::Vector4f> &halfspaces, bool simplicial_facets = true, double merge_tol = 0.0);
     ConvexHull3D(const PointCloud &cloud, bool simplicial_facets = true, double merge_tol = 0.0);
 };
