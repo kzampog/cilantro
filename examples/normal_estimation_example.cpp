@@ -1,5 +1,6 @@
 #include <cilantro/normal_estimation.hpp>
 #include <cilantro/ply_io.hpp>
+#include <cilantro/visualizer.hpp>
 #include <iostream>
 
 #include <cilantro/voxel_grid.hpp>
@@ -25,15 +26,22 @@ int main(int argc, char ** argv) {
     kd_tree_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
 
     begin = clock();
-//    ne.computeNormalsRadius(0.01);
-    ne.computeNormalsKNN(7);
+    ne.estimateNormalsInPlaceRadius(0.01);
+//    ne.estimateNormalsInPlaceKNN(7);
     end = clock();
     estimation_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
 
     std::cout << "kd-tree time: " << kd_tree_time << std::endl;
     std::cout << "Estimation time: " << estimation_time << std::endl;
 
-    writePointCloudToPLYFile(argv[2], cloud);
+    Visualizer viz("win", "disp");
+
+    viz.addPointCloud("cloud_d", cloud);
+    viz.addPointCloudNormals("normals_d", cloud);
+
+    while (!viz.wasStopped()){
+        viz.spinOnce();
+    }
 
     return 0;
 }

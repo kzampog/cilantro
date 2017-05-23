@@ -1,5 +1,6 @@
 #include <cilantro/voxel_grid.hpp>
 #include <cilantro/ply_io.hpp>
+#include <cilantro/visualizer.hpp>
 #include <iostream>
 
 #include <ctime>
@@ -17,7 +18,6 @@ int main(int argc, char ** argv) {
 //
 //    std::cout << cloud_d.normals[0] << std::endl;
 
-
     clock_t begin, end;
     double build_time, ds_time;
 
@@ -25,7 +25,7 @@ int main(int argc, char ** argv) {
     readPointCloudFromPLYFile(argv[1], cloud);
 
     begin = clock();
-    VoxelGrid vg(cloud, 0.010f);
+    VoxelGrid vg(cloud, 0.01f);
     end = clock();
     build_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
 
@@ -40,7 +40,14 @@ int main(int argc, char ** argv) {
     std::cout << "Build time: " << build_time << std::endl;
     std::cout << "Downsampling time: " << ds_time << std::endl;
 
-    writePointCloudToPLYFile(argv[2], cloud_d);
+    Visualizer viz("win", "disp");
+
+    viz.addPointCloud("cloud_d", cloud_d);
+    viz.addPointCloudNormals("normals_d", cloud_d);
+
+    while (!viz.wasStopped()){
+        viz.spinOnce();
+    }
 
     return 0;
 }

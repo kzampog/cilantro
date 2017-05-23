@@ -6,13 +6,18 @@
 
 class VoxelGrid {
 public:
+    VoxelGrid(const std::vector<Eigen::Vector3f> &points, float bin_size);
     VoxelGrid(const PointCloud &cloud, float bin_size);
     ~VoxelGrid() {}
 
-    PointCloud getDownsampledCloud(int min_points_in_bin = 1) const;
+    std::vector<Eigen::Vector3f> getDownsampledPoints(size_t min_points_in_bin = 1) const;
+    std::vector<Eigen::Vector3f> getDownsampledNormals(size_t min_points_in_bin = 1) const;
+    std::vector<Eigen::Vector3f> getDownsampledColors(size_t min_points_in_bin = 1) const;
 
-    std::vector<int> getGridBinNeighbors(const Eigen::Vector3f &point) const;
-    std::vector<int> getGridBinNeighbors(int point_ind) const;
+    PointCloud getDownsampledCloud(size_t min_points_in_bin = 1) const;
+
+    std::vector<size_t> getGridBinNeighbors(const Eigen::Vector3f &point) const;
+    std::vector<size_t> getGridBinNeighbors(size_t point_ind) const;
 
 private:
 
@@ -40,12 +45,15 @@ private:
         }
     };
 
-    const PointCloud &cloud_ref_;
-    size_t num_points_;
+    const std::vector<Eigen::Vector3f> * input_points_;
+    const std::vector<Eigen::Vector3f> * input_normals_;
+    const std::vector<Eigen::Vector3f> * input_colors_;
+
     Eigen::Vector3f min_pt_;
     float bin_size_;
 
-    std::map<Eigen::Vector3i, std::vector<int>, EigenVector3iComparator_> grid_lookup_table_;
-//    std::unordered_map<Eigen::Vector3i, std::vector<int>, EigenVector3iHasher_> grid_lookup_table_;
+    std::map<Eigen::Vector3i, std::vector<size_t>, EigenVector3iComparator_> grid_lookup_table_;
+//    std::unordered_map<Eigen::Vector3i, std::vector<size_t>, EigenVector3iHasher_> grid_lookup_table_;
 
+    void build_lookup_table_();
 };

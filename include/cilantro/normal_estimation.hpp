@@ -4,22 +4,23 @@
 
 class NormalEstimation {
 public:
+    NormalEstimation(const std::vector<Eigen::Vector3f> &points);
+    NormalEstimation(const std::vector<Eigen::Vector3f> &points, const KDTree &kd_tree);
     NormalEstimation(const PointCloud &cloud);
     NormalEstimation(const PointCloud &cloud, const KDTree &kd_tree);
     ~NormalEstimation();
 
     inline Eigen::Vector3f& viewPoint() { return view_point_; };
 
-    void computeNormalsKNN(std::vector<Eigen::Vector3f> &normals, size_t num_neighbors) const;
-    void computeNormalsKNN(PointCloud &cloud, size_t num_neighbors) const;
-    void computeNormalsKNN(size_t num_neighbors) const;
+    std::vector<Eigen::Vector3f> estimateNormalsKNN(size_t num_neighbors) const;
+    void estimateNormalsInPlaceKNN(size_t num_neighbors) const;
 
-    void computeNormalsRadius(std::vector<Eigen::Vector3f> &normals, float radius) const;
-    void computeNormalsRadius(PointCloud &cloud, float radius) const;
-    void computeNormalsRadius(float radius) const;
+    std::vector<Eigen::Vector3f> estimateNormalsRadius(float radius) const;
+    void estimateNormalsInPlaceRadius(float radius) const;
 
 private:
-    PointCloud &input_cloud_;
+    PointCloud *input_cloud_;
+    const std::vector<Eigen::Vector3f> *input_points_;
     KDTree *kd_tree_ptr_;
     bool kd_tree_owned_;
     Eigen::Vector3f view_point_;

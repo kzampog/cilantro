@@ -1,120 +1,147 @@
 #include <cilantro/voxel_grid.hpp>
 //#include <cilantro/pca.hpp>
 
-VoxelGrid::VoxelGrid(const PointCloud &cloud, float bin_size)
-        : bin_size_(bin_size),
-          cloud_ref_(cloud),
-          num_points_(cloud.size())
+VoxelGrid::VoxelGrid(const std::vector<Eigen::Vector3f> &points, float bin_size)
+        : input_points_(&points),
+          input_normals_(NULL),
+          input_colors_(NULL),
+          bin_size_(bin_size)
 {
-    min_pt_ = Eigen::Map<Eigen::MatrixXf>((float *)cloud.points.data(), 3, num_points_).rowwise().minCoeff();
-
-    Eigen::MatrixXi grid_coords = ((Eigen::Map<Eigen::MatrixXf>((float *)cloud.points.data(), 3, num_points_).colwise()-min_pt_)/bin_size_).array().floor().cast<int>();
-
-    // Build lookup table
-    for (int i = 0; i < num_points_; i++) {
-        auto it = grid_lookup_table_.find(grid_coords.col(i));
-        if (it == grid_lookup_table_.end()) {
-            grid_lookup_table_.insert(std::pair<Eigen::Vector3i,std::vector<int> >(grid_coords.col(i), std::vector<int>(1, i)));
-        } else {
-            it->second.push_back(i);
-        }
-    }
+    build_lookup_table_();
 }
 
-PointCloud VoxelGrid::getDownsampledCloud(int min_points_in_bin) const {
-    PointCloud res;
+VoxelGrid::VoxelGrid(const PointCloud &cloud, float bin_size)
+        : input_points_(&cloud.points),
+          input_normals_(cloud.hasNormals()?&cloud.normals:NULL),
+          input_colors_(cloud.hasColors()?&cloud.colors:NULL),
+          bin_size_(bin_size)
+{
+    build_lookup_table_();
+}
 
-    res.points.reserve(grid_lookup_table_.size());
+std::vector<Eigen::Vector3f> VoxelGrid::getDownsampledPoints(size_t min_points_in_bin) const {
+    std::vector<Eigen::Vector3f> points;
+    points.reserve(grid_lookup_table_.size());
     for (auto it = grid_lookup_table_.begin(); it != grid_lookup_table_.end(); ++it) {
         if (it->second.size() < min_points_in_bin) continue;
 
         Eigen::MatrixXf bin_points(3, it->second.size());
-        for (int i = 0; i < it->second.size(); i++) {
-            bin_points.col(i) = cloud_ref_.points[it->second[i]];
+        for (size_t i = 0; i < it->second.size(); i++) {
+            bin_points.col(i) = (*input_points_)[it->second[i]];
         }
-        res.points.push_back(bin_points.rowwise().mean());
+        points.push_back(bin_points.rowwise().mean());
     }
 
-//    if (cloud_ref_.hasNormals()) {
-//        res.normals.reserve(grid_lookup_table_.size());
-//        for (auto it = grid_lookup_table_.begin(); it != grid_lookup_table_.end(); ++it) {
-//            if (it->second.size() < min_points_in_bin) continue;
+    return points;
+}
+
+std::vector<Eigen::Vector3f> VoxelGrid::getDownsampledNormals(size_t min_points_in_bin) const {
+    std::vector<Eigen::Vector3f> normals;
+    if (input_normals_ == NULL) {
+        return normals;
+    }
+
+//    normals.reserve(grid_lookup_table_.size());
+//    for (auto it = grid_lookup_table_.begin(); it != grid_lookup_table_.end(); ++it) {
+//        if (it->second.size() < min_points_in_bin) continue;
 //
-//            Eigen::MatrixXf bin_normals(3, it->second.size()*2);
-//            Eigen::Vector3f ref_dir = cloud_ref_.normals[it->second[0]];
-//            size_t pos = 0, neg = 0;
-//            for (int i = 0; i < it->second.size(); i++) {
-//                const Eigen::Vector3f& curr_normal = cloud_ref_.normals[it->second[i]];
-//                if (ref_dir.dot(curr_normal) < 0.0f) neg++; else pos++;
-//                bin_normals.col(2*i) = -curr_normal;
-//                bin_normals.col(2*i+1) = curr_normal;
-//            }
-//            if (neg > pos) ref_dir = -ref_dir;
+//        Eigen::MatrixXf bin_normals(3, it->second.size()*2);
+//        Eigen::Vector3f ref_dir = (*input_normals_)[it->second[0]];
+//        size_t pos = 0, neg = 0;
+//        for (size_t i = 0; i < it->second.size(); i++) {
+//            const Eigen::Vector3f& curr_normal = (*input_normals_)[it->second[i]];
+//            if (ref_dir.dot(curr_normal) < 0.0f) neg++; else pos++;
+//            bin_normals.col(2*i) = -curr_normal;
+//            bin_normals.col(2*i+1) = curr_normal;
+//        }
+//        if (neg > pos) ref_dir = -ref_dir;
 //
-//            PCA pca(bin_normals.data(), 3, it->second.size()*2);
-//            Eigen::Vector3f avg = pca.getEigenVectors().col(0);
-//            if (ref_dir.dot(avg) < 0.0f) {
-//                res.normals.push_back(-avg);
-//            } else {
-//                res.normals.push_back(avg);
-//            }
+//        PCA pca(bin_normals.data(), 3, it->second.size()*2);
+//        Eigen::Vector3f avg = pca.getEigenVectors().col(0);
+//        if (ref_dir.dot(avg) < 0.0f) {
+//            normals.push_back(-avg);
+//        } else {
+//            normals.push_back(avg);
 //        }
 //    }
 
-    if (cloud_ref_.hasNormals()) {
-        res.normals.reserve(grid_lookup_table_.size());
-        for (auto it = grid_lookup_table_.begin(); it != grid_lookup_table_.end(); ++it) {
-            if (it->second.size() < min_points_in_bin) continue;
+    normals.reserve(grid_lookup_table_.size());
+    for (auto it = grid_lookup_table_.begin(); it != grid_lookup_table_.end(); ++it) {
+        if (it->second.size() < min_points_in_bin) continue;
 
-            Eigen::MatrixXf bin_normals(3, it->second.size());
-            Eigen::Vector3f ref_dir = cloud_ref_.normals[it->second[0]];
-            size_t pos = 0, neg = 0;
-            for (int i = 0; i < it->second.size(); i++) {
-                const Eigen::Vector3f& curr_normal = cloud_ref_.normals[it->second[i]];
-                if (ref_dir.dot(curr_normal) < 0.0f) {
-                    bin_normals.col(i) = -curr_normal;
-                    neg++;
-                } else {
-                    bin_normals.col(i) = curr_normal;
-                    pos++;
-                }
-            }
-
-            Eigen::Vector3f avg = bin_normals.rowwise().mean().normalized();
-            if (neg > pos) {
-                res.normals.push_back(-avg);
+        Eigen::MatrixXf bin_normals(3, it->second.size());
+        Eigen::Vector3f ref_dir = (*input_normals_)[it->second[0]];
+        size_t pos = 0, neg = 0;
+        for (size_t i = 0; i < it->second.size(); i++) {
+            const Eigen::Vector3f& curr_normal = (*input_normals_)[it->second[i]];
+            if (ref_dir.dot(curr_normal) < 0.0f) {
+                bin_normals.col(i) = -curr_normal;
+                neg++;
             } else {
-                res.normals.push_back(avg);
+                bin_normals.col(i) = curr_normal;
+                pos++;
             }
+        }
+
+        Eigen::Vector3f avg = bin_normals.rowwise().mean().normalized();
+        if (neg > pos) {
+            normals.push_back(-avg);
+        } else {
+            normals.push_back(avg);
         }
     }
 
-    if (cloud_ref_.hasColors()) {
-        res.colors.reserve(grid_lookup_table_.size());
-        for (auto it = grid_lookup_table_.begin(); it != grid_lookup_table_.end(); ++it) {
-            if (it->second.size() < min_points_in_bin) continue;
-
-            Eigen::MatrixXf bin_colors(3, it->second.size());
-            for (int i = 0; i < it->second.size(); i++) {
-                bin_colors.col(i) = cloud_ref_.colors[it->second[i]];
-            }
-            res.colors.push_back(bin_colors.rowwise().mean());
-        }
-    }
-
-    return res;
+    return normals;
 }
 
-std::vector<int> VoxelGrid::getGridBinNeighbors(const Eigen::Vector3f &point) const {
+std::vector<Eigen::Vector3f> VoxelGrid::getDownsampledColors(size_t min_points_in_bin) const {
+    std::vector<Eigen::Vector3f> colors;
+    if (input_colors_ == NULL) return colors;
+
+    colors.reserve(grid_lookup_table_.size());
+    for (auto it = grid_lookup_table_.begin(); it != grid_lookup_table_.end(); ++it) {
+        if (it->second.size() < min_points_in_bin) continue;
+
+        Eigen::MatrixXf bin_colors(3, it->second.size());
+        for (size_t i = 0; i < it->second.size(); i++) {
+            bin_colors.col(i) = (*input_colors_)[it->second[i]];
+        }
+        colors.push_back(bin_colors.rowwise().mean());
+    }
+
+    return colors;
+}
+
+PointCloud VoxelGrid::getDownsampledCloud(size_t min_points_in_bin) const {
+    return PointCloud(getDownsampledPoints(min_points_in_bin), getDownsampledNormals(min_points_in_bin), getDownsampledColors(min_points_in_bin));
+}
+
+std::vector<size_t> VoxelGrid::getGridBinNeighbors(const Eigen::Vector3f &point) const {
     Eigen::Vector3i grid_coords = ((point-min_pt_)/bin_size_).array().floor().cast<int>();
-    if ((grid_coords.array() < Eigen::Vector3i::Zero().array()).any()) return std::vector<int>(0);
+    if ((grid_coords.array() < Eigen::Vector3i::Zero().array()).any()) return std::vector<size_t>(0);
 
     auto it = grid_lookup_table_.find(grid_coords);
-    if (it == grid_lookup_table_.end()) return std::vector<int>(0);
+    if (it == grid_lookup_table_.end()) return std::vector<size_t>(0);
 
     return it->second;
 }
 
-std::vector<int> VoxelGrid::getGridBinNeighbors(int point_ind) const {
-    return VoxelGrid::getGridBinNeighbors(cloud_ref_.points[point_ind]);
+std::vector<size_t> VoxelGrid::getGridBinNeighbors(size_t point_ind) const {
+    return VoxelGrid::getGridBinNeighbors((*input_points_)[point_ind]);
+}
+
+void VoxelGrid::build_lookup_table_() {
+    min_pt_ = Eigen::Map<Eigen::MatrixXf>((float *)input_points_->data(), 3, input_points_->size()).rowwise().minCoeff();
+
+    Eigen::MatrixXi grid_coords = ((Eigen::Map<Eigen::MatrixXf>((float *)input_points_->data(), 3, input_points_->size()).colwise()-min_pt_)/bin_size_).array().floor().cast<int>();
+
+    // Build lookup table
+    for (size_t i = 0; i < input_points_->size(); i++) {
+        auto it = grid_lookup_table_.find(grid_coords.col(i));
+        if (it == grid_lookup_table_.end()) {
+            grid_lookup_table_.insert(std::pair<Eigen::Vector3i,std::vector<size_t> >(grid_coords.col(i), std::vector<size_t>(1, i)));
+        } else {
+            it->second.push_back(i);
+        }
+    }
 }

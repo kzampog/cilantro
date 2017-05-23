@@ -2,6 +2,12 @@
 
 PointCloud::PointCloud() {}
 
+PointCloud::PointCloud(const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const std::vector<Eigen::Vector3f> &colors)
+        : points(points),
+          normals(normals),
+          colors(colors)
+{}
+
 PointCloud::PointCloud(const PointCloud &cloud, const std::vector<size_t> &indices) {
     points.resize(indices.size());
     for (size_t i = 0; i < indices.size(); i++) {

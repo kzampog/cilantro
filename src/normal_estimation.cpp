@@ -1,74 +1,91 @@
 #include <cilantro/normal_estimation.hpp>
 #include <cilantro/pca.hpp>
 
-NormalEstimation::NormalEstimation(const PointCloud &cloud)
-        : input_cloud_((PointCloud&)cloud),
-          kd_tree_ptr_(new KDTree(cloud)),
+NormalEstimation::NormalEstimation(const std::vector<Eigen::Vector3f> &points)
+        : input_cloud_(NULL),
+          input_points_(&points),
+          kd_tree_ptr_(new KDTree(points)),
           kd_tree_owned_(true),
           view_point_(Eigen::Vector3f::Zero())
-{
-}
+{}
 
-NormalEstimation::NormalEstimation(const PointCloud &cloud, const KDTree &kd_tree)
-        : input_cloud_((PointCloud&)cloud),
+NormalEstimation::NormalEstimation(const std::vector<Eigen::Vector3f> &points, const KDTree &kd_tree)
+        : input_cloud_(NULL),
+          input_points_(&points),
           kd_tree_ptr_((KDTree*)&kd_tree),
           kd_tree_owned_(false),
           view_point_(Eigen::Vector3f::Zero())
-{
-}
+{}
+
+NormalEstimation::NormalEstimation(const PointCloud &cloud)
+        : input_cloud_((PointCloud *)&cloud),
+          input_points_(&cloud.points),
+          kd_tree_ptr_(new KDTree(cloud)),
+          kd_tree_owned_(true),
+          view_point_(Eigen::Vector3f::Zero())
+{}
+
+NormalEstimation::NormalEstimation(const PointCloud &cloud, const KDTree &kd_tree)
+        : input_cloud_((PointCloud *)&cloud),
+          input_points_(&cloud.points),
+          kd_tree_ptr_((KDTree*)&kd_tree),
+          kd_tree_owned_(false),
+          view_point_(Eigen::Vector3f::Zero())
+{}
 
 NormalEstimation::~NormalEstimation() {
     if (kd_tree_owned_) delete kd_tree_ptr_;
 }
 
-void NormalEstimation::computeNormalsKNN(std::vector<Eigen::Vector3f> &normals, size_t num_neighbors) const {
+std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsKNN(size_t num_neighbors) const {
+    std::vector<Eigen::Vector3f> normals;
 
     Eigen::Vector3f nan(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
-    if (input_cloud_.size() < 3) {
-        normals.resize(input_cloud_.size());
+    if (input_points_->size() < 3) {
+        normals.resize(input_points_->size());
         for (size_t i = 0; i < normals.size(); i++) {
             normals[i] = nan;
         }
-        return;
+        return normals;
     }
 
-    normals.resize(input_cloud_.size());
-    for (size_t i = 0; i < input_cloud_.size(); i++) {
+    normals.resize(input_points_->size());
+    for (size_t i = 0; i < input_points_->size(); i++) {
         std::vector<size_t> neighbors;
         std::vector<float> distances;
-        kd_tree_ptr_->kNearestNeighbors(input_cloud_.points[i], num_neighbors, neighbors, distances);
+        kd_tree_ptr_->kNearestNeighbors((*input_points_)[i], num_neighbors, neighbors, distances);
 
         std::vector<Eigen::Vector3f> neighborhood(neighbors.size());
         for (size_t j = 0; j < neighbors.size(); j++) {
-            neighborhood[j] = input_cloud_.points[neighbors[j]];
+            neighborhood[j] = (*input_points_)[neighbors[j]];
         }
 
         PCA pca(neighborhood);
         normals[i] = pca.getEigenVectors().col(2);
 
-        if (normals[i].dot(view_point_ - input_cloud_.points[i]) < 0.0f) {
+        if (normals[i].dot(view_point_ - (*input_points_)[i]) < 0.0f) {
             normals[i] *= -1.0f;
         }
     }
+
+    return normals;
 }
 
-void NormalEstimation::computeNormalsKNN(PointCloud &cloud, size_t num_neighbors) const {
-    computeNormalsKNN(cloud.normals, num_neighbors);
+void NormalEstimation::estimateNormalsInPlaceKNN(size_t num_neighbors) const {
+    if (input_cloud_ == NULL) return;
+    input_cloud_->normals = estimateNormalsKNN(num_neighbors);
 }
 
-void NormalEstimation::computeNormalsKNN(size_t num_neighbors) const {
-    computeNormalsKNN(input_cloud_.normals, num_neighbors);
-}
-
-void NormalEstimation::computeNormalsRadius(std::vector<Eigen::Vector3f> &normals, float radius) const {
+std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsRadius(float radius) const {
+    std::vector<Eigen::Vector3f> normals;
 
     Eigen::Vector3f nan(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
 
-    normals.resize(input_cloud_.size());
-    for (size_t i = 0; i < input_cloud_.size(); i++) {
+    normals.resize(input_points_->size());
+    for (size_t i = 0; i < input_points_->size(); i++) {
         std::vector<size_t> neighbors;
         std::vector<float> distances;
-        kd_tree_ptr_->nearestNeighborsInRadius(input_cloud_.points[i], radius, neighbors, distances);
+        kd_tree_ptr_->nearestNeighborsInRadius((*input_points_)[i], radius, neighbors, distances);
 
         if (neighbors.size() < 3) {
             normals[i] = nan;
@@ -77,22 +94,21 @@ void NormalEstimation::computeNormalsRadius(std::vector<Eigen::Vector3f> &normal
 
         std::vector<Eigen::Vector3f> neighborhood(neighbors.size());
         for (size_t j = 0; j < neighbors.size(); j++) {
-            neighborhood[j] = input_cloud_.points[neighbors[j]];
+            neighborhood[j] = (*input_points_)[neighbors[j]];
         }
 
         PCA pca(neighborhood);
         normals[i] = pca.getEigenVectors().col(2);
 
-        if (normals[i].dot(view_point_ - input_cloud_.points[i]) < 0.0f) {
+        if (normals[i].dot(view_point_ - (*input_points_)[i]) < 0.0f) {
             normals[i] *= -1.0f;
         }
     }
+
+    return normals;
 }
 
-void NormalEstimation::computeNormalsRadius(PointCloud &cloud, float radius) const {
-    computeNormalsRadius(cloud.normals, radius);
-}
-
-void NormalEstimation::computeNormalsRadius(float radius) const {
-    computeNormalsRadius(input_cloud_.normals, radius);
+void NormalEstimation::estimateNormalsInPlaceRadius(float radius) const {
+    if (input_cloud_ == NULL) return;
+    input_cloud_->normals = estimateNormalsRadius(radius);
 }

@@ -5,6 +5,7 @@
 
 struct PointCloud {
     PointCloud();
+    PointCloud(const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const std::vector<Eigen::Vector3f> &colors);
     PointCloud(const PointCloud &cloud, const std::vector<size_t> &indices);
 
     std::vector<Eigen::Vector3f> points;
