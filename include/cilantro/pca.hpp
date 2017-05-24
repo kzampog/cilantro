@@ -10,9 +10,9 @@ public:
 
     ~PCA() {}
 
-    inline Eigen::VectorXf getMean() const { return mean_; }
-    inline Eigen::VectorXf getEigenValues() const { return eigenvalues_; }
-    inline Eigen::MatrixXf getEigenVectors() const { return eigenvectors_; }
+    inline const Eigen::VectorXf& getMean() const { return mean_; }
+    inline const Eigen::VectorXf& getEigenValues() const { return eigenvalues_; }
+    inline const Eigen::MatrixXf& getEigenVectors() const { return eigenvectors_; }
 
 private:
     size_t dim_;
