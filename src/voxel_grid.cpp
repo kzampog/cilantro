@@ -56,8 +56,8 @@ std::vector<Eigen::Vector3f> VoxelGrid::getDownsampledNormals(size_t min_points_
 //        }
 //        if (neg > pos) ref_dir = -ref_dir;
 //
-//        PCA pca(bin_normals.data(), 3, it->second.size()*2);
-//        Eigen::Vector3f avg = pca.getEigenVectors().col(0);
+//        PCA3D pca(bin_normals.data(), 3, it->second.size()*2);
+//        Eigen::Vector3f avg = pca.getEigenVectorsMatrix().col(0);
 //        if (ref_dir.dot(avg) < 0.0f) {
 //            normals.push_back(-avg);
 //        } else {
