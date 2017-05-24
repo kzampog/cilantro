@@ -10,18 +10,18 @@ public:
 
     ~PCA() {}
 
-    inline Eigen::Vector3f getMean() const { return mean_; }
-    inline Eigen::Vector3f getEigenValues() const { return eigenvalues_; }
-    inline Eigen::Matrix3f getEigenVectors() const { return eigenvectors_; }
+    inline Eigen::VectorXf getMean() const { return mean_; }
+    inline Eigen::VectorXf getEigenValues() const { return eigenvalues_; }
+    inline Eigen::MatrixXf getEigenVectors() const { return eigenvectors_; }
 
 private:
     size_t dim_;
     size_t num_points_;
     float * data_;
 
-    Eigen::Vector3f mean_;
-    Eigen::Vector3f eigenvalues_;
-    Eigen::Matrix3f eigenvectors_;
+    Eigen::VectorXf mean_;
+    Eigen::VectorXf eigenvalues_;
+    Eigen::MatrixXf eigenvectors_;
 
     void compute_();
 };
