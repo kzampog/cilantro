@@ -84,4 +84,5 @@ private:
     }
 };
 
+typedef PCA<float,2> PCA2D;
 typedef PCA<float,3> PCA3D;

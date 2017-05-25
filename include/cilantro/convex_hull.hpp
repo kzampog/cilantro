@@ -345,17 +345,21 @@ private:
     }
 };
 
-class ConvexHull2D : public ConvexHull<float,float,2> {
+typedef ConvexHull<float,float,2> ConvexHull2D;
+typedef ConvexHull<float,float,3> ConvexHull3D;
+
+class CloudHullFlat : public ConvexHull2D {
 public:
-    ConvexHull2D(float * data, size_t dim, size_t num_points, bool simplicial_facets = true, double merge_tol = 0.0);
-    ConvexHull2D(const std::vector<Eigen::Vector2f> &points, bool simplicial_facets = true, double merge_tol = 0.0);
-    ConvexHull2D(const std::vector<Eigen::Vector3f> &halfspaces, bool simplicial_facets = true, double merge_tol = 0.0);
+    CloudHullFlat(const std::vector<Eigen::Vector3f> &points, bool simplicial_facets = true, double merge_tol = 0.0);
+    CloudHullFlat(const PointCloud &cloud, bool simplicial_facets = true, double merge_tol = 0.0);
+
+    inline const std::vector<Eigen::Vector3f>& getVertices3D() const { return vertices_3d_; }
+private:
+    std::vector<Eigen::Vector3f> vertices_3d_;
+    void init_(const std::vector<Eigen::Vector3f> &points);
 };
 
-class ConvexHull3D : public ConvexHull<float,float,3> {
+class CloudHull : public ConvexHull3D {
 public:
-    ConvexHull3D(float * data, size_t dim, size_t num_points, bool simplicial_facets = true, double merge_tol = 0.0);
-    ConvexHull3D(const std::vector<Eigen::Vector3f> &points, bool simplicial_facets = true, double merge_tol = 0.0);
-    ConvexHull3D(const std::vector<Eigen::Vector4f> &halfspaces, bool simplicial_facets = true, double merge_tol = 0.0);
-    ConvexHull3D(const PointCloud &cloud, bool simplicial_facets = true, double merge_tol = 0.0);
+    CloudHull(const PointCloud &cloud, bool simplicial_facets = true, double merge_tol = 0.0);
 };
