@@ -1,20 +1,16 @@
-#include <cilantro/colormaps.h>
-#include <algorithm>
+#include <cilantro/colormap.hpp>
 
-std::vector<Eigen::Vector4f> colormap (const std::vector<float> &scalars, const float scalar_min, const float scalar_max, const ColormapType colormapType) {
+std::vector<Eigen::Vector3f> colormap (const std::vector<float> &scalars, float scalar_min, float scalar_max, ColormapType colormapType) {
     float scalarMinUsed = scalar_min;
     float scalarMaxUsed = scalar_max;
-
     if (scalarMinUsed != scalarMinUsed || scalarMaxUsed != scalarMaxUsed) {
         scalarMinUsed = *std::min_element(scalars.begin(), scalars.end());
         scalarMaxUsed = *std::max_element(scalars.begin(), scalars.end());
     }
 
-    std::vector<Eigen::Vector4f> colors (scalars.size());
-
+    std::vector<Eigen::Vector3f> colors(scalars.size());
     for (size_t i = 0; i < scalars.size(); i++) {
-
-        Eigen::Vector4f color;
+        Eigen::Vector3f color;
         float scalarNormalized = (scalars[i] - scalarMinUsed) / (scalarMaxUsed - scalarMinUsed);
 
         switch (colormapType) {
@@ -58,7 +54,6 @@ std::vector<Eigen::Vector4f> colormap (const std::vector<float> &scalars, const 
         color[0] = std::max(std::min(color[0], 1.0f), 0.0f);
         color[1] = std::max(std::min(color[1], 1.0f), 0.0f);
         color[2] = std::max(std::min(color[2], 1.0f), 0.0f);
-        color[3] = 1.0f;
 
         colors[i] = color;
     }

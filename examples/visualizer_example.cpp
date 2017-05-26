@@ -24,7 +24,8 @@ int main(int argc, char ** argv) {
     std::vector<float> scalars (cloud.size());
     for (size_t i = 0; i < cloud.size(); i++)
         scalars[i] = cloud.points[i].norm();
-    viz.addPointCloudWithScalars("pcd", cloud, scalars, Visualizer::RenderingProperties().setColormapType(COLORMAP_JET));
+    viz.addPointCloud("pcd", cloud, Visualizer::RenderingProperties().setColormapType(COLORMAP_JET));
+    viz.addPointCloudValues("pcd", scalars);
     
 //    viz.addPointCloud("pcd", cloud);
 //    viz.addPointCloudNormals("nrm", cloud, Visualizer::RenderingProperties().setCorrespondencesFraction(0.20).setOpacity(0.5));

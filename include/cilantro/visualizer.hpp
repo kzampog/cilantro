@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cilantro/point_cloud.hpp>
-#include <cilantro/colormaps.h>
+#include <cilantro/colormap.hpp>
 #include <pangolin/pangolin.h>
 #include <pangolin/display/display_internal.h>
 
@@ -13,11 +13,12 @@ public:
                                        lineWidth(1.0f),
                                        opacity(1.0f),
                                        normalLength(0.05f),
-                                       correspondencesFraction(0.5),
+                                       correspondencesFraction(1.0),
                                        drawWireframe(false),
                                        useFaceNormals(true),
-                                       scalarsMin(std::numeric_limits<float>::quiet_NaN()),
-                                       scalarsMax(std::numeric_limits<float>::quiet_NaN()),
+                                       useFaceColors(false),
+                                       minScalarValue(std::numeric_limits<float>::quiet_NaN()),
+                                       maxScalarValue(std::numeric_limits<float>::quiet_NaN()),
                                        colormapType(ColormapType::COLORMAP_JET)
         {}
         inline ~RenderingProperties() {}
@@ -30,8 +31,9 @@ public:
         float correspondencesFraction;
         bool drawWireframe;
         bool useFaceNormals;
-        float scalarsMin;
-        float scalarsMax;
+        bool useFaceColors;
+        float minScalarValue;
+        float maxScalarValue;
         ColormapType colormapType;
 
         inline RenderingProperties& setDrawingColor(const Eigen::Vector3f &color) { drawingColor = color; return *this; }
@@ -43,19 +45,18 @@ public:
         inline RenderingProperties& setCorrespondencesFraction(float cf) { correspondencesFraction = cf; return *this; }
         inline RenderingProperties& setDrawWireframe(bool dw) { drawWireframe = dw; return *this; }
         inline RenderingProperties& setUseFaceNormals(bool fn) { useFaceNormals = fn; return *this; }
-        inline RenderingProperties& setScalarsRange(const float min, const float max) { scalarsMin = min; scalarsMax = max; return *this; }
+        inline RenderingProperties& setUseFaceColors(bool fc) { useFaceColors = fc; return *this; }
+        inline RenderingProperties& setScalarValuesRange(float min, float max) { minScalarValue = min; maxScalarValue = max; return *this; }
         inline RenderingProperties& setColormapType(const ColormapType ct) { colormapType = ct; return *this; }
     };
 
     Visualizer(const std::string & window_name, const std::string &display_name);
     inline ~Visualizer() {}
 
-    void addPointCloud(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &colors, const RenderingProperties &rp = RenderingProperties());
-    void addPointCloud(const std::string &name, const std::vector<Eigen::Vector3f> &points, const RenderingProperties &rp = RenderingProperties());
     void addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp = RenderingProperties());
-
-    void addPointCloudWithScalars(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<float> &scalars, const RenderingProperties &rp = RenderingProperties());
-    void addPointCloudWithScalars(const std::string &name, const PointCloud &cloud, const std::vector<float> &scalars, const RenderingProperties &rp = RenderingProperties());
+    void addPointCloud(const std::string &name, const std::vector<Eigen::Vector3f> &points, const RenderingProperties &rp = RenderingProperties());
+    void addPointCloudColors(const std::string &name, const std::vector<Eigen::Vector3f> &colors);
+    void addPointCloudValues(const std::string &name, const std::vector<float> &point_values);
 
     void addPointCloudNormals(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const RenderingProperties &rp = RenderingProperties());
     void addPointCloudNormals(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp = RenderingProperties());
@@ -65,12 +66,14 @@ public:
 
     void addCoordinateSystem(const std::string &name, float scale = 1.0f, const Eigen::Matrix4f &tf = Eigen::Matrix4f::Identity(), const RenderingProperties &rp = RenderingProperties());
 
-    void addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &point_normals, const std::vector<std::vector<size_t> > &faces, const std::vector<Eigen::Vector3f> &face_normals, const RenderingProperties &rp = RenderingProperties());
-    void addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &point_normals, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp = RenderingProperties());
-    void addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<std::vector<size_t> > &faces, const std::vector<Eigen::Vector3f> &face_normals, const RenderingProperties &rp = RenderingProperties());
-    void addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp = RenderingProperties());
-    void addTriangleMesh(const std::string &name, const PointCloud &cloud, const std::vector<std::vector<size_t> > &faces, const std::vector<Eigen::Vector3f> &face_normals, const RenderingProperties &rp = RenderingProperties());
     void addTriangleMesh(const std::string &name, const PointCloud &cloud, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp = RenderingProperties());
+    void addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &vertices, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp = RenderingProperties());
+    void addTriangleMeshVertexNormals(const std::string &name, const std::vector<Eigen::Vector3f> &vertex_normals);
+    void addTriangleMeshFaceNormals(const std::string &name, const std::vector<Eigen::Vector3f> &face_normals);
+    void addTriangleMeshVertexColors(const std::string &name, const std::vector<Eigen::Vector3f> &vertex_colors);
+    void addTriangleMeshFaceColors(const std::string &name, const std::vector<Eigen::Vector3f> &face_colors);
+    void addTriangleMeshVertexValues(const std::string &name, const std::vector<float> &vertex_values);
+    void addTriangleMeshFaceValues(const std::string &name, const std::vector<float> &face_values);
 
     inline void clear() { renderables_.clear(); }
     inline void remove(const std::string &name) { renderables_.erase(name); }
@@ -98,10 +101,6 @@ public:
     void registerKeyboardCallback(const std::vector<int> &keys, std::function<void(Visualizer&,int,void*)> func, void *cookie);
 
 private:
-
-    static Eigen::Vector3f no_color_;
-    static Eigen::Vector3f default_color_;
-
     struct Renderable_ {
         Renderable_() : visible(true), position(Eigen::Vector3f::Zero()) {}
         bool visible;
@@ -115,7 +114,7 @@ private:
     struct PointsRenderable_ : public Renderable_ {
         std::vector<Eigen::Vector3f> points;
         std::vector<Eigen::Vector3f> colors;
-        std::vector<float> scalars;
+        std::vector<float> pointValues;
         pangolin::GlBuffer pointBuffer;
         pangolin::GlBuffer colorBuffer;
         void applyRenderingProperties();
@@ -147,9 +146,15 @@ private:
 
     struct TriangleMeshRenderable_ : public Renderable_ {
         std::vector<Eigen::Vector3f> vertices;
+        std::vector<std::vector<size_t> > faces;
         std::vector<Eigen::Vector3f> vertexNormals;
         std::vector<Eigen::Vector3f> faceNormals;
+        std::vector<Eigen::Vector3f> vertexColors;
+        std::vector<Eigen::Vector3f> faceColors;
+        std::vector<float> vertexValues;
+        std::vector<float> faceValues;
         pangolin::GlBuffer vertexBuffer;
+        pangolin::GlBuffer colorBuffer;
         pangolin::GlBuffer normalBuffer;
         void applyRenderingProperties();
         void render();
@@ -162,6 +167,8 @@ private:
     std::unique_ptr<pangolin::Handler3D> input_handler_;
     pangolin::OpenGlMatrix initial_model_view_;
 
+    static Eigen::Vector3f no_color_;
+    static Eigen::Vector3f default_color_;
     Eigen::Vector3f clear_color_;
 
     std::map<std::string, std::unique_ptr<Renderable_> > renderables_;

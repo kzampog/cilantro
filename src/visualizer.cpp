@@ -1,34 +1,37 @@
 #include <cilantro/visualizer.hpp>
 
-Eigen::Vector3f Visualizer::no_color_ = Eigen::Vector3f(-1,-1,-1);
-Eigen::Vector3f Visualizer::default_color_ = Eigen::Vector3f(1,1,1);
+Eigen::Vector3f Visualizer::no_color_ = Eigen::Vector3f(-1.0f,-1.0f,-1.0f);
+Eigen::Vector3f Visualizer::default_color_ = Eigen::Vector3f(1.0f,1.0f,1.0f);
 
 void Visualizer::PointsRenderable_::applyRenderingProperties() {
     pointBuffer.Reinitialise(pangolin::GlArrayBuffer, points.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
     pointBuffer.Upload(points.data(), sizeof(float)*points.size()*3);
 
     std::vector<Eigen::Vector4f> color_alpha;
-    if (scalars.size() == points.size()) {
-        color_alpha = colormap(scalars, renderingProperties.scalarsMin, renderingProperties.scalarsMax, renderingProperties.colormapType);
-        for(size_t i = 0; i < colors.size(); i++) {
-            color_alpha[i](3) = renderingProperties.opacity;
-        }
-    } else if (renderingProperties.drawingColor != no_color_) {
+    if (renderingProperties.drawingColor != no_color_) {
         Eigen::Vector4f tmp;
         tmp.head(3) = renderingProperties.drawingColor;
         tmp(3) = renderingProperties.opacity;
         color_alpha = std::vector<Eigen::Vector4f>(points.size(), tmp);
-    } else if (colors.size() != points.size()) {
-        Eigen::Vector4f tmp;
-        tmp.head(3) = default_color_;
-        tmp(3) = renderingProperties.opacity;
-        color_alpha = std::vector<Eigen::Vector4f>(points.size(), tmp);
-    } else {
+    } else if (pointValues.size() == points.size() && renderingProperties.colormapType != COLORMAP_NONE) {
+        std::vector<Eigen::Vector3f> color_tmp = colormap(pointValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
+        color_alpha.resize(pointValues.size());
+        for(size_t i = 0; i < pointValues.size(); i++) {
+            color_alpha[i].head(3) = color_tmp[i];
+            color_alpha[i](3) = renderingProperties.opacity;
+        }
+    } else if (colors.size() == points.size()) {
         color_alpha.resize(colors.size());
         for(size_t i = 0; i < colors.size(); i++) {
             color_alpha[i].head(3) = colors[i];
             color_alpha[i](3) = renderingProperties.opacity;
         }
+    } else {
+        // Fallback to default color
+        Eigen::Vector4f tmp;
+        tmp.head(3) = default_color_;
+        tmp(3) = renderingProperties.opacity;
+        color_alpha = std::vector<Eigen::Vector4f>(points.size(), tmp);
     }
     colorBuffer.Reinitialise(pangolin::GlArrayBuffer, color_alpha.size(), GL_FLOAT, 4, GL_DYNAMIC_DRAW);
     colorBuffer.Upload(color_alpha.data(), sizeof(float)*color_alpha.size()*4);
@@ -106,27 +109,171 @@ void Visualizer::AxisRenderable_::render() {
     pangolin::glDrawAxis<float>(transform, scale);
 }
 
+//void Visualizer::addTriangleMeshOLD(const std::string &name, const std::vector<Eigen::Vector3f> &vertices, const std::vector<Eigen::Vector3f> &vertex_normals, const std::vector<std::vector<size_t> > &faces, const std::vector<Eigen::Vector3f> &face_normals, const RenderingProperties &rp) {
+//    renderables_[name] = std::unique_ptr<TriangleMeshRenderable_>(new TriangleMeshRenderable_);
+//    TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)renderables_[name].get();
+//
+//    // Populate triangle vertices
+//    size_t k = 0;
+//    std::vector<Eigen::Vector3f> vertices_flat(faces.size()*3);
+//    for (size_t i = 0; i < faces.size(); i++) {
+//        for (size_t j = 0; j < faces[i].size(); j++) {
+//            vertices_flat[k++] = vertices[faces[i][j]];
+//        }
+//    }
+//    obj_ptr->vertices = vertices_flat;
+//    obj_ptr->position = Eigen::Map<Eigen::MatrixXf>((float *)vertices_flat.data(), 3, vertices_flat.size()).rowwise().mean();
+//
+//    // Populate vertex normals
+//    if (vertices.size() == vertex_normals.size()) {
+//        k = 0;
+//        std::vector<Eigen::Vector3f> vertex_normals_flat(faces.size()*3);
+//        for (size_t i = 0; i < faces.size(); i++) {
+//            for (size_t j = 0; j < faces[i].size(); j++) {
+//                vertex_normals_flat[k++] = vertex_normals[faces[i][j]];
+//            }
+//        }
+//        obj_ptr->vertexNormals = vertex_normals_flat;
+//    }
+//
+//    // Populate face normals
+//    if (faces.size() == face_normals.size()) {
+//        k = 0;
+//        std::vector<Eigen::Vector3f> face_normals_flat(faces.size()*3);
+//        for (size_t i = 0; i < faces.size(); i++) {
+//            face_normals_flat[k++] = face_normals[i];
+//            face_normals_flat[k++] = face_normals[i];
+//            face_normals_flat[k++] = face_normals[i];
+//        }
+//        obj_ptr->faceNormals = face_normals_flat;
+//    } else {
+//        k = 0;
+//        std::vector<Eigen::Vector3f> face_normals_flat(faces.size()*3);
+//        for (size_t i = 0; i < faces.size(); i++) {
+//            Eigen::Vector3f pt0(vertices[faces[i][0]]), pt1(vertices[faces[i][1]]), pt2(vertices[faces[i][2]]);
+//            Eigen::Vector3f normal = ((pt1-pt0).cross(pt2-pt0)).normalized();
+//            face_normals_flat[k++] = normal;
+//            face_normals_flat[k++] = normal;
+//            face_normals_flat[k++] = normal;
+//        }
+//        obj_ptr->faceNormals = face_normals_flat;
+//    }
+//
+//    ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
+//}
+
+
+
 void Visualizer::TriangleMeshRenderable_::applyRenderingProperties() {
-    vertexBuffer.Reinitialise(pangolin::GlArrayBuffer, vertices.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-    vertexBuffer.Upload(vertices.data(), sizeof(float)*vertices.size()*3);
-    if (renderingProperties.useFaceNormals) {
-        normalBuffer.Reinitialise(pangolin::GlArrayBuffer, faceNormals.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-        normalBuffer.Upload(faceNormals.data(), sizeof(float)*faceNormals.size()*3);
-    } else {
-        normalBuffer.Reinitialise(pangolin::GlArrayBuffer, vertexNormals.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-        normalBuffer.Upload(vertexNormals.data(), sizeof(float)*vertexNormals.size()*3);
+    // Populate flattened vertices and update position
+    size_t k = 0;
+    std::vector<Eigen::Vector3f> vertices_flat(faces.size()*3);
+    for (size_t i = 0; i < faces.size(); i++) {
+        for (size_t j = 0; j < faces[i].size(); j++) {
+            vertices_flat[k++] = vertices[faces[i][j]];
+        }
     }
+    position = Eigen::Map<Eigen::MatrixXf>((float *)vertices_flat.data(), 3, vertices_flat.size()).rowwise().mean();
+
+    // Populate flattened normals
+    std::vector<Eigen::Vector3f> normals_flat;
+    if (renderingProperties.useFaceNormals && faceNormals.size() == faces.size()) {
+        normals_flat.resize(faces.size()*3);
+        k = 0;
+        for (size_t i = 0; i < faces.size(); i++) {
+            normals_flat[k++] = faceNormals[i];
+            normals_flat[k++] = faceNormals[i];
+            normals_flat[k++] = faceNormals[i];
+        }
+    }
+    if (renderingProperties.useFaceNormals && faceNormals.size() != faces.size()) {
+        // Compute here
+        normals_flat.resize(faces.size()*3);
+        faceNormals.resize(faces.size());
+        k = 0;
+        for (size_t i = 0; i < faces.size(); i++) {
+            Eigen::Vector3f pt0(vertices[faces[i][0]]), pt1(vertices[faces[i][1]]), pt2(vertices[faces[i][2]]);
+            Eigen::Vector3f normal = ((pt1-pt0).cross(pt2-pt0)).normalized();
+            normals_flat[k++] = normal;
+            normals_flat[k++] = normal;
+            normals_flat[k++] = normal;
+            faceNormals[i] = normal;
+        }
+    }
+    if (!renderingProperties.useFaceNormals && vertexNormals.size() == vertices.size()) {
+        normals_flat.resize(faces.size()*3);
+        k = 0;
+        for (size_t i = 0; i < faces.size(); i++) {
+            for (size_t j = 0; j < faces[i].size(); j++) {
+                normals_flat[k++] = vertexNormals[faces[i][j]];
+            }
+        }
+    }
+
+    // Populate flattened colors
+    std::vector<Eigen::Vector4f> colors_flat;
+    if (renderingProperties.drawingColor != no_color_) {
+        Eigen::Vector4f tmp;
+        tmp.head(3) = renderingProperties.drawingColor;
+        tmp(3) = renderingProperties.opacity;
+        colors_flat = std::vector<Eigen::Vector4f>(faces.size()*3, tmp);
+    } else if (renderingProperties.useFaceColors && (faceValues.size() == faces.size() || faceColors.size() == faces.size())) {
+        if (faceValues.size() == faces.size() && renderingProperties.colormapType != COLORMAP_NONE) {
+            colors_flat.resize(faces.size()*3);
+            std::vector<Eigen::Vector3f> colors_tmp = colormap(faceValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
+            k = 0;
+            for (size_t i = 0; i < faces.size(); i++) {
+                colors_flat[k].head(3) = colors_tmp[i];
+                colors_flat[k++](3) = renderingProperties.opacity;
+                colors_flat[k].head(3) = colors_tmp[i];
+                colors_flat[k++](3) = renderingProperties.opacity;
+                colors_flat[k].head(3) = colors_tmp[i];
+                colors_flat[k++](3) = renderingProperties.opacity;
+            }
+        } else if (faceColors.size() == faces.size()) {
+            colors_flat.resize(faces.size()*3);
+            k = 0;
+            for (size_t i = 0; i < faces.size(); i++) {
+                colors_flat[k].head(3) = faceColors[i];
+                colors_flat[k++](3) = renderingProperties.opacity;
+                colors_flat[k].head(3) = faceColors[i];
+                colors_flat[k++](3) = renderingProperties.opacity;
+                colors_flat[k].head(3) = faceColors[i];
+                colors_flat[k++](3) = renderingProperties.opacity;
+            }
+        }
+    } else if (!renderingProperties.useFaceColors && (vertexValues.size() == vertices.size() || vertexColors.size() == vertices.size())) {
+        if (vertexValues.size() == vertices.size() && renderingProperties.colormapType != COLORMAP_NONE) {
+            colors_flat.resize(faces.size()*3);
+            std::vector<Eigen::Vector3f> colors_tmp = colormap(vertexValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
+            // Use colormap
+
+        } else if (vertexColors.size() == vertices.size()) {
+            colors_flat.resize(faces.size()*3);
+            // Copy face colors
+
+        }
+    } else {
+        // Fallback to default color
+        Eigen::Vector4f tmp;
+        tmp.head(3) = default_color_;
+        tmp(3) = renderingProperties.opacity;
+        colors_flat = std::vector<Eigen::Vector4f>(faces.size()*3, tmp);
+    }
+
+    vertexBuffer.Reinitialise(pangolin::GlArrayBuffer, vertices_flat.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+    vertexBuffer.Upload(vertices_flat.data(), sizeof(float)*vertices_flat.size()*3);
+    normalBuffer.Reinitialise(pangolin::GlArrayBuffer, normals_flat.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+    normalBuffer.Upload(normals_flat.data(), sizeof(float)*normals_flat.size()*3);
+    colorBuffer.Reinitialise(pangolin::GlArrayBuffer, colors_flat.size(), GL_FLOAT, 4, GL_DYNAMIC_DRAW);
+    colorBuffer.Upload(colors_flat.data(), sizeof(float)*colors_flat.size()*4);
 }
 
 void Visualizer::TriangleMeshRenderable_::render() {
     glPointSize(renderingProperties.pointSize);
-    if (renderingProperties.drawingColor == no_color_)
-        glColor4f(default_color_(0), default_color_(1), default_color_(2), renderingProperties.opacity);
-    else
-        glColor4f(renderingProperties.drawingColor(0), renderingProperties.drawingColor(1), renderingProperties.drawingColor(2), renderingProperties.opacity);
     glLineWidth(renderingProperties.lineWidth);
 
-    bool use_normals = (renderingProperties.useFaceNormals && faceNormals.size() == vertices.size()) ||
+    bool use_normals = (renderingProperties.useFaceNormals && faceNormals.size() == faces.size()) ||
             (!renderingProperties.useFaceNormals && vertexNormals.size() == vertices.size());
 
     if (use_normals) {
@@ -136,13 +283,13 @@ void Visualizer::TriangleMeshRenderable_::render() {
     }
     if (renderingProperties.drawWireframe) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        pangolin::RenderVbo(vertexBuffer, GL_TRIANGLES);
+        pangolin::RenderVboCbo(vertexBuffer, colorBuffer, true, GL_TRIANGLES);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     } else {
         glEnable(GL_LIGHTING);
         glEnable(GL_LIGHT0);
         glEnable(GL_COLOR_MATERIAL);
-        pangolin::RenderVbo(vertexBuffer, GL_TRIANGLES);
+        pangolin::RenderVboCbo(vertexBuffer, colorBuffer, true, GL_TRIANGLES);
         glDisable(GL_COLOR_MATERIAL);
         glDisable(GL_LIGHT0);
         glDisable(GL_LIGHTING);
@@ -188,38 +335,43 @@ Visualizer::Visualizer(const std::string &window_name, const std::string &displa
     display_->SetAspect(-4.0f/3.0f);
 }
 
-void Visualizer::addPointCloud(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &colors, const RenderingProperties &rp) {
+void Visualizer::addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp) {
     renderables_[name] = std::unique_ptr<PointsRenderable_>(new PointsRenderable_);
     PointsRenderable_ *obj_ptr = (PointsRenderable_ *)renderables_[name].get();
     // Copy fields
-    obj_ptr->points = points;
-    obj_ptr->colors = colors;
-    obj_ptr->position = Eigen::Map<Eigen::MatrixXf>((float *)points.data(), 3, points.size()).rowwise().mean();
+    obj_ptr->points = cloud.points;
+    if (cloud.hasColors()) obj_ptr->colors = cloud.colors;
+    obj_ptr->position = Eigen::Map<Eigen::MatrixXf>((float *)cloud.points.data(), 3, cloud.points.size()).rowwise().mean();
     // Update buffers
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
 
 void Visualizer::addPointCloud(const std::string &name, const std::vector<Eigen::Vector3f> &points, const RenderingProperties &rp) {
-    addPointCloud(name, points, std::vector<Eigen::Vector3f>(), rp);
-}
-
-void Visualizer::addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp) {
-    addPointCloud(name, cloud.points, cloud.colors, rp);
-}
-
-void Visualizer::addPointCloudWithScalars(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<float> &scalars, const RenderingProperties &rp) {
     renderables_[name] = std::unique_ptr<PointsRenderable_>(new PointsRenderable_);
     PointsRenderable_ *obj_ptr = (PointsRenderable_ *)renderables_[name].get();
     // Copy fields
     obj_ptr->points = points;
-    obj_ptr->scalars = scalars;
     obj_ptr->position = Eigen::Map<Eigen::MatrixXf>((float *)points.data(), 3, points.size()).rowwise().mean();
     // Update buffers
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
 
-void Visualizer::addPointCloudWithScalars(const std::string &name, const PointCloud &cloud, const std::vector<float> &scalars, const RenderingProperties &rp) {
-    addPointCloudWithScalars(name, cloud.points, scalars, rp);
+void Visualizer::addPointCloudColors(const std::string &name, const std::vector<Eigen::Vector3f> &colors) {
+    auto it = renderables_.find(name);
+    if (it == renderables_.end()) return;
+    PointsRenderable_ *obj_ptr = (PointsRenderable_ *)it->second.get();
+    if (colors.size() != obj_ptr->points.size()) return;
+    obj_ptr->colors = colors;
+    obj_ptr->applyRenderingProperties();
+}
+
+void Visualizer::addPointCloudValues(const std::string &name, const std::vector<float> &point_values) {
+    auto it = renderables_.find(name);
+    if (it == renderables_.end()) return;
+    PointsRenderable_ *obj_ptr = (PointsRenderable_ *)it->second.get();
+    if (point_values.size() != obj_ptr->points.size()) return;
+    obj_ptr->pointValues = point_values;
+    obj_ptr->applyRenderingProperties();
 }
 
 void Visualizer::addPointCloudNormals(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const RenderingProperties &rp) {
@@ -266,77 +418,76 @@ void Visualizer::addCoordinateSystem(const std::string &name, float scale, const
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
 
-void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &point_normals, const std::vector<std::vector<size_t> > &faces, const std::vector<Eigen::Vector3f> &face_normals, const RenderingProperties &rp) {
+void Visualizer::addTriangleMesh(const std::string &name, const PointCloud &cloud, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
     renderables_[name] = std::unique_ptr<TriangleMeshRenderable_>(new TriangleMeshRenderable_);
     TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)renderables_[name].get();
-
-    // Populate triangle vertices
-    size_t k = 0;
-    std::vector<Eigen::Vector3f> vertices(faces.size()*3);
-    for (size_t i = 0; i < faces.size(); i++) {
-        for (size_t j = 0; j < faces[i].size(); j++) {
-            vertices[k++] = points[faces[i][j]];
-        }
-    }
-    obj_ptr->vertices = vertices;
-    obj_ptr->position = Eigen::Map<Eigen::MatrixXf>((float *)vertices.data(), 3, vertices.size()).rowwise().mean();
-
-    // Populate vertex normals
-    if (points.size() == point_normals.size()) {
-        k = 0;
-        std::vector<Eigen::Vector3f> vertex_normals(faces.size()*3);
-        for (size_t i = 0; i < faces.size(); i++) {
-            for (size_t j = 0; j < faces[i].size(); j++) {
-                vertex_normals[k++] = point_normals[faces[i][j]];
-            }
-        }
-        obj_ptr->vertexNormals = vertex_normals;
-    }
-
-    // Populate face normals
-    if (faces.size() == face_normals.size()) {
-        k = 0;
-        std::vector<Eigen::Vector3f> face_normals_flat(faces.size()*3);
-        for (size_t i = 0; i < faces.size(); i++) {
-            face_normals_flat[k++] = face_normals[i];
-            face_normals_flat[k++] = face_normals[i];
-            face_normals_flat[k++] = face_normals[i];
-        }
-        obj_ptr->faceNormals = face_normals_flat;
-    } else {
-        k = 0;
-        std::vector<Eigen::Vector3f> face_normals_flat(faces.size()*3);
-        for (size_t i = 0; i < faces.size(); i++) {
-            Eigen::Vector3f pt0(points[faces[i][0]]), pt1(points[faces[i][1]]), pt2(points[faces[i][2]]);
-            Eigen::Vector3f normal = ((pt1-pt0).cross(pt2-pt0)).normalized();
-            face_normals_flat[k++] = normal;
-            face_normals_flat[k++] = normal;
-            face_normals_flat[k++] = normal;
-        }
-        obj_ptr->faceNormals = face_normals_flat;
-    }
-
+    obj_ptr->vertices = cloud.points;
+    obj_ptr->faces = faces;
+    if (cloud.hasNormals()) obj_ptr->vertexNormals = cloud.normals;
+    if (cloud.hasColors()) obj_ptr->vertexColors = cloud.colors;
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
 
-void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &point_normals, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
-    addTriangleMesh(name, points, point_normals, faces, std::vector<Eigen::Vector3f>(0), rp);
+void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &vertices, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
+    renderables_[name] = std::unique_ptr<TriangleMeshRenderable_>(new TriangleMeshRenderable_);
+    TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)renderables_[name].get();
+    obj_ptr->vertices = vertices;
+    obj_ptr->faces = faces;
+    ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
 
-void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<std::vector<size_t> > &faces, const std::vector<Eigen::Vector3f> &face_normals, const RenderingProperties &rp) {
-    addTriangleMesh(name, points, std::vector<Eigen::Vector3f>(0), faces, face_normals, rp);
+void Visualizer::addTriangleMeshVertexNormals(const std::string &name, const std::vector<Eigen::Vector3f> &vertex_normals) {
+    auto it = renderables_.find(name);
+    if (it == renderables_.end()) return;
+    TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)it->second.get();
+    if (vertex_normals.size() != obj_ptr->vertices.size()) return;
+    obj_ptr->vertexNormals = vertex_normals;
+    obj_ptr->applyRenderingProperties();
 }
 
-void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
-    addTriangleMesh(name, points, std::vector<Eigen::Vector3f>(0), faces, std::vector<Eigen::Vector3f>(0), rp);
+void Visualizer::addTriangleMeshFaceNormals(const std::string &name, const std::vector<Eigen::Vector3f> &face_normals) {
+    auto it = renderables_.find(name);
+    if (it == renderables_.end()) return;
+    TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)it->second.get();
+    if (face_normals.size() != obj_ptr->faces.size()) return;
+    obj_ptr->faceNormals = face_normals;
+    obj_ptr->applyRenderingProperties();
 }
 
-void Visualizer::addTriangleMesh(const std::string &name, const PointCloud &cloud, const std::vector<std::vector<size_t> > &faces, const std::vector<Eigen::Vector3f> &face_normals, const RenderingProperties &rp) {
-    addTriangleMesh(name, cloud.points, cloud.normals, faces, face_normals, rp);
+void Visualizer::addTriangleMeshVertexColors(const std::string &name, const std::vector<Eigen::Vector3f> &vertex_colors) {
+    auto it = renderables_.find(name);
+    if (it == renderables_.end()) return;
+    TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)it->second.get();
+    if (vertex_colors.size() != obj_ptr->vertices.size()) return;
+    obj_ptr->vertexColors = vertex_colors;
+    obj_ptr->applyRenderingProperties();
 }
 
-void Visualizer::addTriangleMesh(const std::string &name, const PointCloud &cloud, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
-    addTriangleMesh(name, cloud.points, cloud.normals, faces, std::vector<Eigen::Vector3f>(0), rp);
+void Visualizer::addTriangleMeshFaceColors(const std::string &name, const std::vector<Eigen::Vector3f> &face_colors) {
+    auto it = renderables_.find(name);
+    if (it == renderables_.end()) return;
+    TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)it->second.get();
+    if (face_colors.size() != obj_ptr->faces.size()) return;
+    obj_ptr->faceColors = face_colors;
+    obj_ptr->applyRenderingProperties();
+}
+
+void Visualizer::addTriangleMeshVertexValues(const std::string &name, const std::vector<float> &vertex_values) {
+    auto it = renderables_.find(name);
+    if (it == renderables_.end()) return;
+    TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)it->second.get();
+    if (vertex_values.size() != obj_ptr->vertices.size()) return;
+    obj_ptr->vertexValues = vertex_values;
+    obj_ptr->applyRenderingProperties();
+}
+
+void Visualizer::addTriangleMeshFaceValues(const std::string &name, const std::vector<float> &face_values) {
+    auto it = renderables_.find(name);
+    if (it == renderables_.end()) return;
+    TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)it->second.get();
+    if (face_values.size() != obj_ptr->faces.size()) return;
+    obj_ptr->faceValues = face_values;
+    obj_ptr->applyRenderingProperties();
 }
 
 void Visualizer::render() const {
@@ -425,15 +576,15 @@ void Visualizer::point_size_callback_(Visualizer &viz, int key) {
     if (key == '+') {
         for (auto it = viz.renderables_.begin(); it != viz.renderables_.end(); ++it) {
             RenderingProperties rp = viz.getRenderingProperties(it->first);
-            rp.pointSize += 1.0;
-            rp.lineWidth = rp.pointSize/5.0f;
+            rp.pointSize += 1.0f;
+            rp.lineWidth += 1.0f;
             viz.setRenderingProperties(it->first, rp);
         }
     } else if (key == '-') {
         for (auto it = viz.renderables_.begin(); it != viz.renderables_.end(); ++it) {
             RenderingProperties rp = viz.getRenderingProperties(it->first);
             rp.pointSize = std::max(rp.pointSize - 1.0f, 1.0f);
-            rp.lineWidth = rp.pointSize/5.0f;
+            rp.lineWidth = std::max(rp.lineWidth - 1.0f, 1.0f);
             viz.setRenderingProperties(it->first, rp);
         }
     }
