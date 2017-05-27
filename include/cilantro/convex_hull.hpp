@@ -1,6 +1,7 @@
 #pragma once
 
 #include <libqhullcpp/Qhull.h>
+#include <libqhullcpp/QhullFacetSet.h>
 #include <libqhullcpp/QhullFacetList.h>
 #include <libqhullcpp/QhullVertexSet.h>
 #include <eigen_quadprog/eiquadprog.hpp>
@@ -12,6 +13,8 @@ bool convexHullFromPoints(InputScalarT * points,
                           std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &hull_points,
                           std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > &halfspaces,
                           std::vector<std::vector<size_t> > &faces,
+                          std::vector<std::vector<size_t> > &point_neighbor_faces,
+                          std::vector<std::vector<size_t> > &face_neighbor_faces,
                           std::vector<size_t> &hull_point_indices,
                           double &area, double &volume,
                           bool simplicial_faces = true,
@@ -31,11 +34,22 @@ bool convexHullFromPoints(InputScalarT * points,
         if (max_id < vi->id()) max_id = vi->id();
     std::vector<size_t> vid_to_ptidx(max_id + 1);
     size_t k = 0;
-    for (auto vi = qh.vertexList().begin(); vi != qh.vertexList().end(); ++vi) vid_to_ptidx[vi->id()] = k++;
+    for (auto vi = qh.vertexList().begin(); vi != qh.vertexList().end(); ++vi)
+        vid_to_ptidx[vi->id()] = k++;
+
+    // Establish mapping between face ids and face indices
+    max_id = 0;
+    for (auto fi = facets.begin(); fi != facets.end(); ++fi)
+        if (max_id < fi->id()) max_id = fi->id();
+    std::vector<size_t> fid_to_fidx(max_id + 1);
+    k = 0;
+    for (auto fi = facets.begin(); fi != facets.end(); ++fi)
+        fid_to_fidx[fi->id()] = k++;
 
     // Populate hull points and their indices in the input cloud
     k = 0;
     hull_points.resize(qh.vertexCount());
+    point_neighbor_faces.resize(qh.vertexCount());
     hull_point_indices.resize(qh.vertexCount());
     for (auto vi = qh.vertexList().begin(); vi != qh.vertexList().end(); ++vi) {
         size_t i = 0;
@@ -44,6 +58,13 @@ bool convexHullFromPoints(InputScalarT * points,
             v(i++) = *ci;
         }
         hull_points[k] = v.template cast<OutputScalarT>();
+
+        i = 0;
+        point_neighbor_faces[k].resize(vi->neighborFacets().size());
+        for (auto fi = vi->neighborFacets().begin(); fi != vi->neighborFacets().end(); ++fi) {
+            point_neighbor_faces[k][i++] = fid_to_fidx[(*fi).id()];
+        }
+
         hull_point_indices[k] = vi->point().id();
         k++;
     }
@@ -52,6 +73,7 @@ bool convexHullFromPoints(InputScalarT * points,
     k = 0;
     halfspaces.resize(facets.size());
     faces.resize(facets.size());
+    face_neighbor_faces.resize(facets.size());
     for (auto fi = facets.begin(); fi != facets.end(); ++fi) {
         size_t i = 0;
         Eigen::Matrix<coordT,EigenDim+1,1> hp;
@@ -74,6 +96,12 @@ bool convexHullFromPoints(InputScalarT * points,
             }
         }
 
+        i = 0;
+        face_neighbor_faces[k].resize(fi->neighborFacets().size());
+        for (auto nfi = fi->neighborFacets().begin(); nfi != fi->neighborFacets().end(); ++nfi) {
+            face_neighbor_faces[k][i++] = fid_to_fidx[(*nfi).id()];
+        }
+
         k++;
     }
 
@@ -88,12 +116,14 @@ inline bool convexHullFromPoints(const std::vector<Eigen::Matrix<InputScalarT,Ei
                                  std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &hull_points,
                                  std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > &halfspaces,
                                  std::vector<std::vector<size_t> > &faces,
+                                 std::vector<std::vector<size_t> > &point_neighbor_faces,
+                                 std::vector<std::vector<size_t> > &face_neighbor_faces,
                                  std::vector<size_t> &hull_point_indices,
                                  double &area, double &volume,
                                  bool simplicial_faces = true,
                                  realT merge_tol = 0.0)
 {
-    return convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>((InputScalarT *)points.data(), points.size(), hull_points, halfspaces, faces, hull_point_indices, area, volume, simplicial_faces, merge_tol);
+    return convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>((InputScalarT *)points.data(), points.size(), hull_points, halfspaces, faces, point_neighbor_faces, face_neighbor_faces, hull_point_indices, area, volume, simplicial_faces, merge_tol);
 }
 
 template <typename ScalarT, ptrdiff_t EigenDim>
@@ -210,6 +240,8 @@ inline bool convexHullFromHalfspaces(InputScalarT * halfspaces,
                                      std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &hull_points,
                                      std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > &halfspaces_out,
                                      std::vector<std::vector<size_t> > &faces,
+                                     std::vector<std::vector<size_t> > &point_neighbor_faces,
+                                     std::vector<std::vector<size_t> > &face_neighbor_faces,
                                      std::vector<size_t> &hull_point_indices,
                                      double &area, double &volume,
                                      bool simplicial_faces = true,
@@ -217,7 +249,7 @@ inline bool convexHullFromHalfspaces(InputScalarT * halfspaces,
 {
     std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > hull_points_tmp;
     if (convexHullVerticesFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(halfspaces, num_halfspaces, interior_point, hull_points_tmp, merge_tol))
-        return convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(hull_points_tmp, hull_points, halfspaces_out, faces, hull_point_indices, area, volume, simplicial_faces, merge_tol);
+        return convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(hull_points_tmp, hull_points, halfspaces_out, faces, point_neighbor_faces, face_neighbor_faces, hull_point_indices, area, volume, simplicial_faces, merge_tol);
     return false;
 }
 
@@ -227,6 +259,8 @@ inline bool convexHullFromHalfspaces(const std::vector<Eigen::Matrix<InputScalar
                                      std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &hull_points,
                                      std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > &halfspaces_out,
                                      std::vector<std::vector<size_t> > &faces,
+                                     std::vector<std::vector<size_t> > &point_neighbor_faces,
+                                     std::vector<std::vector<size_t> > &face_neighbor_faces,
                                      std::vector<size_t> &hull_point_indices,
                                      double &area, double &volume,
                                      bool simplicial_faces = true,
@@ -234,7 +268,7 @@ inline bool convexHullFromHalfspaces(const std::vector<Eigen::Matrix<InputScalar
 {
     std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > hull_points_tmp;
     if (convexHullVerticesFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(halfspaces, interior_point, hull_points_tmp, merge_tol))
-        return convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(hull_points_tmp, hull_points, halfspaces_out, faces, hull_point_indices, area, volume, simplicial_faces, merge_tol);
+        return convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(hull_points_tmp, hull_points, halfspaces_out, faces, point_neighbor_faces, face_neighbor_faces, hull_point_indices, area, volume, simplicial_faces, merge_tol);
     return false;
 }
 
@@ -244,6 +278,8 @@ inline bool convexHullFromHalfspaces(InputScalarT * halfspaces,
                                      std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &hull_points,
                                      std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > &halfspaces_out,
                                      std::vector<std::vector<size_t> > &faces,
+                                     std::vector<std::vector<size_t> > &point_neighbor_faces,
+                                     std::vector<std::vector<size_t> > &face_neighbor_faces,
                                      std::vector<size_t> &hull_point_indices,
                                      double &area, double &volume,
                                      bool simplicial_faces = true,
@@ -251,7 +287,7 @@ inline bool convexHullFromHalfspaces(InputScalarT * halfspaces,
 {
     std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > hull_points_tmp;
     if (convexHullVerticesFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(halfspaces, num_halfspaces, hull_points_tmp, merge_tol))
-        return convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(hull_points_tmp, hull_points, halfspaces_out, faces, hull_point_indices, area, volume, simplicial_faces, merge_tol);
+        return convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(hull_points_tmp, hull_points, halfspaces_out, faces, point_neighbor_faces, face_neighbor_faces, hull_point_indices, area, volume, simplicial_faces, merge_tol);
     return false;
 }
 
@@ -260,6 +296,8 @@ inline bool convexHullFromHalfspaces(const std::vector<Eigen::Matrix<InputScalar
                                      std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &hull_points,
                                      std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > &halfspaces_out,
                                      std::vector<std::vector<size_t> > &faces,
+                                     std::vector<std::vector<size_t> > &point_neighbor_faces,
+                                     std::vector<std::vector<size_t> > &face_neighbor_faces,
                                      std::vector<size_t> &hull_point_indices,
                                      double &area, double &volume,
                                      bool simplicial_faces = true,
@@ -267,7 +305,7 @@ inline bool convexHullFromHalfspaces(const std::vector<Eigen::Matrix<InputScalar
 {
     std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > hull_points_tmp;
     if (convexHullVerticesFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(halfspaces, hull_points_tmp, merge_tol))
-        return convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(hull_points_tmp, hull_points, halfspaces_out, faces, hull_point_indices, area, volume, simplicial_faces, merge_tol);
+        return convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(hull_points_tmp, hull_points, halfspaces_out, point_neighbor_faces, face_neighbor_faces, faces, hull_point_indices, area, volume, simplicial_faces, merge_tol);
     return false;
 }
 
@@ -276,17 +314,17 @@ class ConvexHull {
 public:
     ConvexHull(InputScalarT * data, size_t dim, size_t num_points, bool simplicial_facets = true, double merge_tol = 0.0) {
         if (dim == EigenDim)
-            is_empty_ = !convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(data, num_points, hull_points_, halfspaces_, faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
+            is_empty_ = !convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(data, num_points, hull_points_, halfspaces_, faces_, point_neighbor_faces_, face_neighbor_faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
         else
-            is_empty_ = !convexHullFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(data, num_points, hull_points_, halfspaces_, faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
+            is_empty_ = !convexHullFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(data, num_points, hull_points_, halfspaces_, faces_, point_neighbor_faces_, face_neighbor_faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
         init_();
     }
     ConvexHull(const std::vector<Eigen::Matrix<InputScalarT,EigenDim,1> > &points, bool simplicial_facets = true, double merge_tol = 0.0) {
-        is_empty_ = !convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(points, hull_points_, halfspaces_, faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
+        is_empty_ = !convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(points, hull_points_, halfspaces_, faces_, point_neighbor_faces_, face_neighbor_faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
         init_();
     }
     ConvexHull(const std::vector<Eigen::Matrix<InputScalarT,EigenDim+1,1> > &halfspaces, bool simplicial_facets = true, double merge_tol = 0.0) {
-        is_empty_ = !convexHullFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(halfspaces, hull_points_, halfspaces_, faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
+        is_empty_ = !convexHullFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(halfspaces, hull_points_, halfspaces_, faces_, point_neighbor_faces_, face_neighbor_faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
         init_();
     }
 
@@ -295,6 +333,8 @@ public:
     inline const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> >& getVertices() const { return hull_points_; }
     inline const std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> >& getFacetHyperplanes() const { return halfspaces_; }
     inline const std::vector<std::vector<size_t> >& getFacetVertexIndices() const { return faces_; }
+    inline const std::vector<std::vector<size_t> >& getVertexNeighborFacets() const { return point_neighbor_faces_; }
+    inline const std::vector<std::vector<size_t> >& getFacetNeighborFacets() const { return face_neighbor_faces_; }
     inline const std::vector<size_t>& getVertexPointIndices() const { return hull_point_indices_; }
 
     inline double getArea() const { return area_; }
@@ -334,6 +374,8 @@ private:
     std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > hull_points_;
     std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > halfspaces_;
     std::vector<std::vector<size_t> > faces_;
+    std::vector<std::vector<size_t> > point_neighbor_faces_;
+    std::vector<std::vector<size_t> > face_neighbor_faces_;
     std::vector<size_t> hull_point_indices_;
     double area_;
     double volume_;
