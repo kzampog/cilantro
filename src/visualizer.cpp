@@ -181,23 +181,9 @@ void Visualizer::TriangleMeshRenderable_::applyRenderingProperties() {
         normals_flat.resize(faces.size()*3);
         k = 0;
         for (size_t i = 0; i < faces.size(); i++) {
-            normals_flat[k++] = faceNormals[i];
-            normals_flat[k++] = faceNormals[i];
-            normals_flat[k++] = faceNormals[i];
-        }
-    }
-    if (renderingProperties.useFaceNormals && faceNormals.size() != faces.size()) {
-        // Compute here
-        normals_flat.resize(faces.size()*3);
-        faceNormals.resize(faces.size());
-        k = 0;
-        for (size_t i = 0; i < faces.size(); i++) {
-            Eigen::Vector3f pt0(vertices[faces[i][0]]), pt1(vertices[faces[i][1]]), pt2(vertices[faces[i][2]]);
-            Eigen::Vector3f normal = ((pt1-pt0).cross(pt2-pt0)).normalized();
-            normals_flat[k++] = normal;
-            normals_flat[k++] = normal;
-            normals_flat[k++] = normal;
-            faceNormals[i] = normal;
+            for (size_t j = 0; j < faces[i].size(); j++) {
+                normals_flat[k++] = faceNormals[i];
+            }
         }
     }
     if (!renderingProperties.useFaceNormals && vertexNormals.size() == vertices.size()) {
@@ -223,35 +209,41 @@ void Visualizer::TriangleMeshRenderable_::applyRenderingProperties() {
             std::vector<Eigen::Vector3f> colors_tmp = colormap(faceValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
             k = 0;
             for (size_t i = 0; i < faces.size(); i++) {
-                colors_flat[k].head(3) = colors_tmp[i];
-                colors_flat[k++](3) = renderingProperties.opacity;
-                colors_flat[k].head(3) = colors_tmp[i];
-                colors_flat[k++](3) = renderingProperties.opacity;
-                colors_flat[k].head(3) = colors_tmp[i];
-                colors_flat[k++](3) = renderingProperties.opacity;
+                for (size_t j = 0; j < faces[i].size(); j++) {
+                    colors_flat[k].head(3) = colors_tmp[i];
+                    colors_flat[k++](3) = renderingProperties.opacity;
+                }
             }
         } else if (faceColors.size() == faces.size()) {
             colors_flat.resize(faces.size()*3);
             k = 0;
             for (size_t i = 0; i < faces.size(); i++) {
-                colors_flat[k].head(3) = faceColors[i];
-                colors_flat[k++](3) = renderingProperties.opacity;
-                colors_flat[k].head(3) = faceColors[i];
-                colors_flat[k++](3) = renderingProperties.opacity;
-                colors_flat[k].head(3) = faceColors[i];
-                colors_flat[k++](3) = renderingProperties.opacity;
+                for (size_t j = 0; j < faces[i].size(); j++) {
+                    colors_flat[k].head(3) = faceColors[i];
+                    colors_flat[k++](3) = renderingProperties.opacity;
+                }
             }
         }
     } else if (!renderingProperties.useFaceColors && (vertexValues.size() == vertices.size() || vertexColors.size() == vertices.size())) {
         if (vertexValues.size() == vertices.size() && renderingProperties.colormapType != COLORMAP_NONE) {
             colors_flat.resize(faces.size()*3);
             std::vector<Eigen::Vector3f> colors_tmp = colormap(vertexValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
-            // Use colormap
-
+            k = 0;
+            for (size_t i = 0; i < faces.size(); i++) {
+                for (size_t j = 0; j < faces[i].size(); j++) {
+                    colors_flat[k].head(3) = colors_tmp[faces[i][j]];
+                    colors_flat[k++](3) = renderingProperties.opacity;
+                }
+            }
         } else if (vertexColors.size() == vertices.size()) {
             colors_flat.resize(faces.size()*3);
-            // Copy face colors
-
+            k = 0;
+            for (size_t i = 0; i < faces.size(); i++) {
+                for (size_t j = 0; j < faces[i].size(); j++) {
+                    colors_flat[k].head(3) = vertexColors[faces[i][j]];
+                    colors_flat[k++](3) = renderingProperties.opacity;
+                }
+            }
         }
     } else {
         // Fallback to default color
@@ -425,6 +417,12 @@ void Visualizer::addTriangleMesh(const std::string &name, const PointCloud &clou
     obj_ptr->faces = faces;
     if (cloud.hasNormals()) obj_ptr->vertexNormals = cloud.normals;
     if (cloud.hasColors()) obj_ptr->vertexColors = cloud.colors;
+    obj_ptr->faceNormals.resize(faces.size());
+    for (size_t i = 0; i < faces.size(); i++) {
+        Eigen::Vector3f pt0(obj_ptr->vertices[faces[i][0]]), pt1(obj_ptr->vertices[faces[i][1]]), pt2(obj_ptr->vertices[faces[i][2]]);
+        Eigen::Vector3f normal = ((pt1-pt0).cross(pt2-pt0)).normalized();
+        obj_ptr->faceNormals[i] = normal;
+    }
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
 
@@ -433,6 +431,12 @@ void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eige
     TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)renderables_[name].get();
     obj_ptr->vertices = vertices;
     obj_ptr->faces = faces;
+    obj_ptr->faceNormals.resize(faces.size());
+    for (size_t i = 0; i < faces.size(); i++) {
+        Eigen::Vector3f pt0(obj_ptr->vertices[faces[i][0]]), pt1(obj_ptr->vertices[faces[i][1]]), pt2(obj_ptr->vertices[faces[i][2]]);
+        Eigen::Vector3f normal = ((pt1-pt0).cross(pt2-pt0)).normalized();
+        obj_ptr->faceNormals[i] = normal;
+    }
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
 }
 
