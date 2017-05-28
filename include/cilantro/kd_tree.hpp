@@ -5,13 +5,34 @@
 
 class KDTree {
 public:
+    enum NeighborhoodType {NEIGHBORHOOD_KNN, NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_KNN_IN_RADIUS};
+    struct Neighborhood {
+        inline Neighborhood() : type(NEIGHBORHOOD_KNN), maxNumberOfNeighbors(5) {}
+        inline Neighborhood(size_t knn, float radius) : type(NEIGHBORHOOD_KNN_IN_RADIUS), maxNumberOfNeighbors(knn), radius(radius) {}
+        inline Neighborhood(NeighborhoodType type, size_t knn, float radius) : type(type), maxNumberOfNeighbors(knn), radius(radius) {}
+
+        NeighborhoodType type;
+        size_t maxNumberOfNeighbors;
+        float radius;
+    };
+
     KDTree(const std::vector<Eigen::Vector3f> &points, size_t max_leaf_size = 10);
     KDTree(const PointCloud &cloud, size_t max_leaf_size = 10);
     ~KDTree();
 
-    void kNearestNeighbors(const Eigen::Vector3f &query_pt, size_t k, std::vector<size_t> &neighbors, std::vector<float> &distances) const;
-    void nearestNeighborsInRadius(const Eigen::Vector3f &query_pt, float radius, std::vector<size_t> &neighbors, std::vector<float> &distances) const;
-    void kNearestNeighborsInRadius(const Eigen::Vector3f &query_pt, size_t k, float radius, std::vector<size_t> &neighbors, std::vector<float> &distances) const;
+    void kNNSearch(const Eigen::Vector3f &query_pt, size_t k, std::vector<size_t> &neighbors, std::vector<float> &distances) const;
+    void radiusSearch(const Eigen::Vector3f &query_pt, float radius, std::vector<size_t> &neighbors, std::vector<float> &distances) const;
+    void kNNInRadiusSearch(const Eigen::Vector3f &query_pt, size_t k, float radius, std::vector<size_t> &neighbors, std::vector<float> &distances) const;
+
+    inline void search(const Eigen::Vector3f &query_pt, std::vector<size_t> &neighbors, std::vector<float> &distances, const Neighborhood &nh) const {
+        if (nh.type == NEIGHBORHOOD_KNN) {
+            kNNSearch(query_pt, nh.maxNumberOfNeighbors, neighbors, distances);
+        } else if (nh.type == NEIGHBORHOOD_RADIUS) {
+            radiusSearch(query_pt, nh.radius, neighbors, distances);
+        } else {
+            kNNInRadiusSearch(query_pt, nh.maxNumberOfNeighbors, nh.radius, neighbors, distances);
+        }
+    }
 
 private:
     // std::vector<Eigen::Vector3f> to kd-tree adaptor class

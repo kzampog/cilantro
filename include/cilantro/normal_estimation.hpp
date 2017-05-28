@@ -18,6 +18,12 @@ public:
     std::vector<Eigen::Vector3f> estimateNormalsRadius(float radius) const;
     void estimateNormalsInPlaceRadius(float radius) const;
 
+    std::vector<Eigen::Vector3f> estimateNormalsKNNInRadius(size_t k, float radius) const;
+    void estimateNormalsInPlaceKNNInRadius(size_t k, float radius) const;
+
+    std::vector<Eigen::Vector3f> estimateNormals(const KDTree::Neighborhood &nh) const;
+    void estimateNormalsInPlace(const KDTree::Neighborhood &nh) const;
+
 private:
     PointCloud *input_cloud_;
     const std::vector<Eigen::Vector3f> *input_points_;

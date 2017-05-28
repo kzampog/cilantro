@@ -53,7 +53,7 @@ std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsKNN(size_t num_nei
     for (size_t i = 0; i < input_points_->size(); i++) {
         std::vector<size_t> neighbors;
         std::vector<float> distances;
-        kd_tree_ptr_->kNearestNeighbors((*input_points_)[i], num_neighbors, neighbors, distances);
+        kd_tree_ptr_->kNNSearch((*input_points_)[i], num_neighbors, neighbors, distances);
 
         std::vector<Eigen::Vector3f> neighborhood(neighbors.size());
         for (size_t j = 0; j < neighbors.size(); j++) {
@@ -85,7 +85,7 @@ std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsRadius(float radiu
     for (size_t i = 0; i < input_points_->size(); i++) {
         std::vector<size_t> neighbors;
         std::vector<float> distances;
-        kd_tree_ptr_->nearestNeighborsInRadius((*input_points_)[i], radius, neighbors, distances);
+        kd_tree_ptr_->radiusSearch((*input_points_)[i], radius, neighbors, distances);
 
         if (neighbors.size() < 3) {
             normals[i] = nan;
@@ -111,4 +111,56 @@ std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsRadius(float radiu
 void NormalEstimation::estimateNormalsInPlaceRadius(float radius) const {
     if (input_cloud_ == NULL) return;
     input_cloud_->normals = estimateNormalsRadius(radius);
+}
+
+std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsKNNInRadius(size_t k, float radius) const {
+    std::vector<Eigen::Vector3f> normals;
+
+    Eigen::Vector3f nan(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
+
+    normals.resize(input_points_->size());
+    for (size_t i = 0; i < input_points_->size(); i++) {
+        std::vector<size_t> neighbors;
+        std::vector<float> distances;
+        kd_tree_ptr_->kNNInRadiusSearch((*input_points_)[i], k, radius, neighbors, distances);
+
+        if (neighbors.size() < 3) {
+            normals[i] = nan;
+            continue;
+        }
+
+        std::vector<Eigen::Vector3f> neighborhood(neighbors.size());
+        for (size_t j = 0; j < neighbors.size(); j++) {
+            neighborhood[j] = (*input_points_)[neighbors[j]];
+        }
+
+        PCA3D pca(neighborhood);
+        normals[i] = pca.getEigenVectorsMatrix().col(2);
+
+        if (normals[i].dot(view_point_ - (*input_points_)[i]) < 0.0f) {
+            normals[i] *= -1.0f;
+        }
+    }
+
+    return normals;
+}
+
+void NormalEstimation::estimateNormalsInPlaceKNNInRadius(size_t k, float radius) const {
+    if (input_cloud_ == NULL) return;
+    input_cloud_->normals = estimateNormalsKNNInRadius(k, radius);
+}
+
+std::vector<Eigen::Vector3f> NormalEstimation::estimateNormals(const KDTree::Neighborhood &nh) const {
+    if (nh.type == KDTree::NEIGHBORHOOD_KNN) {
+        return estimateNormalsKNN(nh.maxNumberOfNeighbors);
+    } else if (nh.type == KDTree::NEIGHBORHOOD_RADIUS) {
+        return estimateNormalsRadius(nh.radius);
+    } else {
+        return estimateNormalsKNNInRadius(nh.maxNumberOfNeighbors, nh.radius);
+    }
+}
+
+void NormalEstimation::estimateNormalsInPlace(const KDTree::Neighborhood &nh) const {
+    if (input_cloud_ == NULL) return;
+    input_cloud_->normals = estimateNormals(nh);
 }

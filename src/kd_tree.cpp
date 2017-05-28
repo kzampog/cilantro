@@ -18,7 +18,7 @@ KDTree::~KDTree() {
     delete kd_tree_;
 }
 
-void KDTree::kNearestNeighbors(const Eigen::Vector3f &query_pt, size_t k, std::vector<size_t> &neighbors, std::vector<float> &distances) const {
+void KDTree::kNNSearch(const Eigen::Vector3f &query_pt, size_t k, std::vector<size_t> &neighbors, std::vector<float> &distances) const {
     neighbors.resize(k);
     distances.resize(k);
 
@@ -28,7 +28,7 @@ void KDTree::kNearestNeighbors(const Eigen::Vector3f &query_pt, size_t k, std::v
     distances.resize(num_results);
 }
 
-void KDTree::nearestNeighborsInRadius(const Eigen::Vector3f &query_pt, float radius, std::vector<size_t> &neighbors, std::vector<float> &distances) const {
+void KDTree::radiusSearch(const Eigen::Vector3f &query_pt, float radius, std::vector<size_t> &neighbors, std::vector<float> &distances) const {
     std::vector<std::pair<size_t,float> > matches;
 
     nanoflann::SearchParams params;
@@ -43,10 +43,15 @@ void KDTree::nearestNeighborsInRadius(const Eigen::Vector3f &query_pt, float rad
     }
 }
 
-void KDTree::kNearestNeighborsInRadius(const Eigen::Vector3f &query_pt, size_t k, float radius, std::vector<size_t> &neighbors, std::vector<float> &distances) const {
-    KDTree::nearestNeighborsInRadius(query_pt, radius, neighbors, distances);
-    if (neighbors.size() > k) {
-        neighbors.resize(k);
-        distances.resize(k);
-    }
+void KDTree::kNNInRadiusSearch(const Eigen::Vector3f &query_pt, size_t k, float radius, std::vector<size_t> &neighbors, std::vector<float> &distances) const {
+    KDTree::kNNSearch(query_pt, k, neighbors, distances);
+    size_t ind = neighbors.size() - 1;
+    while (ind >= 0 && distances[ind] >= radius*radius) ind--;
+    neighbors.resize(ind+1);
+    distances.resize(ind+1);
+//    KDTree::radiusSearch(query_pt, radius, neighbors, distances);
+//    if (neighbors.size() > k) {
+//        neighbors.resize(k);
+//        distances.resize(k);
+//    }
 }
