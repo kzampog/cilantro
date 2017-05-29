@@ -5,10 +5,10 @@
 
 class KDTree {
 public:
-    enum NeighborhoodType {NEIGHBORHOOD_KNN, NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_KNN_IN_RADIUS};
+    enum struct NeighborhoodType {KNN, RADIUS, KNN_IN_RADIUS};
     struct Neighborhood {
-        inline Neighborhood() : type(NEIGHBORHOOD_KNN), maxNumberOfNeighbors(5) {}
-        inline Neighborhood(size_t knn, float radius) : type(NEIGHBORHOOD_KNN_IN_RADIUS), maxNumberOfNeighbors(knn), radius(radius) {}
+        inline Neighborhood() : type(NeighborhoodType::KNN), maxNumberOfNeighbors(5) {}
+        inline Neighborhood(size_t knn, float radius) : type(NeighborhoodType::KNN_IN_RADIUS), maxNumberOfNeighbors(knn), radius(radius) {}
         inline Neighborhood(NeighborhoodType type, size_t knn, float radius) : type(type), maxNumberOfNeighbors(knn), radius(radius) {}
 
         NeighborhoodType type;
@@ -25,9 +25,9 @@ public:
     void kNNInRadiusSearch(const Eigen::Vector3f &query_pt, size_t k, float radius, std::vector<size_t> &neighbors, std::vector<float> &distances) const;
 
     inline void search(const Eigen::Vector3f &query_pt, std::vector<size_t> &neighbors, std::vector<float> &distances, const Neighborhood &nh) const {
-        if (nh.type == NEIGHBORHOOD_KNN) {
+        if (nh.type == NeighborhoodType::KNN) {
             kNNSearch(query_pt, nh.maxNumberOfNeighbors, neighbors, distances);
-        } else if (nh.type == NEIGHBORHOOD_RADIUS) {
+        } else if (nh.type == NeighborhoodType::RADIUS) {
             radiusSearch(query_pt, nh.radius, neighbors, distances);
         } else {
             kNNInRadiusSearch(query_pt, nh.maxNumberOfNeighbors, nh.radius, neighbors, distances);

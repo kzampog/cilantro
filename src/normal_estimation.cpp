@@ -151,9 +151,9 @@ void NormalEstimation::estimateNormalsInPlaceKNNInRadius(size_t k, float radius)
 }
 
 std::vector<Eigen::Vector3f> NormalEstimation::estimateNormals(const KDTree::Neighborhood &nh) const {
-    if (nh.type == KDTree::NEIGHBORHOOD_KNN) {
+    if (nh.type == KDTree::NeighborhoodType::KNN) {
         return estimateNormalsKNN(nh.maxNumberOfNeighbors);
-    } else if (nh.type == KDTree::NEIGHBORHOOD_RADIUS) {
+    } else if (nh.type == KDTree::NeighborhoodType::RADIUS) {
         return estimateNormalsRadius(nh.radius);
     } else {
         return estimateNormalsKNNInRadius(nh.maxNumberOfNeighbors, nh.radius);
