@@ -14,13 +14,13 @@ std::vector<Eigen::Vector3f> colormap (const std::vector<float> &scalars, float 
         float scalarNormalized = (scalars[i] - scalarMinUsed) / (scalarMaxUsed - scalarMinUsed);
 
         switch (colormapType) {
-            case COLORMAP_GREY:
+            case ColormapType::GREY:
                 color[0] = scalarNormalized;
                 color[1] = scalarNormalized;
                 color[2] = scalarNormalized;
                 break;
 
-            case COLORMAP_JET:
+            case ColormapType::JET:
                 if (scalarNormalized < 0.7)
                     color[0] = 4.0 * scalarNormalized - 1.5;
                 else
@@ -38,7 +38,7 @@ std::vector<Eigen::Vector3f> colormap (const std::vector<float> &scalars, float 
 
                 break;
 
-            case COLORMAP_BLUE2RED:
+            case ColormapType::BLUE2RED:
 
                 Eigen::Vector3f red(1, 0, 0);
                 Eigen::Vector3f white(1, 1, 1);

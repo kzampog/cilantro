@@ -19,7 +19,7 @@ public:
                                        useFaceColors(false),
                                        minScalarValue(std::numeric_limits<float>::quiet_NaN()),
                                        maxScalarValue(std::numeric_limits<float>::quiet_NaN()),
-                                       colormapType(ColormapType::COLORMAP_JET)
+                                       colormapType(ColormapType::JET)
         {}
         inline ~RenderingProperties() {}
 

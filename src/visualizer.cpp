@@ -13,7 +13,7 @@ void Visualizer::PointsRenderable_::applyRenderingProperties() {
         tmp.head(3) = renderingProperties.drawingColor;
         tmp(3) = renderingProperties.opacity;
         color_alpha = std::vector<Eigen::Vector4f>(points.size(), tmp);
-    } else if (pointValues.size() == points.size() && renderingProperties.colormapType != COLORMAP_NONE) {
+    } else if (pointValues.size() == points.size() && renderingProperties.colormapType != ColormapType::NONE) {
         std::vector<Eigen::Vector3f> color_tmp = colormap(pointValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
         color_alpha.resize(pointValues.size());
         for(size_t i = 0; i < pointValues.size(); i++) {
@@ -204,7 +204,7 @@ void Visualizer::TriangleMeshRenderable_::applyRenderingProperties() {
         tmp(3) = renderingProperties.opacity;
         colors_flat = std::vector<Eigen::Vector4f>(faces.size()*3, tmp);
     } else if (renderingProperties.useFaceColors && (faceValues.size() == faces.size() || faceColors.size() == faces.size())) {
-        if (faceValues.size() == faces.size() && renderingProperties.colormapType != COLORMAP_NONE) {
+        if (faceValues.size() == faces.size() && renderingProperties.colormapType != ColormapType::NONE) {
             colors_flat.resize(faces.size()*3);
             std::vector<Eigen::Vector3f> colors_tmp = colormap(faceValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
             k = 0;
@@ -225,7 +225,7 @@ void Visualizer::TriangleMeshRenderable_::applyRenderingProperties() {
             }
         }
     } else if (!renderingProperties.useFaceColors && (vertexValues.size() == vertices.size() || vertexColors.size() == vertices.size())) {
-        if (vertexValues.size() == vertices.size() && renderingProperties.colormapType != COLORMAP_NONE) {
+        if (vertexValues.size() == vertices.size() && renderingProperties.colormapType != ColormapType::NONE) {
             colors_flat.resize(faces.size()*3);
             std::vector<Eigen::Vector3f> colors_tmp = colormap(vertexValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
             k = 0;
