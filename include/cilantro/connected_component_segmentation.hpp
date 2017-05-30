@@ -15,14 +15,12 @@ public:
                                             float normal_angle_thresh,
                                             float color_diff_thresh,
                                             size_t min_segment_size = 0,
-                                            size_t max_segment_size = std::numeric_limits<size_t>::max(),
-                                            float min_neighbor_fraction = 0.0);
+                                            size_t max_segment_size = std::numeric_limits<size_t>::max());
     ConnectedComponentSegmentation& segment(float dist_thresh,
                                             float normal_angle_thresh,
                                             float color_diff_thresh,
                                             size_t min_segment_size = 0,
-                                            size_t max_segment_size = std::numeric_limits<size_t>::max(),
-                                            float min_neighbor_fraction = 0.0);
+                                            size_t max_segment_size = std::numeric_limits<size_t>::max());
 
     inline const std::vector<std::vector<size_t> >& getComponentPointIndices() const { return component_indices_; }
     inline const std::vector<size_t>& getLabelMap() const { return label_map_; }
@@ -37,7 +35,6 @@ private:
     float dist_thresh_;
     float normal_angle_thresh_;
     float color_diff_thresh_;
-    float min_neighbor_fraction_;
     size_t min_segment_size_;
     size_t max_segment_size_;
 
