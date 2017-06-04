@@ -50,33 +50,33 @@ public:
         inline RenderingProperties& setColormapType(const ColormapType ct) { colormapType = ct; return *this; }
     };
 
-    Visualizer(const std::string & window_name, const std::string &display_name);
-    inline ~Visualizer() {}
+    Visualizer(const std::string &window_name, const std::string &display_name);
+    ~Visualizer();
 
-    void addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp = RenderingProperties());
-    void addPointCloud(const std::string &name, const std::vector<Eigen::Vector3f> &points, const RenderingProperties &rp = RenderingProperties());
-    void addPointCloudColors(const std::string &name, const std::vector<Eigen::Vector3f> &colors);
-    void addPointCloudValues(const std::string &name, const std::vector<float> &point_values);
+    Visualizer& addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp = RenderingProperties());
+    Visualizer& addPointCloud(const std::string &name, const std::vector<Eigen::Vector3f> &points, const RenderingProperties &rp = RenderingProperties());
+    Visualizer& addPointCloudColors(const std::string &name, const std::vector<Eigen::Vector3f> &colors);
+    Visualizer& addPointCloudValues(const std::string &name, const std::vector<float> &point_values);
 
-    void addPointCloudNormals(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const RenderingProperties &rp = RenderingProperties());
-    void addPointCloudNormals(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp = RenderingProperties());
+    Visualizer& addPointCloudNormals(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const RenderingProperties &rp = RenderingProperties());
+    Visualizer& addPointCloudNormals(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp = RenderingProperties());
 
-    void addPointCorrespondences(const std::string &name, const std::vector<Eigen::Vector3f> &points_src, const std::vector<Eigen::Vector3f> &points_dst, const RenderingProperties &rp = RenderingProperties());
-    void addPointCorrespondences(const std::string &name, const PointCloud &cloud_src, const PointCloud &cloud_dst, const RenderingProperties &rp = RenderingProperties());
+    Visualizer& addPointCorrespondences(const std::string &name, const std::vector<Eigen::Vector3f> &points_src, const std::vector<Eigen::Vector3f> &points_dst, const RenderingProperties &rp = RenderingProperties());
+    Visualizer& addPointCorrespondences(const std::string &name, const PointCloud &cloud_src, const PointCloud &cloud_dst, const RenderingProperties &rp = RenderingProperties());
 
-    void addCoordinateSystem(const std::string &name, float scale = 1.0f, const Eigen::Matrix4f &tf = Eigen::Matrix4f::Identity(), const RenderingProperties &rp = RenderingProperties());
+    Visualizer& addCoordinateSystem(const std::string &name, float scale = 1.0f, const Eigen::Matrix4f &tf = Eigen::Matrix4f::Identity(), const RenderingProperties &rp = RenderingProperties());
 
-    void addTriangleMesh(const std::string &name, const PointCloud &cloud, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp = RenderingProperties());
-    void addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &vertices, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp = RenderingProperties());
-    void addTriangleMeshVertexNormals(const std::string &name, const std::vector<Eigen::Vector3f> &vertex_normals);
-    void addTriangleMeshFaceNormals(const std::string &name, const std::vector<Eigen::Vector3f> &face_normals);
-    void addTriangleMeshVertexColors(const std::string &name, const std::vector<Eigen::Vector3f> &vertex_colors);
-    void addTriangleMeshFaceColors(const std::string &name, const std::vector<Eigen::Vector3f> &face_colors);
-    void addTriangleMeshVertexValues(const std::string &name, const std::vector<float> &vertex_values);
-    void addTriangleMeshFaceValues(const std::string &name, const std::vector<float> &face_values);
+    Visualizer& addTriangleMesh(const std::string &name, const PointCloud &cloud, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp = RenderingProperties());
+    Visualizer& addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &vertices, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp = RenderingProperties());
+    Visualizer& addTriangleMeshVertexNormals(const std::string &name, const std::vector<Eigen::Vector3f> &vertex_normals);
+    Visualizer& addTriangleMeshFaceNormals(const std::string &name, const std::vector<Eigen::Vector3f> &face_normals);
+    Visualizer& addTriangleMeshVertexColors(const std::string &name, const std::vector<Eigen::Vector3f> &vertex_colors);
+    Visualizer& addTriangleMeshFaceColors(const std::string &name, const std::vector<Eigen::Vector3f> &face_colors);
+    Visualizer& addTriangleMeshVertexValues(const std::string &name, const std::vector<float> &vertex_values);
+    Visualizer& addTriangleMeshFaceValues(const std::string &name, const std::vector<float> &face_values);
 
-    inline void clear() { renderables_.clear(); }
-    inline void remove(const std::string &name) { renderables_.erase(name); }
+    inline Visualizer& clear() { renderables_.clear(); return *this; }
+    inline Visualizer& remove(const std::string &name) { renderables_.erase(name); return *this; }
 
     void render() const;
 
@@ -93,12 +93,12 @@ public:
     std::vector<std::string> getObjectNames() const;
 
     inline Eigen::Vector3f getClearColor() const { return clear_color_; }
-    inline void setClearColor(const Eigen::Vector3f &color) { clear_color_ = color; }
-    inline void setClearColor(float r, float g, float b) { clear_color_ = Eigen::Vector3f(r,g,b); }
+    inline Visualizer& setClearColor(const Eigen::Vector3f &color) { clear_color_ = color; return *this; }
+    inline Visualizer& setClearColor(float r, float g, float b) { clear_color_ = Eigen::Vector3f(r,g,b); return *this; }
 
-    void setProjectionMatrix(int w, int h, pangolin::GLprecision fu, pangolin::GLprecision fv, pangolin::GLprecision u0, pangolin::GLprecision v0, pangolin::GLprecision zNear, pangolin::GLprecision zFar);
+    Visualizer& setProjectionMatrix(int w, int h, pangolin::GLprecision fu, pangolin::GLprecision fv, pangolin::GLprecision u0, pangolin::GLprecision v0, pangolin::GLprecision zNear, pangolin::GLprecision zFar);
 
-    void registerKeyboardCallback(const std::vector<int> &keys, std::function<void(Visualizer&,int,void*)> func, void *cookie);
+    Visualizer& registerKeyboardCallback(const std::vector<int> &keys, std::function<void(Visualizer&,int,void*)> func, void *cookie);
 
 private:
     struct Renderable_ {

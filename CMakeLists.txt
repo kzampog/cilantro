@@ -55,6 +55,9 @@ target_link_libraries(convex_hull_example cilantro ${Pangolin_LIBRARIES})
 add_executable(connected_component_segmentation_example examples/connected_component_segmentation_example.cpp)
 target_link_libraries(connected_component_segmentation_example cilantro ${Pangolin_LIBRARIES})
 
+add_executable(image_viewer_example examples/image_viewer_example.cpp)
+target_link_libraries(image_viewer_example cilantro ${Pangolin_LIBRARIES})
+
 # Install target
 
 install(TARGETS cilantro LIBRARY DESTINATION /usr/local/lib)

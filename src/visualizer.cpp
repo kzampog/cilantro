@@ -327,7 +327,9 @@ Visualizer::Visualizer(const std::string &window_name, const std::string &displa
     display_->SetAspect(-4.0f/3.0f);
 }
 
-void Visualizer::addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp) {
+Visualizer::~Visualizer() {}
+
+Visualizer& Visualizer::addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp) {
     renderables_[name] = std::unique_ptr<PointsRenderable_>(new PointsRenderable_);
     PointsRenderable_ *obj_ptr = (PointsRenderable_ *)renderables_[name].get();
     // Copy fields
@@ -336,9 +338,11 @@ void Visualizer::addPointCloud(const std::string &name, const PointCloud &cloud,
     obj_ptr->position = Eigen::Map<Eigen::MatrixXf>((float *)cloud.points.data(), 3, cloud.points.size()).rowwise().mean();
     // Update buffers
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
+
+    return *this;
 }
 
-void Visualizer::addPointCloud(const std::string &name, const std::vector<Eigen::Vector3f> &points, const RenderingProperties &rp) {
+Visualizer& Visualizer::addPointCloud(const std::string &name, const std::vector<Eigen::Vector3f> &points, const RenderingProperties &rp) {
     renderables_[name] = std::unique_ptr<PointsRenderable_>(new PointsRenderable_);
     PointsRenderable_ *obj_ptr = (PointsRenderable_ *)renderables_[name].get();
     // Copy fields
@@ -346,28 +350,34 @@ void Visualizer::addPointCloud(const std::string &name, const std::vector<Eigen:
     obj_ptr->position = Eigen::Map<Eigen::MatrixXf>((float *)points.data(), 3, points.size()).rowwise().mean();
     // Update buffers
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
+
+    return *this;
 }
 
-void Visualizer::addPointCloudColors(const std::string &name, const std::vector<Eigen::Vector3f> &colors) {
+Visualizer& Visualizer::addPointCloudColors(const std::string &name, const std::vector<Eigen::Vector3f> &colors) {
     auto it = renderables_.find(name);
-    if (it == renderables_.end()) return;
+    if (it == renderables_.end()) return *this;
     PointsRenderable_ *obj_ptr = (PointsRenderable_ *)it->second.get();
-    if (colors.size() != obj_ptr->points.size()) return;
+    if (colors.size() != obj_ptr->points.size()) return *this;
     obj_ptr->colors = colors;
     obj_ptr->applyRenderingProperties();
+
+    return *this;
 }
 
-void Visualizer::addPointCloudValues(const std::string &name, const std::vector<float> &point_values) {
+Visualizer& Visualizer::addPointCloudValues(const std::string &name, const std::vector<float> &point_values) {
     auto it = renderables_.find(name);
-    if (it == renderables_.end()) return;
+    if (it == renderables_.end()) return *this;
     PointsRenderable_ *obj_ptr = (PointsRenderable_ *)it->second.get();
-    if (point_values.size() != obj_ptr->points.size()) return;
+    if (point_values.size() != obj_ptr->points.size()) return *this;
     obj_ptr->pointValues = point_values;
     obj_ptr->applyRenderingProperties();
+
+    return *this;
 }
 
-void Visualizer::addPointCloudNormals(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const RenderingProperties &rp) {
-    if (points.size() != normals.size()) return;
+Visualizer& Visualizer::addPointCloudNormals(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const RenderingProperties &rp) {
+    if (points.size() != normals.size()) return *this;
     renderables_[name] = std::unique_ptr<NormalsRenderable_>(new NormalsRenderable_);
     NormalsRenderable_ *obj_ptr = (NormalsRenderable_ *)renderables_[name].get();
     // Copy fields
@@ -376,14 +386,16 @@ void Visualizer::addPointCloudNormals(const std::string &name, const std::vector
     obj_ptr->position = Eigen::Map<Eigen::MatrixXf>((float *)points.data(), 3, points.size()).rowwise().mean();
     // Update buffers
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
+
+    return *this;
 }
 
-void Visualizer::addPointCloudNormals(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp) {
-    addPointCloudNormals(name, cloud.points, cloud.normals, rp);
+Visualizer& Visualizer::addPointCloudNormals(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp) {
+    return addPointCloudNormals(name, cloud.points, cloud.normals, rp);
 }
 
-void Visualizer::addPointCorrespondences(const std::string &name, const std::vector<Eigen::Vector3f> &points_src, const std::vector<Eigen::Vector3f> &points_dst, const RenderingProperties &rp) {
-    if (points_src.size() != points_dst.size()) return;
+Visualizer& Visualizer::addPointCorrespondences(const std::string &name, const std::vector<Eigen::Vector3f> &points_src, const std::vector<Eigen::Vector3f> &points_dst, const RenderingProperties &rp) {
+    if (points_src.size() != points_dst.size()) return *this;
     renderables_[name] = std::unique_ptr<CorrespondencesRenderable_>(new CorrespondencesRenderable_);
     CorrespondencesRenderable_ *obj_ptr = (CorrespondencesRenderable_ *)renderables_[name].get();
     // Copy fields
@@ -393,13 +405,15 @@ void Visualizer::addPointCorrespondences(const std::string &name, const std::vec
                          Eigen::Map<Eigen::MatrixXf>((float *)points_dst.data(), 3, points_dst.size()).rowwise().mean()) / 2.0f;
     // Update buffers
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
+
+    return *this;
 }
 
-void Visualizer::addPointCorrespondences(const std::string &name, const PointCloud &cloud_src, const PointCloud &cloud_dst, const RenderingProperties &rp) {
-    addPointCorrespondences(name, cloud_src.points, cloud_dst.points, rp);
+Visualizer& Visualizer::addPointCorrespondences(const std::string &name, const PointCloud &cloud_src, const PointCloud &cloud_dst, const RenderingProperties &rp) {
+    return addPointCorrespondences(name, cloud_src.points, cloud_dst.points, rp);
 }
 
-void Visualizer::addCoordinateSystem(const std::string &name, float scale, const Eigen::Matrix4f &tf, const RenderingProperties &rp) {
+Visualizer& Visualizer::addCoordinateSystem(const std::string &name, float scale, const Eigen::Matrix4f &tf, const RenderingProperties &rp) {
     renderables_[name] = std::unique_ptr<AxisRenderable_>(new AxisRenderable_);
     AxisRenderable_ *obj_ptr = (AxisRenderable_ *)renderables_[name].get();
     // Copy fields
@@ -408,9 +422,11 @@ void Visualizer::addCoordinateSystem(const std::string &name, float scale, const
     obj_ptr->position = tf.topRightCorner(3,1);
     // Update buffers
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
+
+    return *this;
 }
 
-void Visualizer::addTriangleMesh(const std::string &name, const PointCloud &cloud, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
+Visualizer& Visualizer::addTriangleMesh(const std::string &name, const PointCloud &cloud, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
     renderables_[name] = std::unique_ptr<TriangleMeshRenderable_>(new TriangleMeshRenderable_);
     TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)renderables_[name].get();
     obj_ptr->vertices = cloud.points;
@@ -424,9 +440,11 @@ void Visualizer::addTriangleMesh(const std::string &name, const PointCloud &clou
         obj_ptr->faceNormals[i] = normal;
     }
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
+
+    return *this;
 }
 
-void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &vertices, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
+Visualizer& Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &vertices, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
     renderables_[name] = std::unique_ptr<TriangleMeshRenderable_>(new TriangleMeshRenderable_);
     TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)renderables_[name].get();
     obj_ptr->vertices = vertices;
@@ -438,60 +456,74 @@ void Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eige
         obj_ptr->faceNormals[i] = normal;
     }
     ((Renderable_ *)obj_ptr)->applyRenderingProperties(rp);
+
+    return *this;
 }
 
-void Visualizer::addTriangleMeshVertexNormals(const std::string &name, const std::vector<Eigen::Vector3f> &vertex_normals) {
+Visualizer& Visualizer::addTriangleMeshVertexNormals(const std::string &name, const std::vector<Eigen::Vector3f> &vertex_normals) {
     auto it = renderables_.find(name);
-    if (it == renderables_.end()) return;
+    if (it == renderables_.end()) return *this;
     TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)it->second.get();
-    if (vertex_normals.size() != obj_ptr->vertices.size()) return;
+    if (vertex_normals.size() != obj_ptr->vertices.size()) return *this;
     obj_ptr->vertexNormals = vertex_normals;
     obj_ptr->applyRenderingProperties();
+
+    return *this;
 }
 
-void Visualizer::addTriangleMeshFaceNormals(const std::string &name, const std::vector<Eigen::Vector3f> &face_normals) {
+Visualizer& Visualizer::addTriangleMeshFaceNormals(const std::string &name, const std::vector<Eigen::Vector3f> &face_normals) {
     auto it = renderables_.find(name);
-    if (it == renderables_.end()) return;
+    if (it == renderables_.end()) return *this;
     TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)it->second.get();
-    if (face_normals.size() != obj_ptr->faces.size()) return;
+    if (face_normals.size() != obj_ptr->faces.size()) return *this;
     obj_ptr->faceNormals = face_normals;
     obj_ptr->applyRenderingProperties();
+
+    return *this;
 }
 
-void Visualizer::addTriangleMeshVertexColors(const std::string &name, const std::vector<Eigen::Vector3f> &vertex_colors) {
+Visualizer& Visualizer::addTriangleMeshVertexColors(const std::string &name, const std::vector<Eigen::Vector3f> &vertex_colors) {
     auto it = renderables_.find(name);
-    if (it == renderables_.end()) return;
+    if (it == renderables_.end()) return *this;
     TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)it->second.get();
-    if (vertex_colors.size() != obj_ptr->vertices.size()) return;
+    if (vertex_colors.size() != obj_ptr->vertices.size()) return *this;
     obj_ptr->vertexColors = vertex_colors;
     obj_ptr->applyRenderingProperties();
+
+    return *this;
 }
 
-void Visualizer::addTriangleMeshFaceColors(const std::string &name, const std::vector<Eigen::Vector3f> &face_colors) {
+Visualizer& Visualizer::addTriangleMeshFaceColors(const std::string &name, const std::vector<Eigen::Vector3f> &face_colors) {
     auto it = renderables_.find(name);
-    if (it == renderables_.end()) return;
+    if (it == renderables_.end()) return *this;
     TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)it->second.get();
-    if (face_colors.size() != obj_ptr->faces.size()) return;
+    if (face_colors.size() != obj_ptr->faces.size()) return *this;
     obj_ptr->faceColors = face_colors;
     obj_ptr->applyRenderingProperties();
+
+    return *this;
 }
 
-void Visualizer::addTriangleMeshVertexValues(const std::string &name, const std::vector<float> &vertex_values) {
+Visualizer& Visualizer::addTriangleMeshVertexValues(const std::string &name, const std::vector<float> &vertex_values) {
     auto it = renderables_.find(name);
-    if (it == renderables_.end()) return;
+    if (it == renderables_.end()) return *this;
     TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)it->second.get();
-    if (vertex_values.size() != obj_ptr->vertices.size()) return;
+    if (vertex_values.size() != obj_ptr->vertices.size()) return *this;
     obj_ptr->vertexValues = vertex_values;
     obj_ptr->applyRenderingProperties();
+
+    return *this;
 }
 
-void Visualizer::addTriangleMeshFaceValues(const std::string &name, const std::vector<float> &face_values) {
+Visualizer& Visualizer::addTriangleMeshFaceValues(const std::string &name, const std::vector<float> &face_values) {
     auto it = renderables_.find(name);
-    if (it == renderables_.end()) return;
+    if (it == renderables_.end()) return *this;
     TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)it->second.get();
-    if (face_values.size() != obj_ptr->faces.size()) return;
+    if (face_values.size() != obj_ptr->faces.size()) return *this;
     obj_ptr->faceValues = face_values;
     obj_ptr->applyRenderingProperties();
+
+    return *this;
 }
 
 void Visualizer::render() const {
@@ -563,17 +595,21 @@ std::vector<std::string> Visualizer::getObjectNames() const {
     return res;
 }
 
-void Visualizer::setProjectionMatrix(int w, int h, pangolin::GLprecision fu, pangolin::GLprecision fv, pangolin::GLprecision u0, pangolin::GLprecision v0, pangolin::GLprecision zNear, pangolin::GLprecision zFar) {
+Visualizer& Visualizer::setProjectionMatrix(int w, int h, pangolin::GLprecision fu, pangolin::GLprecision fv, pangolin::GLprecision u0, pangolin::GLprecision v0, pangolin::GLprecision zNear, pangolin::GLprecision zFar) {
     gl_render_state_->SetProjectionMatrix(pangolin::ProjectionMatrix(w, h, fu, fv, u0, v0, zNear, zFar));
     display_->SetAspect(-(double)w/((double)h));
+
+    return *this;
 }
 
-void Visualizer::registerKeyboardCallback(const std::vector<int> &keys, std::function<void(Visualizer&,int,void*)> func, void *cookie) {
+Visualizer& Visualizer::registerKeyboardCallback(const std::vector<int> &keys, std::function<void(Visualizer&,int,void*)> func, void *cookie) {
     gl_context_->MakeCurrent();
     for (size_t i = 0; i < keys.size(); i++) {
         auto fun = std::bind(func, std::ref(*this), keys[i], cookie);
         pangolin::RegisterKeyPressCallback(keys[i], fun);
     }
+
+    return *this;
 }
 
 void Visualizer::point_size_callback_(Visualizer &viz, int key) {
