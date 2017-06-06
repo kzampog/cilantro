@@ -26,7 +26,7 @@ int main(int argc, char ** argv) {
         scalars[i] = cloud.points[i].norm();
     viz.addPointCloud("pcd", cloud, Visualizer::RenderingProperties().setColormapType(ColormapType::JET));
     viz.addPointCloudValues("pcd", scalars);
-    
+
 //    viz.addPointCloud("pcd", cloud);
 //    viz.addPointCloudNormals("nrm", cloud, Visualizer::RenderingProperties().setCorrespondencesFraction(0.20).setOpacity(0.5));
 

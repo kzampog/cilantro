@@ -1,6 +1,8 @@
 #include <cilantro/image_viewer.hpp>
 #include <cilantro/visualizer.hpp>
 
+#include <ctime>
+
 int main( int argc, char* argv[] )
 {
     Eigen::Matrix3f K;
@@ -17,10 +19,11 @@ int main( int argc, char* argv[] )
 
     size_t w = 640, h = 480;
     unsigned char* img = new unsigned char[dok->SizeBytes()];
-
-    bool wtf = true;
-
     while (dok->GrabNext(img, true)) {
+
+        clock_t begin, end;
+        double build_time;
+        begin = clock();
 
         pangolin::Image<Eigen::Matrix<unsigned char,3,1> > rgb_img((Eigen::Matrix<unsigned char,3,1> *)img, w, h, w*sizeof(Eigen::Matrix<unsigned char,3,1>));
         pangolin::Image<unsigned short> depth_img((unsigned short *)(img + 3*w*h), w, h, w*sizeof(unsigned short));
@@ -38,14 +41,13 @@ int main( int argc, char* argv[] )
             }
         }
 
+        end = clock();
+        build_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
+        std::cout << "Cloud generation: " << build_time << std::endl;
 
-//        pangolin::FindContext("CLOUD")->MakeCurrent();
-        viz.addPointCloud("cloud", cloud).spinOnce();
-//        pangolin::FindContext("RGB")->MakeCurrent();
         rgbv.setImage(img, w, h, "RGB24").spinOnce();
-//        pangolin::FindContext("DEPTH")->MakeCurrent();
         depthv.setImage(img + 3*w*h, w, h, "GRAY16LE").spinOnce();
-
+        viz.addPointCloud("cloud", cloud).spinOnce();
     }
 
     delete[] img;

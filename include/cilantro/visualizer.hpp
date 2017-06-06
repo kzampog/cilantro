@@ -9,7 +9,7 @@ class Visualizer {
 public:
     struct RenderingProperties {
         inline RenderingProperties() : drawingColor(no_color_),
-                                       pointSize(5.0f),
+                                       pointSize(2.0f),
                                        lineWidth(1.0f),
                                        opacity(1.0f),
                                        normalLength(0.05f),

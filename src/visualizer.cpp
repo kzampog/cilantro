@@ -275,6 +275,10 @@ Visualizer::~Visualizer() {}
 
 Visualizer& Visualizer::addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp) {
     gl_context_->MakeCurrent();
+    if (cloud.empty()) {
+        renderables_.erase(name);
+        return *this;
+    }
     renderables_[name] = std::shared_ptr<PointsRenderable_>(new PointsRenderable_);
     PointsRenderable_ *obj_ptr = (PointsRenderable_ *)renderables_[name].get();
     // Copy fields
@@ -289,6 +293,10 @@ Visualizer& Visualizer::addPointCloud(const std::string &name, const PointCloud 
 
 Visualizer& Visualizer::addPointCloud(const std::string &name, const std::vector<Eigen::Vector3f> &points, const RenderingProperties &rp) {
     gl_context_->MakeCurrent();
+    if (points.empty()) {
+        renderables_.erase(name);
+        return *this;
+    }
     renderables_[name] = std::shared_ptr<PointsRenderable_>(new PointsRenderable_);
     PointsRenderable_ *obj_ptr = (PointsRenderable_ *)renderables_[name].get();
     // Copy fields
@@ -326,7 +334,10 @@ Visualizer& Visualizer::addPointCloudValues(const std::string &name, const std::
 
 Visualizer& Visualizer::addPointCloudNormals(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const RenderingProperties &rp) {
     gl_context_->MakeCurrent();
-    if (points.size() != normals.size()) return *this;
+    if (points.empty() || points.size() != normals.size()) {
+        renderables_.erase(name);
+        return *this;
+    }
     renderables_[name] = std::shared_ptr<NormalsRenderable_>(new NormalsRenderable_);
     NormalsRenderable_ *obj_ptr = (NormalsRenderable_ *)renderables_[name].get();
     // Copy fields
@@ -345,7 +356,10 @@ Visualizer& Visualizer::addPointCloudNormals(const std::string &name, const Poin
 
 Visualizer& Visualizer::addPointCorrespondences(const std::string &name, const std::vector<Eigen::Vector3f> &points_src, const std::vector<Eigen::Vector3f> &points_dst, const RenderingProperties &rp) {
     gl_context_->MakeCurrent();
-    if (points_src.size() != points_dst.size()) return *this;
+    if (points_src.empty() || points_src.size() != points_dst.size()) {
+        renderables_.erase(name);
+        return *this;
+    }
     renderables_[name] = std::shared_ptr<CorrespondencesRenderable_>(new CorrespondencesRenderable_);
     CorrespondencesRenderable_ *obj_ptr = (CorrespondencesRenderable_ *)renderables_[name].get();
     // Copy fields
@@ -379,6 +393,10 @@ Visualizer& Visualizer::addCoordinateSystem(const std::string &name, float scale
 
 Visualizer& Visualizer::addTriangleMesh(const std::string &name, const PointCloud &cloud, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
     gl_context_->MakeCurrent();
+    if (cloud.empty() || faces.empty()) {
+        renderables_.erase(name);
+        return *this;
+    }
     renderables_[name] = std::shared_ptr<TriangleMeshRenderable_>(new TriangleMeshRenderable_);
     TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)renderables_[name].get();
     obj_ptr->vertices = cloud.points;
@@ -398,6 +416,10 @@ Visualizer& Visualizer::addTriangleMesh(const std::string &name, const PointClou
 
 Visualizer& Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &vertices, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
     gl_context_->MakeCurrent();
+    if (vertices.empty() || faces.empty()) {
+        renderables_.erase(name);
+        return *this;
+    }
     renderables_[name] = std::shared_ptr<TriangleMeshRenderable_>(new TriangleMeshRenderable_);
     TriangleMeshRenderable_ *obj_ptr = (TriangleMeshRenderable_ *)renderables_[name].get();
     obj_ptr->vertices = vertices;

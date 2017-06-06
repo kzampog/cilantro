@@ -26,6 +26,7 @@ bool convexHullFromPoints(InputScalarT * points,
     if (simplicial_faces) qh.qh()->TRIangulate = True;
     qh.qh()->premerge_centrum = merge_tol;
     qh.runQhull("", EigenDim, num_points, data.data(), "");
+    qh.defineVertexNeighborFacets();
     orgQhull::QhullFacetList facets = qh.facetList();
 
     // Establish mapping between hull vertex ids and hull points indices
