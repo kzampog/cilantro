@@ -102,9 +102,9 @@ public:
 
 private:
     struct Renderable_ {
-        Renderable_() : visible(true), position(Eigen::Vector3f::Zero()) {}
+        Renderable_() : visible(true), centroid(Eigen::Vector3f::Zero()) {}
         bool visible;
-        Eigen::Vector3f position;                       // For render priority...
+        Eigen::Vector3f centroid;                       // For render priority...
         RenderingProperties renderingProperties;
         virtual void applyRenderingProperties() = 0;    // Updates GPU buffers
         inline void applyRenderingProperties(const RenderingProperties &rp) { renderingProperties = rp; applyRenderingProperties(); }
@@ -163,15 +163,15 @@ private:
     pangolin::PangolinGl *gl_context_;
     pangolin::View *display_;
 
-    std::unique_ptr<pangolin::OpenGlRenderState> gl_render_state_;
-    std::unique_ptr<pangolin::Handler3D> input_handler_;
+    std::shared_ptr<pangolin::OpenGlRenderState> gl_render_state_;
+    std::shared_ptr<pangolin::Handler3D> input_handler_;
     pangolin::OpenGlMatrix initial_model_view_;
 
     static Eigen::Vector3f no_color_;
     static Eigen::Vector3f default_color_;
     Eigen::Vector3f clear_color_;
 
-    std::map<std::string, std::unique_ptr<Renderable_> > renderables_;
+    std::map<std::string, std::shared_ptr<Renderable_> > renderables_;
 
     static void point_size_callback_(Visualizer &viz, int key);
     static void reset_view_callback_(Visualizer &viz);

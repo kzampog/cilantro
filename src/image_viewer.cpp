@@ -40,6 +40,7 @@ ImageViewer& ImageViewer::setImage(const pangolin::TypedImage& img) {
 }
 
 ImageViewer& ImageViewer::setImage(const pangolin::GlTexture& texture) {
+    gl_context_->MakeCurrent();
     // Initialise if it didn't already exist or the size was too small
     if(!gl_texture_.tid || gl_texture_.width != texture.width || gl_texture_.height != texture.height ||
        gl_texture_.internal_format != texture.internal_format)
@@ -53,6 +54,7 @@ ImageViewer& ImageViewer::setImage(const pangolin::GlTexture& texture) {
 }
 
 ImageViewer& ImageViewer::clear() {
+    gl_context_->MakeCurrent();
     gl_texture_.Delete();
     return *this;
 }
