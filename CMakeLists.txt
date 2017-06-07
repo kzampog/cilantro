@@ -12,11 +12,10 @@ set(CMAKE_CXX_FLAGS "-std=c++11")
 # Packages
 
 find_package(Pangolin REQUIRED)
-# find_package(OpenMP REQUIRED)
 
 include_directories(${Pangolin_INCLUDE_DIRS})
-include_directories(include)
 include_directories(3rd_party)
+include_directories(include)
 
 # Build library
 
