@@ -18,7 +18,7 @@ struct PointCloud {
     inline bool empty() const { return points.empty(); }
     void clear();
 
-    inline Eigen::Map<Eigen::MatrixXf> pointsMatrixMap() { return Eigen::Map<Eigen::MatrixXf>((float *)points.data(), 3, points.size()); }
-    inline Eigen::Map<Eigen::MatrixXf> normalsMatrixMap() { return Eigen::Map<Eigen::MatrixXf>((float *)normals.data(), 3, normals.size()); }
-    inline Eigen::Map<Eigen::MatrixXf> colorsMatrixMap() { return Eigen::Map<Eigen::MatrixXf>((float *)colors.data(), 3, colors.size()); }
+    inline Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> > pointsMatrixMap() { return Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)points.data(), 3, points.size()); }
+    inline Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> > normalsMatrixMap() { return Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)normals.data(), 3, normals.size()); }
+    inline Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> > colorsMatrixMap() { return Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)colors.data(), 3, colors.size()); }
 };
