@@ -110,3 +110,34 @@ void pointsColorsToRGBDImages(const std::vector<Eigen::Vector3f> &points,
     Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)points_t.data(), 3, points_t.size()) = (rot_mat*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)points.data(), 3, points.size())).colwise() + t_vec;
     pointsColorsToRGBDImages(points_t, colors, intr, rgb_img, depth_img);
 }
+
+void pointsToIndexMap(const std::vector<Eigen::Vector3f> &points,
+                      const Eigen::Matrix3f &intr,
+                      pangolin::Image<size_t> &index_map)
+{
+    if (points.empty() || !index_map.ptr) return;
+
+    size_t empty = std::numeric_limits<std::size_t>::max();
+    index_map.Fill(empty);
+
+    for (size_t i = 0; i < points.size(); i++) {
+        const Eigen::Vector3f& pt = points[i];
+        size_t x = (size_t)std::llround(pt[0]*intr(0,0)/pt[2] + intr(0,2));
+        size_t y = (size_t)std::llround(pt[1]*intr(1,1)/pt[2] + intr(1,2));
+        if (x < index_map.w && y < index_map.h && pt[2] >= 0.0f && (index_map(x,y) == empty || pt[2] < points[index_map(x,y)][2])) {
+            index_map(x,y) = i;
+        }
+    }
+}
+
+void pointsToIndexMap(const std::vector<Eigen::Vector3f> &points,
+                      const Eigen::Matrix3f &intr,
+                      const Eigen::Matrix3f &rot_mat,
+                      const Eigen::Vector3f &t_vec,
+                      pangolin::Image<size_t> &index_map)
+{
+    if (points.empty() || !index_map.ptr) return;
+    std::vector<Eigen::Vector3f> points_t(points.size());
+    Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)points_t.data(), 3, points_t.size()) = (rot_mat*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)points.data(), 3, points.size())).colwise() + t_vec;
+    pointsToIndexMap(points_t, intr, index_map);
+}

@@ -90,3 +90,29 @@ inline void pointCloudToRGBDImages(const PointCloud &cloud,
 {
     pointsColorsToRGBDImages(cloud.points, cloud.colors, intr, rot_mat, t_vec, rgb_img, depth_img);
 }
+
+void pointsToIndexMap(const std::vector<Eigen::Vector3f> &points,
+                      const Eigen::Matrix3f &intr,
+                      pangolin::Image<size_t> &index_map);
+
+inline void pointCloudToIndexMap(const PointCloud &cloud,
+                                 const Eigen::Matrix3f &intr,
+                                 pangolin::Image<size_t> &index_map)
+{
+    pointsToIndexMap(cloud.points, intr, index_map);
+}
+
+void pointsToIndexMap(const std::vector<Eigen::Vector3f> &points,
+                      const Eigen::Matrix3f &intr,
+                      const Eigen::Matrix3f &rot_mat,
+                      const Eigen::Vector3f &t_vec,
+                      pangolin::Image<size_t> &index_map);
+
+inline void pointCloudToIndexMap(const PointCloud &cloud,
+                                 const Eigen::Matrix3f &intr,
+                                 const Eigen::Matrix3f &rot_mat,
+                                 const Eigen::Vector3f &t_vec,
+                                 pangolin::Image<size_t> &index_map)
+{
+    pointsToIndexMap(cloud.points, intr, rot_mat, t_vec, index_map);
+}

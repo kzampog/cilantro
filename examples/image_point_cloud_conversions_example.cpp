@@ -2,6 +2,8 @@
 #include <cilantro/visualizer.hpp>
 #include <cilantro/image_viewer.hpp>
 
+#include <cilantro/ply_io.hpp>
+
 #include <ctime>
 
 int main( int argc, char* argv[] )
@@ -55,6 +57,33 @@ int main( int argc, char* argv[] )
     }
 
     delete[] img;
+
+//    Eigen::Matrix3f K;
+//    K << 528, 0, 320, 0, 528, 240, 0, 0, 1;
+//    size_t w = 640, h = 480;
+//
+//    PointCloud cloud;
+//    readPointCloudFromPLYFile(argv[1], cloud);
+//
+//    pangolin::ManagedImage<size_t> idx_map(w, h);
+//    pointCloudToIndexMap(cloud, K, idx_map);
+//
+//    std::vector<size_t> indices;
+//    for (size_t y = 0; y < h; y++) {
+//        for (size_t x = 0; x < w; x++) {
+//            if (idx_map(x,y) != std::numeric_limits<std::size_t>::max()) indices.push_back(idx_map(x,y));
+//        }
+//    }
+//
+//    std::cout << indices.size() << std::endl;
+//
+//    PointCloud cloud2(cloud, indices);
+//    Visualizer viz("CLOUD", "disp");
+//    viz.addPointCloud("cloud2", cloud2);
+//
+//    while (!viz.wasStopped()) {
+//        viz.spinOnce();
+//    }
 
     return 0;
 }
