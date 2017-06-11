@@ -34,11 +34,11 @@ inline void RGBDImagesToPointCloud(const pangolin::Image<Eigen::Matrix<unsigned 
 
 void pointsToDepthImage(const std::vector<Eigen::Vector3f> &points,
                         const Eigen::Matrix3f &intr,
-                        pangolin::ManagedImage<unsigned short> &depth_img);
+                        pangolin::Image<unsigned short> &depth_img);
 
 inline void pointCloudToDepthImage(const PointCloud &cloud,
                                    const Eigen::Matrix3f &intr,
-                                   pangolin::ManagedImage<unsigned short> &depth_img)
+                                   pangolin::Image<unsigned short> &depth_img)
 {
     pointsToDepthImage(cloud.points, intr, depth_img);
 }
@@ -47,13 +47,13 @@ void pointsToDepthImage(const std::vector<Eigen::Vector3f> &points,
                         const Eigen::Matrix3f &intr,
                         const Eigen::Matrix3f &rot_mat,
                         const Eigen::Vector3f &t_vec,
-                        pangolin::ManagedImage<unsigned short> &depth_img);
+                        pangolin::Image<unsigned short> &depth_img);
 
 inline void pointCloudToDepthImage(const PointCloud &cloud,
                                    const Eigen::Matrix3f &intr,
                                    const Eigen::Matrix3f &rot_mat,
                                    const Eigen::Vector3f &t_vec,
-                                   pangolin::ManagedImage<unsigned short> &depth_img)
+                                   pangolin::Image<unsigned short> &depth_img)
 {
     pointsToDepthImage(cloud.points, intr, rot_mat, t_vec, depth_img);
 }
@@ -61,13 +61,13 @@ inline void pointCloudToDepthImage(const PointCloud &cloud,
 void pointsColorsToRGBDImages(const std::vector<Eigen::Vector3f> &points,
                               const std::vector<Eigen::Vector3f> &colors,
                               const Eigen::Matrix3f &intr,
-                              pangolin::ManagedImage<Eigen::Matrix<unsigned char,3,1> > &rgb_img,
-                              pangolin::ManagedImage<unsigned short> &depth_img);
+                              pangolin::Image<Eigen::Matrix<unsigned char,3,1> > &rgb_img,
+                              pangolin::Image<unsigned short> &depth_img);
 
 inline void pointCloudToRGBDImages(const PointCloud &cloud,
                                    const Eigen::Matrix3f &intr,
-                                   pangolin::ManagedImage<Eigen::Matrix<unsigned char,3,1> > &rgb_img,
-                                   pangolin::ManagedImage<unsigned short> &depth_img)
+                                   pangolin::Image<Eigen::Matrix<unsigned char,3,1> > &rgb_img,
+                                   pangolin::Image<unsigned short> &depth_img)
 {
     pointsColorsToRGBDImages(cloud.points, cloud.colors, intr, rgb_img, depth_img);
 }
@@ -78,15 +78,15 @@ void pointsColorsToRGBDImages(const std::vector<Eigen::Vector3f> &points,
                               const Eigen::Matrix3f &intr,
                               const Eigen::Matrix3f &rot_mat,
                               const Eigen::Vector3f &t_vec,
-                              pangolin::ManagedImage<Eigen::Matrix<unsigned char,3,1> > &rgb_img,
-                              pangolin::ManagedImage<unsigned short> &depth_img);
+                              pangolin::Image<Eigen::Matrix<unsigned char,3,1> > &rgb_img,
+                              pangolin::Image<unsigned short> &depth_img);
 
 inline void pointCloudToRGBDImages(const PointCloud &cloud,
                                    const Eigen::Matrix3f &intr,
                                    const Eigen::Matrix3f &rot_mat,
                                    const Eigen::Vector3f &t_vec,
-                                   pangolin::ManagedImage<Eigen::Matrix<unsigned char,3,1> > &rgb_img,
-                                   pangolin::ManagedImage<unsigned short> &depth_img)
+                                   pangolin::Image<Eigen::Matrix<unsigned char,3,1> > &rgb_img,
+                                   pangolin::Image<unsigned short> &depth_img)
 {
     pointsColorsToRGBDImages(cloud.points, cloud.colors, intr, rot_mat, t_vec, rgb_img, depth_img);
 }

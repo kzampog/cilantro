@@ -49,9 +49,9 @@ void RGBDImagesToPointsColors(const pangolin::Image<Eigen::Matrix<unsigned char,
 
 void pointsToDepthImage(const std::vector<Eigen::Vector3f> &points,
                         const Eigen::Matrix3f &intr,
-                        pangolin::ManagedImage<unsigned short> &depth_img)
+                        pangolin::Image<unsigned short> &depth_img)
 {
-    if (points.empty()) return;
+    if (points.empty() || !depth_img.ptr) return;
 
     depth_img.Memset(0);
     for (size_t i = 0; i < points.size(); i++) {
@@ -68,9 +68,9 @@ void pointsToDepthImage(const std::vector<Eigen::Vector3f> &points,
                         const Eigen::Matrix3f &intr,
                         const Eigen::Matrix3f &rot_mat,
                         const Eigen::Vector3f &t_vec,
-                        pangolin::ManagedImage<unsigned short> &depth_img)
+                        pangolin::Image<unsigned short> &depth_img)
 {
-    if (points.empty()) return;
+    if (points.empty() || !depth_img.ptr) return;
     std::vector<Eigen::Vector3f> points_t(points.size());
     Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)points_t.data(), 3, points_t.size()) = (rot_mat*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)points.data(), 3, points.size())).colwise() + t_vec;
     pointsToDepthImage(points_t, intr, depth_img);
@@ -79,10 +79,10 @@ void pointsToDepthImage(const std::vector<Eigen::Vector3f> &points,
 void pointsColorsToRGBDImages(const std::vector<Eigen::Vector3f> &points,
                               const std::vector<Eigen::Vector3f> &colors,
                               const Eigen::Matrix3f &intr,
-                              pangolin::ManagedImage<Eigen::Matrix<unsigned char,3,1> > &rgb_img,
-                              pangolin::ManagedImage<unsigned short> &depth_img)
+                              pangolin::Image<Eigen::Matrix<unsigned char,3,1> > &rgb_img,
+                              pangolin::Image<unsigned short> &depth_img)
 {
-    if (points.empty() || points.size() != colors.size() || rgb_img.w != depth_img.w || rgb_img.h != depth_img.h) return;
+    if (!rgb_img.ptr || !depth_img.ptr || points.empty() || points.size() != colors.size() || rgb_img.w != depth_img.w || rgb_img.h != depth_img.h) return;
 
     rgb_img.Memset(0);
     depth_img.Memset(0);
@@ -102,10 +102,10 @@ void pointsColorsToRGBDImages(const std::vector<Eigen::Vector3f> &points,
                               const Eigen::Matrix3f &intr,
                               const Eigen::Matrix3f &rot_mat,
                               const Eigen::Vector3f &t_vec,
-                              pangolin::ManagedImage<Eigen::Matrix<unsigned char,3,1> > &rgb_img,
-                              pangolin::ManagedImage<unsigned short> &depth_img)
+                              pangolin::Image<Eigen::Matrix<unsigned char,3,1> > &rgb_img,
+                              pangolin::Image<unsigned short> &depth_img)
 {
-    if (points.empty() || points.size() != colors.size() || rgb_img.w != depth_img.w || rgb_img.h != depth_img.h) return;
+    if (!rgb_img.ptr || !depth_img.ptr || points.empty() || points.size() != colors.size() || rgb_img.w != depth_img.w || rgb_img.h != depth_img.h) return;
     std::vector<Eigen::Vector3f> points_t(points.size());
     Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)points_t.data(), 3, points_t.size()) = (rot_mat*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)points.data(), 3, points.size())).colwise() + t_vec;
     pointsColorsToRGBDImages(points_t, colors, intr, rgb_img, depth_img);
