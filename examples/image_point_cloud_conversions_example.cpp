@@ -6,8 +6,7 @@
 
 #include <ctime>
 
-int main( int argc, char* argv[] )
-{
+int main(int argc, char* argv[]) {
 //    std::string uri = "files://[/home/kzampog/Desktop/rgbd_sequences/dok_demo/rgb_*.png,/home/kzampog/Desktop/rgbd_sequences/dok_demo/depth_*.png]";
     std::string uri = "openni2:[img1=rgb,img2=depth_reg,coloursync=true,closerange=true,holefilter=true]//";
 
@@ -66,7 +65,7 @@ int main( int argc, char* argv[] )
 //    readPointCloudFromPLYFile(argv[1], cloud);
 //
 //    pangolin::ManagedImage<size_t> idx_map(w, h);
-//    pointCloudToIndexMap(cloud, K, idx_map);
+//    pointCloudToIndexMap(cloud, K, Eigen::Matrix3f::Identity(), Eigen::Vector3f(0,0,0), idx_map);
 //
 //    std::vector<size_t> indices;
 //    for (size_t y = 0; y < h; y++) {
