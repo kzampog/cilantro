@@ -18,17 +18,20 @@ int main(int argc, char ** argv) {
     VoxelGrid vg(cloud, 0.01);
     cloud = vg.getDownsampledCloud();
 
+//    pangolin::CreateWindowAndBind("VIS_WIN",640,480);
+//    pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual)
+//            .AddDisplay(pangolin::Display("disp1"))
+//            .AddDisplay(pangolin::Display("disp2"));
+
     // First
-    Visualizer viz("win", "disp");
+    Visualizer viz("VIS_WIN", "disp1");
 
     std::vector<float> scalars (cloud.size());
     for (size_t i = 0; i < cloud.size(); i++)
         scalars[i] = cloud.points[i].norm();
     viz.addPointCloud("pcd", cloud, Visualizer::RenderingProperties().setColormapType(ColormapType::JET));
     viz.addPointCloudValues("pcd", scalars);
-
-//    viz.addPointCloud("pcd", cloud);
-//    viz.addPointCloudNormals("nrm", cloud, Visualizer::RenderingProperties().setCorrespondencesFraction(0.20).setOpacity(0.5));
+    viz.addPointCloudNormals("nrm", cloud, Visualizer::RenderingProperties().setCorrespondencesFraction(0.20).setOpacity(0.5));
 
     viz.addCoordinateSystem("axis", 0.4f, Eigen::Matrix4f::Identity(), Visualizer::RenderingProperties().setLineWidth(10.0f));
 
@@ -42,7 +45,7 @@ int main(int argc, char ** argv) {
         cloud2.points[i] += Eigen::Vector3f(1.0, 0.0, 1.0);
     }
 
-    Visualizer viz2("win2", "disp2");
+    Visualizer viz2("VIS_WIN2", "disp2");
     viz2.addPointCloud("pcd1", cloud, Visualizer::RenderingProperties().setDrawingColor(1,0,0).setOpacity(0.5));
     viz2.addPointCloud("pcd2", cloud2, Visualizer::RenderingProperties().setDrawingColor(0,0,1).setOpacity(0.4));
     viz2.addPointCorrespondences("corr", cloud, cloud2, Visualizer::RenderingProperties().setCorrespondencesFraction(0.01).setOpacity(0.4));
@@ -54,6 +57,10 @@ int main(int argc, char ** argv) {
     while (!viz.wasStopped() && !viz2.wasStopped()) {
         viz.spinOnce();
         viz2.spinOnce();
+//        viz.clearRenderArea();
+//        viz.render();
+//        viz2.render();
+//        viz2.finishFrame();
     }
 
     return 0;

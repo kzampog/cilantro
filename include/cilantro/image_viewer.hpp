@@ -15,9 +15,15 @@ public:
 
     ImageViewer& clear();
 
+    inline void clearRenderArea() const {
+        gl_context_->MakeCurrent();
+        display_->Activate();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
     void render() const;
+    inline void finishFrame() const { gl_context_->MakeCurrent(); pangolin::FinishFrame(); }
+    inline void spinOnce() const { clearRenderArea(); render(); finishFrame(); }
 
-    inline void spinOnce() const { render(); pangolin::FinishFrame(); }
     inline bool wasStopped() const { return gl_context_->quit; }
 
 private:

@@ -78,9 +78,16 @@ public:
     inline Visualizer& clear() { renderables_.clear(); return *this; }
     inline Visualizer& remove(const std::string &name) { renderables_.erase(name); return *this; }
 
+    inline void clearRenderArea() const {
+        gl_context_->MakeCurrent();
+        display_->Activate(*gl_render_state_);
+        glClearColor(clear_color_(0), clear_color_(1), clear_color_(2), 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
     void render() const;
+    inline void finishFrame() const { gl_context_->MakeCurrent(); pangolin::FinishFrame(); }
+    inline void spinOnce() const { clearRenderArea(); render(); finishFrame(); }
 
-    inline void spinOnce() const { render(); pangolin::FinishFrame(); }
     inline bool wasStopped() const { return gl_context_->quit; }
 
     bool getVisibility(const std::string &name) const;

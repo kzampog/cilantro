@@ -63,6 +63,5 @@ void ImageViewer::render() const {
     gl_context_->MakeCurrent();
     display_->Activate();
 //    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//    glColor4f(1.0f,1.0f,1.0f,1.0f);
     gl_texture_.RenderToViewportFlipY();
 }
