@@ -6,7 +6,7 @@
 
 #include <ctime>
 
-int main(int argc, char* argv[]) {
+int main(int argc, char ** argv) {
 //    std::string uri = "files://[/home/kzampog/Desktop/rgbd_sequences/dok_demo/rgb_*.png,/home/kzampog/Desktop/rgbd_sequences/dok_demo/depth_*.png]";
     std::string uri = "openni2:[img1=rgb,img2=depth_reg,coloursync=true,closerange=true,holefilter=true]//";
 
