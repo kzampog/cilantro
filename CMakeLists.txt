@@ -30,8 +30,8 @@ target_link_libraries(cilantro ${Pangolin_LIBRARIES})
 add_executable(ply_io_example examples/ply_io_example.cpp)
 target_link_libraries(ply_io_example cilantro ${Pangolin_LIBRARIES})
 
-add_executable(pca_example examples/pca_example.cpp)
-target_link_libraries(pca_example cilantro ${Pangolin_LIBRARIES})
+add_executable(principal_component_analysis_example examples/principal_component_analysis_example.cpp)
+target_link_libraries(principal_component_analysis_example cilantro ${Pangolin_LIBRARIES})
 
 add_executable(voxel_grid_example examples/voxel_grid_example.cpp)
 target_link_libraries(voxel_grid_example cilantro ${Pangolin_LIBRARIES})

@@ -1,17 +1,17 @@
 #include <cilantro/convex_hull.hpp>
-#include <cilantro/pca.hpp>
+#include <cilantro/principal_component_analysis.hpp>
 
 template class ConvexHull<float,float,2>;
 template class ConvexHull<float,float,3>;
 
 CloudHullFlat::CloudHullFlat(const std::vector<Eigen::Vector3f> &points, bool simplicial_facets, double merge_tol)
-        : ConvexHull2D(PCA3D(points).project<2>(points), simplicial_facets, merge_tol)
+        : ConvexHull2D(PrincipalComponentAnalysis3D(points).project<2>(points), simplicial_facets, merge_tol)
 {
     init_(points);
 }
 
 CloudHullFlat::CloudHullFlat(const PointCloud &cloud, bool simplicial_facets, double merge_tol)
-        : ConvexHull2D(PCA3D(cloud.points).project<2>(cloud.points), simplicial_facets, merge_tol)
+        : ConvexHull2D(PrincipalComponentAnalysis3D(cloud.points).project<2>(cloud.points), simplicial_facets, merge_tol)
 {
     init_(cloud.points);
 }

@@ -1,5 +1,5 @@
 #include <cilantro/normal_estimation.hpp>
-#include <cilantro/pca.hpp>
+#include <cilantro/principal_component_analysis.hpp>
 
 NormalEstimation::NormalEstimation(const std::vector<Eigen::Vector3f> &points)
         : input_cloud_(NULL),
@@ -60,7 +60,7 @@ std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsKNN(size_t num_nei
             neighborhood[j] = (*input_points_)[neighbors[j]];
         }
 
-        PCA3D pca(neighborhood);
+        PrincipalComponentAnalysis3D pca(neighborhood);
         normals[i] = pca.getEigenVectorsMatrix().col(2);
 
         if (normals[i].dot(view_point_ - (*input_points_)[i]) < 0.0f) {
@@ -97,7 +97,7 @@ std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsRadius(float radiu
             neighborhood[j] = (*input_points_)[neighbors[j]];
         }
 
-        PCA3D pca(neighborhood);
+        PrincipalComponentAnalysis3D pca(neighborhood);
         normals[i] = pca.getEigenVectorsMatrix().col(2);
 
         if (normals[i].dot(view_point_ - (*input_points_)[i]) < 0.0f) {
@@ -134,7 +134,7 @@ std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsKNNInRadius(size_t
             neighborhood[j] = (*input_points_)[neighbors[j]];
         }
 
-        PCA3D pca(neighborhood);
+        PrincipalComponentAnalysis3D pca(neighborhood);
         normals[i] = pca.getEigenVectorsMatrix().col(2);
 
         if (normals[i].dot(view_point_ - (*input_points_)[i]) < 0.0f) {

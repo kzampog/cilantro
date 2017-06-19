@@ -1,7 +1,7 @@
 #include <cilantro/convex_hull.hpp>
 #include <cilantro/ply_io.hpp>
 #include <cilantro/visualizer.hpp>
-#include <cilantro/pca.hpp>
+#include <cilantro/principal_component_analysis.hpp>
 #include <iostream>
 
 int main(int argc, char ** argv) {
@@ -98,7 +98,7 @@ int main(int argc, char ** argv) {
 //    PointCloud cloud;
 //    readPointCloudFromPLYFile(argv[1], cloud);
 //
-//    PCA3D proj(cloud.points);
+//    PrincipalComponentAnalysis3D proj(cloud.points);
 //
 //    std::vector<Eigen::Vector2f> pts = proj.project<2>(cloud.points);
 //    cloud.points = proj.reconstruct<2>(pts);

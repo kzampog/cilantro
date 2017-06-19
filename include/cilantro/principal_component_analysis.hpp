@@ -3,21 +3,21 @@
 #include <cilantro/point_cloud.hpp>
 
 template <typename ScalarT, ptrdiff_t EigenDim>
-class PCA {
+class PrincipalComponentAnalysis {
 public:
-    PCA(const std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > &points)
+    PrincipalComponentAnalysis(const std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > &points)
             : num_points_(points.size()),
               data_((ScalarT *)points.data())
     {
         compute_();
     }
-    PCA(ScalarT * data, size_t num_points)
+    PrincipalComponentAnalysis(ScalarT * data, size_t num_points)
             : num_points_(num_points),
               data_(data)
     {
         compute_();
     }
-    ~PCA() {}
+    ~PrincipalComponentAnalysis() {}
 
     inline const Eigen::Matrix<ScalarT,EigenDim,1>& getDataMean() const { return mean_; }
     inline const Eigen::Matrix<ScalarT,EigenDim,1>& getEigenValues() const { return eigenvalues_; }
@@ -84,5 +84,5 @@ private:
     }
 };
 
-typedef PCA<float,2> PCA2D;
-typedef PCA<float,3> PCA3D;
+typedef PrincipalComponentAnalysis<float,2> PrincipalComponentAnalysis2D;
+typedef PrincipalComponentAnalysis<float,3> PrincipalComponentAnalysis3D;

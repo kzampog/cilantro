@@ -1,4 +1,4 @@
-#include <cilantro/pca.hpp>
+#include <cilantro/principal_component_analysis.hpp>
 #include <cilantro/ply_io.hpp>
 
 #include <iostream>
@@ -23,7 +23,7 @@ int main(int argc, char ** argv) {
     double compute_time;
 
     begin = clock();
-    PCA3D pca(cloud.points);
+    PrincipalComponentAnalysis3D pca(cloud.points);
     end = clock();
     compute_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
 
