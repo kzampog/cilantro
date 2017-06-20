@@ -62,31 +62,14 @@ int main(int argc, char ** argv) {
     Eigen::Matrix3f R_est;
     Eigen::Vector3f t_est;
 //    estimateRigidTransformPointToPoint(dst.points, src.points, ind, ind, R_est, t_est);
-    estimateRigidTransformPointToPlane(dst.points, dst.normals, src.points, ind, ind, R_est, t_est);
-
-    src.pointsMatrixMap() = (R_est*src.pointsMatrixMap()).colwise() + t_est;
-    src.normalsMatrixMap() = R_est*src.normalsMatrixMap();
-    estimateRigidTransformPointToPlane(dst.points, dst.normals, src.points, ind, ind, R_est, t_est);
-    src.pointsMatrixMap() = (R_est*src.pointsMatrixMap()).colwise() + t_est;
-    src.normalsMatrixMap() = R_est*src.normalsMatrixMap();
-    estimateRigidTransformPointToPlane(dst.points, dst.normals, src.points, ind, ind, R_est, t_est);
-    src.pointsMatrixMap() = (R_est*src.pointsMatrixMap()).colwise() + t_est;
-    src.normalsMatrixMap() = R_est*src.normalsMatrixMap();
-    estimateRigidTransformPointToPlane(dst.points, dst.normals, src.points, ind, ind, R_est, t_est);
-    src.pointsMatrixMap() = (R_est*src.pointsMatrixMap()).colwise() + t_est;
-    src.normalsMatrixMap() = R_est*src.normalsMatrixMap();
-    estimateRigidTransformPointToPlane(dst.points, dst.normals, src.points, ind, ind, R_est, t_est);
-    src.pointsMatrixMap() = (R_est*src.pointsMatrixMap()).colwise() + t_est;
-    src.normalsMatrixMap() = R_est*src.normalsMatrixMap();
-    estimateRigidTransformPointToPlane(dst.points, dst.normals, src.points, ind, ind, R_est, t_est);
-
+    estimateRigidTransformPointToPlane(dst, src, ind, ind, R_est, t_est, 10, 1e-4f);
     end = clock();
 
     build_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
     std::cout << "Elapsed time: " << build_time << std::endl;
 
 
-    std::cout << "TRUE:" << std::endl << R_ref.transpose() << std::endl << t_ref.transpose() << std::endl;
+    std::cout << "TRUE:" << std::endl << R_ref.transpose() << std::endl << (-R_ref.transpose()*t_ref).transpose() << std::endl;
     std::cout << "ESTIMATED:" << std::endl << R_est << std::endl << t_est.transpose() << std::endl;
 
     src.pointsMatrixMap() = (R_est*src.pointsMatrixMap()).colwise() + t_est;
