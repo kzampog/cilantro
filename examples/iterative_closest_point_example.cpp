@@ -2,6 +2,8 @@
 #include <cilantro/ply_io.hpp>
 #include <cilantro/visualizer.hpp>
 
+#include <ctime>
+
 int main(int argc, char ** argv) {
 
     PointCloud dst, src;
@@ -29,9 +31,25 @@ int main(int argc, char ** argv) {
     src.pointsMatrixMap() = (R_ref*src.pointsMatrixMap()).colwise() + t_ref;
     src.normalsMatrixMap() = R_ref*src.normalsMatrixMap();
 
+    std::vector<size_t> ind(dst.size());
+    for (size_t i = 0; i < ind.size(); i++) {
+        ind[i] = i;
+    }
+    std::random_shuffle(ind.begin(), ind.end());
+
+    clock_t begin, end;
+    double build_time;
+    begin = clock();
+
     Eigen::Matrix3f R_est;
     Eigen::Vector3f t_est;
-    estimateRigidTransformPointToPoint(dst.points, src.points, R_est, t_est);
+    estimateRigidTransformPointToPoint(dst.points, src.points, ind, ind, R_est, t_est);
+//    estimateRigidTransformPointToPoint(dst.pointsMatrixMap(), src.pointsMatrixMap(), ind, ind, R_est, t_est);
+    end = clock();
+
+    build_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
+    std::cout << "Elapsed time: " << build_time << std::endl;
+
 
     std::cout << "TRUE:" << std::endl << R_ref.transpose() << std::endl << t_ref.transpose() << std::endl;
     std::cout << "ESTIMATED:" << std::endl << R_est << std::endl << t_est.transpose() << std::endl;

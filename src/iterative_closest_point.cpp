@@ -33,3 +33,24 @@ bool estimateRigidTransformPointToPoint(const Eigen::Matrix<float,3,Eigen::Dynam
 
     return true;
 }
+
+bool estimateRigidTransformPointToPoint(const Eigen::Matrix<float,3,Eigen::Dynamic> &dst,
+                                        const Eigen::Matrix<float,3,Eigen::Dynamic> &src,
+                                        const std::vector<size_t> &dst_ind,
+                                        const std::vector<size_t> &src_ind,
+                                        Eigen::Matrix3f &rot_mat,
+                                        Eigen::Vector3f &t_vec)
+{
+    if (dst_ind.size() != src_ind.size()) {
+        return false;
+    }
+
+    Eigen::Matrix<float,3,Eigen::Dynamic> dst_corr(3, dst_ind.size());
+    Eigen::Matrix<float,3,Eigen::Dynamic> src_corr(3, src_ind.size());
+    for (size_t i = 0; i < dst_ind.size(); i++) {
+        dst_corr.col(i) = dst.col(dst_ind[i]);
+        src_corr.col(i) = src.col(src_ind[i]);
+    }
+
+    return estimateRigidTransformPointToPoint(dst_corr, src_corr, rot_mat, t_vec);
+}
