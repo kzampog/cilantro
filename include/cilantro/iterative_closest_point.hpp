@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cilantro/point_cloud.hpp>
+#include <cilantro/kd_tree.hpp>
 
 bool estimateRigidTransformPointToPoint(const Eigen::Matrix<float,3,Eigen::Dynamic> &dst,
                                         const Eigen::Matrix<float,3,Eigen::Dynamic> &src,
@@ -113,3 +114,25 @@ inline bool estimateRigidTransformPointToPlane(const PointCloud &dst,
 {
     return estimateRigidTransformPointToPlane(dst.points, dst.normals, src.points, dst_ind, src_ind, rot_mat, t_vec, max_iter, convergence_tol);
 }
+
+class IterativeClosestPoint {
+public:
+    enum struct Metric { POINT_TO_POINT, POINT_TO_PLANE };
+
+    IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &src_p);
+    IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &src_p, const KDTree &kd_tree);
+    IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &dst_n, const std::vector<Eigen::Vector3f> &src_p);
+    IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &dst_n, const std::vector<Eigen::Vector3f> &src_p, const KDTree &kd_tree);
+    IterativeClosestPoint(const PointCloud &dst, const PointCloud &src, Metric metric = Metric::POINT_TO_POINT);
+    IterativeClosestPoint(const PointCloud &dst, const PointCloud &src, const KDTree &kd_tree, Metric metric = Metric::POINT_TO_POINT);
+
+    ~IterativeClosestPoint();
+
+private:
+    const std::vector<Eigen::Vector3f> *dst_points_;
+    const std::vector<Eigen::Vector3f> *dst_normals_;
+    const std::vector<Eigen::Vector3f> *src_points_;
+    KDTree *kd_tree_ptr_;
+    bool kd_tree_owned_;
+    Metric metric_;
+};
