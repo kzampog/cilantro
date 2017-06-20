@@ -4,7 +4,17 @@
 
 #include <ctime>
 
+bool proceed = false;
+
+void callback(Visualizer &viz, int key, void *cookie) {
+    if (key == 'a') proceed = true;
+}
+
+
 int main(int argc, char ** argv) {
+
+    Visualizer viz("win", "disp");
+    viz.registerKeyboardCallback(std::vector<int>(1,'a'), callback, NULL);
 
     PointCloud dst, src;
     readPointCloudFromPLYFile(argv[1], dst);
@@ -37,14 +47,39 @@ int main(int argc, char ** argv) {
     }
     std::random_shuffle(ind.begin(), ind.end());
 
+    viz.addPointCloud("dst", dst, Visualizer::RenderingProperties().setDrawingColor(0,0,1));
+    viz.addPointCloud("src", src, Visualizer::RenderingProperties().setDrawingColor(1,0,0));
+
+    while (!proceed) {
+        viz.spinOnce();
+    }
+    proceed = false;
+
     clock_t begin, end;
     double build_time;
     begin = clock();
 
     Eigen::Matrix3f R_est;
     Eigen::Vector3f t_est;
-    estimateRigidTransformPointToPoint(dst.points, src.points, ind, ind, R_est, t_est);
-//    estimateRigidTransformPointToPoint(dst.pointsMatrixMap(), src.pointsMatrixMap(), ind, ind, R_est, t_est);
+//    estimateRigidTransformPointToPoint(dst.points, src.points, ind, ind, R_est, t_est);
+    estimateRigidTransformPointToPlane(dst.points, dst.normals, src.points, ind, ind, R_est, t_est);
+
+    src.pointsMatrixMap() = (R_est*src.pointsMatrixMap()).colwise() + t_est;
+    src.normalsMatrixMap() = R_est*src.normalsMatrixMap();
+    estimateRigidTransformPointToPlane(dst.points, dst.normals, src.points, ind, ind, R_est, t_est);
+    src.pointsMatrixMap() = (R_est*src.pointsMatrixMap()).colwise() + t_est;
+    src.normalsMatrixMap() = R_est*src.normalsMatrixMap();
+    estimateRigidTransformPointToPlane(dst.points, dst.normals, src.points, ind, ind, R_est, t_est);
+    src.pointsMatrixMap() = (R_est*src.pointsMatrixMap()).colwise() + t_est;
+    src.normalsMatrixMap() = R_est*src.normalsMatrixMap();
+    estimateRigidTransformPointToPlane(dst.points, dst.normals, src.points, ind, ind, R_est, t_est);
+    src.pointsMatrixMap() = (R_est*src.pointsMatrixMap()).colwise() + t_est;
+    src.normalsMatrixMap() = R_est*src.normalsMatrixMap();
+    estimateRigidTransformPointToPlane(dst.points, dst.normals, src.points, ind, ind, R_est, t_est);
+    src.pointsMatrixMap() = (R_est*src.pointsMatrixMap()).colwise() + t_est;
+    src.normalsMatrixMap() = R_est*src.normalsMatrixMap();
+    estimateRigidTransformPointToPlane(dst.points, dst.normals, src.points, ind, ind, R_est, t_est);
+
     end = clock();
 
     build_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
@@ -57,16 +92,13 @@ int main(int argc, char ** argv) {
     src.pointsMatrixMap() = (R_est*src.pointsMatrixMap()).colwise() + t_est;
     src.normalsMatrixMap() = R_est*src.normalsMatrixMap();
 
-
-    Visualizer viz("win", "disp");
-
     viz.addPointCloud("dst", dst, Visualizer::RenderingProperties().setDrawingColor(0,0,1));
     viz.addPointCloud("src", src, Visualizer::RenderingProperties().setDrawingColor(1,0,0));
 
-
-    while (!viz.wasStopped()) {
+    while (!proceed) {
         viz.spinOnce();
     }
+    proceed = false;
 
     return 0;
 }

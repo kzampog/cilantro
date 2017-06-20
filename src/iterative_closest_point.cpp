@@ -20,15 +20,12 @@ bool estimateRigidTransformPointToPoint(const Eigen::Matrix<float,3,Eigen::Dynam
     Eigen::JacobiSVD<Eigen::Matrix3f> svd(cov, Eigen::ComputeFullU | Eigen::ComputeFullV);
     Eigen::Matrix3f U(svd.matrixU());
     Eigen::Matrix3f Vt(svd.matrixV().transpose());
-    Eigen::Matrix3f tmp(U * Vt);
-    if (tmp.determinant() < 0) {
-        Eigen::Matrix3f S(Eigen::Matrix3f::Identity());
-        S(2, 2) = -1;
-        rot_mat = U * S * Vt;
-    } else {
-        rot_mat = tmp;
+
+    if (U.determinant() * Vt.determinant() < 0.0f) {
+        U.col(2) *= -1.0f;
     }
 
+    rot_mat = U*Vt;
     t_vec = mu_dst - rot_mat*mu_src;
 
     return true;
@@ -53,4 +50,71 @@ bool estimateRigidTransformPointToPoint(const Eigen::Matrix<float,3,Eigen::Dynam
     }
 
     return estimateRigidTransformPointToPoint(dst_corr, src_corr, rot_mat, t_vec);
+}
+
+//////////////////////////////////
+
+bool estimateRigidTransformPointToPlane(const Eigen::Matrix<float,3,Eigen::Dynamic> &dst_p,
+                                        const Eigen::Matrix<float,3,Eigen::Dynamic> &dst_n,
+                                        const Eigen::Matrix<float,3,Eigen::Dynamic> &src_p,
+                                        Eigen::Matrix3f &rot_mat,
+                                        Eigen::Vector3f &t_vec)
+{
+    if (src_p.cols() < 6 || src_p.cols() != dst_p.cols() || dst_p.cols() != dst_n.cols()) {
+        return false;
+    }
+
+    Eigen::Matrix<float,Eigen::Dynamic,6> A(dst_p.cols(),6);
+    Eigen::Matrix<float,Eigen::Dynamic,1> b(dst_p.cols(),1);
+
+    for (size_t i = 0; i < A.rows(); i++) {
+        const Eigen::Vector3f& d = dst_p.col(i);
+        const Eigen::Vector3f& n = dst_n.col(i);
+        const Eigen::Vector3f& s = src_p.col(i);
+        A(i,0) = n[2]*s[1] - n[1]*s[2];
+        A(i,1) = n[0]*s[2] - n[2]*s[0];
+        A(i,2) = n[1]*s[0] - n[0]*s[1];
+        A(i,3) = n[0];
+        A(i,4) = n[1];
+        A(i,5) = n[2];
+        b[i] = n[0]*d[0] + n[1]*d[1] + n[2]*d[2] - n[0]*s[0] - n[1]*s[1] - n[2]*s[2];
+    }
+
+    Eigen::Matrix<float,6,1> res((A.transpose()*A).ldlt().solve(A.transpose()*b));
+
+    rot_mat(0, 0) = std::cos(res[2]) * std::cos(res[1]);
+    rot_mat(0, 1) = -std::sin(res[2]) * std::cos(res[0]) + std::cos(res[2]) * std::sin(res[1]) * std::sin(res[0]);
+    rot_mat(0, 2) = std::sin(res[2]) * std::sin(res[0]) + std::cos(res[2]) * std::sin(res[1]) * std::cos(res[0]);
+    rot_mat(1, 0) = std::sin(res[2]) * std::cos(res[1]);
+    rot_mat(1, 1) = std::cos(res[2]) * std::cos(res[0]) + std::sin(res[2]) * std::sin(res[1]) * std::sin(res[0]);
+    rot_mat(1, 2) = -std::cos(res[2]) * std::sin(res[0]) + std::sin(res[2]) * std::sin(res[1]) * std::cos(res[0]);
+    rot_mat(2, 0) = -std::sin(res[1]);
+    rot_mat(2, 1) = std::cos(res[1]) * std::sin(res[0]);
+    rot_mat(2, 2) = std::cos(res[1]) * std::cos(res[0]);
+
+    t_vec = res.tail(3);
+}
+
+bool estimateRigidTransformPointToPlane(const Eigen::Matrix<float,3,Eigen::Dynamic> &dst_p,
+                                        const Eigen::Matrix<float,3,Eigen::Dynamic> &dst_n,
+                                        const Eigen::Matrix<float,3,Eigen::Dynamic> &src_p,
+                                        const std::vector<size_t> &dst_ind,
+                                        const std::vector<size_t> &src_ind,
+                                        Eigen::Matrix3f &rot_mat,
+                                        Eigen::Vector3f &t_vec)
+{
+    if (dst_ind.size() != src_ind.size()) {
+        return false;
+    }
+
+    Eigen::Matrix<float,3,Eigen::Dynamic> dst_p_corr(3, dst_ind.size());
+    Eigen::Matrix<float,3,Eigen::Dynamic> dst_n_corr(3, dst_ind.size());
+    Eigen::Matrix<float,3,Eigen::Dynamic> src_p_corr(3, src_ind.size());
+    for (size_t i = 0; i < dst_ind.size(); i++) {
+        dst_p_corr.col(i) = dst_p.col(dst_ind[i]);
+        dst_n_corr.col(i) = dst_n.col(dst_ind[i]);
+        src_p_corr.col(i) = src_p.col(src_ind[i]);
+    }
+
+    return estimateRigidTransformPointToPlane(dst_p_corr, dst_n_corr, src_p_corr, rot_mat, t_vec);
 }
