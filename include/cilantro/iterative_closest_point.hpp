@@ -128,7 +128,7 @@ public:
 
     ~IterativeClosestPoint();
 
-    inline Metric& metric() { return metric_; }
+    inline Metric getMetric() const { return metric_; }
     inline IterativeClosestPoint& setMetric(const Metric metric) {
         if (dst_normals_ != NULL && metric != metric_) {
             has_valid_results_ = false;
@@ -137,37 +137,43 @@ public:
         return *this;
     }
 
-    inline float getMaxCorrespondenceDistance() { return corr_dist_thres_; }
+    inline float getMaxCorrespondenceDistance() const { return corr_dist_thres_; }
     inline IterativeClosestPoint& setMaxCorrespondenceDistance(float max_dist) {
         has_valid_results_ = false;
         corr_dist_thres_ = max_dist;
         return *this;
     }
 
-    inline size_t getMaxNumberOfIterations() { return max_iter_; }
+    inline size_t getMaxNumberOfIterations() const { return max_iter_; }
     inline IterativeClosestPoint& setMaxNumberOfIterations(size_t max_iter) {
         has_valid_results_ = false;
         max_iter_ = max_iter;
         return *this;
     }
 
-    inline size_t getMaxNumberOfPointToPlaneIterations() { return point_to_plane_max_iter_; }
+    inline size_t getMaxNumberOfPointToPlaneIterations() const { return point_to_plane_max_iter_; }
     inline IterativeClosestPoint& setMaxNumberOfPointToPlaneIterations(size_t max_iter) {
         has_valid_results_ = false;
         point_to_plane_max_iter_ = max_iter;
         return *this;
     }
 
-    inline float getConvergenceTolerance() { return convergence_tol_; }
+    inline float getConvergenceTolerance() const { return convergence_tol_; }
     inline IterativeClosestPoint& setConvergenceTolerance(float conv_tol) {
         has_valid_results_ = false;
         convergence_tol_ = conv_tol;
         return *this;
     }
 
+    inline void setInitialTransformation(const Eigen::Matrix3f &rot_mat, const Eigen::Vector3f &t_vec) {
+        has_valid_results_ = false;
+        rot_mat_init_ = rot_mat;
+        t_vec_init_ = t_vec;
+    }
+
     void getTransformation(Eigen::Matrix3f &rot_mat, Eigen::Vector3f &t_vec);
 
-    inline bool hasConverged() { return has_valid_results_ && has_converged_; }
+    inline bool hasConverged() const { return has_valid_results_ && has_converged_; }
 
 private:
     const std::vector<Eigen::Vector3f> *dst_points_;
@@ -184,6 +190,9 @@ private:
 
     bool has_valid_results_;
     bool has_converged_;
+    Eigen::Matrix3f rot_mat_init_;
+    Eigen::Vector3f t_vec_init_;
+
     Eigen::Matrix3f rot_mat_;
     Eigen::Vector3f t_vec_;
 

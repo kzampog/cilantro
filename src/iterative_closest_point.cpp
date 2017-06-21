@@ -1,5 +1,7 @@
 #include <cilantro/iterative_closest_point.hpp>
 
+#include <iostream>
+
 bool estimateRigidTransformPointToPoint(const Eigen::Matrix<float,3,Eigen::Dynamic> &dst,
                                         const Eigen::Matrix<float,3,Eigen::Dynamic> &src,
                                         Eigen::Matrix3f &rot_mat,
@@ -65,7 +67,7 @@ bool estimateRigidTransformPointToPlane(const Eigen::Matrix<float,3,Eigen::Dynam
     }
 
     Eigen::Matrix3f rot_mat_iter;
-    Eigen::Matrix<float,6,1> delta;
+    Eigen::Matrix<float,6,1> d_theta;
     rot_mat.setIdentity();
     t_vec.setZero();
     Eigen::Matrix<float,3,Eigen::Dynamic> src_t(src_p);
@@ -73,12 +75,15 @@ bool estimateRigidTransformPointToPlane(const Eigen::Matrix<float,3,Eigen::Dynam
     Eigen::Matrix<float,Eigen::Dynamic,6> A(dst_p.cols(),6);
     Eigen::Matrix<float,Eigen::Dynamic,1> b(dst_p.cols(),1);
 
+    Eigen::Vector3f v_pi(M_PI, M_PI, M_PI);
+
     size_t iter = 0;
     while (iter < max_iter) {
         if (iter > 0) {
             src_t = (rot_mat*src_p).colwise() + t_vec;
         }
 
+        // Compute differential
         for (size_t i = 0; i < A.rows(); i++) {
             const Eigen::Vector3f& d = dst_p.col(i);
             const Eigen::Vector3f& n = dst_n.col(i);
@@ -92,27 +97,33 @@ bool estimateRigidTransformPointToPlane(const Eigen::Matrix<float,3,Eigen::Dynam
             b[i] = n[0]*d[0] + n[1]*d[1] + n[2]*d[2] - n[0]*s[0] - n[1]*s[1] - n[2]*s[2];
         }
 
-        delta = (A.transpose()*A).ldlt().solve(A.transpose()*b);
+        d_theta = (A.transpose()*A).ldlt().solve(A.transpose()*b);
 
-        rot_mat_iter(0, 0) = std::cos(delta[2]) * std::cos(delta[1]);
-        rot_mat_iter(0, 1) = -std::sin(delta[2]) * std::cos(delta[0]) + std::cos(delta[2]) * std::sin(delta[1]) * std::sin(delta[0]);
-        rot_mat_iter(0, 2) = std::sin(delta[2]) * std::sin(delta[0]) + std::cos(delta[2]) * std::sin(delta[1]) * std::cos(delta[0]);
-        rot_mat_iter(1, 0) = std::sin(delta[2]) * std::cos(delta[1]);
-        rot_mat_iter(1, 1) = std::cos(delta[2]) * std::cos(delta[0]) + std::sin(delta[2]) * std::sin(delta[1]) * std::sin(delta[0]);
-        rot_mat_iter(1, 2) = -std::cos(delta[2]) * std::sin(delta[0]) + std::sin(delta[2]) * std::sin(delta[1]) * std::cos(delta[0]);
-        rot_mat_iter(2, 0) = -std::sin(delta[1]);
-        rot_mat_iter(2, 1) = std::cos(delta[1]) * std::sin(delta[0]);
-        rot_mat_iter(2, 2) = std::cos(delta[1]) * std::cos(delta[0]);
+        // Update estimate
+        rot_mat_iter = Eigen::AngleAxisf(d_theta[2],Eigen::Vector3f::UnitZ()) *
+                       Eigen::AngleAxisf(d_theta[1],Eigen::Vector3f::UnitY()) *
+                       Eigen::AngleAxisf(d_theta[0],Eigen::Vector3f::UnitX());
+
+//        rot_mat_iter(0, 0) = std::cos(d_theta[2]) * std::cos(d_theta[1]);
+//        rot_mat_iter(0, 1) = -std::sin(d_theta[2]) * std::cos(d_theta[0]) + std::cos(d_theta[2]) * std::sin(d_theta[1]) * std::sin(d_theta[0]);
+//        rot_mat_iter(0, 2) = std::sin(d_theta[2]) * std::sin(d_theta[0]) + std::cos(d_theta[2]) * std::sin(d_theta[1]) * std::cos(d_theta[0]);
+//        rot_mat_iter(1, 0) = std::sin(d_theta[2]) * std::cos(d_theta[1]);
+//        rot_mat_iter(1, 1) = std::cos(d_theta[2]) * std::cos(d_theta[0]) + std::sin(d_theta[2]) * std::sin(d_theta[1]) * std::sin(d_theta[0]);
+//        rot_mat_iter(1, 2) = -std::cos(d_theta[2]) * std::sin(d_theta[0]) + std::sin(d_theta[2]) * std::sin(d_theta[1]) * std::cos(d_theta[0]);
+//        rot_mat_iter(2, 0) = -std::sin(d_theta[1]);
+//        rot_mat_iter(2, 1) = std::cos(d_theta[1]) * std::sin(d_theta[0]);
+//        rot_mat_iter(2, 2) = std::cos(d_theta[1]) * std::cos(d_theta[0]);
 
         rot_mat = rot_mat_iter*rot_mat;
-        t_vec = rot_mat_iter*t_vec + delta.tail(3);
-
-        if (delta.norm() < convergence_tol) return true;
+        t_vec = rot_mat_iter*t_vec + d_theta.tail(3);
 
         iter++;
+
+        // Check for convergence
+        if (d_theta.norm() < convergence_tol) return true;
     }
 
-    return delta.norm() < convergence_tol;
+    return false;
 }
 
 bool estimateRigidTransformPointToPlane(const Eigen::Matrix<float,3,Eigen::Dynamic> &dst_p,
@@ -225,19 +236,83 @@ void IterativeClosestPoint::init_params_() {
 
     has_valid_results_ = false;
     has_converged_ = false;
-    rot_mat_.setIdentity();
-    t_vec_.setZero();
+
+    rot_mat_init_.setIdentity();
+    t_vec_init_.setZero();
 }
 
 void IterativeClosestPoint::compute_() {
-    // TODO
+
+    has_converged_ = false;
+
+    rot_mat_ = rot_mat_init_;
+    t_vec_ = t_vec_init_;
+
+    Eigen::Matrix3f rot_mat_iter;
+    Eigen::Vector3f t_vec_iter;
+    Eigen::Matrix<float,6,1> delta;
+
+    Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> > src_p((float *)(src_points_->data()),3,src_points_->size());
+    std::vector<Eigen::Vector3f> src_points_t(*src_points_);
+
+    Eigen::Vector3f v_pi(M_PI, M_PI, M_PI);
+
+    std::vector<size_t> dst_ind, src_ind;
+    std::vector<size_t> neighbors(1);
+    std::vector<float> distances(1);
+
+    float corr_thresh_squared = corr_dist_thres_*corr_dist_thres_;
+
     size_t iter = 0;
     while (iter < max_iter_) {
-        // Recompute correspondences
+        // Transform src using current estimate
+        Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)(src_points_t.data()),3,src_points_t.size()) = (rot_mat_*src_p).colwise() + t_vec_;
+
+        // Compute correspondences
+        dst_ind.resize(src_points_->size());
+        src_ind.resize(src_points_->size());
+        size_t k = 0;
+        for (size_t i = 0; i < src_points_->size(); i++) {
+            kd_tree_ptr_->kNNSearch(src_points_t[i], 1, neighbors, distances);
+            if (distances[0] < corr_thresh_squared) {
+                if (metric_ == Metric::POINT_TO_PLANE && (*dst_normals_)[neighbors[0]].array().isNaN().any()) continue;
+                dst_ind[k] = neighbors[0];
+                src_ind[k] = i;
+                k++;
+            }
+        }
+        dst_ind.resize(k);
+        src_ind.resize(k);
+
+        if (dst_ind.empty()) {
+            has_converged_ = false;
+            break;
+        }
 
         // Update estimated transformation
+        if (metric_ == Metric::POINT_TO_PLANE) {
+            estimateRigidTransformPointToPlane(*dst_points_, *dst_normals_, src_points_t, dst_ind, src_ind, rot_mat_iter, t_vec_iter, point_to_plane_max_iter_, convergence_tol_);
+        } else if (metric_ == Metric::POINT_TO_POINT) {
+            estimateRigidTransformPointToPoint(*dst_points_, src_points_t, dst_ind, src_ind, rot_mat_iter, t_vec_iter);
+        } else {
+            return;
+        }
+
+        rot_mat_ = rot_mat_iter*rot_mat_;
+        t_vec_ = rot_mat_iter*t_vec_ + t_vec_iter;
 
         iter++;
+
+        // Check for convergence
+        Eigen::Vector3f tmp = rot_mat_iter.eulerAngles(2,1,0).cwiseAbs();
+        tmp = tmp.cwiseMin((v_pi-tmp).cwiseAbs());
+        delta.head(3) = tmp;
+        delta.tail(3) = t_vec_iter;
+
+        if (delta.norm() < convergence_tol_) {
+            has_converged_ = true;
+            break;
+        }
     }
 
     has_valid_results_ = true;
