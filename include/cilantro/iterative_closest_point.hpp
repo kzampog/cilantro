@@ -128,6 +128,47 @@ public:
 
     ~IterativeClosestPoint();
 
+    inline Metric& metric() { return metric_; }
+    inline IterativeClosestPoint& setMetric(const Metric metric) {
+        if (dst_normals_ != NULL && metric != metric_) {
+            has_valid_results_ = false;
+            metric_ = metric;
+        }
+        return *this;
+    }
+
+    inline float getMaxCorrespondenceDistance() { return corr_dist_thres_; }
+    inline IterativeClosestPoint& setMaxCorrespondenceDistance(float max_dist) {
+        has_valid_results_ = false;
+        corr_dist_thres_ = max_dist;
+        return *this;
+    }
+
+    inline size_t getMaxNumberOfIterations() { return max_iter_; }
+    inline IterativeClosestPoint& setMaxNumberOfIterations(size_t max_iter) {
+        has_valid_results_ = false;
+        max_iter_ = max_iter;
+        return *this;
+    }
+
+    inline size_t getMaxNumberOfPointToPlaneIterations() { return point_to_plane_max_iter_; }
+    inline IterativeClosestPoint& setMaxNumberOfPointToPlaneIterations(size_t max_iter) {
+        has_valid_results_ = false;
+        point_to_plane_max_iter_ = max_iter;
+        return *this;
+    }
+
+    inline float getConvergenceTolerance() { return convergence_tol_; }
+    inline IterativeClosestPoint& setConvergenceTolerance(float conv_tol) {
+        has_valid_results_ = false;
+        convergence_tol_ = conv_tol;
+        return *this;
+    }
+
+    void getTransformation(Eigen::Matrix3f &rot_mat, Eigen::Vector3f &t_vec);
+
+    inline bool hasConverged() { return has_valid_results_ && has_converged_; }
+
 private:
     const std::vector<Eigen::Vector3f> *dst_points_;
     const std::vector<Eigen::Vector3f> *dst_normals_;
@@ -135,4 +176,17 @@ private:
     KDTree *kd_tree_ptr_;
     bool kd_tree_owned_;
     Metric metric_;
+
+    float corr_dist_thres_;
+    float convergence_tol_;
+    size_t max_iter_;
+    size_t point_to_plane_max_iter_;
+
+    bool has_valid_results_;
+    bool has_converged_;
+    Eigen::Matrix3f rot_mat_;
+    Eigen::Vector3f t_vec_;
+
+    void init_params_();
+    void compute_();
 };

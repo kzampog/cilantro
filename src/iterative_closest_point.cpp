@@ -1,7 +1,5 @@
 #include <cilantro/iterative_closest_point.hpp>
 
-#include <iostream>
-
 bool estimateRigidTransformPointToPoint(const Eigen::Matrix<float,3,Eigen::Dynamic> &dst,
                                         const Eigen::Matrix<float,3,Eigen::Dynamic> &src,
                                         Eigen::Matrix3f &rot_mat,
@@ -143,14 +141,6 @@ bool estimateRigidTransformPointToPlane(const Eigen::Matrix<float,3,Eigen::Dynam
     return estimateRigidTransformPointToPlane(dst_p_corr, dst_n_corr, src_p_corr, rot_mat, t_vec, max_iter, convergence_tol);
 }
 
-
-//const std::vector<Eigen::Vector3f> *dst_points_;
-//const std::vector<Eigen::Vector3f> *dst_normals_;
-//const std::vector<Eigen::Vector3f> *src_points_;
-//KDTree *kd_tree_ptr_;
-//bool kd_tree_owned_;
-//Metric metric_;
-
 IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &src_p)
         : dst_points_(&dst_p),
           dst_normals_(NULL),
@@ -158,7 +148,9 @@ IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> 
           kd_tree_ptr_(new KDTree(dst_p)),
           kd_tree_owned_(true),
           metric_(Metric::POINT_TO_POINT)
-{}
+{
+    init_params_();
+}
 
 IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &src_p, const KDTree &kd_tree)
         : dst_points_(&dst_p),
@@ -167,7 +159,9 @@ IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> 
           kd_tree_ptr_((KDTree*)&kd_tree),
           kd_tree_owned_(false),
           metric_(Metric::POINT_TO_POINT)
-{}
+{
+    init_params_();
+}
 
 IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &dst_n, const std::vector<Eigen::Vector3f> &src_p)
         : dst_points_(&dst_p),
@@ -175,8 +169,10 @@ IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> 
           src_points_(&src_p),
           kd_tree_ptr_(new KDTree(dst_p)),
           kd_tree_owned_(true),
-          metric_(Metric::POINT_TO_PLANE)
-{}
+          metric_((dst_n.size() == dst_p.size()) ? Metric::POINT_TO_PLANE : Metric::POINT_TO_POINT)
+{
+    init_params_();
+}
 
 IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &dst_n, const std::vector<Eigen::Vector3f> &src_p, const KDTree &kd_tree)
         : dst_points_(&dst_p),
@@ -184,8 +180,10 @@ IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> 
           src_points_(&src_p),
           kd_tree_ptr_((KDTree*)&kd_tree),
           kd_tree_owned_(false),
-          metric_(Metric::POINT_TO_PLANE)
-{}
+          metric_((dst_n.size() == dst_p.size()) ? Metric::POINT_TO_PLANE : Metric::POINT_TO_POINT)
+{
+    init_params_();
+}
 
 IterativeClosestPoint::IterativeClosestPoint(const PointCloud &dst, const PointCloud &src, Metric metric)
         : dst_points_(&dst.points),
@@ -194,7 +192,9 @@ IterativeClosestPoint::IterativeClosestPoint(const PointCloud &dst, const PointC
           kd_tree_ptr_(new KDTree(dst.points)),
           kd_tree_owned_(true),
           metric_((dst.hasNormals()) ? metric : Metric::POINT_TO_POINT)
-{}
+{
+    init_params_();
+}
 
 IterativeClosestPoint::IterativeClosestPoint(const PointCloud &dst, const PointCloud &src, const KDTree &kd_tree, Metric metric)
         : dst_points_(&dst.points),
@@ -203,8 +203,34 @@ IterativeClosestPoint::IterativeClosestPoint(const PointCloud &dst, const PointC
           kd_tree_ptr_((KDTree*)&kd_tree),
           kd_tree_owned_(false),
           metric_((dst.hasNormals()) ? metric : Metric::POINT_TO_POINT)
-{}
+{
+    init_params_();
+}
 
 IterativeClosestPoint::~IterativeClosestPoint() {
     if (kd_tree_owned_) delete kd_tree_ptr_;
+}
+
+void IterativeClosestPoint::getTransformation(Eigen::Matrix3f &rot_mat, Eigen::Vector3f &t_vec) {
+    if (!has_valid_results_) compute_();
+    rot_mat = rot_mat_;
+    t_vec = t_vec_;
+}
+
+void IterativeClosestPoint::init_params_() {
+    corr_dist_thres_ = 0.05f;
+    convergence_tol_ = 1e-3f;
+    max_iter_ = 10;
+    point_to_plane_max_iter_ = 5;
+
+    has_valid_results_ = false;
+    has_converged_ = false;
+    rot_mat_.setIdentity();
+    t_vec_.setZero();
+}
+
+void IterativeClosestPoint::compute_() {
+    // TODO
+
+    has_valid_results_ = true;
 }
