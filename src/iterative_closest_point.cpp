@@ -231,6 +231,14 @@ void IterativeClosestPoint::init_params_() {
 
 void IterativeClosestPoint::compute_() {
     // TODO
+    size_t iter = 0;
+    while (iter < max_iter_) {
+        // Recompute correspondences
+
+        // Update estimated transformation
+
+        iter++;
+    }
 
     has_valid_results_ = true;
 }
