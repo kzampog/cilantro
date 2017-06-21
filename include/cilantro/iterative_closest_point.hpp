@@ -131,7 +131,7 @@ public:
     inline Metric getMetric() const { return metric_; }
     inline IterativeClosestPoint& setMetric(const Metric metric) {
         if (dst_normals_ != NULL && metric != metric_) {
-            has_valid_results_ = false;
+            iteration_count_ = 0;
             metric_ = metric;
         }
         return *this;
@@ -139,43 +139,45 @@ public:
 
     inline float getMaxCorrespondenceDistance() const { return corr_dist_thres_; }
     inline IterativeClosestPoint& setMaxCorrespondenceDistance(float max_dist) {
-        has_valid_results_ = false;
+        iteration_count_ = 0;
         corr_dist_thres_ = max_dist;
         return *this;
     }
 
     inline size_t getMaxNumberOfIterations() const { return max_iter_; }
     inline IterativeClosestPoint& setMaxNumberOfIterations(size_t max_iter) {
-        has_valid_results_ = false;
+        iteration_count_ = 0;
         max_iter_ = max_iter;
         return *this;
     }
 
     inline size_t getMaxNumberOfPointToPlaneIterations() const { return point_to_plane_max_iter_; }
     inline IterativeClosestPoint& setMaxNumberOfPointToPlaneIterations(size_t max_iter) {
-        has_valid_results_ = false;
+        iteration_count_ = 0;
         point_to_plane_max_iter_ = max_iter;
         return *this;
     }
 
     inline float getConvergenceTolerance() const { return convergence_tol_; }
     inline IterativeClosestPoint& setConvergenceTolerance(float conv_tol) {
-        has_valid_results_ = false;
+        iteration_count_ = 0;
         convergence_tol_ = conv_tol;
         return *this;
     }
 
     inline void setInitialTransformation(const Eigen::Matrix3f &rot_mat, const Eigen::Vector3f &t_vec) {
-        has_valid_results_ = false;
+        iteration_count_ = 0;
         rot_mat_init_ = rot_mat;
         t_vec_init_ = t_vec;
     }
 
     void getTransformation(Eigen::Matrix3f &rot_mat, Eigen::Vector3f &t_vec);
 
-    inline bool hasConverged() const { return has_valid_results_ && has_converged_; }
+    inline bool hasConverged() const { return iteration_count_ > 0 && has_converged_; }
+    inline size_t getPerformedIterationsCount() { return iteration_count_; }
 
 private:
+    // Data pointers and parameters
     const std::vector<Eigen::Vector3f> *dst_points_;
     const std::vector<Eigen::Vector3f> *dst_normals_;
     const std::vector<Eigen::Vector3f> *src_points_;
@@ -188,8 +190,9 @@ private:
     size_t max_iter_;
     size_t point_to_plane_max_iter_;
 
-    bool has_valid_results_;
+    // Object state
     bool has_converged_;
+    size_t iteration_count_;
     Eigen::Matrix3f rot_mat_init_;
     Eigen::Vector3f t_vec_init_;
 

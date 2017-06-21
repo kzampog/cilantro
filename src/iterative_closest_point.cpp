@@ -104,16 +104,6 @@ bool estimateRigidTransformPointToPlane(const Eigen::Matrix<float,3,Eigen::Dynam
                        Eigen::AngleAxisf(d_theta[1],Eigen::Vector3f::UnitY()) *
                        Eigen::AngleAxisf(d_theta[0],Eigen::Vector3f::UnitX());
 
-//        rot_mat_iter(0, 0) = std::cos(d_theta[2]) * std::cos(d_theta[1]);
-//        rot_mat_iter(0, 1) = -std::sin(d_theta[2]) * std::cos(d_theta[0]) + std::cos(d_theta[2]) * std::sin(d_theta[1]) * std::sin(d_theta[0]);
-//        rot_mat_iter(0, 2) = std::sin(d_theta[2]) * std::sin(d_theta[0]) + std::cos(d_theta[2]) * std::sin(d_theta[1]) * std::cos(d_theta[0]);
-//        rot_mat_iter(1, 0) = std::sin(d_theta[2]) * std::cos(d_theta[1]);
-//        rot_mat_iter(1, 1) = std::cos(d_theta[2]) * std::cos(d_theta[0]) + std::sin(d_theta[2]) * std::sin(d_theta[1]) * std::sin(d_theta[0]);
-//        rot_mat_iter(1, 2) = -std::cos(d_theta[2]) * std::sin(d_theta[0]) + std::sin(d_theta[2]) * std::sin(d_theta[1]) * std::cos(d_theta[0]);
-//        rot_mat_iter(2, 0) = -std::sin(d_theta[1]);
-//        rot_mat_iter(2, 1) = std::cos(d_theta[1]) * std::sin(d_theta[0]);
-//        rot_mat_iter(2, 2) = std::cos(d_theta[1]) * std::cos(d_theta[0]);
-
         rot_mat = rot_mat_iter*rot_mat;
         t_vec = rot_mat_iter*t_vec + d_theta.tail(3);
 
@@ -223,7 +213,7 @@ IterativeClosestPoint::~IterativeClosestPoint() {
 }
 
 void IterativeClosestPoint::getTransformation(Eigen::Matrix3f &rot_mat, Eigen::Vector3f &t_vec) {
-    if (!has_valid_results_) compute_();
+    if (iteration_count_ == 0) compute_();
     rot_mat = rot_mat_;
     t_vec = t_vec_;
 }
@@ -234,8 +224,8 @@ void IterativeClosestPoint::init_params_() {
     max_iter_ = 10;
     point_to_plane_max_iter_ = 5;
 
-    has_valid_results_ = false;
     has_converged_ = false;
+    iteration_count_ = 0;
 
     rot_mat_init_.setIdentity();
     t_vec_init_.setZero();
@@ -263,8 +253,8 @@ void IterativeClosestPoint::compute_() {
 
     float corr_thresh_squared = corr_dist_thres_*corr_dist_thres_;
 
-    size_t iter = 0;
-    while (iter < max_iter_) {
+    iteration_count_ = 0;
+    while (iteration_count_ < max_iter_) {
         // Transform src using current estimate
         Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)(src_points_t.data()),3,src_points_t.size()) = (rot_mat_*src_p).colwise() + t_vec_;
 
@@ -301,7 +291,7 @@ void IterativeClosestPoint::compute_() {
         rot_mat_ = rot_mat_iter*rot_mat_;
         t_vec_ = rot_mat_iter*t_vec_ + t_vec_iter;
 
-        iter++;
+        iteration_count_++;
 
         // Check for convergence
         Eigen::Vector3f tmp = rot_mat_iter.eulerAngles(2,1,0).cwiseAbs();
@@ -314,6 +304,4 @@ void IterativeClosestPoint::compute_() {
             break;
         }
     }
-
-    has_valid_results_ = true;
 }
