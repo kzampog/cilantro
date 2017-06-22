@@ -63,6 +63,9 @@ target_link_libraries(image_point_cloud_conversions_example cilantro ${Pangolin_
 add_executable(iterative_closest_point_example examples/iterative_closest_point_example.cpp)
 target_link_libraries(iterative_closest_point_example cilantro ${Pangolin_LIBRARIES})
 
+add_executable(random_sample_consensus_example examples/random_sample_consensus_example.cpp)
+target_link_libraries(random_sample_consensus_example cilantro ${Pangolin_LIBRARIES})
+
 # Install target
 
 install(TARGETS cilantro LIBRARY DESTINATION /usr/local/lib)

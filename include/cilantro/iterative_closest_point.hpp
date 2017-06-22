@@ -165,16 +165,22 @@ public:
         return *this;
     }
 
-    inline void setInitialTransformation(const Eigen::Matrix3f &rot_mat, const Eigen::Vector3f &t_vec) {
+    inline IterativeClosestPoint& setInitialTransformation(const Eigen::Matrix3f &rot_mat, const Eigen::Vector3f &t_vec) {
         iteration_count_ = 0;
         rot_mat_init_ = rot_mat;
         t_vec_init_ = t_vec;
+        return *this;
     }
 
-    void getTransformation(Eigen::Matrix3f &rot_mat, Eigen::Vector3f &t_vec);
+    inline IterativeClosestPoint& getTransformation(Eigen::Matrix3f &rot_mat, Eigen::Vector3f &t_vec) {
+        if (iteration_count_ == 0) compute_();
+        rot_mat = rot_mat_;
+        t_vec = t_vec_;
+        return *this;
+    }
 
     inline bool hasConverged() const { return iteration_count_ > 0 && has_converged_; }
-    inline size_t getPerformedIterationsCount() { return iteration_count_; }
+    inline size_t getPerformedIterationsCount() const { return iteration_count_; }
 
 private:
     // Data pointers and parameters

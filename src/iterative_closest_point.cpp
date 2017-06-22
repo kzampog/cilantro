@@ -212,12 +212,6 @@ IterativeClosestPoint::~IterativeClosestPoint() {
     if (kd_tree_owned_) delete kd_tree_ptr_;
 }
 
-void IterativeClosestPoint::getTransformation(Eigen::Matrix3f &rot_mat, Eigen::Vector3f &t_vec) {
-    if (iteration_count_ == 0) compute_();
-    rot_mat = rot_mat_;
-    t_vec = t_vec_;
-}
-
 void IterativeClosestPoint::init_params_() {
     corr_dist_thres_ = 0.05f;
     convergence_tol_ = 1e-3f;
