@@ -1,8 +1,12 @@
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/random_sample_consensus.hpp>
+
 #include <cilantro/principal_component_analysis.hpp>
 
-#include <Eigen/Dense>
+#include <cilantro/ply_io.hpp>
+#include <cilantro/visualizer.hpp>
+
+#include <iostream>
 
 typedef Eigen::Vector4f PlaneParameters;
 
@@ -14,16 +18,39 @@ public:
     {}
 
     PlaneEstimator& estimateModelParameters(PlaneParameters &model_params) {
-        compute_(*points_, model_params);
+        estimate_params_(*points_, model_params);
         return *this;
     }
-    PlaneEstimator& estimateModelParameters(PlaneParameters &model_params, const std::vector<size_t> &sample_ind) {
+
+    PlaneParameters estimateModelParameters() {
+        PlaneParameters model_params;
+        estimateModelParameters(model_params);
+        return model_params;
+    }
+
+    PlaneEstimator& estimateModelParameters(const std::vector<size_t> &sample_ind, PlaneParameters &model_params) {
         std::vector<Eigen::Vector3f> points(sample_ind.size());
         for (size_t i = 0; i < sample_ind.size(); i++) {
             points[i] = (*points_)[sample_ind[i]];
         }
-        compute_(points, model_params);
+        estimate_params_(points, model_params);
         return *this;
+    }
+
+    PlaneParameters estimateModelParameters(const std::vector<size_t> &sample_ind) {
+        PlaneParameters model_params;
+        estimateModelParameters(sample_ind, model_params);
+        return model_params;
+    }
+
+    PlaneEstimator& computeResiduals(std::vector<float> &residuals) {
+        return computeResiduals(getModelParameters(), residuals);
+    }
+
+    std::vector<float> computeResiduals() {
+        std::vector<float> residuals;
+        computeResiduals(residuals);
+        return residuals;
     }
 
     PlaneEstimator& computeResiduals(const PlaneParameters &model_params, std::vector<float> &residuals) {
@@ -32,14 +59,23 @@ public:
         for (size_t i = 0; i < points_->size(); i++) {
             residuals[i] = std::abs((*points_)[i].dot(model_params.head(3)) + model_params[3])/norm;
         }
-
         return *this;
     }
 
-private:
-    const std::vector<Eigen::Vector3f> * points_;
+    std::vector<float> computeResiduals(const PlaneParameters &model_params) {
+        std::vector<float> residuals;
+        computeResiduals(model_params, residuals);
+        return residuals;
+    }
 
-    void compute_(const std::vector<Eigen::Vector3f> &points, PlaneParameters &model_params) {
+    size_t getDataPointsCount() {
+        return points_->size();
+    }
+
+private:
+    const std::vector<Eigen::Vector3f> *points_;
+
+    void estimate_params_(const std::vector<Eigen::Vector3f> &points, PlaneParameters &model_params) {
         PrincipalComponentAnalysis3D pca(points);
         Eigen::Vector3f normal = pca.getEigenVectorsMatrix().col(2);
         model_params.head(3) = normal;
@@ -47,30 +83,40 @@ private:
     }
 };
 
+bool re_estimate = false;
+
+void callback(Visualizer &viz, int key, void *cookie) {
+    if (key == 'a') {
+        re_estimate = true;
+    }
+}
+
 int main(int argc, char **argv) {
 
     PointCloud cloud;
-    cloud.points.push_back(Eigen::Vector3f(0, 0, 0));
-    cloud.points.push_back(Eigen::Vector3f(1, 0, 0));
-    cloud.points.push_back(Eigen::Vector3f(0, 1, 0));
-//    cloud.points.push_back(Eigen::Vector3f(0, 0, 1));
-//    cloud.points.push_back(Eigen::Vector3f(0, 1, 1));
-//    cloud.points.push_back(Eigen::Vector3f(1, 0, 1));
-//    cloud.points.push_back(Eigen::Vector3f(1, 1, 0));
-//    cloud.points.push_back(Eigen::Vector3f(1, 1, 1));
+    readPointCloudFromPLYFile(argv[1], cloud);
+
+    Visualizer viz("win", "disp");
+    viz.registerKeyboardCallback(std::vector<int>(1,'a'), callback, NULL);
 
     PlaneParameters plane;
-    std::vector<float> residuals;
+    std::vector<size_t> inliers;
 
-    PlaneEstimator pe(cloud.points);
-    pe.estimateModelParameters(plane).computeResiduals(plane, residuals);
+    viz.addPointCloud("cloud", cloud);
+    while (!viz.wasStopped()) {
+        if (re_estimate) {
+            re_estimate = false;
 
-    std::cout << plane.transpose() << std::endl;
-    for (size_t i = 0; i < residuals.size(); i++) {
-        std::cout << residuals[i] << "  ";
+            PlaneEstimator pe(cloud.points);
+            pe.setMaxInlierResidual(0.01).setTargetInlierCount((size_t)(0.20*cloud.points.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
+            pe.getModel(plane, inliers);
+            std::cout << "RANSAC iterations: " << pe.getPerformedIterationsCount() << std::endl;
+
+            PointCloud planar_cloud(cloud, inliers);
+            viz.addPointCloud("plane", planar_cloud, Visualizer::RenderingProperties().setDrawingColor(1,0,0).setPointSize(5.0));
+        }
+        viz.spinOnce();
     }
-    std::cout << std::endl;
-
 
     return 0;
 }
