@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
             re_estimate = false;
 
             PlaneEstimator pe(cloud.points);
-            pe.setMaxInlierResidual(0.01).setTargetInlierCount((size_t)(0.20*cloud.points.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
+            pe.setMaxInlierResidual(0.01).setTargetInlierCount((size_t)(0.15*cloud.points.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
             pe.getModel(plane, inliers);
             std::cout << "RANSAC iterations: " << pe.getPerformedIterationsCount() << std::endl;
 

@@ -51,25 +51,25 @@ public:
     }
 
     inline ModelEstimator& getModel(ModelParamsType &model_params, std::vector<size_t> &model_inliers) {
-        if (iteration_count_ == 0) estimate_();
+        if (!targetInlierCountAchieved()) estimate_();
         model_params = model_params_;
         model_inliers = model_inliers_;
         return *static_cast<ModelEstimator*>(this);
     }
 
     inline const ModelParamsType& getModelParameters() {
-        if (iteration_count_ == 0) estimate_();
+        if (!targetInlierCountAchieved()) estimate_();
         return model_params_;
     }
 
     inline const std::vector<size_t>& getModelInliers() {
-        if (iteration_count_ == 0) estimate_();
+        if (!targetInlierCountAchieved()) estimate_();
         return model_inliers_;
     }
 
     inline bool targetInlierCountAchieved() const { return iteration_count_ > 0 && model_inliers_.size() >= inlier_count_thres_; }
     inline size_t getPerformedIterationsCount() const { return iteration_count_; }
-    inline ModelEstimator& reset() { iteration_count_ = 0; return *static_cast<ModelEstimator*>(this); }
+    inline ModelEstimator& reset() { iteration_count_ = 0; model_inliers_.clear(); return *static_cast<ModelEstimator*>(this); }
 
 private:
     // Parameters
