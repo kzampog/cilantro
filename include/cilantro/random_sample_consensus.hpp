@@ -116,7 +116,7 @@ private:
             estimator->computeResiduals(model_params_tmp, residuals_tmp);
             model_inliers_tmp.resize(num_points);
             size_t k = 0;
-            for (size_t i = 0; i < num_points; i++){
+            for (size_t i = 0; i < num_points; i++) {
                 if (residuals_tmp[i] <= inlier_dist_thresh_) model_inliers_tmp[k++] = i;
             }
             model_inliers_tmp.resize(k);
