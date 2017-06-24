@@ -1,12 +1,13 @@
 #pragma once
 
 #include <vector>
+#include <algorithm>
 #include <random>
 
-template <class ModelEstimator, class ModelParamsType>
+template <class ModelEstimator, class ModelParamsType, class ResidualType>
 class RandomSampleConsensus {
 public:
-    RandomSampleConsensus(size_t sample_size, size_t inlier_count_thresh, size_t max_iter, float inlier_dist_thresh, bool re_estimate)
+    RandomSampleConsensus(size_t sample_size, size_t inlier_count_thresh, size_t max_iter, ResidualType inlier_dist_thresh, bool re_estimate)
             : sample_size_(sample_size),
               inlier_count_thres_(inlier_count_thresh),
               max_iter_(max_iter),
@@ -36,8 +37,8 @@ public:
         return *static_cast<ModelEstimator*>(this);
     }
 
-    inline float getMaxInlierResidual() const { return inlier_dist_thresh_; }
-    inline ModelEstimator& setMaxInlierResidual(float inlier_dist_thresh) {
+    inline ResidualType getMaxInlierResidual() const { return inlier_dist_thresh_; }
+    inline ModelEstimator& setMaxInlierResidual(ResidualType inlier_dist_thresh) {
         iteration_count_ = 0;
         inlier_dist_thresh_ = inlier_dist_thresh;
         return *static_cast<ModelEstimator*>(this);
@@ -76,7 +77,7 @@ private:
     size_t sample_size_;
     size_t inlier_count_thres_;
     size_t max_iter_;
-    float inlier_dist_thresh_;
+    ResidualType inlier_dist_thresh_;
     bool re_estimate_;
 
     // Object state and results
@@ -100,7 +101,7 @@ private:
 
         ModelParamsType model_params_tmp;
         std::vector<size_t> model_inliers_tmp;
-        std::vector<float> residuals_tmp;
+        std::vector<ResidualType> residuals_tmp;
         iteration_count_ = 0;
         while (iteration_count_ < max_iter_) {
             // Pick a random sample

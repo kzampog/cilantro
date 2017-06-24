@@ -22,19 +22,19 @@ std::vector<Eigen::Vector3f> colormap (const std::vector<float> &scalars, float 
 
             case ColormapType::JET:
                 if (scalarNormalized < 0.7)
-                    color[0] = 4.0 * scalarNormalized - 1.5;
+                    color[0] = 4.0f * scalarNormalized - 1.5f;
                 else
-                    color[0] = -4.0 * scalarNormalized + 4.5;
+                    color[0] = -4.0f * scalarNormalized + 4.5f;
 
                 if (scalarNormalized < 0.5)
-                    color[1] =  4.0 * scalarNormalized - 0.5;
+                    color[1] =  4.0f * scalarNormalized - 0.5f;
                 else
-                    color[1] =  -4.0 * scalarNormalized + 3.5;
+                    color[1] =  -4.0f * scalarNormalized + 3.5f;
 
                 if (scalarNormalized < 0.3)
-                    color[2] =  4.0 * scalarNormalized + 0.5;
+                    color[2] =  4.0f * scalarNormalized + 0.5f;
                 else
-                    color[2] =  -4.0 * scalarNormalized + 2.5;
+                    color[2] =  -4.0f * scalarNormalized + 2.5f;
 
                 break;
 
