@@ -1,5 +1,6 @@
 #include <cilantro/iterative_closest_point.hpp>
 #include <cilantro/ply_io.hpp>
+#include <cilantro/voxel_grid.hpp>
 #include <cilantro/visualizer.hpp>
 
 #include <ctime>
@@ -10,7 +11,6 @@ void callback(Visualizer &viz, int key, void *cookie) {
     if (key == 'a') proceed = true;
 }
 
-
 int main(int argc, char ** argv) {
 
     Visualizer viz("win", "disp");
@@ -18,6 +18,8 @@ int main(int argc, char ** argv) {
 
     PointCloud dst, src;
     readPointCloudFromPLYFile(argv[1], dst);
+
+    dst = VoxelGrid(dst, 0.01).getDownsampledCloud();
 
     src = dst;
     for (size_t i = 0; i < src.size(); i++) {
