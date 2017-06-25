@@ -9,7 +9,7 @@ class RandomSampleConsensus {
 public:
     RandomSampleConsensus(size_t sample_size, size_t inlier_count_thresh, size_t max_iter, ResidualType inlier_dist_thresh, bool re_estimate)
             : sample_size_(sample_size),
-              inlier_count_thres_(inlier_count_thresh),
+              inlier_count_thresh_(inlier_count_thresh),
               max_iter_(max_iter),
               inlier_dist_thresh_(inlier_dist_thresh),
               re_estimate_(re_estimate),
@@ -23,10 +23,10 @@ public:
         return *static_cast<ModelEstimator*>(this);
     }
 
-    inline size_t getTargetInlierCount() const { return inlier_count_thres_; }
+    inline size_t getTargetInlierCount() const { return inlier_count_thresh_; }
     inline ModelEstimator& setTargetInlierCount(size_t inlier_count_thres) {
         reset();
-        inlier_count_thres_ = inlier_count_thres;
+        inlier_count_thresh_ = inlier_count_thres;
         return *static_cast<ModelEstimator*>(this);
     }
 
@@ -51,34 +51,41 @@ public:
         return *static_cast<ModelEstimator*>(this);
     }
 
-    inline ModelEstimator& getModel(ModelParamsType &model_params, std::vector<size_t> &model_inliers) {
-        if (iteration_count_ == 0) estimate();
+    inline ModelEstimator& getEstimationResults(ModelParamsType &model_params, std::vector<ResidualType> &model_residuals, std::vector<size_t> &model_inliers) {
+        if (iteration_count_ == 0) estimateModel();
         model_params = model_params_;
+        model_residuals = model_residuals_;
         model_inliers = model_inliers_;
         return *static_cast<ModelEstimator*>(this);
     }
 
     inline const ModelParamsType& getModelParameters() {
-        if (iteration_count_ == 0) estimate();
+        if (iteration_count_ == 0) estimateModel();
         return model_params_;
     }
 
+    inline const std::vector<ResidualType>& getModelResiduals() {
+        if (iteration_count_ == 0) estimateModel();
+        return model_residuals_;
+    }
+
     inline const std::vector<size_t>& getModelInliers() {
-        if (iteration_count_ == 0) estimate();
+        if (iteration_count_ == 0) estimateModel();
         return model_inliers_;
     }
 
-    inline bool targetInlierCountAchieved() const { return iteration_count_ > 0 && model_inliers_.size() >= inlier_count_thres_; }
+    inline bool targetInlierCountAchieved() const { return iteration_count_ > 0 && model_inliers_.size() >= inlier_count_thresh_; }
     inline size_t getPerformedIterationsCount() const { return iteration_count_; }
-    inline size_t getNumberOfInliers() const { return (iteration_count_ > 0) ? model_inliers_.size() : 0; }
+    inline size_t getNumberOfInliers() const { return model_inliers_.size(); }
+
     inline ModelEstimator& reset() { iteration_count_ = 0; model_inliers_.clear(); return *static_cast<ModelEstimator*>(this); }
 
-    ModelEstimator& estimate() {
+    ModelEstimator& estimateModel() {
         reset();
 
         ModelEstimator * estimator = static_cast<ModelEstimator*>(this);
         size_t num_points = estimator->getDataPointsCount();
-        if (num_points < sample_size_) return *static_cast<ModelEstimator*>(this);
+        // if (num_points < sample_size_) return *static_cast<ModelEstimator*>(this);
 
         std::random_device rd;
         std::mt19937 rng(rd());
@@ -91,7 +98,7 @@ public:
 
         ModelParamsType model_params_tmp;
         std::vector<size_t> model_inliers_tmp;
-        std::vector<ResidualType> residuals_tmp;
+        std::vector<ResidualType> model_residuals_tmp;
         while (iteration_count_ < max_iter_) {
             // Pick a random sample
             if (std::distance(sample_start_it, perm.end()) < sample_size_) {
@@ -103,11 +110,11 @@ public:
 
             // Fit model to sample and get its inliers
             estimator->estimateModelParameters(sample_ind, model_params_tmp);
-            estimator->computeResiduals(model_params_tmp, residuals_tmp);
+            estimator->computeResiduals(model_params_tmp, model_residuals_tmp);
             model_inliers_tmp.resize(num_points);
             size_t k = 0;
             for (size_t i = 0; i < num_points; i++) {
-                if (residuals_tmp[i] <= inlier_dist_thresh_) model_inliers_tmp[k++] = i;
+                if (model_residuals_tmp[i] <= inlier_dist_thresh_) model_inliers_tmp[k++] = i;
             }
             model_inliers_tmp.resize(k);
 
@@ -119,20 +126,21 @@ public:
                 // Re-estimate
                 if (re_estimate_) {
                     estimator->estimateModelParameters(model_inliers_tmp, model_params_tmp);
-                    estimator->computeResiduals(model_params_tmp, residuals_tmp);
+                    estimator->computeResiduals(model_params_tmp, model_residuals_tmp);
                     model_inliers_tmp.resize(num_points);
                     k = 0;
                     for (size_t i = 0; i < num_points; i++){
-                        if (residuals_tmp[i] <= inlier_dist_thresh_) model_inliers_tmp[k++] = i;
+                        if (model_residuals_tmp[i] <= inlier_dist_thresh_) model_inliers_tmp[k++] = i;
                     }
                     model_inliers_tmp.resize(k);
                 }
                 model_params_ = model_params_tmp;
-                model_inliers_ = model_inliers_tmp;
+                model_residuals_ = std::move(model_residuals_tmp);
+                model_inliers_ = std::move(model_inliers_tmp);
             }
 
             // Check if target inlier count was reached
-            if (model_inliers_.size() >= inlier_count_thres_) break;
+            if (model_inliers_.size() >= inlier_count_thresh_) break;
         }
 
         return *static_cast<ModelEstimator*>(this);
@@ -141,7 +149,7 @@ public:
 private:
     // Parameters
     size_t sample_size_;
-    size_t inlier_count_thres_;
+    size_t inlier_count_thresh_;
     size_t max_iter_;
     ResidualType inlier_dist_thresh_;
     bool re_estimate_;
@@ -149,5 +157,6 @@ private:
     // Object state and results
     size_t iteration_count_;
     ModelParamsType model_params_;
+    std::vector<ResidualType> model_residuals_;
     std::vector<size_t> model_inliers_;
 };

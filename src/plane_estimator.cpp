@@ -37,16 +37,6 @@ PlaneParameters PlaneEstimator::estimateModelParameters(const std::vector<size_t
     return model_params;
 }
 
-PlaneEstimator& PlaneEstimator::computeResiduals(std::vector<float> &residuals) {
-    return computeResiduals(getModelParameters(), residuals);
-}
-
-std::vector<float> PlaneEstimator::computeResiduals() {
-    std::vector<float> residuals;
-    computeResiduals(residuals);
-    return residuals;
-}
-
 PlaneEstimator& PlaneEstimator::computeResiduals(const PlaneParameters &model_params, std::vector<float> &residuals) {
     residuals.resize(points_->size());
     float norm = model_params.head(3).norm();

@@ -22,9 +22,6 @@ int main(int argc, char **argv) {
     Visualizer viz("win", "disp");
     viz.registerKeyboardCallback(std::vector<int>(1,'a'), callback, NULL);
 
-    PlaneParameters plane;
-    std::vector<size_t> inliers;
-
     viz.addPointCloud("cloud", cloud);
     while (!viz.wasStopped()) {
         if (re_estimate) {
@@ -32,7 +29,9 @@ int main(int argc, char **argv) {
 
             PlaneEstimator pe(cloud);
             pe.setMaxInlierResidual(0.01).setTargetInlierCount((size_t)(0.15*cloud.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
-            pe.getModel(plane, inliers);
+            //pe.estimateModel();
+            PlaneParameters plane = pe.getModelParameters();
+            std::vector<size_t> inliers = pe.getModelInliers();
             std::cout << "RANSAC iterations: " << pe.getPerformedIterationsCount() << ", inlier count: " << pe.getNumberOfInliers() << std::endl;
 
             PointCloud planar_cloud(cloud, inliers);

@@ -75,16 +75,6 @@ RigidTransformParameters RigidTransformEstimator::estimateModelParameters(const 
     return model_params;
 }
 
-RigidTransformEstimator& RigidTransformEstimator::computeResiduals(std::vector<float> &residuals) {
-    return computeResiduals(getModelParameters(), residuals);
-}
-
-std::vector<float> RigidTransformEstimator::computeResiduals() {
-    std::vector<float> residuals;
-    computeResiduals(residuals);
-    return residuals;
-}
-
 RigidTransformEstimator& RigidTransformEstimator::computeResiduals(const RigidTransformParameters &model_params, std::vector<float> &residuals) {
     residuals.resize(dst_points_->size());
     Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> > dst((float *)dst_points_->data(),3,dst_points_->size());

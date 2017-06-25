@@ -21,9 +21,6 @@ public:
     RigidTransformEstimator& estimateModelParameters(const std::vector<size_t> &sample_ind, RigidTransformParameters &model_params);
     RigidTransformParameters estimateModelParameters(const std::vector<size_t> &sample_ind);
 
-    RigidTransformEstimator& computeResiduals(std::vector<float> &residuals);
-    std::vector<float> computeResiduals();
-
     RigidTransformEstimator& computeResiduals(const RigidTransformParameters &model_params, std::vector<float> &residuals);
     std::vector<float> computeResiduals(const RigidTransformParameters &model_params);
 

@@ -16,9 +16,6 @@ public:
     PlaneEstimator& estimateModelParameters(const std::vector<size_t> &sample_ind, PlaneParameters &model_params);
     PlaneParameters estimateModelParameters(const std::vector<size_t> &sample_ind);
 
-    PlaneEstimator& computeResiduals(std::vector<float> &residuals);
-    std::vector<float> computeResiduals();
-
     PlaneEstimator& computeResiduals(const PlaneParameters &model_params, std::vector<float> &residuals);
     std::vector<float> computeResiduals(const PlaneParameters &model_params);
 

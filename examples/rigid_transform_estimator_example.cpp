@@ -31,9 +31,6 @@ int main(int argc, char **argv) {
     keys.push_back('d');
     viz.registerKeyboardCallback(keys, callback, NULL);
 
-    RigidTransformParameters tform;
-    std::vector<size_t> inliers;
-
     std::vector<size_t> dst_ind(100);
     std::vector<size_t> src_ind(100);
 
@@ -75,7 +72,10 @@ int main(int argc, char **argv) {
 
             RigidTransformEstimator te(dst,src,dst_ind,src_ind);
             te.setMaxInlierResidual(0.01).setTargetInlierCount((size_t)(0.50*dst_ind.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
-            te.getModel(tform, inliers);
+            //te.estimateModel();
+            RigidTransformParameters tform = te.getModelParameters();
+            std::vector<size_t> inliers = te.getModelInliers();
+
             std::cout << "RANSAC iterations: " << te.getPerformedIterationsCount() << ", inlier count: " << te.getNumberOfInliers() << std::endl;
 
             src.pointsMatrixMap() = (tform.rotation*src.pointsMatrixMap()).colwise() + tform.translation;
