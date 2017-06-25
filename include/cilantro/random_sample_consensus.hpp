@@ -18,53 +18,53 @@ public:
 
     inline size_t getSampleSize() const { return sample_size_; }
     inline ModelEstimator& setSampleSize(size_t sample_size) {
-        iteration_count_ = 0;
+        reset();
         sample_size_ = sample_size;
         return *static_cast<ModelEstimator*>(this);
     }
 
     inline size_t getTargetInlierCount() const { return inlier_count_thres_; }
     inline ModelEstimator& setTargetInlierCount(size_t inlier_count_thres) {
-        iteration_count_ = 0;
+        reset();
         inlier_count_thres_ = inlier_count_thres;
         return *static_cast<ModelEstimator*>(this);
     }
 
     inline size_t getMaxNumberOfIterations() const { return max_iter_; }
     inline ModelEstimator& setMaxNumberOfIterations(size_t max_iter) {
-        iteration_count_ = 0;
+        reset();
         max_iter_ = max_iter;
         return *static_cast<ModelEstimator*>(this);
     }
 
     inline ResidualType getMaxInlierResidual() const { return inlier_dist_thresh_; }
     inline ModelEstimator& setMaxInlierResidual(ResidualType inlier_dist_thresh) {
-        iteration_count_ = 0;
+        reset();
         inlier_dist_thresh_ = inlier_dist_thresh;
         return *static_cast<ModelEstimator*>(this);
     }
 
     inline bool getReEstimationStep() const { return re_estimate_; }
     inline ModelEstimator& setReEstimationStep(bool re_estimate) {
-        iteration_count_ = 0;
+        reset();
         re_estimate_ = re_estimate;
         return *static_cast<ModelEstimator*>(this);
     }
 
     inline ModelEstimator& getModel(ModelParamsType &model_params, std::vector<size_t> &model_inliers) {
-        if (!targetInlierCountAchieved()) estimate_();
+        if (iteration_count_ == 0) estimate();
         model_params = model_params_;
         model_inliers = model_inliers_;
         return *static_cast<ModelEstimator*>(this);
     }
 
     inline const ModelParamsType& getModelParameters() {
-        if (!targetInlierCountAchieved()) estimate_();
+        if (iteration_count_ == 0) estimate();
         return model_params_;
     }
 
     inline const std::vector<size_t>& getModelInliers() {
-        if (!targetInlierCountAchieved()) estimate_();
+        if (iteration_count_ == 0) estimate();
         return model_inliers_;
     }
 
@@ -73,23 +73,12 @@ public:
     inline size_t getNumberOfInliers() const { return (iteration_count_ > 0) ? model_inliers_.size() : 0; }
     inline ModelEstimator& reset() { iteration_count_ = 0; model_inliers_.clear(); return *static_cast<ModelEstimator*>(this); }
 
-private:
-    // Parameters
-    size_t sample_size_;
-    size_t inlier_count_thres_;
-    size_t max_iter_;
-    ResidualType inlier_dist_thresh_;
-    bool re_estimate_;
+    ModelEstimator& estimate() {
+        reset();
 
-    // Object state and results
-    size_t iteration_count_;
-    ModelParamsType model_params_;
-    std::vector<size_t> model_inliers_;
-
-    void estimate_() {
         ModelEstimator * estimator = static_cast<ModelEstimator*>(this);
         size_t num_points = estimator->getDataPointsCount();
-        if (num_points < sample_size_) return;
+        if (num_points < sample_size_) return *static_cast<ModelEstimator*>(this);
 
         std::random_device rd;
         std::mt19937 rng(rd());
@@ -103,7 +92,6 @@ private:
         ModelParamsType model_params_tmp;
         std::vector<size_t> model_inliers_tmp;
         std::vector<ResidualType> residuals_tmp;
-        iteration_count_ = 0;
         while (iteration_count_ < max_iter_) {
             // Pick a random sample
             if (std::distance(sample_start_it, perm.end()) < sample_size_) {
@@ -146,5 +134,20 @@ private:
             // Check if target inlier count was reached
             if (model_inliers_.size() >= inlier_count_thres_) break;
         }
+
+        return *static_cast<ModelEstimator*>(this);
     }
+
+private:
+    // Parameters
+    size_t sample_size_;
+    size_t inlier_count_thres_;
+    size_t max_iter_;
+    ResidualType inlier_dist_thresh_;
+    bool re_estimate_;
+
+    // Object state and results
+    size_t iteration_count_;
+    ModelParamsType model_params_;
+    std::vector<size_t> model_inliers_;
 };
