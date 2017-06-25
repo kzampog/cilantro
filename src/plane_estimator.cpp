@@ -1,4 +1,4 @@
-#include <cilantro/model_estimators.hpp>
+#include <cilantro/plane_estimator.hpp>
 #include <cilantro/principal_component_analysis.hpp>
 
 PlaneEstimator::PlaneEstimator(const std::vector<Eigen::Vector3f> &points)
@@ -64,7 +64,7 @@ std::vector<float> PlaneEstimator::computeResiduals(const PlaneParameters &model
 
 void PlaneEstimator::estimate_params_(const std::vector<Eigen::Vector3f> &points, PlaneParameters &model_params) {
     PrincipalComponentAnalysis3D pca(points);
-    Eigen::Vector3f normal = pca.getEigenVectorsMatrix().col(2);
+    const Eigen::Vector3f& normal = pca.getEigenVectorsMatrix().col(2);
     model_params.head(3) = normal;
     model_params[3] = -normal.dot(pca.getDataMean());
 }

@@ -70,6 +70,7 @@ public:
 
     inline bool targetInlierCountAchieved() const { return iteration_count_ > 0 && model_inliers_.size() >= inlier_count_thres_; }
     inline size_t getPerformedIterationsCount() const { return iteration_count_; }
+    inline size_t getNumberOfInliers() const { return (iteration_count_ > 0) ? model_inliers_.size() : 0; }
     inline ModelEstimator& reset() { iteration_count_ = 0; model_inliers_.clear(); return *static_cast<ModelEstimator*>(this); }
 
 private:
@@ -125,20 +126,19 @@ private:
             iteration_count_++;
             if (model_inliers_tmp.size() < sample_size_) continue;
 
-            // Re-estimate
-            if (re_estimate_) {
-                estimator->estimateModelParameters(model_inliers_tmp, model_params_tmp);
-                estimator->computeResiduals(model_params_tmp, residuals_tmp);
-                model_inliers_tmp.resize(num_points);
-                k = 0;
-                for (size_t i = 0; i < num_points; i++){
-                    if (residuals_tmp[i] <= inlier_dist_thresh_) model_inliers_tmp[k++] = i;
-                }
-                model_inliers_tmp.resize(k);
-            }
-
-            // Update best found, if necesary
+            // Update best found
             if (model_inliers_tmp.size() > model_inliers_.size()) {
+                // Re-estimate
+                if (re_estimate_) {
+                    estimator->estimateModelParameters(model_inliers_tmp, model_params_tmp);
+                    estimator->computeResiduals(model_params_tmp, residuals_tmp);
+                    model_inliers_tmp.resize(num_points);
+                    k = 0;
+                    for (size_t i = 0; i < num_points; i++){
+                        if (residuals_tmp[i] <= inlier_dist_thresh_) model_inliers_tmp[k++] = i;
+                    }
+                    model_inliers_tmp.resize(k);
+                }
                 model_params_ = model_params_tmp;
                 model_inliers_ = model_inliers_tmp;
             }

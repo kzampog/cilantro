@@ -1,5 +1,5 @@
 #include <cilantro/point_cloud.hpp>
-#include <cilantro/model_estimators.hpp>
+#include <cilantro/plane_estimator.hpp>
 
 #include <cilantro/ply_io.hpp>
 #include <cilantro/visualizer.hpp>
@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
             PlaneEstimator pe(cloud);
             pe.setMaxInlierResidual(0.01).setTargetInlierCount((size_t)(0.15*cloud.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
             pe.getModel(plane, inliers);
-            std::cout << "RANSAC iterations: " << pe.getPerformedIterationsCount() << std::endl;
+            std::cout << "RANSAC iterations: " << pe.getPerformedIterationsCount() << ", inlier count: " << pe.getNumberOfInliers() << std::endl;
 
             PointCloud planar_cloud(cloud, inliers);
             viz.addPointCloud("plane", planar_cloud, Visualizer::RenderingProperties().setDrawingColor(1,0,0).setPointSize(5.0));
