@@ -19,7 +19,7 @@ int main(int argc, char ** argv) {
     PointCloud dst, src;
     readPointCloudFromPLYFile(argv[1], dst);
 
-//    dst = VoxelGrid(dst, 0.01).getDownsampledCloud();
+    dst = VoxelGrid(dst, 0.005).getDownsampledCloud();
 
     src = dst;
     for (size_t i = 0; i < src.size(); i++) {
@@ -85,11 +85,13 @@ int main(int argc, char ** argv) {
     std::cout << "ESTIMATED transformation R:" << std::endl << R_est << std::endl;
     std::cout << "ESTIMATED transformation t:" << std::endl << t_est.transpose() << std::endl;
 
-    src.pointsMatrixMap() = (R_est*src.pointsMatrixMap()).colwise() + t_est;
-    src.normalsMatrixMap() = R_est*src.normalsMatrixMap();
+    PointCloud src_trans(src);
+
+    src_trans.pointsMatrixMap() = (R_est*src_trans.pointsMatrixMap()).colwise() + t_est;
+    src_trans.normalsMatrixMap() = R_est*src_trans.normalsMatrixMap();
 
     viz.addPointCloud("dst", dst, Visualizer::RenderingProperties().setDrawingColor(0,0,1));
-    viz.addPointCloud("src", src, Visualizer::RenderingProperties().setDrawingColor(1,0,0));
+    viz.addPointCloud("src", src_trans, Visualizer::RenderingProperties().setDrawingColor(1,0,0));
 
     while (!proceed) {
         viz.spinOnce();
@@ -97,7 +99,7 @@ int main(int argc, char ** argv) {
     proceed = false;
 
     viz.clear();
-    viz.addPointCloud("src", src).addPointCloudValues("src", icp.getResiduals());
+    viz.addPointCloud("src", src_trans).addPointCloudValues("src", icp.getResiduals(IterativeClosestPoint::Metric::POINT_TO_POINT));
 
     while (!proceed) {
         viz.spinOnce();

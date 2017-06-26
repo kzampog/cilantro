@@ -11,8 +11,8 @@ public:
     IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &src_p, const KDTree &kd_tree);
     IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &dst_n, const std::vector<Eigen::Vector3f> &src_p);
     IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &dst_n, const std::vector<Eigen::Vector3f> &src_p, const KDTree &kd_tree);
-    IterativeClosestPoint(const PointCloud &dst, const PointCloud &src, Metric metric = Metric::POINT_TO_POINT);
-    IterativeClosestPoint(const PointCloud &dst, const PointCloud &src, const KDTree &kd_tree, Metric metric = Metric::POINT_TO_POINT);
+    IterativeClosestPoint(const PointCloud &dst, const PointCloud &src, const Metric &metric = Metric::POINT_TO_POINT);
+    IterativeClosestPoint(const PointCloud &dst, const PointCloud &src, const KDTree &kd_tree, const Metric &metric = Metric::POINT_TO_POINT);
 
     ~IterativeClosestPoint();
 
@@ -61,21 +61,32 @@ public:
     }
 
     inline IterativeClosestPoint& getTransformation(Eigen::Matrix3f &rot_mat, Eigen::Vector3f &t_vec) {
-        if (iteration_count_ == 0) compute_();
+        if (iteration_count_ == 0) estimate_transform_();
         rot_mat = rot_mat_;
         t_vec = t_vec_;
         return *this;
     }
 
     inline IterativeClosestPoint& getResiduals(std::vector<float> &residuals) {
-        if (iteration_count_ == 0) compute_();
-        residuals = residuals_;
+        compute_residuals_(metric_, residuals);
         return *this;
     }
 
-    inline const std::vector<float>& getResiduals() {
-        if (iteration_count_ == 0) compute_();
-        return residuals_;
+    inline const std::vector<float> getResiduals() {
+        std::vector<float> residuals;
+        compute_residuals_(metric_, residuals);
+        return residuals;
+    }
+
+    inline IterativeClosestPoint& getResiduals(const Metric &metric, std::vector<float> &residuals) {
+        compute_residuals_(metric, residuals);
+        return *this;
+    }
+
+    inline const std::vector<float> getResiduals(const Metric &metric) {
+        std::vector<float> residuals;
+        compute_residuals_(metric, residuals);
+        return residuals;
     }
 
     inline bool hasConverged() const { return iteration_count_ > 0 && has_converged_; }
@@ -105,8 +116,8 @@ private:
     Eigen::Matrix3f rot_mat_;
     Eigen::Vector3f t_vec_;
     std::vector<Eigen::Vector3f> src_points_trans_;
-    std::vector<float> residuals_;
 
     void init_params_();
-    void compute_();
+    void estimate_transform_();
+    void compute_residuals_(const Metric &metric, std::vector<float> &residuals);
 };
