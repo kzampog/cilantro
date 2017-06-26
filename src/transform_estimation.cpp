@@ -2,8 +2,8 @@
 
 bool estimateRigidTransformPointToPoint(const Eigen::Ref<const Eigen::Matrix<float,3,Eigen::Dynamic> > &dst,
                                         const Eigen::Ref<const Eigen::Matrix<float,3,Eigen::Dynamic> > &src,
-                                        Eigen::Matrix3f &rot_mat,
-                                        Eigen::Vector3f &t_vec)
+                                        Eigen::Ref<Eigen::Matrix3f> rot_mat,
+                                        Eigen::Ref<Eigen::Vector3f> t_vec)
 {
     if (src.cols() < 3 || src.cols() != dst.cols()) {
         return false;
@@ -35,8 +35,8 @@ bool estimateRigidTransformPointToPoint(const Eigen::Ref<const Eigen::Matrix<flo
                                         const Eigen::Ref<const Eigen::Matrix<float,3,Eigen::Dynamic> > &src,
                                         const std::vector<size_t> &dst_ind,
                                         const std::vector<size_t> &src_ind,
-                                        Eigen::Matrix3f &rot_mat,
-                                        Eigen::Vector3f &t_vec)
+                                        Eigen::Ref<Eigen::Matrix3f> rot_mat,
+                                        Eigen::Ref<Eigen::Vector3f> t_vec)
 {
     if (dst_ind.size() != src_ind.size()) {
         return false;
@@ -55,8 +55,8 @@ bool estimateRigidTransformPointToPoint(const Eigen::Ref<const Eigen::Matrix<flo
 bool estimateRigidTransformPointToPlane(const Eigen::Ref<const Eigen::Matrix<float,3,Eigen::Dynamic> > &dst_p,
                                         const Eigen::Ref<const Eigen::Matrix<float,3,Eigen::Dynamic> > &dst_n,
                                         const Eigen::Ref<const Eigen::Matrix<float,3,Eigen::Dynamic> > &src_p,
-                                        Eigen::Matrix3f &rot_mat,
-                                        Eigen::Vector3f &t_vec,
+                                        Eigen::Ref<Eigen::Matrix3f> rot_mat,
+                                        Eigen::Ref<Eigen::Vector3f> t_vec,
                                         size_t max_iter,
                                         float convergence_tol)
 {
@@ -105,6 +105,10 @@ bool estimateRigidTransformPointToPlane(const Eigen::Ref<const Eigen::Matrix<flo
         rot_mat = rot_mat_iter*rot_mat;
         t_vec = rot_mat_iter*t_vec + d_theta.tail(3);
 
+        // Orthonormalize rotation
+        Eigen::JacobiSVD<Eigen::Matrix3f> svd(rot_mat, Eigen::ComputeFullU | Eigen::ComputeFullV);
+        rot_mat = svd.matrixU()*(svd.matrixV().transpose());
+
         iter++;
 
         // Check for convergence
@@ -119,8 +123,8 @@ bool estimateRigidTransformPointToPlane(const Eigen::Ref<const Eigen::Matrix<flo
                                         const Eigen::Ref<const Eigen::Matrix<float,3,Eigen::Dynamic> > &src_p,
                                         const std::vector<size_t> &dst_ind,
                                         const std::vector<size_t> &src_ind,
-                                        Eigen::Matrix3f &rot_mat,
-                                        Eigen::Vector3f &t_vec,
+                                        Eigen::Ref<Eigen::Matrix3f> rot_mat,
+                                        Eigen::Ref<Eigen::Vector3f> t_vec,
                                         size_t max_iter,
                                         float convergence_tol)
 {

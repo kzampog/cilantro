@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cilantro/transform_estimation.hpp>
 #include <cilantro/kd_tree.hpp>
 
 class IterativeClosestPoint {
@@ -53,14 +52,14 @@ public:
         return *this;
     }
 
-    inline IterativeClosestPoint& setInitialTransformation(const Eigen::Matrix3f &rot_mat, const Eigen::Vector3f &t_vec) {
+    inline IterativeClosestPoint& setInitialTransformation(const Eigen::Ref<const Eigen::Matrix3f> &rot_mat, const Eigen::Ref<const Eigen::Vector3f> &t_vec) {
         iteration_count_ = 0;
         rot_mat_init_ = rot_mat;
         t_vec_init_ = t_vec;
         return *this;
     }
 
-    inline IterativeClosestPoint& getTransformation(Eigen::Matrix3f &rot_mat, Eigen::Vector3f &t_vec) {
+    inline IterativeClosestPoint& getTransformation(Eigen::Ref<Eigen::Matrix3f> rot_mat, Eigen::Ref<Eigen::Vector3f> t_vec) {
         if (iteration_count_ == 0) estimate_transform_();
         rot_mat = rot_mat_;
         t_vec = t_vec_;

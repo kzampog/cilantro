@@ -1,4 +1,5 @@
 #include <cilantro/iterative_closest_point.hpp>
+#include <cilantro/transform_estimation.hpp>
 
 IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &src_p)
         : dst_points_(&dst_p),
@@ -79,8 +80,8 @@ IterativeClosestPoint::~IterativeClosestPoint() {
 void IterativeClosestPoint::init_params_() {
     corr_dist_thres_ = 0.05f;
     convergence_tol_ = 1e-3f;
-    max_iter_ = 10;
-    point_to_plane_max_iter_ = 5;
+    max_iter_ = 15;
+    point_to_plane_max_iter_ = 1;
 
     has_converged_ = false;
     iteration_count_ = 0;
@@ -149,6 +150,10 @@ void IterativeClosestPoint::estimate_transform_() {
 
         rot_mat_ = rot_mat_iter*rot_mat_;
         t_vec_ = rot_mat_iter*t_vec_ + t_vec_iter;
+
+        // Orthonormalize rotation
+        Eigen::JacobiSVD<Eigen::Matrix3f> svd(rot_mat_, Eigen::ComputeFullU | Eigen::ComputeFullV);
+        rot_mat_ = svd.matrixU()*(svd.matrixV().transpose());
 
         // Check for convergence
         Eigen::Vector3f tmp = rot_mat_iter.eulerAngles(2,1,0).cwiseAbs();

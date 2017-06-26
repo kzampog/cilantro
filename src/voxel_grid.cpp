@@ -131,8 +131,9 @@ std::vector<size_t> VoxelGrid::getGridBinNeighbors(size_t point_ind) const {
 }
 
 void VoxelGrid::build_lookup_table_() {
-    min_pt_ = Eigen::Map<Eigen::MatrixXf>((float *)input_points_->data(), 3, input_points_->size()).rowwise().minCoeff();
+    if (input_points_->empty()) return;
 
+    min_pt_ = Eigen::Map<Eigen::MatrixXf>((float *)input_points_->data(), 3, input_points_->size()).rowwise().minCoeff();
     Eigen::MatrixXi grid_coords = ((Eigen::Map<Eigen::MatrixXf>((float *)input_points_->data(), 3, input_points_->size()).colwise()-min_pt_)/bin_size_).array().floor().cast<int>();
 
     // Build lookup table
