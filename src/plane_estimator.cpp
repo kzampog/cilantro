@@ -39,10 +39,10 @@ PlaneParameters PlaneEstimator::estimateModelParameters(const std::vector<size_t
 
 PlaneEstimator& PlaneEstimator::computeResiduals(const PlaneParameters &model_params, std::vector<float> &residuals) {
     residuals.resize(points_->size());
-    float norm = model_params.head(3).norm();
-    for (size_t i = 0; i < points_->size(); i++) {
-        residuals[i] = std::abs((*points_)[i].dot(model_params.head(3)) + model_params[3])/norm;
-    }
+    Eigen::Matrix<float,1,3> n_t = model_params.head(3).transpose();
+    float norm = n_t.norm();
+    Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> > pts((float *)points_->data(), 3, points_->size());
+    Eigen::Map<Eigen::Matrix<float,1,Eigen::Dynamic> >(residuals.data(),1,residuals.size()) = ((n_t*pts).array() + model_params[3]).cwiseAbs()/norm;
     return *this;
 }
 

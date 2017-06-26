@@ -72,7 +72,6 @@ int main(int argc, char **argv) {
 
             RigidTransformEstimator te(dst,src,dst_ind,src_ind);
             te.setMaxInlierResidual(0.01).setTargetInlierCount((size_t)(0.50*dst_ind.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
-            //te.estimateModel();
             RigidTransformParameters tform = te.getModelParameters();
             std::vector<size_t> inliers = te.getModelInliers();
 

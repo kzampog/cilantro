@@ -19,32 +19,27 @@ int main(int argc, char ** argv) {
     PointCloud dst, src;
     readPointCloudFromPLYFile(argv[1], dst);
 
-    dst = VoxelGrid(dst, 0.01).getDownsampledCloud();
+//    dst = VoxelGrid(dst, 0.01).getDownsampledCloud();
 
     src = dst;
     for (size_t i = 0; i < src.size(); i++) {
         src.points[i] += 0.01f*Eigen::Vector3f::Random();
     }
 
+    PointCloud dst2;
+    for (size_t i = 0; i < dst.size(); i++) {
+        if (dst.points[i][0] > -0.4) {
+            dst2.points.push_back(dst.points[i]);
+            dst2.normals.push_back(dst.normals[i]);
+        }
+    }
+    dst = dst2;
+
     Eigen::Matrix3f R_ref;
     R_ref = Eigen::AngleAxisf(-0.10 ,Eigen::Vector3f::UnitZ()) *
             Eigen::AngleAxisf(0.01, Eigen::Vector3f::UnitY()) *
             Eigen::AngleAxisf(-0.07, Eigen::Vector3f::UnitX());
     Eigen::Vector3f t_ref(-0.07, -0.05, 0.09);
-
-//    Eigen::Matrix3f R_ref(Eigen::Matrix3f::Random());
-//    Eigen::JacobiSVD<Eigen::Matrix3f> svd(R_ref, Eigen::ComputeFullU | Eigen::ComputeFullV);
-//    Eigen::Matrix3f U(svd.matrixU());
-//    Eigen::Matrix3f Vt(svd.matrixV().transpose());
-//    Eigen::Matrix3f tmp(U * Vt);
-//    if (tmp.determinant() < 0) {
-//        Eigen::Matrix3f S(Eigen::Matrix3f::Identity());
-//        S(2, 2) = -1;
-//        R_ref = U * S * Vt;
-//    } else {
-//        R_ref = tmp;
-//    }
-//    Eigen::Vector3f t_ref(Eigen::Vector3f::Random());
 
     src.pointsMatrixMap() = (R_ref*src.pointsMatrixMap()).colwise() + t_ref;
     src.normalsMatrixMap() = R_ref*src.normalsMatrixMap();
@@ -95,6 +90,14 @@ int main(int argc, char ** argv) {
 
     viz.addPointCloud("dst", dst, Visualizer::RenderingProperties().setDrawingColor(0,0,1));
     viz.addPointCloud("src", src, Visualizer::RenderingProperties().setDrawingColor(1,0,0));
+
+    while (!proceed) {
+        viz.spinOnce();
+    }
+    proceed = false;
+
+    viz.clear();
+    viz.addPointCloud("src", src).addPointCloudValues("src", icp.getResiduals());
 
     while (!proceed) {
         viz.spinOnce();

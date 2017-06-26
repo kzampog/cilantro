@@ -6,7 +6,9 @@ IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> 
           src_points_(&src_p),
           kd_tree_ptr_(new KDTree(dst_p)),
           kd_tree_owned_(true),
-          metric_(Metric::POINT_TO_POINT)
+          metric_(Metric::POINT_TO_POINT),
+          src_points_trans_(std::vector<Eigen::Vector3f>(src_p.size())),
+          residuals_(std::vector<float>(src_p.size()))
 {
     init_params_();
 }
@@ -17,7 +19,9 @@ IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> 
           src_points_(&src_p),
           kd_tree_ptr_((KDTree*)&kd_tree),
           kd_tree_owned_(false),
-          metric_(Metric::POINT_TO_POINT)
+          metric_(Metric::POINT_TO_POINT),
+          src_points_trans_(std::vector<Eigen::Vector3f>(src_p.size())),
+          residuals_(std::vector<float>(src_p.size()))
 {
     init_params_();
 }
@@ -28,7 +32,9 @@ IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> 
           src_points_(&src_p),
           kd_tree_ptr_(new KDTree(dst_p)),
           kd_tree_owned_(true),
-          metric_((dst_n.size() == dst_p.size()) ? Metric::POINT_TO_PLANE : Metric::POINT_TO_POINT)
+          metric_((dst_n.size() == dst_p.size()) ? Metric::POINT_TO_PLANE : Metric::POINT_TO_POINT),
+          src_points_trans_(std::vector<Eigen::Vector3f>(src_p.size())),
+          residuals_(std::vector<float>(src_p.size()))
 {
     init_params_();
 }
@@ -39,7 +45,9 @@ IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> 
           src_points_(&src_p),
           kd_tree_ptr_((KDTree*)&kd_tree),
           kd_tree_owned_(false),
-          metric_((dst_n.size() == dst_p.size()) ? Metric::POINT_TO_PLANE : Metric::POINT_TO_POINT)
+          metric_((dst_n.size() == dst_p.size()) ? Metric::POINT_TO_PLANE : Metric::POINT_TO_POINT),
+          src_points_trans_(std::vector<Eigen::Vector3f>(src_p.size())),
+          residuals_(std::vector<float>(src_p.size()))
 {
     init_params_();
 }
@@ -50,7 +58,9 @@ IterativeClosestPoint::IterativeClosestPoint(const PointCloud &dst, const PointC
           src_points_(&src.points),
           kd_tree_ptr_(new KDTree(dst.points)),
           kd_tree_owned_(true),
-          metric_((dst.hasNormals()) ? metric : Metric::POINT_TO_POINT)
+          metric_((dst.hasNormals()) ? metric : Metric::POINT_TO_POINT),
+          src_points_trans_(std::vector<Eigen::Vector3f>(src.points.size())),
+          residuals_(std::vector<float>(src.points.size()))
 {
     init_params_();
 }
@@ -61,7 +71,9 @@ IterativeClosestPoint::IterativeClosestPoint(const PointCloud &dst, const PointC
           src_points_(&src.points),
           kd_tree_ptr_((KDTree*)&kd_tree),
           kd_tree_owned_(false),
-          metric_((dst.hasNormals()) ? metric : Metric::POINT_TO_POINT)
+          metric_((dst.hasNormals()) ? metric : Metric::POINT_TO_POINT),
+          src_points_trans_(std::vector<Eigen::Vector3f>(src.points.size())),
+          residuals_(std::vector<float>(src.points.size()))
 {
     init_params_();
 }
@@ -84,7 +96,6 @@ void IterativeClosestPoint::init_params_() {
 }
 
 void IterativeClosestPoint::compute_() {
-
     has_converged_ = false;
 
     rot_mat_ = rot_mat_init_;
@@ -95,7 +106,7 @@ void IterativeClosestPoint::compute_() {
     Eigen::Matrix<float,6,1> delta;
 
     Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> > src_p((float *)(src_points_->data()),3,src_points_->size());
-    std::vector<Eigen::Vector3f> src_points_t(*src_points_);
+    Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> > src_t((float *)(src_points_trans_.data()),3,src_points_trans_.size());
 
     Eigen::Vector3f v_pi(M_PI, M_PI, M_PI);
 
@@ -108,14 +119,14 @@ void IterativeClosestPoint::compute_() {
     iteration_count_ = 0;
     while (iteration_count_ < max_iter_) {
         // Transform src using current estimate
-        Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)(src_points_t.data()),3,src_points_t.size()) = (rot_mat_*src_p).colwise() + t_vec_;
+        src_t = (rot_mat_*src_p).colwise() + t_vec_;
 
         // Compute correspondences
         dst_ind.resize(src_points_->size());
         src_ind.resize(src_points_->size());
         size_t k = 0;
         for (size_t i = 0; i < src_points_->size(); i++) {
-            kd_tree_ptr_->kNNSearch(src_points_t[i], 1, neighbors, distances);
+            kd_tree_ptr_->kNNSearch(src_points_trans_[i], 1, neighbors, distances);
             if (distances[0] < corr_thresh_squared) {
                 if (metric_ == Metric::POINT_TO_PLANE && (*dst_normals_)[neighbors[0]].array().isNaN().any()) continue;
                 dst_ind[k] = neighbors[0];
@@ -133,11 +144,11 @@ void IterativeClosestPoint::compute_() {
 
         // Update estimated transformation
         if (metric_ == Metric::POINT_TO_PLANE) {
-            estimateRigidTransformPointToPlane(*dst_points_, *dst_normals_, src_points_t, dst_ind, src_ind, rot_mat_iter, t_vec_iter, point_to_plane_max_iter_, convergence_tol_);
+            estimateRigidTransformPointToPlane(*dst_points_, *dst_normals_, src_points_trans_, dst_ind, src_ind, rot_mat_iter, t_vec_iter, point_to_plane_max_iter_, convergence_tol_);
         } else if (metric_ == Metric::POINT_TO_POINT) {
-            estimateRigidTransformPointToPoint(*dst_points_, src_points_t, dst_ind, src_ind, rot_mat_iter, t_vec_iter);
+            estimateRigidTransformPointToPoint(*dst_points_, src_points_trans_, dst_ind, src_ind, rot_mat_iter, t_vec_iter);
         } else {
-            return;
+            break;
         }
 
         rot_mat_ = rot_mat_iter*rot_mat_;
@@ -154,6 +165,18 @@ void IterativeClosestPoint::compute_() {
         if (delta.norm() < convergence_tol_) {
             has_converged_ = true;
             break;
+        }
+    }
+
+    // Compute residuals
+    for (size_t i = 0; i < src_points_->size(); i++) {
+        kd_tree_ptr_->kNNSearch(src_points_trans_[i], 1, neighbors, distances);
+        if (metric_ == Metric::POINT_TO_PLANE) {
+            const Eigen::Vector3f& dp = (*dst_points_)[neighbors[0]];
+            const Eigen::Vector3f& dn = (*dst_normals_)[neighbors[0]];
+            residuals_[i] = std::abs(dn.dot(src_points_trans_[i] - dp));
+        } else if (metric_ == Metric::POINT_TO_POINT) {
+            residuals_[i] = std::sqrt(distances[0]);
         }
     }
 }

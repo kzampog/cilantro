@@ -29,13 +29,12 @@ int main(int argc, char **argv) {
 
             PlaneEstimator pe(cloud);
             pe.setMaxInlierResidual(0.01).setTargetInlierCount((size_t)(0.15*cloud.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
-            //pe.estimateModel();
             PlaneParameters plane = pe.getModelParameters();
             std::vector<size_t> inliers = pe.getModelInliers();
             std::cout << "RANSAC iterations: " << pe.getPerformedIterationsCount() << ", inlier count: " << pe.getNumberOfInliers() << std::endl;
 
             PointCloud planar_cloud(cloud, inliers);
-            viz.addPointCloud("plane", planar_cloud, Visualizer::RenderingProperties().setDrawingColor(1,0,0).setPointSize(5.0));
+            viz.addPointCloud("plane", planar_cloud, Visualizer::RenderingProperties().setDrawingColor(1,0,0).setPointSize(3.0));
         }
         viz.spinOnce();
     }

@@ -67,6 +67,17 @@ public:
         return *this;
     }
 
+    inline IterativeClosestPoint& getResiduals(std::vector<float> &residuals) {
+        if (iteration_count_ == 0) compute_();
+        residuals = residuals_;
+        return *this;
+    }
+
+    inline const std::vector<float>& getResiduals() {
+        if (iteration_count_ == 0) compute_();
+        return residuals_;
+    }
+
     inline bool hasConverged() const { return iteration_count_ > 0 && has_converged_; }
     inline size_t getPerformedIterationsCount() const { return iteration_count_; }
 
@@ -84,14 +95,17 @@ private:
     size_t max_iter_;
     size_t point_to_plane_max_iter_;
 
-    // Object state
-    bool has_converged_;
-    size_t iteration_count_;
     Eigen::Matrix3f rot_mat_init_;
     Eigen::Vector3f t_vec_init_;
 
+    // Object state
+    bool has_converged_;
+    size_t iteration_count_;
+
     Eigen::Matrix3f rot_mat_;
     Eigen::Vector3f t_vec_;
+    std::vector<Eigen::Vector3f> src_points_trans_;
+    std::vector<float> residuals_;
 
     void init_params_();
     void compute_();
