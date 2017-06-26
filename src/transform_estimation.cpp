@@ -1,7 +1,7 @@
 #include <cilantro/transform_estimation.hpp>
 
-bool estimateRigidTransformPointToPoint(const Eigen::Matrix<float,3,Eigen::Dynamic> &dst,
-                                        const Eigen::Matrix<float,3,Eigen::Dynamic> &src,
+bool estimateRigidTransformPointToPoint(const Eigen::Ref<const Eigen::Matrix<float,3,Eigen::Dynamic> > &dst,
+                                        const Eigen::Ref<const Eigen::Matrix<float,3,Eigen::Dynamic> > &src,
                                         Eigen::Matrix3f &rot_mat,
                                         Eigen::Vector3f &t_vec)
 {
@@ -31,8 +31,8 @@ bool estimateRigidTransformPointToPoint(const Eigen::Matrix<float,3,Eigen::Dynam
     return true;
 }
 
-bool estimateRigidTransformPointToPoint(const Eigen::Matrix<float,3,Eigen::Dynamic> &dst,
-                                        const Eigen::Matrix<float,3,Eigen::Dynamic> &src,
+bool estimateRigidTransformPointToPoint(const Eigen::Ref<const Eigen::Matrix<float,3,Eigen::Dynamic> > &dst,
+                                        const Eigen::Ref<const Eigen::Matrix<float,3,Eigen::Dynamic> > &src,
                                         const std::vector<size_t> &dst_ind,
                                         const std::vector<size_t> &src_ind,
                                         Eigen::Matrix3f &rot_mat,
@@ -52,9 +52,9 @@ bool estimateRigidTransformPointToPoint(const Eigen::Matrix<float,3,Eigen::Dynam
     return estimateRigidTransformPointToPoint(dst_corr, src_corr, rot_mat, t_vec);
 }
 
-bool estimateRigidTransformPointToPlane(const Eigen::Matrix<float,3,Eigen::Dynamic> &dst_p,
-                                        const Eigen::Matrix<float,3,Eigen::Dynamic> &dst_n,
-                                        const Eigen::Matrix<float,3,Eigen::Dynamic> &src_p,
+bool estimateRigidTransformPointToPlane(const Eigen::Ref<const Eigen::Matrix<float,3,Eigen::Dynamic> > &dst_p,
+                                        const Eigen::Ref<const Eigen::Matrix<float,3,Eigen::Dynamic> > &dst_n,
+                                        const Eigen::Ref<const Eigen::Matrix<float,3,Eigen::Dynamic> > &src_p,
                                         Eigen::Matrix3f &rot_mat,
                                         Eigen::Vector3f &t_vec,
                                         size_t max_iter,
@@ -114,9 +114,9 @@ bool estimateRigidTransformPointToPlane(const Eigen::Matrix<float,3,Eigen::Dynam
     return false;
 }
 
-bool estimateRigidTransformPointToPlane(const Eigen::Matrix<float,3,Eigen::Dynamic> &dst_p,
-                                        const Eigen::Matrix<float,3,Eigen::Dynamic> &dst_n,
-                                        const Eigen::Matrix<float,3,Eigen::Dynamic> &src_p,
+bool estimateRigidTransformPointToPlane(const Eigen::Ref<const Eigen::Matrix<float,3,Eigen::Dynamic> > &dst_p,
+                                        const Eigen::Ref<const Eigen::Matrix<float,3,Eigen::Dynamic> > &dst_n,
+                                        const Eigen::Ref<const Eigen::Matrix<float,3,Eigen::Dynamic> > &src_p,
                                         const std::vector<size_t> &dst_ind,
                                         const std::vector<size_t> &src_ind,
                                         Eigen::Matrix3f &rot_mat,
