@@ -23,7 +23,7 @@ int main(int argc, char ** argv) {
 
     src = dst;
     for (size_t i = 0; i < src.size(); i++) {
-        src.points[i] += 0.01f*Eigen::Vector3f::Random();
+        src.points[i] += 0.005f*Eigen::Vector3f::Random();
     }
 
     PointCloud dst2;
@@ -39,7 +39,7 @@ int main(int argc, char ** argv) {
     R_ref = Eigen::AngleAxisf(-0.10 ,Eigen::Vector3f::UnitZ()) *
             Eigen::AngleAxisf(0.01, Eigen::Vector3f::UnitY()) *
             Eigen::AngleAxisf(-0.07, Eigen::Vector3f::UnitX());
-    Eigen::Vector3f t_ref(-0.07, -0.05, 0.09);
+    Eigen::Vector3f t_ref(-0.20, -0.05, 0.09);
 
     src.pointsMatrixMap() = (R_ref*src.pointsMatrixMap()).colwise() + t_ref;
     src.normalsMatrixMap() = R_ref*src.normalsMatrixMap();
@@ -68,7 +68,7 @@ int main(int argc, char ** argv) {
 //    estimateRigidTransformPointToPlane(dst, src, ind, ind, R_est, t_est, 10, 1e-4f);
 //    IterativeClosestPoint icp(dst, src, IterativeClosestPoint::Metric::POINT_TO_POINT);
     IterativeClosestPoint icp(dst, src, IterativeClosestPoint::Metric::POINT_TO_PLANE);
-    icp.setMaxCorrespondenceDistance(0.05f).setConvergenceTolerance(0.001).setMaxNumberOfIterations(20).setMaxNumberOfPointToPlaneIterations(1);
+    icp.setMaxCorrespondenceDistance(0.05f).setConvergenceTolerance(1e-3f).setMaxNumberOfIterations(200).setMaxNumberOfPointToPlaneIterations(1);
 //    icp.setInitialTransformation(R_ref.transpose(), (-R_ref.transpose()*t_ref));
     icp.getTransformation(R_est, t_est);
 
