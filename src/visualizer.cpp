@@ -106,7 +106,7 @@ void Visualizer::AxisRenderable_::applyRenderingProperties() {}
 
 void Visualizer::AxisRenderable_::render() {
     glLineWidth(renderingProperties.lineWidth);
-    pangolin::glDrawAxis<float>(transform, scale);
+    pangolin::glDrawAxis<Eigen::Matrix4f,float>(transform, scale);
 }
 
 void Visualizer::TriangleMeshRenderable_::applyRenderingProperties() {
