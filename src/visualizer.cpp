@@ -269,6 +269,7 @@ Visualizer::Visualizer(const std::string &window_name, const std::string &displa
     input_handler_.reset(new pangolin::Handler3D(*gl_render_state_));
     display_->SetHandler(input_handler_.get());
     display_->SetAspect(-4.0f/3.0f);
+//    display_->extern_draw_function = std::bind(draw_func_, std::ref(*this), std::placeholders::_1);
 }
 
 Visualizer::~Visualizer() {}
@@ -595,6 +596,70 @@ Visualizer& Visualizer::registerKeyboardCallback(const std::vector<int> &keys, s
     return *this;
 }
 
+Visualizer& Visualizer::saveRenderAsImage(const std::string &file_name, float scale, float quality, bool rgba) {
+    gl_context_->MakeCurrent();
+
+    const pangolin::Viewport orig = display_->v;
+
+    display_->v.l = 0;
+    display_->v.b = 0;
+    display_->v.w = (int)(display_->v.w * scale);
+    display_->v.h = (int)(display_->v.h * scale);
+
+    const int w = display_->v.w;
+    const int h = display_->v.h;
+
+    // Create FBO
+    pangolin::GlTexture color(w,h);
+    pangolin::GlRenderBuffer depth(w,h);
+    pangolin::GlFramebuffer fbo(color, depth);
+
+    // Render into FBO
+    fbo.Bind();
+    display_->Activate();
+    clearRenderArea();
+    render();
+    glFlush();
+
+    if (rgba) {
+        const pangolin::PixelFormat fmt = pangolin::PixelFormatFromString("RGBA32");
+        pangolin::TypedImage buffer(w, h, fmt);
+//        glReadBuffer(GL_BACK);
+//        glPixelStorei(GL_PACK_ALIGNMENT, 1); // TODO: Avoid this?
+        glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer.ptr);
+
+        // FlipY
+        pangolin::TypedImage image(w, h, fmt);
+        for(size_t y_out = 0; y_out < image.h; ++y_out) {
+            const size_t y_in = (buffer.h-1) - y_out;
+            std::memcpy(image.RowPtr((int)y_out), buffer.RowPtr((int)y_in), 4*buffer.w);
+        }
+        SaveImage(image, fmt, file_name, true, quality);
+    } else {
+        const pangolin::PixelFormat fmt = pangolin::PixelFormatFromString("RGB24");
+        pangolin::TypedImage buffer(w, h, fmt);
+//        glReadBuffer(GL_BACK);
+//        glPixelStorei(GL_PACK_ALIGNMENT, 1); // TODO: Avoid this?
+        glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, buffer.ptr);
+
+        // FlipY
+        pangolin::TypedImage image(w, h, fmt);
+        for(size_t y_out = 0; y_out < image.h; ++y_out) {
+            const size_t y_in = (buffer.h-1) - y_out;
+            std::memcpy(image.RowPtr((int)y_out), buffer.RowPtr((int)y_in), 3*buffer.w);
+        }
+        SaveImage(image, fmt, file_name, true, quality);
+    }
+
+    // unbind FBO
+    fbo.Unbind();
+
+    // restore viewport
+    display_->v = orig;
+
+    return *this;
+}
+
 void Visualizer::point_size_callback_(Visualizer &viz, int key) {
     if (key == '+') {
         for (auto it = viz.renderables_.begin(); it != viz.renderables_.end(); ++it) {
@@ -625,3 +690,8 @@ void Visualizer::wireframe_toggle_callback_(Visualizer &viz) {
         viz.setRenderingProperties(it->first, rp);
     }
 }
+
+//void Visualizer::draw_func_(Visualizer &viz, pangolin::View &view) {
+//    viz.clearRenderArea();
+//    viz.render();
+//}

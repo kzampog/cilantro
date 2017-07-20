@@ -107,6 +107,11 @@ public:
 
     Visualizer& registerKeyboardCallback(const std::vector<int> &keys, std::function<void(Visualizer&,int,void*)> func, void *cookie);
 
+    Visualizer& saveRenderAsImage(const std::string &file_name, float scale, float quality, bool rgba = false);
+
+    inline pangolin::PangolinGl* getGLContext() const { return gl_context_; }
+    inline pangolin::View* getDisplay() const { return display_; }
+
 private:
     struct Renderable_ {
         Renderable_() : visible(true), centroid(Eigen::Vector3f::Zero()) {}
@@ -183,6 +188,7 @@ private:
     static void point_size_callback_(Visualizer &viz, int key);
     static void reset_view_callback_(Visualizer &viz);
     static void wireframe_toggle_callback_(Visualizer &viz);
+//    static void draw_func_(Visualizer &viz, pangolin::View &view);
 
     struct {
         inline bool operator()(const std::pair<Visualizer::Renderable_*, float> &p1, const std::pair<Visualizer::Renderable_*, float> &p2) const {
