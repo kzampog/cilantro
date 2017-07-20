@@ -10,7 +10,6 @@ PointCloud::PointCloud(const std::vector<Eigen::Vector3f> &points, const std::ve
 {}
 
 PointCloud::PointCloud(const PointCloud &cloud, const std::vector<size_t> &indices, bool negate) {
-
     std::set<size_t> indices_set;
     if (negate) {
         std::vector<size_t> full_indices(cloud.size());
@@ -28,7 +27,6 @@ PointCloud::PointCloud(const PointCloud &cloud, const std::vector<size_t> &indic
     for (auto it = indices_set.begin(); it != indices_set.end(); ++it) {
         points[k++] = cloud.points[*it];
     }
-
     if (cloud.hasNormals()) {
         k = 0;
         normals.resize(indices_set.size());
@@ -36,7 +34,6 @@ PointCloud::PointCloud(const PointCloud &cloud, const std::vector<size_t> &indic
             normals[k++] = cloud.normals[*it];
         }
     }
-
     if (cloud.hasColors()) {
         k = 0;
         colors.resize(indices_set.size());
@@ -46,8 +43,62 @@ PointCloud::PointCloud(const PointCloud &cloud, const std::vector<size_t> &indic
     }
 }
 
-void PointCloud::clear() {
+PointCloud& PointCloud::clear() {
     points.clear();
     normals.clear();
     colors.clear();
+    return *this;
+}
+
+PointCloud& PointCloud::append(const PointCloud &cloud) {
+    points.insert(points.end(), cloud.points.begin(), cloud.points.end());
+    if (hasNormals() && cloud.hasNormals()) {
+        normals.insert(normals.end(), cloud.normals.begin(), cloud.normals.end());
+    }
+    if (hasColors() && cloud.hasColors()) {
+        colors.insert(colors.end(), cloud.colors.begin(), cloud.colors.end());
+    }
+    return *this;
+}
+
+PointCloud& PointCloud::remove(const std::vector<size_t> &indices) {
+    if (indices.empty()) return *this;
+
+    std::set<size_t> indices_set(indices.begin(), indices.end());
+    if (indices_set.size() >= size()) {
+        clear();
+        return *this;
+    }
+
+    size_t valid_ind = size() - 1;
+    while (indices_set.find(valid_ind) != indices_set.end()) {
+        valid_ind--;
+    }
+
+    auto ind_it = indices_set.begin();
+    while (ind_it != indices_set.end() && *ind_it < valid_ind) {
+        std::swap(points[*ind_it], points[valid_ind]);
+        if (hasNormals()) {
+            std::swap(normals[*ind_it], normals[valid_ind]);
+        }
+        if (hasColors()) {
+            std::swap(colors[*ind_it], colors[valid_ind]);
+        }
+        valid_ind--;
+        while (*ind_it < valid_ind && indices_set.find(valid_ind) != indices_set.end()) {
+            valid_ind--;
+        }
+        ++ind_it;
+    }
+
+    size_t new_size = valid_ind + 1;
+    points.resize(new_size);
+    if (hasNormals()) {
+        normals.resize(new_size);
+    }
+    if (hasColors()) {
+        colors.resize(new_size);
+    }
+
+    return *this;
 }
