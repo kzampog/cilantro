@@ -78,15 +78,10 @@ public:
     inline Visualizer& clear() { renderables_.clear(); return *this; }
     inline Visualizer& remove(const std::string &name) { renderables_.erase(name); return *this; }
 
-    inline void clearRenderArea() const {
-        gl_context_->MakeCurrent();
-        display_->Activate(*gl_render_state_);
-        glClearColor(clear_color_(0), clear_color_(1), clear_color_(2), 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    }
-    void render() const;
-    inline void finishFrame() const { gl_context_->MakeCurrent(); pangolin::FinishFrame(); }
-    inline void spinOnce() const { clearRenderArea(); render(); finishFrame(); }
+    Visualizer& clearRenderArea();
+    Visualizer& render();
+    inline Visualizer& finishFrame() { gl_context_->MakeCurrent(); pangolin::FinishFrame(); return *this; }
+    inline Visualizer& spinOnce() { clearRenderArea(); render(); finishFrame(); return *this; }
 
     inline bool wasStopped() const { return gl_context_->quit; }
 
@@ -107,8 +102,13 @@ public:
 
     Visualizer& registerKeyboardCallback(const std::vector<int> &keys, std::function<void(Visualizer&,int,void*)> func, void *cookie);
 
-    pangolin::TypedImage getRenderImage(float scale = 1.0f, bool rgba = false) const;
+    pangolin::TypedImage getRenderImage(float scale = 1.0f, bool rgba = false);
     Visualizer& saveRenderAsImage(const std::string &file_name, float scale, float quality, bool rgba = false);
+
+    Visualizer& startVideoRecording(const std::string &uri, size_t fps, bool record_on_render = false, float scale = 1.0f, bool rgba = false);
+    Visualizer& recordVideoFrame();
+    Visualizer& stopVideoRecording();
+    inline bool isRecording() const { return !!video_recorder_; }
 
     inline pangolin::PangolinGl* getGLContext() const { return gl_context_; }
     inline pangolin::View* getDisplay() const { return display_; }
@@ -179,6 +179,11 @@ private:
     std::shared_ptr<pangolin::OpenGlRenderState> gl_render_state_;
     std::shared_ptr<pangolin::Handler3D> input_handler_;
     pangolin::OpenGlMatrix initial_model_view_;
+    std::shared_ptr<pangolin::VideoOutput> video_recorder_;
+    size_t video_fps_;
+    float video_scale_;
+    bool video_rgba_;
+    bool video_record_on_render_;
 
     static Eigen::Vector3f no_color_;
     static Eigen::Vector3f default_color_;

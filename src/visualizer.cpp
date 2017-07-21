@@ -238,7 +238,8 @@ void Visualizer::TriangleMeshRenderable_::render() {
 }
 
 Visualizer::Visualizer(const std::string &window_name, const std::string &display_name)
-        : clear_color_(Eigen::Vector3f(0.7f, 0.7f, 1.0f))
+        : clear_color_(Eigen::Vector3f(0.7f, 0.7f, 1.0f)),
+          video_record_on_render_(false)
 {
     gl_context_ = pangolin::FindContext(window_name);
     if (!gl_context_) {
@@ -508,7 +509,15 @@ Visualizer& Visualizer::addTriangleMeshFaceValues(const std::string &name, const
     return *this;
 }
 
-void Visualizer::render() const {
+Visualizer& Visualizer::clearRenderArea() {
+    gl_context_->MakeCurrent();
+    display_->Activate(*gl_render_state_);
+    glClearColor(clear_color_(0), clear_color_(1), clear_color_(2), 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    return *this;
+}
+
+Visualizer& Visualizer::render() {
     // Set render sequence
     pangolin::OpenGlMatrix mv = gl_render_state_->GetModelViewMatrix();
     Eigen::Matrix3f R;
@@ -543,6 +552,14 @@ void Visualizer::render() const {
     for (size_t i = 0; i < objects.size(); i++) {
         objects[i].first->render();
     }
+
+    if (video_record_on_render_ && video_recorder_) {
+        video_record_on_render_ = false;
+        recordVideoFrame();
+        video_record_on_render_ = true;
+    }
+
+    return *this;
 }
 
 bool Visualizer::getVisibility(const std::string &name) const {
@@ -596,7 +613,7 @@ Visualizer& Visualizer::registerKeyboardCallback(const std::vector<int> &keys, s
     return *this;
 }
 
-pangolin::TypedImage Visualizer::getRenderImage(float scale, bool rgba) const {
+pangolin::TypedImage Visualizer::getRenderImage(float scale, bool rgba) {
     gl_context_->MakeCurrent();
 
     const pangolin::Viewport orig = display_->v;
@@ -625,7 +642,7 @@ pangolin::TypedImage Visualizer::getRenderImage(float scale, bool rgba) const {
         const pangolin::PixelFormat fmt = pangolin::PixelFormatFromString("RGBA32");
         pangolin::TypedImage buffer(w, h, fmt);
 //        glReadBuffer(GL_BACK);
-//        glPixelStorei(GL_PACK_ALIGNMENT, 1); // TODO: Avoid this?
+        glPixelStorei(GL_PACK_ALIGNMENT, 1); // TODO: Avoid this?
         glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer.ptr);
         // Flip y
         pangolin::TypedImage image(w, h, fmt);
@@ -643,7 +660,7 @@ pangolin::TypedImage Visualizer::getRenderImage(float scale, bool rgba) const {
         const pangolin::PixelFormat fmt = pangolin::PixelFormatFromString("RGB24");
         pangolin::TypedImage buffer(w, h, fmt);
 //        glReadBuffer(GL_BACK);
-//        glPixelStorei(GL_PACK_ALIGNMENT, 1); // TODO: Avoid this?
+        glPixelStorei(GL_PACK_ALIGNMENT, 1); // TODO: Avoid this?
         glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, buffer.ptr);
         // Flip y
         pangolin::TypedImage image(w, h, fmt);
@@ -663,6 +680,54 @@ pangolin::TypedImage Visualizer::getRenderImage(float scale, bool rgba) const {
 Visualizer& Visualizer::saveRenderAsImage(const std::string &file_name, float scale, float quality, bool rgba) {
     pangolin::TypedImage image(getRenderImage(scale, rgba));
     SaveImage(image, image.fmt, file_name, true, quality);
+    return *this;
+}
+
+Visualizer& Visualizer::startVideoRecording(const std::string &uri, size_t fps, bool record_on_render, float scale, bool rgba) {
+    std::string output_uri;
+    if (uri.find(':') == std::string::npos) {
+        // Treat as filename
+        output_uri = "ffmpeg:[fps=" + std::to_string(fps) + "]//" + uri;
+    } else {
+        output_uri = uri;
+    }
+
+    video_fps_ = fps;
+    video_record_on_render_ = record_on_render;
+    video_scale_ = scale;
+    video_rgba_ = rgba;
+    video_recorder_.reset(new pangolin::VideoOutput(output_uri));
+
+    pangolin::PixelFormat fmt(pangolin::PixelFormatFromString((rgba) ? "RGBA32" : "RGB24"));
+    const int w = (int)(display_->v.w * scale);
+    const int h = (int)(display_->v.h * scale);
+    size_t pitch = (size_t)((rgba) ? 4 : 3)*w;
+
+    video_recorder_->SetStreams(std::vector<pangolin::StreamInfo>(1, pangolin::StreamInfo(fmt, w, h, pitch)));
+
+    return *this;
+}
+
+Visualizer& Visualizer::recordVideoFrame() {
+    if (video_recorder_) {
+        pangolin::TypedImage img(getRenderImage(video_scale_, video_rgba_));
+        // Flip y
+        pangolin::TypedImage img_flipped(img.w, img.h, img.fmt);
+        for(size_t y_out = 0; y_out < img_flipped.h; ++y_out) {
+            const size_t y_in = (img.h-1) - y_out;
+            std::memcpy(img_flipped.RowPtr((int)y_out), img.RowPtr((int)y_in), 3*img.w);
+        }
+        video_recorder_->WriteStreams(img_flipped.ptr);
+    }
+    return *this;
+}
+
+Visualizer& Visualizer::stopVideoRecording() {
+    if (video_recorder_) {
+        video_recorder_->Close();
+        video_recorder_.reset();
+    }
+    video_record_on_render_ = false;
     return *this;
 }
 
