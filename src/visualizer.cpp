@@ -596,7 +596,7 @@ Visualizer& Visualizer::registerKeyboardCallback(const std::vector<int> &keys, s
     return *this;
 }
 
-Visualizer& Visualizer::saveRenderAsImage(const std::string &file_name, float scale, float quality, bool rgba) {
+pangolin::TypedImage Visualizer::getRenderImage(float scale, bool rgba) const {
     gl_context_->MakeCurrent();
 
     const pangolin::Viewport orig = display_->v;
@@ -627,36 +627,42 @@ Visualizer& Visualizer::saveRenderAsImage(const std::string &file_name, float sc
 //        glReadBuffer(GL_BACK);
 //        glPixelStorei(GL_PACK_ALIGNMENT, 1); // TODO: Avoid this?
         glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer.ptr);
-
-        // FlipY
+        // Flip y
         pangolin::TypedImage image(w, h, fmt);
         for(size_t y_out = 0; y_out < image.h; ++y_out) {
             const size_t y_in = (buffer.h-1) - y_out;
             std::memcpy(image.RowPtr((int)y_out), buffer.RowPtr((int)y_in), 4*buffer.w);
         }
-        SaveImage(image, fmt, file_name, true, quality);
+        // unbind FBO
+        fbo.Unbind();
+        // restore viewport
+        display_->v = orig;
+
+        return image;
     } else {
         const pangolin::PixelFormat fmt = pangolin::PixelFormatFromString("RGB24");
         pangolin::TypedImage buffer(w, h, fmt);
 //        glReadBuffer(GL_BACK);
 //        glPixelStorei(GL_PACK_ALIGNMENT, 1); // TODO: Avoid this?
         glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, buffer.ptr);
-
-        // FlipY
+        // Flip y
         pangolin::TypedImage image(w, h, fmt);
         for(size_t y_out = 0; y_out < image.h; ++y_out) {
             const size_t y_in = (buffer.h-1) - y_out;
             std::memcpy(image.RowPtr((int)y_out), buffer.RowPtr((int)y_in), 3*buffer.w);
         }
-        SaveImage(image, fmt, file_name, true, quality);
+        // unbind FBO
+        fbo.Unbind();
+        // restore viewport
+        display_->v = orig;
+
+        return image;
     }
+}
 
-    // unbind FBO
-    fbo.Unbind();
-
-    // restore viewport
-    display_->v = orig;
-
+Visualizer& Visualizer::saveRenderAsImage(const std::string &file_name, float scale, float quality, bool rgba) {
+    pangolin::TypedImage image(getRenderImage(scale, rgba));
+    SaveImage(image, image.fmt, file_name, true, quality);
     return *this;
 }
 

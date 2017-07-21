@@ -107,6 +107,7 @@ public:
 
     Visualizer& registerKeyboardCallback(const std::vector<int> &keys, std::function<void(Visualizer&,int,void*)> func, void *cookie);
 
+    pangolin::TypedImage getRenderImage(float scale = 1.0f, bool rgba = false) const;
     Visualizer& saveRenderAsImage(const std::string &file_name, float scale, float quality, bool rgba = false);
 
     inline pangolin::PangolinGl* getGLContext() const { return gl_context_; }
