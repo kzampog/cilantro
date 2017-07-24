@@ -86,11 +86,11 @@ public:
     inline bool wasStopped() const { return gl_context_->quit; }
 
     bool getVisibility(const std::string &name) const;
-    void setVisibility(const std::string &name, bool visible);
-    inline void toggleVisibility(const std::string &name) { setVisibility(name, !getVisibility(name)); }
+    Visualizer& setVisibility(const std::string &name, bool visible);
+    inline Visualizer& toggleVisibility(const std::string &name) { setVisibility(name, !getVisibility(name)); return *this; }
 
     RenderingProperties getRenderingProperties(const std::string &name) const;
-    void setRenderingProperties(const std::string &name, const RenderingProperties &rp);
+    Visualizer& setRenderingProperties(const std::string &name, const RenderingProperties &rp);
 
     std::vector<std::string> getObjectNames() const;
 

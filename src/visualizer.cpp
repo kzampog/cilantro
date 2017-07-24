@@ -568,10 +568,11 @@ bool Visualizer::getVisibility(const std::string &name) const {
     return it->second->visible;
 }
 
-void Visualizer::setVisibility(const std::string &name, bool visible) {
+Visualizer& Visualizer::setVisibility(const std::string &name, bool visible) {
     auto it = renderables_.find(name);
-    if (it == renderables_.end()) return;
+    if (it == renderables_.end()) return *this;
     it->second->visible = visible;
+    return *this;
 }
 
 Visualizer::RenderingProperties Visualizer::getRenderingProperties(const std::string &name) const {
@@ -580,11 +581,12 @@ Visualizer::RenderingProperties Visualizer::getRenderingProperties(const std::st
     return it->second->renderingProperties;
 }
 
-void Visualizer::setRenderingProperties(const std::string &name, const RenderingProperties &rp) {
+Visualizer& Visualizer::setRenderingProperties(const std::string &name, const RenderingProperties &rp) {
     auto it = renderables_.find(name);
-    if (it == renderables_.end()) return;
+    if (it == renderables_.end()) return *this;
     gl_context_->MakeCurrent();
     it->second->applyRenderingProperties(rp);
+    return *this;
 }
 
 std::vector<std::string> Visualizer::getObjectNames() const {

@@ -59,9 +59,10 @@ ImageViewer& ImageViewer::clear() {
     return *this;
 }
 
-void ImageViewer::render() const {
+ImageViewer& ImageViewer::render() {
     gl_context_->MakeCurrent();
     display_->Activate();
 //    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     gl_texture_.RenderToViewportFlipY();
+    return *this;
 }
