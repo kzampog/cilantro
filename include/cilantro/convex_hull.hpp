@@ -401,6 +401,8 @@ private:
 
 class CloudHull : public ConvexHull3D {
 public:
+    using ConvexHull3D::getSignedDistancesFromFacetsMatrixMap;
+    using ConvexHull3D::getInteriorPointIndices;
     CloudHull(const PointCloud &cloud, bool simplicial_facets = true, double merge_tol = 0.0);
     Eigen::MatrixXf getSignedDistancesFromFacetsMatrixMap(const PointCloud &cloud) const;
     std::vector<size_t> getInteriorPointIndices(const PointCloud &cloud, float offset = 0.0) const;
