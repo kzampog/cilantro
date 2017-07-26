@@ -346,14 +346,14 @@ public:
         return (distances.array() <= 0.0f).all();
     }
 
-    Eigen::Matrix<OutputScalarT,Eigen::Dynamic,Eigen::Dynamic> getSignedDistancesFromFacetsMatrixMap(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points) const {
+    Eigen::Matrix<OutputScalarT,Eigen::Dynamic,Eigen::Dynamic> getSignedDistancesFromFacets(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points) const {
         Eigen::Map<Eigen::Matrix<OutputScalarT,EigenDim,Eigen::Dynamic> > map((OutputScalarT *)points.data(), EigenDim, points.size());
         Eigen::Matrix<OutputScalarT,Eigen::Dynamic,Eigen::Dynamic> distances = (halfspace_normals_*map).colwise() + halfspace_offsets_;
         return distances;
     }
 
     std::vector<size_t> getInteriorPointIndices(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points, OutputScalarT offset = 0.0) const {
-        Eigen::Matrix<OutputScalarT,Eigen::Dynamic,Eigen::Dynamic> distances(getSignedDistancesFromFacetsMatrixMap(points));
+        Eigen::Matrix<OutputScalarT,Eigen::Dynamic,Eigen::Dynamic> distances(getSignedDistancesFromFacets(points));
         std::vector<size_t> indices;
         indices.reserve(points.size());
         for (size_t i = 0; i < points.size(); i++) {
@@ -401,9 +401,9 @@ private:
 
 class CloudHull : public ConvexHull3D {
 public:
-    using ConvexHull3D::getSignedDistancesFromFacetsMatrixMap;
+    using ConvexHull3D::getSignedDistancesFromFacets;
     using ConvexHull3D::getInteriorPointIndices;
     CloudHull(const PointCloud &cloud, bool simplicial_facets = true, double merge_tol = 0.0);
-    Eigen::MatrixXf getSignedDistancesFromFacetsMatrixMap(const PointCloud &cloud) const;
+    Eigen::MatrixXf getSignedDistancesFromFacets(const PointCloud &cloud) const;
     std::vector<size_t> getInteriorPointIndices(const PointCloud &cloud, float offset = 0.0) const;
 };

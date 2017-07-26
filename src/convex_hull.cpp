@@ -28,8 +28,8 @@ CloudHull::CloudHull(const PointCloud &cloud, bool simplicial_facets, double mer
         : ConvexHull3D(cloud.points, simplicial_facets, merge_tol)
 {}
 
-Eigen::MatrixXf CloudHull::getSignedDistancesFromFacetsMatrixMap(const PointCloud &cloud) const {
-    return getSignedDistancesFromFacetsMatrixMap(cloud.points);
+Eigen::MatrixXf CloudHull::getSignedDistancesFromFacets(const PointCloud &cloud) const {
+    return getSignedDistancesFromFacets(cloud.points);
 }
 
 std::vector<size_t> CloudHull::getInteriorPointIndices(const PointCloud &cloud, float offset) const {
