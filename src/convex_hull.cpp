@@ -27,3 +27,11 @@ void CloudHullFlat::init_(const std::vector<Eigen::Vector3f> &points) {
 CloudHull::CloudHull(const PointCloud &cloud, bool simplicial_facets, double merge_tol)
         : ConvexHull3D(cloud.points, simplicial_facets, merge_tol)
 {}
+
+Eigen::MatrixXf CloudHull::getSignedDistancesFromFacetsMatrixMap(const PointCloud &cloud) const {
+    return ConvexHull3D::getSignedDistancesFromFacetsMatrixMap(cloud.points);
+}
+
+std::vector<size_t> CloudHull::getInteriorPointIndices(const PointCloud &cloud, float offset) const {
+    return ConvexHull3D::getInteriorPointIndices(cloud.points, offset);
+}

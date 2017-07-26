@@ -342,25 +342,22 @@ public:
     inline double getVolume() const { return volume_; }
 
     bool isPointInHull(const Eigen::Matrix<OutputScalarT,EigenDim,1> &point) const {
-        for (size_t i = 0; i < halfspaces_.size(); i++) {
-            if (point.dot(halfspaces_[i].head(EigenDim)) + halfspaces_[i](EigenDim) > 0.0) return false;
-        }
-        return true;
+        Eigen::Matrix<OutputScalarT,Eigen::Dynamic,1> distances = halfspace_normals_*point + halfspace_offsets_;
+        return (distances.array() <= 0.0f).all();
     }
 
-    std::vector<OutputScalarT> getSignedDistancesFromFacets(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points) const {
-        std::vector<OutputScalarT> distances(points.size());
-        Eigen::Map<Eigen::Matrix<OutputScalarT,Eigen::Dynamic,Eigen::Dynamic> > map((OutputScalarT *)points.data(), EigenDim, points.size());
-        Eigen::Matrix<OutputScalarT,1,Eigen::Dynamic>::Map(distances.data(), distances.size()) = (halfspace_normals_*map).colwise() + halfspace_offsets_;
+    Eigen::Matrix<OutputScalarT,Eigen::Dynamic,Eigen::Dynamic> getSignedDistancesFromFacetsMatrixMap(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points) const {
+        Eigen::Map<Eigen::Matrix<OutputScalarT,EigenDim,Eigen::Dynamic> > map((OutputScalarT *)points.data(), EigenDim, points.size());
+        Eigen::Matrix<OutputScalarT,Eigen::Dynamic,Eigen::Dynamic> distances = (halfspace_normals_*map).colwise() + halfspace_offsets_;
         return distances;
     }
 
-    std::vector<size_t> getInteriorPointIndices(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points) const {
-        std::vector<OutputScalarT> distances = getSignedDistancesFromFacets(points);
+    std::vector<size_t> getInteriorPointIndices(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points, OutputScalarT offset = 0.0) const {
+        Eigen::Matrix<OutputScalarT,Eigen::Dynamic,Eigen::Dynamic> distances(getSignedDistancesFromFacetsMatrixMap(points));
         std::vector<size_t> indices;
         indices.reserve(points.size());
         for (size_t i = 0; i < points.size(); i++) {
-            if (distances[i] <= 0.0) indices.push_back(i);
+            if ((distances.col(i).array() <= -offset).all()) indices.push_back(i);
         }
         return indices;
     }
@@ -405,4 +402,6 @@ private:
 class CloudHull : public ConvexHull3D {
 public:
     CloudHull(const PointCloud &cloud, bool simplicial_facets = true, double merge_tol = 0.0);
+    Eigen::MatrixXf getSignedDistancesFromFacetsMatrixMap(const PointCloud &cloud) const;
+    std::vector<size_t> getInteriorPointIndices(const PointCloud &cloud, float offset = 0.0) const;
 };
