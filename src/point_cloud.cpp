@@ -50,12 +50,15 @@ PointCloud& PointCloud::clear() {
     return *this;
 }
 
+#include <iostream>
+
 PointCloud& PointCloud::append(const PointCloud &cloud) {
+    size_t original_size = size();
     points.insert(points.end(), cloud.points.begin(), cloud.points.end());
-    if (hasNormals() && cloud.hasNormals()) {
+    if (normals.size() == original_size && cloud.hasNormals()) {
         normals.insert(normals.end(), cloud.normals.begin(), cloud.normals.end());
     }
-    if (hasColors() && cloud.hasColors()) {
+    if (colors.size() == original_size && cloud.hasColors()) {
         colors.insert(colors.end(), cloud.colors.begin(), cloud.colors.end());
     }
     return *this;
