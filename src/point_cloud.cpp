@@ -94,12 +94,13 @@ PointCloud& PointCloud::remove(const std::vector<size_t> &indices) {
         ++ind_it;
     }
 
+    size_t original_size = size();
     size_t new_size = valid_ind + 1;
     points.resize(new_size);
-    if (hasNormals()) {
+    if (normals.size() == original_size) {
         normals.resize(new_size);
     }
-    if (hasColors()) {
+    if (colors.size() == original_size) {
         colors.resize(new_size);
     }
 
