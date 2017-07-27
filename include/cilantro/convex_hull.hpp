@@ -353,11 +353,11 @@ public:
     }
 
     std::vector<size_t> getInteriorPointIndices(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points, OutputScalarT offset = 0.0) const {
-        Eigen::Matrix<OutputScalarT,Eigen::Dynamic,Eigen::Dynamic> distances(getSignedDistancesFromFacets(points));
+        Eigen::Matrix<bool,1,Eigen::Dynamic> distance_test((getSignedDistancesFromFacets(points).array() <= -offset).colwise().all());
         std::vector<size_t> indices;
         indices.reserve(points.size());
         for (size_t i = 0; i < points.size(); i++) {
-            if ((distances.col(i).array() <= -offset).all()) indices.push_back(i);
+            if (distance_test[i]) indices.push_back(i);
         }
         return indices;
     }
