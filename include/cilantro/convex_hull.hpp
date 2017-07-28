@@ -20,7 +20,7 @@ bool convexHullFromPoints(InputScalarT * points,
                           bool simplicial_faces = true,
                           realT merge_tol = 0.0)
 {
-    Eigen::Matrix<realT,Eigen::Dynamic,Eigen::Dynamic> data(Eigen::Map<Eigen::Matrix<InputScalarT,Eigen::Dynamic,Eigen::Dynamic> >(points, EigenDim, num_points).template cast<realT>());
+    Eigen::Matrix<realT,EigenDim,Eigen::Dynamic> data(Eigen::Map<Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> >(points,EigenDim,num_points).template cast<realT>());
 
     orgQhull::Qhull qh;
     if (simplicial_faces) qh.qh()->TRIangulate = True;
@@ -133,7 +133,7 @@ bool findFeasiblePointInHalfspaceIntersection(ScalarT * halfspaces,
                                               Eigen::Matrix<ScalarT,EigenDim,1> &feasible_point)
 {
     // Objective
-    //Eigen::MatrixXd G(Eigen::MatrixXd::Zero(EigenDim+2,EigenDim+2));
+//    Eigen::MatrixXd G(Eigen::MatrixXd::Zero(EigenDim+2,EigenDim+2));
     Eigen::MatrixXd G(Eigen::MatrixXd::Identity(EigenDim+2,EigenDim+2));
     Eigen::VectorXd g0(Eigen::VectorXd::Zero(EigenDim+2));
     g0(EigenDim+1) = -1.0;
@@ -143,9 +143,10 @@ bool findFeasiblePointInHalfspaceIntersection(ScalarT * halfspaces,
     Eigen::VectorXd ce0(0);
 
     // Inequality constraints
-    Eigen::MatrixXd ineq_data(Eigen::Map<Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> >(halfspaces, EigenDim+1, num_halfspaces).template cast<double>());
     Eigen::MatrixXd CI(EigenDim+2,num_halfspaces);
-    CI.topRows(EigenDim+1) = -ineq_data;
+//    Eigen::MatrixXd ineq_data(Eigen::Map<Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> >(halfspaces,EigenDim+1,num_halfspaces).template cast<double>());
+//    CI.topRows(EigenDim+1) = -ineq_data;
+    CI.topRows(EigenDim+1) = -(Eigen::Map<Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> >(halfspaces,EigenDim+1,num_halfspaces).template cast<double>());
     CI.row(EigenDim+1) = -Eigen::VectorXd::Ones(num_halfspaces);
     Eigen::VectorXd ci0(Eigen::VectorXd::Zero(num_halfspaces));
 
@@ -153,11 +154,13 @@ bool findFeasiblePointInHalfspaceIntersection(ScalarT * halfspaces,
     Eigen::VectorXd x(EigenDim+2);
     double val = solve_quadprog(G, g0, CE, ce0, CI, ci0, x);
 
-    if (std::isinf(val) || std::abs(x(EigenDim)) < 1e-10 || x.array().isNaN().any() || x.array().isInf().any())
-        return false;
+    std::cout << val << " for: " << x.transpose() << std::endl;
 
     Eigen::Matrix<double,EigenDim,1> feasible_point_d(x.head(EigenDim)/x(EigenDim));
     feasible_point = feasible_point_d.template cast<ScalarT>();
+
+    if (std::isinf(val) || std::abs(x(EigenDim)) < 1e-10 || x.array().isNaN().any() || x.array().isInf().any())
+        return false;
 
     return true;
 }
@@ -176,7 +179,7 @@ bool convexHullVerticesFromHalfspaces(InputScalarT * halfspaces,
                                       std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &hull_points,
                                       realT merge_tol = 0.0)
 {
-    Eigen::Matrix<realT,Eigen::Dynamic,Eigen::Dynamic> data(Eigen::Map<Eigen::Matrix<InputScalarT,Eigen::Dynamic,Eigen::Dynamic> >(halfspaces, EigenDim+1, num_halfspaces).template cast<realT>());
+    Eigen::Matrix<realT,EigenDim+1,Eigen::Dynamic> data(Eigen::Map<Eigen::Matrix<InputScalarT,EigenDim+1,Eigen::Dynamic> >(halfspaces,EigenDim+1,num_halfspaces).template cast<realT>());
 
     Eigen::Matrix<coordT,EigenDim,1> feasible_point(interior_point.template cast<coordT>());
     std::vector<coordT> fpv(EigenDim);
@@ -379,7 +382,7 @@ private:
     double volume_;
 
     void init_() {
-        Eigen::Map<Eigen::Matrix<OutputScalarT,Eigen::Dynamic,Eigen::Dynamic> > map((OutputScalarT *)halfspaces_.data(), EigenDim+1, halfspaces_.size());
+        Eigen::Map<Eigen::Matrix<OutputScalarT,EigenDim+1,Eigen::Dynamic> > map((OutputScalarT *)halfspaces_.data(), EigenDim+1, halfspaces_.size());
         halfspace_normals_ = map.topRows(EigenDim).transpose();
         halfspace_offsets_ = map.row(EigenDim);
     }
