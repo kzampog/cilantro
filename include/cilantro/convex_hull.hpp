@@ -127,6 +127,41 @@ inline bool convexHullFromPoints(const std::vector<Eigen::Matrix<InputScalarT,Ei
     return convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>((InputScalarT *)points.data(), points.size(), hull_points, halfspaces, faces, point_neighbor_faces, face_neighbor_faces, hull_point_indices, area, volume, simplicial_faces, merge_tol);
 }
 
+//template <typename ScalarT, ptrdiff_t EigenDim>
+//bool findFeasiblePointInHalfspaceIntersection(ScalarT * halfspaces,
+//                                              size_t num_halfspaces,
+//                                              Eigen::Matrix<ScalarT,EigenDim,1> &feasible_point)
+//{
+//    Eigen::MatrixXd ineq_data(Eigen::Map<Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> >(halfspaces,EigenDim+1,num_halfspaces).template cast<double>());
+//
+//    // Objective
+//    Eigen::MatrixXd G(ineq_data*(ineq_data.transpose()));
+//    Eigen::VectorXd g0(Eigen::VectorXd::Zero(EigenDim+1));
+//
+//    // Equality constraints
+//    Eigen::VectorXd CE(Eigen::VectorXd::Zero(EigenDim+1));
+//    CE(EigenDim) = 1.0;
+//    Eigen::VectorXd ce0(1);
+//    ce0(0) = -1.0;
+//
+//    // Inequality constraints
+//    Eigen::MatrixXd CI(-ineq_data);
+//    Eigen::VectorXd ci0(Eigen::VectorXd::Zero(num_halfspaces));
+//
+//    // Optimization
+//    Eigen::VectorXd x(EigenDim+1);
+//    double val = solve_quadprog(G, g0, CE, ce0, CI, ci0, x);
+//
+//    std::cout << val << " for: " << x.transpose() << std::endl;
+//
+//    feasible_point = x.head(EigenDim).template cast<ScalarT>();
+//
+//    if (std::isinf(val) || std::isnan(val) || x.array().isNaN().any() || x.array().isInf().any())
+//        return false;
+//
+//    return true;
+//}
+
 template <typename ScalarT, ptrdiff_t EigenDim>
 bool findFeasiblePointInHalfspaceIntersection(ScalarT * halfspaces,
                                               size_t num_halfspaces,
@@ -154,16 +189,52 @@ bool findFeasiblePointInHalfspaceIntersection(ScalarT * halfspaces,
     Eigen::VectorXd x(EigenDim+2);
     double val = solve_quadprog(G, g0, CE, ce0, CI, ci0, x);
 
-    std::cout << val << " for: " << x.transpose() << std::endl;
+//    std::cout << val << " for: " << x.transpose() << std::endl;
 
     Eigen::Matrix<double,EigenDim,1> feasible_point_d(x.head(EigenDim)/x(EigenDim));
     feasible_point = feasible_point_d.template cast<ScalarT>();
 
-    if (std::isinf(val) || std::abs(x(EigenDim)) < 1e-10 || x.array().isNaN().any() || x.array().isInf().any())
+    if (std::isinf(val) || std::isnan(val) || std::abs(x(EigenDim)) < 1e-10 || x.array().isNaN().any() || x.array().isInf().any())
         return false;
 
     return true;
 }
+
+//template <typename ScalarT, ptrdiff_t EigenDim>
+//bool findFeasiblePointInHalfspaceIntersection(ScalarT * halfspaces,
+//                                              size_t num_halfspaces,
+//                                              Eigen::Matrix<ScalarT,EigenDim,1> &feasible_point)
+//{
+//    // Objective
+////    Eigen::MatrixXd G(Eigen::MatrixXd::Zero(EigenDim+1,EigenDim+1));
+//    Eigen::MatrixXd G(1e-6*Eigen::MatrixXd::Identity(EigenDim+1,EigenDim+1));
+//    Eigen::VectorXd g0(Eigen::VectorXd::Zero(EigenDim+1));
+//    g0(EigenDim) = -1.0;
+//
+//    // Equality constraints
+//    Eigen::MatrixXd CE(EigenDim+1,0);
+//    Eigen::VectorXd ce0(0);
+//
+//    // Inequality constraints
+//    Eigen::MatrixXd ineq_data(Eigen::Map<Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> >(halfspaces,EigenDim+1,num_halfspaces).template cast<double>());
+//    Eigen::MatrixXd CI(EigenDim+1,num_halfspaces);
+//    CI.topRows(EigenDim) = -ineq_data.topRows(EigenDim);
+//    CI.row(EigenDim) = -ineq_data.topRows(EigenDim).colwise().norm();
+//    Eigen::VectorXd ci0(-ineq_data.row(EigenDim));
+//
+//    // Optimization
+//    Eigen::VectorXd x(EigenDim+1);
+//    double val = solve_quadprog(G, g0, CE, ce0, CI, ci0, x);
+//
+//    std::cout << val << " for: " << x.transpose() << std::endl;
+//
+//    feasible_point = x.head(EigenDim).template cast<ScalarT>();
+//
+//    if (std::isinf(val) || std::isnan(val) || x(EigenDim) < 0.0 || x.array().isNaN().any() || x.array().isInf().any())
+//        return false;
+//
+//    return true;
+//}
 
 template <typename ScalarT, ptrdiff_t EigenDim>
 inline bool findFeasiblePointInHalfspaceIntersection(const std::vector<Eigen::Matrix<ScalarT,EigenDim+1,1> > &halfspaces,
