@@ -127,52 +127,6 @@ inline bool convexHullFromPoints(const std::vector<Eigen::Matrix<InputScalarT,Ei
     return convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(Eigen::Map<Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> >((InputScalarT *)points.data(),EigenDim,points.size()), hull_points, halfspaces, faces, point_neighbor_faces, face_neighbor_faces, hull_point_indices, area, volume, simplicial_faces, merge_tol);
 }
 
-template <typename ScalarT, ptrdiff_t EigenDim>
-bool findFeasiblePointInHalfspaceIntersection(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> > &halfspaces,
-                                              Eigen::Matrix<ScalarT,EigenDim,1> &feasible_point)
-{
-    size_t num_halfspaces = halfspaces.cols();
-    Eigen::MatrixXd ineq_data(halfspaces.template cast<double>());
-
-    for (size_t i = 0; i < num_halfspaces; i++) {
-        ineq_data.col(i) /= ineq_data.col(i).head(EigenDim).norm();
-    }
-
-    // "Pre-condition"
-    Eigen::VectorXd t_vec(Eigen::VectorXd::Zero(EigenDim));
-    if (ineq_data.row(EigenDim).array().abs().maxCoeff() < 1e-10) {
-        t_vec.setOnes();
-        ineq_data.row(EigenDim) -= t_vec.transpose()*ineq_data.topRows(EigenDim);
-    }
-
-    // Objective
-    Eigen::MatrixXd G(ineq_data*(ineq_data.transpose()));
-    Eigen::VectorXd g0(Eigen::VectorXd::Zero(EigenDim+1));
-
-    // Equality constraints
-    Eigen::VectorXd CE(Eigen::VectorXd::Zero(EigenDim+1));
-    CE(EigenDim) = 1.0;
-    Eigen::VectorXd ce0(1);
-    ce0(0) = -1.0;
-
-    // Inequality constraints
-    Eigen::MatrixXd CI(-ineq_data);
-    Eigen::VectorXd ci0(Eigen::VectorXd::Zero(num_halfspaces));
-
-    // Optimization
-    Eigen::VectorXd x(EigenDim+1);
-    double val = solve_quadprog(G, g0, CE, ce0, CI, ci0, x);
-
-//    std::cout << val << " for: " << x.transpose() << std::endl;
-
-    feasible_point = (x.head(EigenDim) - t_vec).template cast<ScalarT>();
-
-    if (std::isinf(val) || std::isnan(val) || x.array().isNaN().any() || x.array().isInf().any())
-        return false;
-
-    return true;
-}
-
 //template <typename ScalarT, ptrdiff_t EigenDim>
 //bool findFeasiblePointInHalfspaceIntersection(ScalarT * halfspaces,
 //                                              size_t num_halfspaces,
@@ -260,10 +214,58 @@ bool findFeasiblePointInHalfspaceIntersection(const Eigen::Ref<const Eigen::Matr
 //}
 
 template <typename ScalarT, ptrdiff_t EigenDim>
-inline bool findFeasiblePointInHalfspaceIntersection(const std::vector<Eigen::Matrix<ScalarT,EigenDim+1,1> > &halfspaces,
-                                                     Eigen::Matrix<ScalarT,EigenDim,1> &feasible_point)
+bool findFeasiblePointInHalfspaceIntersection(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> > &halfspaces,
+                                              Eigen::Matrix<ScalarT,EigenDim,1> &feasible_point,
+                                              ScalarT dist_tol = 1e-10)
 {
-    return findFeasiblePointInHalfspaceIntersection<ScalarT,EigenDim>(Eigen::Map<Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> >((ScalarT *)halfspaces.data(),EigenDim+1,halfspaces.size()), feasible_point);
+    size_t num_halfspaces = halfspaces.cols();
+    Eigen::MatrixXd ineq_data(halfspaces.template cast<double>());
+
+    for (size_t i = 0; i < num_halfspaces; i++) {
+        ineq_data.col(i) /= ineq_data.col(i).head(EigenDim).norm();
+    }
+
+    // "Pre-condition"
+    Eigen::VectorXd t_vec(Eigen::VectorXd::Zero(EigenDim));
+    if (ineq_data.row(EigenDim).array().abs().maxCoeff() < dist_tol) {
+        t_vec.setOnes();
+        ineq_data.row(EigenDim) -= t_vec.transpose()*ineq_data.topRows(EigenDim);
+    }
+
+    // Objective
+    Eigen::MatrixXd G(ineq_data*(ineq_data.transpose()));
+    Eigen::VectorXd g0(Eigen::VectorXd::Zero(EigenDim+1));
+
+    // Equality constraints
+    Eigen::VectorXd CE(Eigen::VectorXd::Zero(EigenDim+1));
+    CE(EigenDim) = 1.0;
+    Eigen::VectorXd ce0(1);
+    ce0(0) = -1.0;
+
+    // Inequality constraints
+    Eigen::MatrixXd CI(-ineq_data);
+    Eigen::VectorXd ci0(Eigen::VectorXd::Zero(num_halfspaces));
+
+    // Optimization
+    Eigen::VectorXd x(EigenDim+1);
+    double val = solve_quadprog(G, g0, CE, ce0, CI, ci0, x);
+
+//    std::cout << val << " for: " << x.transpose() << std::endl;
+
+    feasible_point = (x.head(EigenDim) - t_vec).template cast<ScalarT>();
+
+    if (std::isinf(val) || std::isnan(val) || x.array().isNaN().any() || x.array().isInf().any())
+        return false;
+
+    return true;
+}
+
+template <typename ScalarT, ptrdiff_t EigenDim>
+inline bool findFeasiblePointInHalfspaceIntersection(const std::vector<Eigen::Matrix<ScalarT,EigenDim+1,1> > &halfspaces,
+                                                     Eigen::Matrix<ScalarT,EigenDim,1> &feasible_point,
+                                                     ScalarT dist_tol = 1e-10)
+{
+    return findFeasiblePointInHalfspaceIntersection<ScalarT,EigenDim>(Eigen::Map<Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> >((ScalarT *)halfspaces.data(),EigenDim+1,halfspaces.size()), feasible_point, dist_tol);
 }
 
 template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
@@ -274,6 +276,9 @@ bool convexHullVerticesFromHalfspaces(const Eigen::Ref<const Eigen::Matrix<Input
 {
     size_t num_halfspaces = halfspaces.cols();
     Eigen::Matrix<realT,EigenDim+1,Eigen::Dynamic> data(halfspaces.template cast<realT>());
+    for (size_t i = 0; i < num_halfspaces; i++) {
+        data.col(i) /= data.col(i).head(EigenDim).norm();
+    }
 
     Eigen::Matrix<coordT,EigenDim,1> feasible_point(interior_point.template cast<coordT>());
     std::vector<coordT> fpv(EigenDim);
@@ -281,10 +286,17 @@ bool convexHullVerticesFromHalfspaces(const Eigen::Ref<const Eigen::Matrix<Input
 
     orgQhull::Qhull qh;
     qh.qh()->HALFspace = True;
+    qh.qh()->PRINTprecision = False;
+//    qh.qh()->JOGGLEmax = 0.0;
+    qh.qh()->TRIangulate = False;
     qh.qh()->premerge_centrum = merge_tol;
     qh.setFeasiblePoint(orgQhull::Coordinates(fpv));
     qh.runQhull("", EigenDim+1, num_halfspaces, data.data(), "");
+
     orgQhull::QhullFacetList facets = qh.facetList();
+
+
+//    std::cout << "Points:" << std::endl;
 
     // Get hull points from dual facets
     size_t k = 0;
@@ -296,8 +308,22 @@ bool convexHullVerticesFromHalfspaces(const Eigen::Ref<const Eigen::Matrix<Input
             normal(i++) = *hpi;
         }
         hull_points[k++] = (-normal/fi->hyperplane().offset() + feasible_point).template cast<OutputScalarT>();
-//        std::cout << normal.transpose() << " with " << fi->hyperplane().offset() << std::endl;
+
+//        std::cout << fi->id() << ": " << hull_points[k-1].transpose() << ", is inf: " << (fi->hyperplane().offset() >= 0) << std::endl;
+//        std::cout << fi->id() << ": " << normal.transpose() << " with " << fi->hyperplane().offset() << std::endl;
+
     }
+
+//    ////////
+//
+//    std::cout << "Halfspaces:" << std::endl;
+//    for (auto vi = qh.vertexList().begin(); vi != qh.vertexList().end(); ++vi) {
+//        std::cout << data.col(vi->point().id()).transpose() << std::endl;
+//    }
+//    std::cout << std::endl;
+//
+//    ////////
+
 
     return true;
 }
@@ -314,11 +340,11 @@ inline bool convexHullVerticesFromHalfspaces(const std::vector<Eigen::Matrix<Inp
 template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
 inline bool convexHullVerticesFromHalfspaces(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim+1,Eigen::Dynamic> > &halfspaces,
                                              std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &hull_points,
+                                             InputScalarT dist_tol = 1e-10,
                                              realT merge_tol = 0.0)
 {
-
     Eigen::Matrix<InputScalarT,EigenDim,1> interior_point;
-    if (findFeasiblePointInHalfspaceIntersection<InputScalarT,EigenDim>(halfspaces, interior_point))
+    if (findFeasiblePointInHalfspaceIntersection<InputScalarT,EigenDim>(halfspaces, interior_point, dist_tol))
         return convexHullVerticesFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(halfspaces, interior_point, hull_points, merge_tol);
     return false;
 }
@@ -326,9 +352,10 @@ inline bool convexHullVerticesFromHalfspaces(const Eigen::Ref<const Eigen::Matri
 template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
 inline bool convexHullVerticesFromHalfspaces(const std::vector<Eigen::Matrix<InputScalarT,EigenDim+1,1> > &halfspaces,
                                              std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &hull_points,
+                                             InputScalarT dist_tol = 1e-10,
                                              realT merge_tol = 0.0)
 {
-    return convexHullVerticesFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(halfspaces, hull_points, merge_tol);
+    return convexHullVerticesFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(Eigen::Map<Eigen::Matrix<InputScalarT,EigenDim+1,Eigen::Dynamic> >((InputScalarT *)halfspaces.data(),EigenDim+1,halfspaces.size()), hull_points, dist_tol, merge_tol);
 }
 
 template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
@@ -379,10 +406,11 @@ inline bool convexHullFromHalfspaces(const Eigen::Ref<const Eigen::Matrix<InputS
                                      std::vector<size_t> &hull_point_indices,
                                      double &area, double &volume,
                                      bool simplicial_faces = true,
+                                     InputScalarT dist_tol = 1e-10,
                                      realT merge_tol = 0.0)
 {
     std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > hull_points_tmp;
-    if (convexHullVerticesFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(halfspaces, hull_points_tmp, merge_tol))
+    if (convexHullVerticesFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(halfspaces, hull_points_tmp, merge_tol, dist_tol))
         return convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(hull_points_tmp, hull_points, halfspaces_out, faces, point_neighbor_faces, face_neighbor_faces, hull_point_indices, area, volume, simplicial_faces, merge_tol);
     return false;
 }
@@ -397,10 +425,11 @@ inline bool convexHullFromHalfspaces(const std::vector<Eigen::Matrix<InputScalar
                                      std::vector<size_t> &hull_point_indices,
                                      double &area, double &volume,
                                      bool simplicial_faces = true,
+                                     InputScalarT dist_tol = 1e-10,
                                      realT merge_tol = 0.0)
 {
     std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > hull_points_tmp;
-    if (convexHullVerticesFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(halfspaces, hull_points_tmp, merge_tol))
+    if (convexHullVerticesFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(halfspaces, hull_points_tmp, merge_tol, dist_tol))
         return convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(hull_points_tmp, hull_points, halfspaces_out, point_neighbor_faces, face_neighbor_faces, faces, hull_point_indices, area, volume, simplicial_faces, merge_tol);
     return false;
 }
@@ -408,20 +437,20 @@ inline bool convexHullFromHalfspaces(const std::vector<Eigen::Matrix<InputScalar
 template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
 class ConvexHull {
 public:
-    ConvexHull(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> > &points, bool simplicial_facets = true, double merge_tol = 0.0) {
+    ConvexHull(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> > &points, bool simplicial_facets = true, realT merge_tol = 0.0) {
         is_empty_ = !convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(points, hull_points_, halfspaces_, faces_, point_neighbor_faces_, face_neighbor_faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
         init_();
     }
-    ConvexHull(const std::vector<Eigen::Matrix<InputScalarT,EigenDim,1> > &points, bool simplicial_facets = true, double merge_tol = 0.0) {
+    ConvexHull(const std::vector<Eigen::Matrix<InputScalarT,EigenDim,1> > &points, bool simplicial_facets = true, realT merge_tol = 0.0) {
         is_empty_ = !convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(points, hull_points_, halfspaces_, faces_, point_neighbor_faces_, face_neighbor_faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
         init_();
     }
-    ConvexHull(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim+1,Eigen::Dynamic> > &halfspaces, bool simplicial_facets = true, double merge_tol = 0.0) {
-        is_empty_ = !convexHullFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(halfspaces, hull_points_, halfspaces_, faces_, point_neighbor_faces_, face_neighbor_faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
+    ConvexHull(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim+1,Eigen::Dynamic> > &halfspaces, bool simplicial_facets = true, InputScalarT dist_tol = 1e-10, realT merge_tol = 0.0) {
+        is_empty_ = !convexHullFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(halfspaces, hull_points_, halfspaces_, faces_, point_neighbor_faces_, face_neighbor_faces_, hull_point_indices_, area_, volume_, simplicial_facets, dist_tol, merge_tol);
         init_();
     }
-    ConvexHull(const std::vector<Eigen::Matrix<InputScalarT,EigenDim+1,1> > &halfspaces, bool simplicial_facets = true, double merge_tol = 0.0) {
-        is_empty_ = !convexHullFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(halfspaces, hull_points_, halfspaces_, faces_, point_neighbor_faces_, face_neighbor_faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
+    ConvexHull(const std::vector<Eigen::Matrix<InputScalarT,EigenDim+1,1> > &halfspaces, bool simplicial_facets = true, InputScalarT dist_tol = 1e-10, realT merge_tol = 0.0) {
+        is_empty_ = !convexHullFromHalfspaces<InputScalarT,OutputScalarT,EigenDim>(halfspaces, hull_points_, halfspaces_, faces_, point_neighbor_faces_, face_neighbor_faces_, hull_point_indices_, area_, volume_, simplicial_facets, dist_tol, merge_tol);
         init_();
     }
 
@@ -486,8 +515,8 @@ typedef ConvexHull<float,float,3> ConvexHull3D;
 
 class CloudHullFlat : public ConvexHull2D {
 public:
-    CloudHullFlat(const std::vector<Eigen::Vector3f> &points, bool simplicial_facets = true, double merge_tol = 0.0);
-    CloudHullFlat(const PointCloud &cloud, bool simplicial_facets = true, double merge_tol = 0.0);
+    CloudHullFlat(const std::vector<Eigen::Vector3f> &points, bool simplicial_facets = true, realT merge_tol = 0.0);
+    CloudHullFlat(const PointCloud &cloud, bool simplicial_facets = true, realT merge_tol = 0.0);
 
     inline const std::vector<Eigen::Vector3f>& getVertices3D() const { return vertices_3d_; }
 private:
@@ -499,7 +528,7 @@ class CloudHull : public ConvexHull3D {
 public:
     using ConvexHull3D::getSignedDistancesFromFacets;
     using ConvexHull3D::getInteriorPointIndices;
-    CloudHull(const PointCloud &cloud, bool simplicial_facets = true, double merge_tol = 0.0);
+    CloudHull(const PointCloud &cloud, bool simplicial_facets = true, realT merge_tol = 0.0);
     Eigen::MatrixXf getSignedDistancesFromFacets(const PointCloud &cloud) const;
     std::vector<size_t> getInteriorPointIndices(const PointCloud &cloud, float offset = 0.0) const;
 };

@@ -35,11 +35,11 @@ private:
     class EigenVector3iComparator_ {
     public:
         inline bool operator()(const Eigen::Vector3i &p1, const Eigen::Vector3i &p2) const {
-            if (p1(0) < p2(0)) return true;
-            if (p1(0) == p2(0)) {
-                if (p1(1) < p2(1)) return true;
-                if (p1(1) == p2(1)) {
-                    return p1(2) < p2(2);
+            if (p1[0] < p2[0]) return true;
+            if (p1[0] == p2[0]) {
+                if (p1[1] < p2[1]) return true;
+                if (p1[1] == p2[1]) {
+                    return p1[2] < p2[2];
                 } else return false;
             } else return false;
         }
