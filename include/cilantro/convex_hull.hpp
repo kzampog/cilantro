@@ -225,16 +225,19 @@ bool findFeasiblePointInHalfspaceIntersection(const Eigen::Ref<const Eigen::Matr
         ineq_data.col(i) /= ineq_data.col(i).head(EigenDim).norm();
     }
 
-    // "Pre-condition"
-    Eigen::VectorXd t_vec(Eigen::VectorXd::Zero(EigenDim));
-    if (ineq_data.row(EigenDim).array().abs().maxCoeff() < dist_tol) {
-        t_vec.setOnes();
-        ineq_data.row(EigenDim) -= t_vec.transpose()*ineq_data.topRows(EigenDim);
-    }
-
     // Objective
     Eigen::MatrixXd G(ineq_data*(ineq_data.transpose()));
     Eigen::VectorXd g0(Eigen::VectorXd::Zero(EigenDim+1));
+
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd(G, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    Eigen::MatrixXd U(svd.matrixU());
+    Eigen::MatrixXd Vt(svd.matrixV().transpose());
+    Eigen::MatrixXd S(svd.singularValues().asDiagonal());
+
+    for (size_t i = 0; i < S.cols(); i++) {
+        if (S(i,i) < dist_tol) S(i,i) = dist_tol;
+    }
+    G = U*S*Vt;
 
     // Equality constraints
     Eigen::VectorXd CE(Eigen::VectorXd::Zero(EigenDim+1));
@@ -252,7 +255,7 @@ bool findFeasiblePointInHalfspaceIntersection(const Eigen::Ref<const Eigen::Matr
 
 //    std::cout << val << " for: " << x.transpose() << std::endl;
 
-    feasible_point = (x.head(EigenDim) - t_vec).template cast<ScalarT>();
+    feasible_point = x.head(EigenDim).template cast<ScalarT>();
 
     if (std::isinf(val) || std::isnan(val) || x.array().isNaN().any() || x.array().isInf().any())
         return false;
