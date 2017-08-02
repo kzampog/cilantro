@@ -223,67 +223,88 @@ bool findFeasiblePointInHalfspaceIntersection(const Eigen::Ref<const Eigen::Matr
     Eigen::MatrixXd ineq_data(halfspaces.template cast<double>());
 
     // Normalize input
+    // Force unit length normals
     for (size_t i = 0; i < num_halfspaces; i++) {
         ineq_data.col(i) /= ineq_data.col(i).head(EigenDim).norm();
     }
 
+    // Center halfspaces around origin and then scale dimensions
+    Eigen::Matrix<double,EigenDim,1> t_vec((ineq_data.topRows(EigenDim).array().rowwise()*ineq_data.row(EigenDim).array().abs()).rowwise().mean());
+    ineq_data.row(EigenDim) = ineq_data.row(EigenDim) - t_vec.transpose()*ineq_data.topRows(EigenDim);
+    double max_abs_dist = ineq_data.row(EigenDim).cwiseAbs().maxCoeff();
+    double scale = (max_abs_dist < dist_tol) ? 1.0 : 1.0/max_abs_dist;
+    ineq_data.row(EigenDim) *= scale;
+
+//    std::cout << ineq_data << std::endl << std::endl;
+
     // Objective
     // 'Preconditioned' quadratic term
-    Eigen::MatrixXd G(ineq_data*(ineq_data.transpose()));
+    ScalarT tol_sq = dist_tol*dist_tol;
+    Eigen::MatrixXd G(EigenDim+2,EigenDim+2);
+    G.topLeftCorner(EigenDim+1,EigenDim+1) = ineq_data*(ineq_data.transpose());
+    G.row(EigenDim+1).setZero();
+    G.col(EigenDim+1).setZero();
+    G(EigenDim+1,EigenDim+1) = 1.0;
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(G, Eigen::ComputeFullU | Eigen::ComputeFullV);
     Eigen::VectorXd S(svd.singularValues());
-    ScalarT tol_sq = dist_tol*dist_tol;
     for (size_t i = 0; i < S.size(); i++) {
         if (S(i) < tol_sq) S(i) = tol_sq;
     }
     G = svd.matrixU()*(S.asDiagonal())*(svd.matrixV().transpose());
 
     // Linear term
-    Eigen::VectorXd g0(Eigen::VectorXd::Zero(EigenDim+1));
+    Eigen::VectorXd g0(Eigen::VectorXd::Zero(EigenDim+2));
+    g0(EigenDim+1) = -1.0;
 
     // Equality constraints
-    Eigen::MatrixXd CE(Eigen::VectorXd::Zero(EigenDim+1));
+    Eigen::MatrixXd CE(Eigen::VectorXd::Zero(EigenDim+2));
     CE(EigenDim) = 1.0;
     Eigen::VectorXd ce0(1);
     ce0(0) = -1.0;
 
     // Inequality constraints
-    Eigen::MatrixXd CI(-ineq_data);
-    Eigen::VectorXd ci0(Eigen::VectorXd::Zero(num_halfspaces));
+    Eigen::MatrixXd CI(EigenDim+2,num_halfspaces+1);
+    CI.topLeftCorner(EigenDim+1,num_halfspaces) = -ineq_data;
+    CI.row(EigenDim+1).setConstant(-1.0);
+    CI.col(num_halfspaces).setZero();
+    CI(EigenDim+1,num_halfspaces) = 1.0;
+    Eigen::VectorXd ci0(Eigen::VectorXd::Zero(num_halfspaces+1));
 
     // Optimization
-    Eigen::VectorXd x(EigenDim+1);
+    Eigen::VectorXd x(EigenDim+2);
     double val = solve_quadprog(G, g0, CE, ce0, CI, ci0, x);
-    feasible_point = x.head(EigenDim).template cast<ScalarT>();
+    Eigen::Matrix<double,EigenDim,1> fp(x.head(EigenDim));
+    feasible_point = (fp/scale - t_vec).template cast<ScalarT>();
 
-//    std::cout << val << ", for: " << x.transpose() << std::endl;
+//    std::cout << val << ", for: " << x.transpose() << "   (" << feasible_point.transpose() << ")" << std::endl;
 
     if (std::isinf(val) || std::isnan(val) || x.array().isNaN().any() || x.array().isInf().any()) return false;
 
     // Useful in case of unbounded intersections
-    if (force_strictly_interior) {
-        double max_origin_dist = -1.0;
+    if (force_strictly_interior && x(EigenDim+1) < dist_tol) {
         size_t num_additional = 0;
         std::vector<size_t> tight_ind(num_halfspaces);
         for (size_t i = 0; i < num_halfspaces; i++) {
-            double origin_dist = std::abs(ineq_data(EigenDim,i));
-            if (origin_dist > max_origin_dist) max_origin_dist = origin_dist;
-            if (std::abs(ineq_data.col(i).dot(x)) < dist_tol) tight_ind[num_additional++] = i;
+            if (std::abs(ineq_data.col(i).dot(x.head(EigenDim+1))) < dist_tol) {
+                tight_ind[num_additional++] = i;
+            }// else ineq_data(EigenDim,i) = -ineq_data.col(i).head(EigenDim).dot(fp) - dist_tol;
         }
         tight_ind.resize(num_additional);
 
         if (num_additional > 0) {
-            ScalarT mult = num_halfspaces * std::max(max_origin_dist + feasible_point.norm(), 1.0);
-            Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> halfspaces_tight(EigenDim+1,num_halfspaces+num_additional);
-            halfspaces_tight.leftCols(num_halfspaces) = halfspaces;
+            double offset = (double)(num_halfspaces - 1);
+            Eigen::Matrix<double,EigenDim+1,Eigen::Dynamic> halfspaces_tight(EigenDim+1,num_halfspaces+num_additional);
+            halfspaces_tight.leftCols(num_halfspaces) = ineq_data;
             num_additional = num_halfspaces;
             for (size_t i = 0; i < tight_ind.size(); i++) {
-                Eigen::Matrix<ScalarT,EigenDim+1,1> hs(-halfspaces.col(tight_ind[i]));
-                hs[EigenDim] -= mult*hs.head(EigenDim).norm();
-                halfspaces_tight.col(num_additional++) = hs;
+                halfspaces_tight.col(num_additional) = -ineq_data.col(tight_ind[i]);
+                halfspaces_tight(EigenDim,num_additional) -= offset;
+                num_additional++;
             }
 
-            return findFeasiblePointInHalfspaceIntersection<ScalarT,EigenDim>(halfspaces_tight, feasible_point, dist_tol, false);
+            bool res = findFeasiblePointInHalfspaceIntersection<double,EigenDim>(halfspaces_tight, fp, dist_tol, false);
+            feasible_point = (fp/scale - t_vec).template cast<ScalarT>();
+            return res;
         }
     }
 
