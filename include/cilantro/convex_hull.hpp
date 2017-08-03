@@ -214,6 +214,86 @@ inline bool convexHullFromPoints(const std::vector<Eigen::Matrix<InputScalarT,Ei
 //}
 
 template <typename ScalarT, ptrdiff_t EigenDim>
+bool checkLinearInequalityConstraintRedundancy(const Eigen::Matrix<ScalarT,EigenDim+1,1> &ineq_to_test,
+                                               const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> > &inequalities,
+                                               const Eigen::Matrix<ScalarT,EigenDim,1> &feasible_point,
+                                               ScalarT dist_tol = std::numeric_limits<ScalarT>::epsilon())
+{
+    size_t num_inequalities = inequalities.cols();
+    Eigen::MatrixXd ineq_data(inequalities.template cast<double>());
+    Eigen::VectorXd ineq_test(ineq_to_test.template cast<double>());
+
+    // Normalize input
+    // Force unit length normals
+    for (size_t i = 0; i < num_inequalities; i++) {
+        ineq_data.col(i) /= ineq_data.col(i).head(EigenDim).norm();
+    }
+    ineq_test /= ineq_test.head(EigenDim).norm();
+
+    // Center halfspaces around origin and then scale dimensions
+    Eigen::VectorXd t_vec(-feasible_point.template cast<double>());
+    ineq_data.row(EigenDim) = ineq_data.row(EigenDim) - t_vec.transpose()*ineq_data.topRows(EigenDim);
+    ineq_test(EigenDim) = ineq_test(EigenDim) - t_vec.dot(ineq_test.head(EigenDim));
+    double max_abs_dist = ineq_data.row(EigenDim).cwiseAbs().maxCoeff();
+    double scale = (max_abs_dist < dist_tol) ? 1.0 : 1.0/max_abs_dist;
+    ineq_data.row(EigenDim) *= scale;
+    ineq_test(EigenDim) *= scale;
+
+    // Objective
+    // 'Preconditioned' quadratic term
+    ScalarT tol_sq = dist_tol*dist_tol;
+    Eigen::MatrixXd G(EigenDim+2,EigenDim+2);
+    G.topLeftCorner(EigenDim+1,EigenDim+1) = ineq_test*(ineq_test.transpose());
+    G.row(EigenDim+1).setZero();
+    G.col(EigenDim+1).setZero();
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd(G, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    Eigen::VectorXd S(svd.singularValues());
+    for (size_t i = 0; i < S.size(); i++) {
+        if (S(i) < tol_sq) S(i) = tol_sq;
+    }
+    G = svd.matrixU()*(S.asDiagonal())*(svd.matrixV().transpose());
+
+    // Linear term
+    Eigen::VectorXd g0(EigenDim+2);
+    g0.head(EigenDim) = -ineq_test.head(EigenDim);
+    g0(EigenDim) = 0.0;
+    g0(EigenDim+1) = 1.0;
+
+    // Equality constraints
+    Eigen::MatrixXd CE(Eigen::VectorXd::Zero(EigenDim+2));
+    CE(EigenDim) = 1.0;
+    Eigen::VectorXd ce0(1);
+    ce0(0) = -1.0;
+
+    // Inequality constraints
+    Eigen::MatrixXd CI(EigenDim+2,num_inequalities+1);
+    CI.topLeftCorner(EigenDim+1,num_inequalities) = -ineq_data;
+    CI.row(EigenDim+1).setConstant(-1.0);
+    CI.col(num_inequalities).setZero();
+    CI(EigenDim+1,num_inequalities) = 1.0;
+    Eigen::VectorXd ci0(Eigen::VectorXd::Zero(num_inequalities+1));
+
+    // Optimization
+    Eigen::VectorXd x(EigenDim+2);
+    double val = solve_quadprog(G, g0, CE, ce0, CI, ci0, x);
+
+    std::cout << val << ", for: " << x.transpose() << std::endl;
+    std::cout << x.head(EigenDim).dot(ineq_test.head(EigenDim)) << " OFFSET: " << ineq_test(EigenDim) << " DIST: " << std::abs(x.head(EigenDim).dot(ineq_test.head(EigenDim)) + ineq_test(EigenDim)) << std::endl << std::endl;
+
+    return std::abs(x.head(EigenDim).dot(ineq_test.head(EigenDim)) + ineq_test(EigenDim)) >= dist_tol;
+
+}
+
+template <typename ScalarT, ptrdiff_t EigenDim>
+inline bool checkLinearInequalityConstraintRedundancy(const Eigen::Matrix<ScalarT,EigenDim+1,1> &ineq_to_test,
+                                                      const std::vector<Eigen::Matrix<ScalarT,EigenDim+1,1> > &inequalities,
+                                                      const Eigen::Matrix<ScalarT,EigenDim,1> &feasible_point,
+                                                      ScalarT dist_tol = std::numeric_limits<ScalarT>::epsilon())
+{
+    return checkLinearInequalityConstraintRedundancy<ScalarT,EigenDim>(ineq_to_test, Eigen::Map<Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> >((ScalarT *)inequalities.data(),EigenDim+1,inequalities.size()), feasible_point, dist_tol);
+}
+
+template <typename ScalarT, ptrdiff_t EigenDim>
 bool findFeasiblePointInHalfspaceIntersection(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> > &halfspaces,
                                               Eigen::Matrix<ScalarT,EigenDim,1> &feasible_point,
                                               ScalarT dist_tol = std::numeric_limits<ScalarT>::epsilon(),
@@ -320,6 +400,35 @@ inline bool findFeasiblePointInHalfspaceIntersection(const std::vector<Eigen::Ma
     return findFeasiblePointInHalfspaceIntersection<ScalarT,EigenDim>(Eigen::Map<Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> >((ScalarT *)halfspaces.data(),EigenDim+1,halfspaces.size()), feasible_point, dist_tol, force_strictly_interior);
 }
 
+
+
+template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
+bool evaluateHalfspaceIntersection(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim+1,Eigen::Dynamic> > &halfspaces,
+                                   Eigen::Matrix<OutputScalarT,EigenDim,1> &interior_point,
+                                   std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > &facet_halfspaces,
+                                   std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &facet_intersections,
+                                   bool &is_bounded,
+                                   InputScalarT dist_tol = std::numeric_limits<InputScalarT>::epsilon(),
+                                   realT merge_tol = 0.0)
+{
+    Eigen::FullPivLU<Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> > lu(halfspaces.topRows(EigenDim));
+    std::cout << "By default, the rank of A is found to be " << lu.rank() << std::endl;
+    lu.setThreshold(dist_tol);
+    std::cout << "With threshold, the rank of A is found to be " << lu.rank() << std::endl;
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
 template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
 bool evaluateHalfspaceIntersection(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim+1,Eigen::Dynamic> > &halfspaces,
                                    const Eigen::Matrix<InputScalarT,EigenDim,1> &interior_point,
@@ -348,7 +457,8 @@ bool evaluateHalfspaceIntersection(const Eigen::Ref<const Eigen::Matrix<InputSca
     orgQhull::QhullFacetList facets = qh.facetList();
 
 
-//    std::cout << "Points:" << std::endl;
+    std::cout << "Points:" << std::endl;
+    std::vector<Eigen::Matrix<coordT,EigenDim,1> > pts;
 
     // Get hull points from dual facets
     size_t k = 0;
@@ -361,20 +471,31 @@ bool evaluateHalfspaceIntersection(const Eigen::Ref<const Eigen::Matrix<InputSca
         }
         vertices[k++] = (-normal/fi->hyperplane().offset() + feasible_point).template cast<OutputScalarT>();
 
-//        std::cout << fi->id() << ": " << vertices[k-1].transpose() << ", is inf: " << (fi->hyperplane().offset() >= 0) << std::endl;
+
+        std::cout << fi->id() << ": " << vertices[k-1].transpose() << ", is inf: " << (fi->hyperplane().offset() >= 0.0) << std::endl;
+        if (fi->hyperplane().offset() < 0.0) {
+            pts.push_back(vertices[k-1].template cast<coordT>());
+        }
 //        std::cout << fi->id() << ": " << normal.transpose() << " with " << fi->hyperplane().offset() << std::endl;
 
     }
 
-//    ////////
-//
-//    std::cout << "Halfspaces:" << std::endl;
-//    for (auto vi = qh.vertexList().begin(); vi != qh.vertexList().end(); ++vi) {
-//        std::cout << data.col(vi->point().id()).transpose() << std::endl;
-//    }
-//    std::cout << std::endl;
-//
-//    ////////
+    ////////
+
+    std::cout << "Halfspaces:" << std::endl;
+    for (auto vi = qh.vertexList().begin(); vi != qh.vertexList().end(); ++vi) {
+        Eigen::Matrix<realT,EigenDim+1,1> hs(data.col(vi->point().id()));
+        Eigen::Matrix<realT,1,Eigen::Dynamic> dists(1,pts.size());
+        for (size_t i = 0; i < pts.size(); i++) {
+            dists(i) = pts[i].dot(hs.head(EigenDim)) + hs(EigenDim);
+        }
+
+
+        std::cout << hs.transpose() << ", DISTS: " << dists << std::endl;
+    }
+    std::cout << std::endl;
+
+    ////////
 
 
     return true;
