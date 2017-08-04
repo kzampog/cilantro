@@ -246,6 +246,7 @@ bool checkLinearInequalityConstraintRedundancy(const Eigen::Matrix<ScalarT,Eigen
     G.topLeftCorner(EigenDim+1,EigenDim+1) = ineq_test*(ineq_test.transpose());
     G.row(EigenDim+1).setZero();
     G.col(EigenDim+1).setZero();
+    G(EigenDim+1,EigenDim+1) = 1.0;
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(G, Eigen::ComputeFullU | Eigen::ComputeFullV);
     Eigen::VectorXd S(svd.singularValues());
     for (size_t i = 0; i < S.size(); i++) {
@@ -277,10 +278,10 @@ bool checkLinearInequalityConstraintRedundancy(const Eigen::Matrix<ScalarT,Eigen
     Eigen::VectorXd x(EigenDim+2);
     double val = solve_quadprog(G, g0, CE, ce0, CI, ci0, x);
 
-    std::cout << val << ", for: " << x.transpose() << std::endl;
-    std::cout << x.head(EigenDim).dot(ineq_test.head(EigenDim)) << " OFFSET: " << ineq_test(EigenDim) << " DIST: " << std::abs(x.head(EigenDim).dot(ineq_test.head(EigenDim)) + ineq_test(EigenDim)) << std::endl << std::endl;
+    //std::cout << val << ", for: " << x.transpose() << " (" << (x.head(EigenDim)/scale - t_vec).transpose() << ")" << std::endl;
+    if (std::isinf(val) || std::isnan(val) || x.array().isNaN().any() || x.array().isInf().any()) return false;
 
-    return std::abs(x.head(EigenDim).dot(ineq_test.head(EigenDim)) + ineq_test(EigenDim)) >= dist_tol;
+    return x.head(EigenDim).dot(ineq_test.head(EigenDim)) + ineq_test(EigenDim) < -dist_tol;
 
 }
 
@@ -314,8 +315,6 @@ bool findFeasiblePointInHalfspaceIntersection(const Eigen::Ref<const Eigen::Matr
     double max_abs_dist = ineq_data.row(EigenDim).cwiseAbs().maxCoeff();
     double scale = (max_abs_dist < dist_tol) ? 1.0 : 1.0/max_abs_dist;
     ineq_data.row(EigenDim) *= scale;
-
-//    std::cout << ineq_data << std::endl << std::endl;
 
     // Objective
     // 'Preconditioned' quadratic term
@@ -356,7 +355,7 @@ bool findFeasiblePointInHalfspaceIntersection(const Eigen::Ref<const Eigen::Matr
     Eigen::Matrix<double,EigenDim,1> fp(x.head(EigenDim));
     feasible_point = (fp/scale - t_vec).template cast<ScalarT>();
 
-//    std::cout << val << ", for: " << x.transpose() << "   (" << feasible_point.transpose() << ")" << std::endl;
+    //std::cout << val << ", for: " << x.transpose() << "   (" << feasible_point.transpose() << ")" << std::endl;
 
     if (std::isinf(val) || std::isnan(val) || x.array().isNaN().any() || x.array().isInf().any()) return false;
 
