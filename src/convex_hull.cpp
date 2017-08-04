@@ -4,13 +4,13 @@
 template class ConvexHull<float,float,2>;
 template class ConvexHull<float,float,3>;
 
-CloudHullFlat::CloudHullFlat(const std::vector<Eigen::Vector3f> &points, bool simplicial_facets, realT merge_tol)
+CloudHullFlat::CloudHullFlat(const std::vector<Eigen::Vector3f> &points, bool simplicial_facets, double merge_tol)
         : ConvexHull2D(PrincipalComponentAnalysis3D(points).project<2>(points), simplicial_facets, merge_tol)
 {
     init_(points);
 }
 
-CloudHullFlat::CloudHullFlat(const PointCloud &cloud, bool simplicial_facets, realT merge_tol)
+CloudHullFlat::CloudHullFlat(const PointCloud &cloud, bool simplicial_facets, double merge_tol)
         : ConvexHull2D(PrincipalComponentAnalysis3D(cloud.points).project<2>(cloud.points), simplicial_facets, merge_tol)
 {
     init_(cloud.points);
@@ -24,7 +24,7 @@ void CloudHullFlat::init_(const std::vector<Eigen::Vector3f> &points) {
     }
 }
 
-CloudHull::CloudHull(const PointCloud &cloud, bool simplicial_facets, realT merge_tol)
+CloudHull::CloudHull(const PointCloud &cloud, bool simplicial_facets, double merge_tol)
         : ConvexHull3D(cloud.points, simplicial_facets, merge_tol)
 {}
 
