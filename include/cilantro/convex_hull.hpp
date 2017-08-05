@@ -371,12 +371,18 @@ bool evaluateHalfspaceIntersection(const Eigen::Ref<const Eigen::Matrix<InputSca
         return true;
     }
 
+    is_bounded = true;
+
     // 'Precondition' qhull input...
     if (std::abs(hs_coeffs.row(EigenDim).maxCoeff() - hs_coeffs.row(EigenDim).minCoeff()) < dist_tol) {
-        hs_coeffs.conservativeResize(Eigen::NoChange, num_halfspaces+1);
-        hs_coeffs.col(num_halfspaces) = hs_coeffs.col(0);
-        hs_coeffs(EigenDim,num_halfspaces) -= 1.0;
-        num_halfspaces++;
+        hs_coeffs.conservativeResize(Eigen::NoChange, 2*num_halfspaces);
+        hs_coeffs.rightCols(num_halfspaces) = hs_coeffs.leftCols(num_halfspaces);
+        hs_coeffs.block(EigenDim,num_halfspaces,1,num_halfspaces).array() -= 1.0;
+        num_halfspaces *= 2;
+//        hs_coeffs.conservativeResize(Eigen::NoChange, num_halfspaces+1);
+//        hs_coeffs.col(num_halfspaces) = hs_coeffs.col(0);
+//        hs_coeffs(EigenDim,num_halfspaces) -= 1.0;
+//        num_halfspaces++;
     }
 
     // Run qhull in halfspace mode
@@ -386,20 +392,49 @@ bool evaluateHalfspaceIntersection(const Eigen::Ref<const Eigen::Matrix<InputSca
     orgQhull::Qhull qh;
     qh.qh()->HALFspace = True;
     qh.qh()->PRINTprecision = False;
-//    qh.qh()->JOGGLEmax = 0.0;
+    //qh.qh()->JOGGLEmax = 0.0;
     qh.qh()->TRIangulate = False;
     qh.qh()->premerge_centrum = merge_tol;
     qh.setFeasiblePoint(orgQhull::Coordinates(fpv));
     qh.runQhull("", EigenDim+1, num_halfspaces, hs_coeffs.data(), "");
 
+    // Get polytope vertices from dual hull facets
     orgQhull::QhullFacetList facets = qh.facetList();
+    size_t num_dual_facets = facets.size();
 
+    polytope_vertices.resize(num_dual_facets);
+    std::vector<Eigen::Matrix<double,EigenDim,1> > vertices(num_dual_facets);
 
-    // TODO!
+    size_t ind = 0;
+    for (auto fi = facets.begin(); fi != facets.end(); ++fi) {
+        if (fi->hyperplane().offset() < 0.0) {
+            Eigen::Matrix<double,EigenDim,1> normal;
+            size_t i = 0;
+            for (auto hpi = fi->hyperplane().begin(); hpi != fi->hyperplane().end(); ++hpi) {
+                normal(i++) = *hpi;
+            }
+            vertices[ind] = feasible_point - normal/fi->hyperplane().offset();
+            polytope_vertices[ind] = vertices[ind].template cast<OutputScalarT>();
+            ind++;
+        } else {
+            is_bounded = false;
+        }
+    }
+    vertices.resize(ind);
+    polytope_vertices.resize(ind);
 
+    Eigen::Map<Eigen::Matrix<double,EigenDim,Eigen::Dynamic> > v_map((double *)vertices.data(),EigenDim,vertices.size());
 
-
-
+    // Get facet hyperplanes from dual hull vertices
+    facet_halfspaces.resize(qh.vertexList().size());
+    ind = 0;
+    for (auto vi = qh.vertexList().begin(); vi != qh.vertexList().end(); ++vi) {
+        Eigen::Matrix<double,EigenDim+1,1> hs(hs_coeffs.col(vi->point().id()));
+        if (((hs.head(EigenDim).transpose()*v_map).array() + hs(EigenDim)).cwiseAbs().minCoeff() < dist_tol) {
+            facet_halfspaces[ind++] = hs.template cast<OutputScalarT>();
+        }
+    }
+    facet_halfspaces.resize(ind);
 
     return true;
 }
