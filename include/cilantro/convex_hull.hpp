@@ -379,10 +379,6 @@ bool evaluateHalfspaceIntersection(const Eigen::Ref<const Eigen::Matrix<InputSca
         hs_coeffs.rightCols(num_halfspaces) = hs_coeffs.leftCols(num_halfspaces);
         hs_coeffs.block(EigenDim,num_halfspaces,1,num_halfspaces).array() -= 1.0;
         num_halfspaces *= 2;
-//        hs_coeffs.conservativeResize(Eigen::NoChange, num_halfspaces+1);
-//        hs_coeffs.col(num_halfspaces) = hs_coeffs.col(0);
-//        hs_coeffs(EigenDim,num_halfspaces) -= 1.0;
-//        num_halfspaces++;
     }
 
     // Run qhull in halfspace mode
@@ -663,7 +659,7 @@ public:
 
     bool isPointInHull(const Eigen::Matrix<OutputScalarT,EigenDim,1> &point) const {
         Eigen::Matrix<OutputScalarT,Eigen::Dynamic,1> distances = halfspace_normals_*point + halfspace_offsets_;
-        return (distances.array() <= 0.0f).all();
+        return (distances.array() <= 0.0).all();
     }
 
     Eigen::Matrix<OutputScalarT,Eigen::Dynamic,Eigen::Dynamic> getSignedDistancesFromFacets(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points) const {
