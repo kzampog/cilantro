@@ -27,7 +27,7 @@ void readEigenMatrixFromFile(const std::string &filename, Matrix& matrix, bool b
             std::stringstream input_line(line);
             while (!input_line.eof()) {
                 input_line >> d;
-                v.push_back(d);
+                v.emplace_back(d);
             }
         }
         in.close();

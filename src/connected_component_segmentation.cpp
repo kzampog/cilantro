@@ -72,7 +72,7 @@ ConnectedComponentSegmentation& ConnectedComponentSegmentation::segment(std::vec
             seeds_stack.pop();
 
             has_been_assigned[curr_seed] = 1;
-            curr_cc_ind.push_back(curr_seed);
+            curr_cc_ind.emplace_back(curr_seed);
 
             kd_tree_->radiusSearch((*points_)[curr_seed], dist_thresh_, neighbors, distances);
 
@@ -86,7 +86,7 @@ ConnectedComponentSegmentation& ConnectedComponentSegmentation::segment(std::vec
         }
 
         if (curr_cc_ind.size() >= min_segment_size_ && curr_cc_ind.size() <= max_segment_size_) {
-            component_indices_.push_back(curr_cc_ind);
+            component_indices_.emplace_back(curr_cc_ind);
         }
     }
 

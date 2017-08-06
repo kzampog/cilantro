@@ -29,7 +29,7 @@ std::vector<Eigen::Vector3f> VoxelGrid::getDownsampledPoints(size_t min_points_i
         for (size_t i = 0; i < it->second.size(); i++) {
             bin_points.col(i) = (*input_points_)[it->second[i]];
         }
-        points.push_back(bin_points.rowwise().mean());
+        points.emplace_back(bin_points.rowwise().mean());
     }
 
     return points;
@@ -59,9 +59,9 @@ std::vector<Eigen::Vector3f> VoxelGrid::getDownsampledNormals(size_t min_points_
 //        PCA3D pca(bin_normals.data(), 3, it->second.size()*2);
 //        Eigen::Vector3f avg = pca.getEigenVectorsMatrix().col(0);
 //        if (ref_dir.dot(avg) < 0.0f) {
-//            normals.push_back(-avg);
+//            normals.emplace_back(-avg);
 //        } else {
-//            normals.push_back(avg);
+//            normals.emplace_back(avg);
 //        }
 //    }
 
@@ -85,9 +85,9 @@ std::vector<Eigen::Vector3f> VoxelGrid::getDownsampledNormals(size_t min_points_
 
         Eigen::Vector3f avg = bin_normals.rowwise().mean().normalized();
         if (neg > pos) {
-            normals.push_back(-avg);
+            normals.emplace_back(-avg);
         } else {
-            normals.push_back(avg);
+            normals.emplace_back(avg);
         }
     }
 
@@ -106,7 +106,7 @@ std::vector<Eigen::Vector3f> VoxelGrid::getDownsampledColors(size_t min_points_i
         for (size_t i = 0; i < it->second.size(); i++) {
             bin_colors.col(i) = (*input_colors_)[it->second[i]];
         }
-        colors.push_back(bin_colors.rowwise().mean());
+        colors.emplace_back(bin_colors.rowwise().mean());
     }
 
     return colors;
@@ -142,7 +142,7 @@ void VoxelGrid::build_lookup_table_() {
         if (it == grid_lookup_table_.end()) {
             grid_lookup_table_.insert(std::pair<Eigen::Vector3i,std::vector<size_t> >(grid_coords.col(i), std::vector<size_t>(1, i)));
         } else {
-            it->second.push_back(i);
+            it->second.emplace_back(i);
         }
     }
 }

@@ -592,7 +592,7 @@ Visualizer& Visualizer::setRenderingProperties(const std::string &name, const Re
 std::vector<std::string> Visualizer::getObjectNames() const {
     std::vector<std::string> res;
     for (auto it = renderables_.begin(); it != renderables_.end(); ++it) {
-        res.push_back(it->first);
+        res.emplace_back(it->first);
     }
     return res;
 }

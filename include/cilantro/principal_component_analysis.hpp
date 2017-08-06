@@ -1,10 +1,17 @@
 #pragma once
 
-#include <cilantro/point_cloud.hpp>
+#include <vector>
+#include <Eigen/Dense>
 
 template <typename ScalarT, ptrdiff_t EigenDim>
 class PrincipalComponentAnalysis {
 public:
+    PrincipalComponentAnalysis(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > &points)
+            : num_points_(points.cols()),
+              data_((ScalarT *)points.data())
+    {
+        compute_();
+    }
     PrincipalComponentAnalysis(const std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > &points)
             : num_points_(points.size()),
               data_((ScalarT *)points.data())
@@ -46,7 +53,7 @@ public:
         if (points.rows() > EigenDim) return Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>(EigenDim,0);
         Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> points_full_dim(EigenDim,points.cols());
         points_full_dim.topRows(points.rows()) = points;
-        points_full_dim.bottomRows(EigenDim-points.rows()) = Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>::Zero(EigenDim-points.rows(),points.cols());
+        points_full_dim.bottomRows(EigenDim-points.rows()).setZero();
         return (eigenvectors_*points_full_dim).colwise() + mean_;
     }
 
@@ -55,7 +62,7 @@ public:
         if (EigenDimIn > EigenDim) return std::vector<Eigen::Matrix<ScalarT,EigenDim,1> >(0);
         Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> points_full_dim(EigenDim,points.size());
         points_full_dim.topRows(EigenDimIn) = Eigen::Matrix<ScalarT,EigenDimIn,Eigen::Dynamic>::Map((ScalarT *)points.data(),EigenDimIn,points.size());
-        points_full_dim.bottomRows(EigenDim-EigenDimIn) = Eigen::Matrix<ScalarT,EigenDim-EigenDimIn,Eigen::Dynamic>::Zero(EigenDim-EigenDimIn,points.size());
+        points_full_dim.bottomRows(EigenDim-EigenDimIn).setZero();
         std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > points_r(points.size());
         Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>::Map((ScalarT *)points_r.data(),EigenDim,points_r.size()) = (eigenvectors_*points_full_dim).colwise() + mean_;
         return points_r;
