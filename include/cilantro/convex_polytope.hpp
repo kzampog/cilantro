@@ -339,7 +339,13 @@ bool halfspaceIntersectionFromVertices(const Eigen::Ref<const Eigen::Matrix<Inpu
 
     if (num_points == 0) {
         polytope_vertices.clear();
-        facet_halfspaces.clear();
+        facet_halfspaces.resize(2);
+        facet_halfspaces[0].setZero();
+        facet_halfspaces[0](0) = 1.0;
+        facet_halfspaces[0](EigenDim) = 1.0;
+        facet_halfspaces[1].setZero();
+        facet_halfspaces[1](0) = -1.0;
+        facet_halfspaces[1](EigenDim) = 1.0;
         area = 0.0;
         volume = 0.0;
         return false;
@@ -348,12 +354,14 @@ bool halfspaceIntersectionFromVertices(const Eigen::Ref<const Eigen::Matrix<Inpu
     Eigen::Matrix<double,EigenDim,1> mu(vert_data.rowwise().mean());
     size_t true_dim = Eigen::FullPivLU<Eigen::Matrix<double,EigenDim,Eigen::Dynamic> >(vert_data.colwise() - mu).rank();
 
-    std::cout << "TRUE DIMENSION: " << true_dim << std::endl;
+    //std::cout << "TRUE DIMENSION: " << true_dim << std::endl << std::endl;
 
     if (true_dim < EigenDim) {
         PrincipalComponentAnalysis<double,EigenDim> pca(vert_data);
+        const Eigen::Matrix<double,EigenDim,1>& t_vec(pca.getDataMean());
+        const Eigen::Matrix<double,EigenDim,EigenDim>& rot_mat(pca.getEigenVectorsMatrix());
 
-        Eigen::MatrixXd proj_vert(pca.project(vert_data, EigenDim));
+        Eigen::MatrixXd proj_vert((rot_mat.transpose()*(vert_data.colwise() - t_vec)).topRows(true_dim));
 
         Eigen::Matrix<double,EigenDim,Eigen::Dynamic> polytope_vertices_d(EigenDim,0);
         Eigen::Matrix<double,EigenDim+1,Eigen::Dynamic> facet_halfspaces_d(EigenDim+1,0);
@@ -363,12 +371,10 @@ bool halfspaceIntersectionFromVertices(const Eigen::Ref<const Eigen::Matrix<Inpu
         // Populate polytope vertices amd add constraints for first true_dim dimensions
         if (true_dim > 1) {
             // Get vertices and constraints from qhull
-            Eigen::MatrixXd qhull_data(proj_vert.topRows(true_dim));
-
             orgQhull::Qhull qh;
             qh.qh()->TRIangulate = False;
             qh.qh()->premerge_centrum = merge_tol;
-            qh.runQhull("", true_dim, num_points, qhull_data.data(), "");
+            qh.runQhull("", true_dim, num_points, proj_vert.data(), "");
             qh.defineVertexNeighborFacets();
             orgQhull::QhullFacetList qh_facets = qh.facetList();
 
@@ -403,21 +409,20 @@ bool halfspaceIntersectionFromVertices(const Eigen::Ref<const Eigen::Matrix<Inpu
             area = 0.0;
             volume = 0.0;
         } else if (true_dim == 1) {
-            // Handle special case (1D line, nor handled by qhull)
+            // Handle special case (1D line, not handled by qhull)
             size_t ind_min, ind_max;
             double min_val = proj_vert.row(0).minCoeff(&ind_min);
             double max_val = proj_vert.row(0).maxCoeff(&ind_max);
 
-            polytope_vertices_d.resize(Eigen::NoChange,2);
-            polytope_vertices_d.col(0) = proj_vert.col(ind_min);
-            polytope_vertices_d.col(1) = proj_vert.col(ind_max);
+            polytope_vertices_d = Eigen::MatrixXd::Zero(EigenDim,2);
+            polytope_vertices_d.block(0,0,true_dim,1) = proj_vert.col(ind_min);
+            polytope_vertices_d.block(0,1,true_dim,1) = proj_vert.col(ind_max);
 
             facet_halfspaces_d = Eigen::MatrixXd::Zero(EigenDim+1,2*EigenDim);
             facet_halfspaces_d(0,0) = -1.0;
             facet_halfspaces_d(EigenDim,0) = min_val;
             facet_halfspaces_d(0,1) = 1.0;
             facet_halfspaces_d(EigenDim,1) = -max_val;
-
             hs_ind = 2;
 
             area = (EigenDim == 2) ? (max_val-min_val) : 0.0;
@@ -431,13 +436,21 @@ bool halfspaceIntersectionFromVertices(const Eigen::Ref<const Eigen::Matrix<Inpu
         }
 
         // Project back into output arguments
-        const Eigen::Matrix<double,EigenDim,1>& t_vec(pca.getDataMean());
-        const Eigen::Matrix<double,EigenDim,EigenDim>& rot_mat(pca.getEigenVectorsMatrix());
-
         polytope_vertices.resize(polytope_vertices_d.cols());
         Eigen::Matrix<OutputScalarT,EigenDim,Eigen::Dynamic>::Map((OutputScalarT *)polytope_vertices.data(),EigenDim,polytope_vertices.size()) = ((rot_mat*polytope_vertices_d).colwise() + t_vec).template cast<OutputScalarT>();
 
-        //TODO!
+        Eigen::Matrix<double,EigenDim+1,EigenDim+1> tform(Eigen::Matrix<double,EigenDim+1,EigenDim+1>::Zero());
+        tform.template block<EigenDim,EigenDim>(0,0) = rot_mat;
+        tform.template block<EigenDim,1>(0,EigenDim) = t_vec;
+        tform(EigenDim,EigenDim) = 1.0;
+
+        facet_halfspaces_d = tform.inverse().transpose()*facet_halfspaces_d;
+//        for (size_t i = 0; i < facet_halfspaces_d.cols(); i++) {
+//            facet_halfspaces_d.col(i) /= facet_halfspaces_d.col(i).head(EigenDim).norm();
+//        }
+
+        facet_halfspaces.resize(facet_halfspaces_d.cols());
+        Eigen::Matrix<OutputScalarT,EigenDim+1,Eigen::Dynamic>::Map((OutputScalarT *)facet_halfspaces.data(),EigenDim+1,facet_halfspaces.size()) = facet_halfspaces_d.template cast<OutputScalarT>();
 
         return true;
     }
