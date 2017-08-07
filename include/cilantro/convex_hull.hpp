@@ -72,7 +72,7 @@ bool convexHullFromPoints(const Eigen::Ref<const Eigen::Matrix<InputScalarT,Eige
 
     // Populate halfspaces and faces (indices in the hull cloud)
     k = 0;
-    halfspaces.resize(qh_facets.size());
+    halfspaces.resize(qh.facetCount());
     facets.resize(qh_facets.size());
     facet_neighbor_facets.resize(qh_facets.size());
     for (auto fi = qh_facets.begin(); fi != qh_facets.end(); ++fi) {

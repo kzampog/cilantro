@@ -35,7 +35,7 @@ public:
         return e_vecs;
     }
 
-    Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> project(Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> points, size_t target_dim) const {
+    Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> project(const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> &points, size_t target_dim) const {
         if (target_dim > EigenDim || points.rows() != EigenDim) return Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>(target_dim,0);
         return (eigenvectors_.transpose()*(points.colwise()-mean_)).topRows(target_dim);
     }
@@ -49,7 +49,7 @@ public:
         return points_p;
     }
 
-    Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> reconstruct(Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> points) const {
+    Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> reconstruct(const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> &points) const {
         if (points.rows() > EigenDim) return Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>(EigenDim,0);
         Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> points_full_dim(EigenDim,points.cols());
         points_full_dim.topRows(points.rows()) = points;
