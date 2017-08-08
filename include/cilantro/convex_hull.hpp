@@ -311,28 +311,28 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     ConvexHull(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> > &points, bool simplicial_facets = true, double merge_tol = 0.0) {
-        is_empty_ = !convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(points, hull_points_, halfspaces_, faces_, point_neighbor_faces_, face_neighbor_faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
+        is_empty_ = !convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(points, vertices_, halfspaces_, faces_, vertex_neighbor_faces_, face_neighbor_faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
         init_();
     }
     ConvexHull(const std::vector<Eigen::Matrix<InputScalarT,EigenDim,1> > &points, bool simplicial_facets = true, double merge_tol = 0.0) {
-        is_empty_ = !convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(points, hull_points_, halfspaces_, faces_, point_neighbor_faces_, face_neighbor_faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
+        is_empty_ = !convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(points, vertices_, halfspaces_, faces_, vertex_neighbor_faces_, face_neighbor_faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
         init_();
     }
     ConvexHull(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim+1,Eigen::Dynamic> > &halfspaces, bool simplicial_facets = true, double dist_tol = std::numeric_limits<double>::epsilon(), double merge_tol = 0.0) {
-        is_empty_ = !convexHullFromHalfspaceIntersection<InputScalarT,OutputScalarT,EigenDim>(halfspaces, hull_points_, halfspaces_, faces_, point_neighbor_faces_, face_neighbor_faces_, hull_point_indices_, area_, volume_, simplicial_facets, dist_tol, merge_tol);
+        is_empty_ = !convexHullFromHalfspaceIntersection<InputScalarT,OutputScalarT,EigenDim>(halfspaces, vertices_, halfspaces_, faces_, vertex_neighbor_faces_, face_neighbor_faces_, hull_point_indices_, area_, volume_, simplicial_facets, dist_tol, merge_tol);
         init_();
     }
     ConvexHull(const std::vector<Eigen::Matrix<InputScalarT,EigenDim+1,1> > &halfspaces, bool simplicial_facets = true, double dist_tol = std::numeric_limits<double>::epsilon(), double merge_tol = 0.0) {
-        is_empty_ = !convexHullFromHalfspaceIntersection<InputScalarT,OutputScalarT,EigenDim>(halfspaces, hull_points_, halfspaces_, faces_, point_neighbor_faces_, face_neighbor_faces_, hull_point_indices_, area_, volume_, simplicial_facets, dist_tol, merge_tol);
+        is_empty_ = !convexHullFromHalfspaceIntersection<InputScalarT,OutputScalarT,EigenDim>(halfspaces, vertices_, halfspaces_, faces_, vertex_neighbor_faces_, face_neighbor_faces_, hull_point_indices_, area_, volume_, simplicial_facets, dist_tol, merge_tol);
         init_();
     }
 
     ~ConvexHull() {}
 
-    inline const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> >& getVertices() const { return hull_points_; }
+    inline const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> >& getVertices() const { return vertices_; }
     inline const std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> >& getFacetHyperplanes() const { return halfspaces_; }
     inline const std::vector<std::vector<size_t> >& getFacetVertexIndices() const { return faces_; }
-    inline const std::vector<std::vector<size_t> >& getVertexNeighborFacets() const { return point_neighbor_faces_; }
+    inline const std::vector<std::vector<size_t> >& getVertexNeighborFacets() const { return vertex_neighbor_faces_; }
     inline const std::vector<std::vector<size_t> >& getFacetNeighborFacets() const { return face_neighbor_faces_; }
     inline const std::vector<size_t>& getVertexPointIndices() const { return hull_point_indices_; }
 
@@ -367,10 +367,10 @@ private:
     Eigen::Matrix<OutputScalarT,Eigen::Dynamic,1> halfspace_offsets_;
     bool is_empty_;
 
-    std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > hull_points_;
+    std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > vertices_;
     std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > halfspaces_;
     std::vector<std::vector<size_t> > faces_;
-    std::vector<std::vector<size_t> > point_neighbor_faces_;
+    std::vector<std::vector<size_t> > vertex_neighbor_faces_;
     std::vector<std::vector<size_t> > face_neighbor_faces_;
     std::vector<size_t> hull_point_indices_;
     double area_;
