@@ -11,7 +11,7 @@ template <typename ScalarT, ptrdiff_t EigenDim>
 bool checkLinearInequalityConstraintRedundancy(const Eigen::Matrix<ScalarT,EigenDim+1,1> &ineq_to_test,
                                                const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> > &inequalities,
                                                const Eigen::Matrix<ScalarT,EigenDim,1> &feasible_point,
-                                               double dist_tol = std::numeric_limits<double>::epsilon())
+                                               double dist_tol = std::numeric_limits<ScalarT>::epsilon())
 {
     size_t num_inequalities = inequalities.cols();
     if (num_inequalities == 0) return false;
@@ -77,7 +77,7 @@ template <typename ScalarT, ptrdiff_t EigenDim>
 inline bool checkLinearInequalityConstraintRedundancy(const Eigen::Matrix<ScalarT,EigenDim+1,1> &ineq_to_test,
                                                       const std::vector<Eigen::Matrix<ScalarT,EigenDim+1,1> > &inequalities,
                                                       const Eigen::Matrix<ScalarT,EigenDim,1> &feasible_point,
-                                                      double dist_tol = std::numeric_limits<double>::epsilon())
+                                                      double dist_tol = std::numeric_limits<ScalarT>::epsilon())
 {
     return checkLinearInequalityConstraintRedundancy<ScalarT,EigenDim>(ineq_to_test, Eigen::Map<Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> >((ScalarT *)inequalities.data(),EigenDim+1,inequalities.size()), feasible_point, dist_tol);
 }
@@ -85,7 +85,7 @@ inline bool checkLinearInequalityConstraintRedundancy(const Eigen::Matrix<Scalar
 template <typename ScalarT, ptrdiff_t EigenDim>
 bool findFeasiblePointInHalfspaceIntersection(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> > &halfspaces,
                                               Eigen::Matrix<ScalarT,EigenDim,1> &feasible_point,
-                                              double dist_tol = std::numeric_limits<double>::epsilon(),
+                                              double dist_tol = std::numeric_limits<ScalarT>::epsilon(),
                                               bool force_strictly_interior = true)
 {
     size_t num_halfspaces = halfspaces.cols();
@@ -121,7 +121,8 @@ bool findFeasiblePointInHalfspaceIntersection(const Eigen::Ref<const Eigen::Matr
     for (size_t i = 0; i < S.size(); i++) {
         if (S(i) < tol_sq) S(i) = tol_sq;
     }
-    G = svd.matrixU()*(S.asDiagonal())*(svd.matrixV().transpose());
+//    G = svd.matrixU()*(S.asDiagonal())*(svd.matrixV().transpose());
+    G = dist_tol*svd.matrixU()*(S.asDiagonal())*(svd.matrixV().transpose());
 
     // Linear term
     Eigen::VectorXd g0(Eigen::VectorXd::Zero(EigenDim+2));
@@ -177,14 +178,19 @@ bool findFeasiblePointInHalfspaceIntersection(const Eigen::Ref<const Eigen::Matr
             }
 
             bool res = findFeasiblePointInHalfspaceIntersection<double,EigenDim>(halfspaces_tight, fp, dist_tol, false);
-            feasible_point = (fp/scale - t_vec).template cast<ScalarT>();
-
             if (!res) {
                 feasible_point.setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
                 return false;
             }
 
-            return ((feasible_point.transpose()*halfspaces.topRows(EigenDim) + halfspaces.row(EigenDim)).array() <= -dist_tol).all();
+            feasible_point = (fp/scale - t_vec).template cast<ScalarT>();
+            res = ((feasible_point.transpose()*halfspaces.topRows(EigenDim) + halfspaces.row(EigenDim)).array() <= -dist_tol).all();
+            if (!res) {
+                feasible_point.setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
+                return false;
+            }
+
+            return true;
         }
     }
 
@@ -194,7 +200,7 @@ bool findFeasiblePointInHalfspaceIntersection(const Eigen::Ref<const Eigen::Matr
 template <typename ScalarT, ptrdiff_t EigenDim>
 inline bool findFeasiblePointInHalfspaceIntersection(const std::vector<Eigen::Matrix<ScalarT,EigenDim+1,1> > &halfspaces,
                                                      Eigen::Matrix<ScalarT,EigenDim,1> &feasible_point,
-                                                     double dist_tol = std::numeric_limits<double>::epsilon(),
+                                                     double dist_tol = std::numeric_limits<ScalarT>::epsilon(),
                                                      bool force_strictly_interior = true)
 {
     return findFeasiblePointInHalfspaceIntersection<ScalarT,EigenDim>(Eigen::Map<Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> >((ScalarT *)halfspaces.data(),EigenDim+1,halfspaces.size()), feasible_point, dist_tol, force_strictly_interior);
@@ -207,7 +213,7 @@ bool evaluateHalfspaceIntersection(const Eigen::Ref<const Eigen::Matrix<InputSca
                                    std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &polytope_vertices,
                                    Eigen::Matrix<OutputScalarT,EigenDim,1> &interior_point,
                                    bool &is_bounded,
-                                   double dist_tol = std::numeric_limits<double>::epsilon(),
+                                   double dist_tol = std::numeric_limits<InputScalarT>::epsilon(),
                                    double merge_tol = 0.0)
 {
     // Set up variables
@@ -330,7 +336,7 @@ inline bool evaluateHalfspaceIntersection(const std::vector<Eigen::Matrix<InputS
                                           std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &polytope_vertices,
                                           Eigen::Matrix<OutputScalarT,EigenDim,1> &interior_point,
                                           bool &is_bounded,
-                                          double dist_tol = std::numeric_limits<double>::epsilon(),
+                                          double dist_tol = std::numeric_limits<InputScalarT>::epsilon(),
                                           double merge_tol = 0.0)
 {
     return evaluateHalfspaceIntersection<InputScalarT,OutputScalarT,EigenDim>(Eigen::Map<Eigen::Matrix<InputScalarT,EigenDim+1,Eigen::Dynamic> >((InputScalarT *)halfspaces.data(),EigenDim+1,halfspaces.size()), facet_halfspaces, polytope_vertices, interior_point, is_bounded, dist_tol, merge_tol);
@@ -607,7 +613,6 @@ public:
         halfspaces_[1](0) = -1.0;
         halfspaces_[1](EigenDim) = 1.0;
     }
-
     ConvexPolytope(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> > &points, double merge_tol = 0.0)
             : is_bounded_(true),
               is_empty_(!halfspaceIntersectionFromVertices<InputScalarT,OutputScalarT,EigenDim>(points, vertices_, halfspaces_, area_, volume_, true, merge_tol))
@@ -618,7 +623,6 @@ public:
             interior_point_ = getVerticesMatrixMap().rowwise().mean();
         }
     }
-
     ConvexPolytope(const std::vector<Eigen::Matrix<InputScalarT,EigenDim,1> > &points, double merge_tol = 0.0)
             : is_bounded_(true),
               is_empty_(!halfspaceIntersectionFromVertices<InputScalarT,OutputScalarT,EigenDim>(points, vertices_, halfspaces_, area_, volume_, true, merge_tol))
@@ -629,7 +633,6 @@ public:
             interior_point_ = getVerticesMatrixMap().rowwise().mean();
         }
     }
-
     ConvexPolytope(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim+1,Eigen::Dynamic> > &halfspaces, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0)
             : is_empty_(!evaluateHalfspaceIntersection<InputScalarT,OutputScalarT,EigenDim>(halfspaces, halfspaces_, vertices_, interior_point_, is_bounded_, dist_tol, merge_tol))
     {
@@ -643,7 +646,6 @@ public:
             volume_ = std::numeric_limits<double>::infinity();
         }
     }
-
     ConvexPolytope(const std::vector<Eigen::Matrix<InputScalarT,EigenDim+1,1> > &halfspaces, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0)
             : is_empty_(!evaluateHalfspaceIntersection<InputScalarT,OutputScalarT,EigenDim>(halfspaces, halfspaces_, vertices_, interior_point_, is_bounded_, dist_tol, merge_tol))
     {
@@ -708,4 +710,20 @@ protected:
     Eigen::Matrix<OutputScalarT,EigenDim,1> interior_point_;
 
     bool is_empty_;
+
+    void set_empty_() {
+        area_ = 0.0;
+        volume_ = 0.0;
+        is_bounded_ = true;
+        vertices_.clear();
+        halfspaces_.resize(2);
+        halfspaces_[0].setZero();
+        halfspaces_[0](0) = 1.0;
+        halfspaces_[0](EigenDim) = 1.0;
+        halfspaces_[1].setZero();
+        halfspaces_[1](0) = -1.0;
+        halfspaces_[1](EigenDim) = 1.0;
+        interior_point_.setConstant(std::numeric_limits<OutputScalarT>::quiet_NaN());
+        is_empty_ = true;
+    }
 };
