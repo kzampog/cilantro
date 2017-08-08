@@ -5,6 +5,8 @@
 
 class KDTree {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     enum struct NeighborhoodType {KNN, RADIUS, KNN_IN_RADIUS};
     struct Neighborhood {
         inline Neighborhood() : type(NeighborhoodType::KNN), maxNumberOfNeighbors(5) {}

@@ -10,6 +10,8 @@ struct RigidTransformParameters {
 
 class RigidTransformEstimator : public RandomSampleConsensus<RigidTransformEstimator,RigidTransformParameters,float> {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     RigidTransformEstimator(const std::vector<Eigen::Vector3f> &dst_points, const std::vector<Eigen::Vector3f> &src_points);
     RigidTransformEstimator(const std::vector<Eigen::Vector3f> &dst_points, const std::vector<Eigen::Vector3f> &src_points, const std::vector<size_t> &dst_ind, const std::vector<size_t> &src_ind);
     RigidTransformEstimator(const PointCloud &dst, const PointCloud &src);

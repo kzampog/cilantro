@@ -6,6 +6,8 @@
 template <typename ScalarT, ptrdiff_t EigenDim>
 class PrincipalComponentAnalysis {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     PrincipalComponentAnalysis(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > &points)
             : num_points_(points.cols()),
               data_((ScalarT *)points.data())
@@ -36,21 +38,27 @@ public:
     }
 
     Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> project(const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> &points, size_t target_dim) const {
-        if (target_dim > EigenDim || points.rows() != EigenDim) return Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>(target_dim,0);
-        return (eigenvectors_.transpose()*(points.colwise()-mean_)).topRows(target_dim);
+        //if (target_dim > EigenDim || points.rows() != EigenDim) return Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>(target_dim,0);
+        return (eigenvectors_.transpose()*(points.colwise() - mean_)).topRows(target_dim);
+    }
+
+    template <ptrdiff_t EigenDimOut>
+    Eigen::Matrix<ScalarT,EigenDimOut,Eigen::Dynamic> project(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > &points) const {
+        //if (EigenDimOut > EigenDim) return Eigen::Matrix<ScalarT,EigenDimOut,Eigen::Dynamic>(EigenDimOut,0);
+        return (eigenvectors_.transpose()*(points.colwise() - mean_)).topRows(EigenDimOut);
     }
 
     template <ptrdiff_t EigenDimOut>
     std::vector<Eigen::Matrix<ScalarT,EigenDimOut,1> > project(const std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > &points) const {
-        if (EigenDimOut > EigenDim) return std::vector<Eigen::Matrix<ScalarT,EigenDimOut,1> >(0);
+        //if (EigenDimOut > EigenDim) return std::vector<Eigen::Matrix<ScalarT,EigenDimOut,1> >(0);
         std::vector<Eigen::Matrix<ScalarT,EigenDimOut,1> > points_p(points.size());
         Eigen::Matrix<ScalarT,EigenDimOut,Eigen::Dynamic>::Map((ScalarT *)points_p.data(),EigenDimOut,points_p.size()) =
-                (eigenvectors_.transpose()*((Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>::Map((ScalarT *)points.data(),EigenDim,points.size())).colwise()-mean_)).topRows(EigenDimOut);
+                (eigenvectors_.transpose()*((Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>::Map((ScalarT *)points.data(),EigenDim,points.size())).colwise() - mean_)).topRows(EigenDimOut);
         return points_p;
     }
 
     Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> reconstruct(const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> &points) const {
-        if (points.rows() > EigenDim) return Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>(EigenDim,0);
+        //if (points.rows() > EigenDim) return Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>(EigenDim,0);
         Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> points_full_dim(EigenDim,points.cols());
         points_full_dim.topRows(points.rows()) = points;
         points_full_dim.bottomRows(EigenDim-points.rows()).setZero();
@@ -58,13 +66,22 @@ public:
     }
 
     template <ptrdiff_t EigenDimIn>
-    std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > reconstruct(const std::vector<Eigen::Matrix<ScalarT,EigenDimIn,1> > &points) const {
-        if (EigenDimIn > EigenDim) return std::vector<Eigen::Matrix<ScalarT,EigenDim,1> >(0);
-        Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> points_full_dim(EigenDim,points.size());
-        points_full_dim.topRows(EigenDimIn) = Eigen::Matrix<ScalarT,EigenDimIn,Eigen::Dynamic>::Map((ScalarT *)points.data(),EigenDimIn,points.size());
+    Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> reconstruct(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDimIn,Eigen::Dynamic> > &points) const {
+        //if (EigenDimIn > EigenDim) return Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>(EigenDim,0);
+        Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> points_full_dim(EigenDim,points.cols());
+        points_full_dim.topRows(EigenDimIn) = points;
         points_full_dim.bottomRows(EigenDim-EigenDimIn).setZero();
+        return (eigenvectors_*points_full_dim).colwise() + mean_;
+    }
+
+    template <ptrdiff_t EigenDimIn>
+    std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > reconstruct(const std::vector<Eigen::Matrix<ScalarT,EigenDimIn,1> > &points) const {
+        //if (EigenDimIn > EigenDim) return std::vector<Eigen::Matrix<ScalarT,EigenDim,1> >(0);
         std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > points_r(points.size());
-        Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>::Map((ScalarT *)points_r.data(),EigenDim,points_r.size()) = (eigenvectors_*points_full_dim).colwise() + mean_;
+        Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > points_r_map((ScalarT *)points_r.data(),EigenDim,points_r.size());
+        points_r_map.topRows(EigenDimIn) = Eigen::Matrix<ScalarT,EigenDimIn,Eigen::Dynamic>::Map((ScalarT *)points.data(),EigenDimIn,points.size());
+        points_r_map.bottomRows(EigenDim-EigenDimIn).setZero();
+        points_r_map = (eigenvectors_*points_r_map).colwise() + mean_;
         return points_r;
     }
 

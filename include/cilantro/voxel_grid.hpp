@@ -6,6 +6,8 @@
 
 class VoxelGrid {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     VoxelGrid(const std::vector<Eigen::Vector3f> &points, float bin_size);
     VoxelGrid(const PointCloud &cloud, float bin_size);
     ~VoxelGrid() {}

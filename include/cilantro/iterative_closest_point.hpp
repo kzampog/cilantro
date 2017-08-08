@@ -4,6 +4,8 @@
 
 class IterativeClosestPoint {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     enum struct Metric { POINT_TO_POINT, POINT_TO_PLANE };
 
     IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &src_p);

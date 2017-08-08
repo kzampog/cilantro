@@ -308,6 +308,8 @@ inline bool convexHullFromHalfspaceIntersection(const std::vector<Eigen::Matrix<
 template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
 class ConvexHull {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     ConvexHull(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> > &points, bool simplicial_facets = true, double merge_tol = 0.0) {
         is_empty_ = !convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(points, hull_points_, halfspaces_, faces_, point_neighbor_faces_, face_neighbor_faces_, hull_point_indices_, area_, volume_, simplicial_facets, merge_tol);
         init_();
@@ -386,6 +388,8 @@ typedef ConvexHull<float,float,3> ConvexHull3D;
 
 class CloudHullFlat : public ConvexHull2D {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     CloudHullFlat(const std::vector<Eigen::Vector3f> &points, bool simplicial_facets = true, double merge_tol = 0.0);
     CloudHullFlat(const PointCloud &cloud, bool simplicial_facets = true, double merge_tol = 0.0);
 
@@ -397,6 +401,8 @@ private:
 
 class CloudHull : public ConvexHull3D {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     using ConvexHull3D::getSignedDistancesFromFacets;
     using ConvexHull3D::getInteriorPointIndices;
     CloudHull(const PointCloud &cloud, bool simplicial_facets = true, double merge_tol = 0.0);

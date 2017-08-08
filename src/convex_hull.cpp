@@ -1,5 +1,4 @@
 #include <cilantro/convex_hull.hpp>
-#include <cilantro/principal_component_analysis.hpp>
 
 template class ConvexHull<float,float,2>;
 template class ConvexHull<float,float,3>;

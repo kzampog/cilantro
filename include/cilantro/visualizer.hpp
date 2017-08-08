@@ -7,6 +7,8 @@
 
 class Visualizer {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     struct RenderingProperties {
         inline RenderingProperties() : drawingColor(no_color_),
                                        pointSize(2.0f),

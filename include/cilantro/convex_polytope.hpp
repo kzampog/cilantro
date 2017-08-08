@@ -232,7 +232,7 @@ bool evaluateHalfspaceIntersection(const Eigen::Ref<const Eigen::Matrix<InputSca
     Eigen::FullPivLU<Eigen::Matrix<double,EigenDim,Eigen::Dynamic> > lu(hs_coeffs.topRows(EigenDim));
     lu.setThreshold(dist_tol);
 
-    //std::cout << "The rank of A is found to be " << lu.rank() << std::endl;
+    //std::cout << "rank: " << lu.rank() << std::endl;
 
     if (lu.rank() < EigenDim) {
         facet_halfspaces.resize(num_halfspaces);
@@ -489,3 +489,153 @@ inline bool halfspaceIntersectionFromVertices(const std::vector<Eigen::Matrix<In
 {
     return halfspaceIntersectionFromVertices<InputScalarT,OutputScalarT,EigenDim>(Eigen::Map<Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> >((InputScalarT *)vertices.data(),EigenDim,vertices.size()), polytope_vertices, facet_halfspaces, area, volume, merge_tol);
 }
+
+template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
+void computeConvexHullAreaAndVolume(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> > &vertices,
+                                    double &area, double &volume,
+                                    double merge_tol = 0.0)
+{
+    size_t num_points = vertices.cols();
+    Eigen::Matrix<double,EigenDim,Eigen::Dynamic> vert_data(vertices.template cast<double>());
+
+    if (num_points == 0) {
+        area = 0.0;
+        volume = 0.0;
+        return;
+    }
+
+    Eigen::Matrix<double,EigenDim,1> mu(vert_data.rowwise().mean());
+    size_t true_dim = Eigen::FullPivLU<Eigen::Matrix<double,EigenDim,Eigen::Dynamic> >(vert_data.colwise() - mu).rank();
+
+    //std::cout << "TRUE DIMENSION: " << true_dim << std::endl << std::endl;
+
+    if (true_dim < EigenDim) {
+        PrincipalComponentAnalysis<double,EigenDim> pca(vert_data);
+        const Eigen::Matrix<double,EigenDim,1>& t_vec(pca.getDataMean());
+        const Eigen::Matrix<double,EigenDim,EigenDim>& rot_mat(pca.getEigenVectorsMatrix());
+
+        Eigen::MatrixXd proj_vert((rot_mat.transpose()*(vert_data.colwise() - t_vec)).topRows(true_dim));
+
+        // Populate polytope vertices amd add constraints for first true_dim dimensions
+        if (true_dim > 1) {
+            // Get vertices and constraints from qhull
+            orgQhull::Qhull qh;
+            qh.qh()->TRIangulate = False;
+            qh.qh()->premerge_centrum = merge_tol;
+            qh.runQhull("", true_dim, num_points, proj_vert.data(), "");
+            //qh.defineVertexNeighborFacets();
+
+            area = (EigenDim == true_dim + 1) ? qh.volume() : 0.0;
+            volume = 0.0;
+        } else if (true_dim == 0) {
+            // Handle special case (single point)
+            area = 0.0;
+            volume = 0.0;
+        } else if (true_dim == 1) {
+            // Handle special case (1D line, not handled by qhull)
+            size_t ind_min, ind_max;
+            double min_val = proj_vert.row(0).minCoeff(&ind_min);
+            double max_val = proj_vert.row(0).maxCoeff(&ind_max);
+            area = (EigenDim == 2) ? (max_val-min_val) : 0.0;
+            volume = 0.0;
+        }
+
+        return;
+    }
+
+    orgQhull::Qhull qh;
+    qh.qh()->TRIangulate = False;
+    qh.qh()->premerge_centrum = merge_tol;
+    qh.runQhull("", EigenDim, num_points, vert_data.data(), "");
+    //qh.defineVertexNeighborFacets();
+
+    area = qh.area();
+    volume = qh.volume();
+}
+
+template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
+inline void computeConvexHullAreaAndVolume(const std::vector<Eigen::Matrix<InputScalarT,EigenDim,1> > &vertices,
+                                           double &area, double &volume,
+                                           double merge_tol = 0.0)
+{
+    computeConvexHullAreaAndVolume<InputScalarT,OutputScalarT,EigenDim>(Eigen::Map<Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> >((InputScalarT *)vertices.data(),EigenDim,vertices.size()), area, volume, merge_tol);
+}
+
+template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
+class ConvexPolytope {
+public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    ConvexPolytope ()
+            : is_valid_(false),
+              vertices_map_(NULL, EigenDim, 0),
+              halfspaces_map_(NULL, EigenDim+1, 0)
+    {}
+
+    ConvexPolytope(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> > &points, double merge_tol = 0.0)
+            : is_valid_(true),
+              is_empty_(!halfspaceIntersectionFromVertices<InputScalarT,OutputScalarT,EigenDim>(points, vertices_, halfspaces_, area_, volume_, merge_tol)),
+              is_bounded_(true),
+              vertices_map_((OutputScalarT *)vertices_.data(), EigenDim, vertices_.size()),
+              halfspaces_map_((OutputScalarT *)halfspaces_.data(), EigenDim+1, halfspaces_.size())
+    {
+        interior_point_ = vertices_map_.rowwise().mean();
+    }
+
+    ConvexPolytope(const std::vector<Eigen::Matrix<InputScalarT,EigenDim,1> > &points, double merge_tol = 0.0)
+            : is_valid_(true),
+              is_empty_(!halfspaceIntersectionFromVertices<InputScalarT,OutputScalarT,EigenDim>(points, vertices_, halfspaces_, area_, volume_, merge_tol)),
+              is_bounded_(true),
+              vertices_map_((OutputScalarT *)vertices_.data(), EigenDim, vertices_.size()),
+              halfspaces_map_((OutputScalarT *)halfspaces_.data(), EigenDim+1, halfspaces_.size())
+    {
+        interior_point_ = vertices_map_.rowwise().mean();
+    }
+
+    ConvexPolytope(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim+1,Eigen::Dynamic> > &halfspaces, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0)
+            : is_valid_(true),
+              is_empty_(!evaluateHalfspaceIntersection<InputScalarT,OutputScalarT,EigenDim>(halfspaces, halfspaces_, vertices_, interior_point_, is_bounded_, dist_tol, merge_tol)),
+              vertices_map_((OutputScalarT *)vertices_.data(), EigenDim, vertices_.size()),
+              halfspaces_map_((OutputScalarT *)halfspaces_.data(), EigenDim+1, halfspaces_.size())
+    {
+        if (is_bounded_) {
+            computeConvexHullAreaAndVolume<OutputScalarT,OutputScalarT,EigenDim>(vertices_, area_, volume_, merge_tol);
+        } else {
+            area_ = std::numeric_limits<double>::infinity();
+            volume_ = std::numeric_limits<double>::infinity();
+        }
+    }
+
+    ConvexPolytope(const std::vector<Eigen::Matrix<InputScalarT,EigenDim+1,1> > &halfspaces, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0)
+            : is_valid_(true),
+              is_empty_(!evaluateHalfspaceIntersection<InputScalarT,OutputScalarT,EigenDim>(halfspaces, halfspaces_, vertices_, interior_point_, is_bounded_, dist_tol, merge_tol)),
+              vertices_map_((OutputScalarT *)vertices_.data(), EigenDim, vertices_.size()),
+              halfspaces_map_((OutputScalarT *)halfspaces_.data(), EigenDim+1, halfspaces_.size())
+    {
+        if (is_bounded_) {
+            computeConvexHullAreaAndVolume<OutputScalarT,OutputScalarT,EigenDim>(vertices_, area_, volume_, merge_tol);
+        } else {
+            area_ = std::numeric_limits<double>::infinity();
+            volume_ = std::numeric_limits<double>::infinity();
+        }
+    }
+
+    ~ConvexPolytope() {}
+
+//protected:
+    bool is_valid_;
+
+    double area_;
+    double volume_;
+    bool is_bounded_;
+
+    std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > vertices_;
+    std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > halfspaces_;
+    Eigen::Matrix<OutputScalarT,EigenDim,1> interior_point_;
+
+    bool is_empty_;
+
+    Eigen::Map<Eigen::Matrix<OutputScalarT,EigenDim,Eigen::Dynamic> > vertices_map_;
+    Eigen::Map<Eigen::Matrix<OutputScalarT,EigenDim+1,Eigen::Dynamic> > halfspaces_map_;
+
+};

@@ -4,6 +4,8 @@
 
 class ConnectedComponentSegmentation {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     ConnectedComponentSegmentation(const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const std::vector<Eigen::Vector3f> &colors);
     ConnectedComponentSegmentation(const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const std::vector<Eigen::Vector3f> &colors, const KDTree &kd_tree);
     ConnectedComponentSegmentation(const PointCloud &cloud);

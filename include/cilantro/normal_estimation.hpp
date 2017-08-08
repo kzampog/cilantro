@@ -4,6 +4,8 @@
 
 class NormalEstimation {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     NormalEstimation(const std::vector<Eigen::Vector3f> &points);
     NormalEstimation(const std::vector<Eigen::Vector3f> &points, const KDTree &kd_tree);
     NormalEstimation(const PointCloud &cloud);

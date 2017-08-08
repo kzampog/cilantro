@@ -7,6 +7,8 @@ typedef Eigen::Vector4f PlaneParameters;
 
 class PlaneEstimator : public RandomSampleConsensus<PlaneEstimator,PlaneParameters,float> {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     PlaneEstimator(const std::vector<Eigen::Vector3f> &points);
     PlaneEstimator(const PointCloud &cloud);
 
