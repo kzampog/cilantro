@@ -755,11 +755,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     ConvexPolytope ()
-            : area_(0.0),
-              volume_(0.0),
-              is_bounded_(true),
-              vertices_(0),
-              halfspaces_(2),
+            : area_(0.0), volume_(0.0), is_bounded_(true), vertices_(0), halfspaces_(2),
               interior_point_(Eigen::Matrix<OutputScalarT,EigenDim,1>::Constant(std::numeric_limits<OutputScalarT>::quiet_NaN())),
               is_empty_(true)
     {
@@ -770,7 +766,7 @@ public:
         halfspaces_[1](0) = -1.0;
         halfspaces_[1](EigenDim) = 1.0;
     }
-    ConvexPolytope(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> > &points, bool simplicial_facets = true, double merge_tol = 0.0)
+    ConvexPolytope(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> > &points, bool simplicial_facets = false, double merge_tol = 0.0)
             : is_bounded_(true),
               is_empty_(!convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(points, vertices_, halfspaces_, faces_, vertex_neighbor_faces_, face_neighbor_faces_, vertex_point_indices_, area_, volume_, simplicial_facets, merge_tol))
     {
@@ -780,7 +776,7 @@ public:
             interior_point_ = getVerticesMatrixMap().rowwise().mean();
         }
     }
-    ConvexPolytope(const std::vector<Eigen::Matrix<InputScalarT,EigenDim,1> > &points, bool simplicial_facets = true, double merge_tol = 0.0)
+    ConvexPolytope(const std::vector<Eigen::Matrix<InputScalarT,EigenDim,1> > &points, bool simplicial_facets = false, double merge_tol = 0.0)
             : is_bounded_(true),
               is_empty_(!convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(points, vertices_, halfspaces_, faces_, vertex_neighbor_faces_, face_neighbor_faces_, vertex_point_indices_, area_, volume_, simplicial_facets, merge_tol))
     {
@@ -790,7 +786,7 @@ public:
             interior_point_ = getVerticesMatrixMap().rowwise().mean();
         }
     }
-    ConvexPolytope(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim+1,Eigen::Dynamic> > &halfspaces, bool simplicial_facets = true, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0)
+    ConvexPolytope(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim+1,Eigen::Dynamic> > &halfspaces, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0)
             : is_empty_(!evaluateHalfspaceIntersection<InputScalarT,OutputScalarT,EigenDim>(halfspaces, halfspaces_, vertices_, interior_point_, is_bounded_, dist_tol, merge_tol))
     {
         if (is_empty_) {
@@ -808,7 +804,7 @@ public:
             volume_ = std::numeric_limits<double>::infinity();
         }
     }
-    ConvexPolytope(const std::vector<Eigen::Matrix<InputScalarT,EigenDim+1,1> > &halfspaces, bool simplicial_facets = true, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0)
+    ConvexPolytope(const std::vector<Eigen::Matrix<InputScalarT,EigenDim+1,1> > &halfspaces, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0)
             : is_empty_(!evaluateHalfspaceIntersection<InputScalarT,OutputScalarT,EigenDim>(halfspaces, halfspaces_, vertices_, interior_point_, is_bounded_, dist_tol, merge_tol))
     {
         if (is_empty_) {
@@ -828,6 +824,11 @@ public:
     }
 
     ~ConvexPolytope() {}
+
+    ConvexPolytope intersectionWith(const ConvexPolytope &poly, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) {
+        halfspaces_.insert(halfspaces_.end(), poly.halfspaces_.begin(), poly.halfspaces_.end());
+        return ConvexPolytope(halfspaces_, simplicial_facets, dist_tol, merge_tol);
+    }
 
     inline bool isEmpty() const { return is_empty_; }
     inline bool isBounded() const { return is_bounded_; }
@@ -872,7 +873,7 @@ public:
     inline const std::vector<std::vector<size_t> >& getFacetNeighborFacets() const { return face_neighbor_faces_; }
     inline const std::vector<size_t>& getVertexPointIndices() const { return vertex_point_indices_; }
 
-protected:
+private:
     double area_;
     double volume_;
     bool is_bounded_;
@@ -888,20 +889,4 @@ protected:
     std::vector<size_t> vertex_point_indices_;
 
     bool is_empty_;
-
-//    void set_empty_() {
-//        area_ = 0.0;
-//        volume_ = 0.0;
-//        is_bounded_ = true;
-//        vertices_.clear();
-//        halfspaces_.resize(2);
-//        halfspaces_[0].setZero();
-//        halfspaces_[0](0) = 1.0;
-//        halfspaces_[0](EigenDim) = 1.0;
-//        halfspaces_[1].setZero();
-//        halfspaces_[1](0) = -1.0;
-//        halfspaces_[1](EigenDim) = 1.0;
-//        interior_point_.setConstant(std::numeric_limits<OutputScalarT>::quiet_NaN());
-//        is_empty_ = true;
-//    }
 };

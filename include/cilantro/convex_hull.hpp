@@ -14,6 +14,7 @@ public:
     CloudHullFlat(const PointCloud &cloud, bool simplicial_facets = true, double merge_tol = 0.0);
 
     inline const std::vector<Eigen::Vector3f>& getVertices3D() const { return vertices_3d_; }
+
 private:
     std::vector<Eigen::Vector3f> vertices_3d_;
     void init_(const std::vector<Eigen::Vector3f> &points);
