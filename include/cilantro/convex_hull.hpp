@@ -10,8 +10,8 @@ class CloudHullFlat : public ConvexHull2D {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    CloudHullFlat(const std::vector<Eigen::Vector3f> &points, bool simplicial_facets = true, double merge_tol = 0.0);
-    CloudHullFlat(const PointCloud &cloud, bool simplicial_facets = true, double merge_tol = 0.0);
+    CloudHullFlat(const std::vector<Eigen::Vector3f> &points, bool compute_topology = true, bool simplicial_facets = true, double merge_tol = 0.0);
+    CloudHullFlat(const PointCloud &cloud, bool compute_topology = true, bool simplicial_facets = true, double merge_tol = 0.0);
 
     inline const std::vector<Eigen::Vector3f>& getVertices3D() const { return vertices_3d_; }
 
@@ -26,7 +26,7 @@ public:
 
     using ConvexHull3D::getPointSignedDistancesFromFacets;
     using ConvexHull3D::getInteriorPointIndices;
-    CloudHull(const PointCloud &cloud, bool simplicial_facets = true, double merge_tol = 0.0);
+    CloudHull(const PointCloud &cloud, bool compute_topology = true, bool simplicial_facets = true, double merge_tol = 0.0);
     Eigen::MatrixXf getPointSignedDistancesFromFacets(const PointCloud &cloud) const;
     std::vector<size_t> getInteriorPointIndices(const PointCloud &cloud, float offset = 0.0) const;
 };
