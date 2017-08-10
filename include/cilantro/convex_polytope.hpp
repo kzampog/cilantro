@@ -826,8 +826,9 @@ public:
     ~ConvexPolytope() {}
 
     ConvexPolytope intersectionWith(const ConvexPolytope &poly, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) {
-        halfspaces_.insert(halfspaces_.end(), poly.halfspaces_.begin(), poly.halfspaces_.end());
-        return ConvexPolytope(halfspaces_, simplicial_facets, dist_tol, merge_tol);
+        std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > hs_intersection(halfspaces_);
+        hs_intersection.insert(hs_intersection.end(), poly.halfspaces_.begin(), poly.halfspaces_.end());
+        return ConvexPolytope(hs_intersection, simplicial_facets, dist_tol, merge_tol);
     }
 
     inline bool isEmpty() const { return is_empty_; }
