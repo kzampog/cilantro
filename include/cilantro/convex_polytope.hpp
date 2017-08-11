@@ -1,5 +1,6 @@
 #pragma once
 
+#include <type_traits>
 #include <libqhullcpp/Qhull.h>
 #include <libqhullcpp/QhullFacetSet.h>
 #include <libqhullcpp/QhullFacetList.h>
@@ -527,13 +528,14 @@ void computeConvexHullAreaAndVolume(const Eigen::Ref<const Eigen::Matrix<InputSc
                                     double merge_tol = 0.0)
 {
     size_t num_points = vertices.cols();
-    Eigen::Matrix<double,EigenDim,Eigen::Dynamic> vert_data(vertices.template cast<double>());
 
     if (num_points == 0) {
         area = 0.0;
         volume = 0.0;
         return;
     }
+
+    Eigen::Matrix<double,EigenDim,Eigen::Dynamic> vert_data(vertices.template cast<double>());
 
     Eigen::Matrix<double,EigenDim,1> mu(vert_data.rowwise().mean());
     size_t true_dim = Eigen::FullPivLU<Eigen::Matrix<double,EigenDim,Eigen::Dynamic> >(vert_data.colwise() - mu).rank();
@@ -605,7 +607,6 @@ bool convexHullFromPoints(const Eigen::Ref<const Eigen::Matrix<InputScalarT,Eige
                           double merge_tol = 0.0)
 {
     size_t num_points = points.cols();
-    Eigen::Matrix<double,EigenDim,Eigen::Dynamic> data(points.template cast<double>());
 
     if (num_points < EigenDim+1) {
         hull_points.clear();
@@ -624,6 +625,8 @@ bool convexHullFromPoints(const Eigen::Ref<const Eigen::Matrix<InputScalarT,Eige
         volume = 0.0;
         return false;
     }
+
+    Eigen::Matrix<double,EigenDim,Eigen::Dynamic> data(points.template cast<double>());
 
     Eigen::Matrix<double,EigenDim,1> mu(data.rowwise().mean());
     if (Eigen::FullPivLU<Eigen::Matrix<double,EigenDim,Eigen::Dynamic> >(data.colwise() - mu).rank() < EigenDim) {
