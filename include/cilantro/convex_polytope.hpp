@@ -845,6 +845,10 @@ public:
         return (hs_map.topRows(EigenDim).transpose()*pts_map).colwise() + hs_map.row(EigenDim).transpose();
     }
 
+    inline Eigen::Matrix<bool,1,Eigen::Dynamic> getInteriorPointsIndexMask(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points, OutputScalarT offset = 0.0) const {
+        return (getPointSignedDistancesFromFacets(points).array() <= -offset).colwise().all();
+    }
+
     std::vector<size_t> getInteriorPointIndices(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points, OutputScalarT offset = 0.0) const {
         Eigen::Matrix<bool,1,Eigen::Dynamic> distance_test((getPointSignedDistancesFromFacets(points).array() <= -offset).colwise().all());
         std::vector<size_t> indices;
@@ -861,6 +865,7 @@ public:
     inline const std::vector<size_t>& getVertexPointIndices() const { return vertex_point_indices_; }
 
 private:
+    // Polytope properties
     bool is_empty_;
     bool is_bounded_;
     double area_;

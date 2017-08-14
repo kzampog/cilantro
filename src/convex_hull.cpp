@@ -1,8 +1,5 @@
 #include <cilantro/convex_hull.hpp>
 
-//template class ConvexHull<float,float,2>;
-//template class ConvexHull<float,float,3>;
-
 CloudHullFlat::CloudHullFlat(const std::vector<Eigen::Vector3f> &points, bool compute_topology, bool simplicial_facets, double merge_tol)
         : ConvexHull2D(PrincipalComponentAnalysis3D(points).project<2>(points), compute_topology, simplicial_facets, merge_tol)
 {
