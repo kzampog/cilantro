@@ -811,7 +811,7 @@ public:
 
     ~ConvexPolytope() {}
 
-    ConvexPolytope intersectionWith(const ConvexPolytope &poly, bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) {
+    ConvexPolytope intersectionWith(const ConvexPolytope &poly, bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) const {
         std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > hs_intersection(halfspaces_);
         hs_intersection.insert(hs_intersection.end(), poly.halfspaces_.begin(), poly.halfspaces_.end());
         return ConvexPolytope(hs_intersection, compute_topology, simplicial_facets, dist_tol, merge_tol);
