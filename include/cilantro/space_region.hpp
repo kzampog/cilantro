@@ -5,30 +5,75 @@
 template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
 class SpaceRegion {
 public:
-    SpaceRegion() : polytopes_(std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> >(0)) {}
-    SpaceRegion(const ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> &polytope) : polytopes_(std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> >(1,polytope)) {}
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    SpaceRegion() {}
     SpaceRegion(const std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> > &polytopes) : polytopes_(polytopes) {}
+    SpaceRegion(const ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> &polytope) : polytopes_(std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> >(1,polytope)) {}
+    SpaceRegion(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> > &points, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0) {
+        polytopes_.emplace_back(points, compute_topology, simplicial_facets, merge_tol);
+    }
+    SpaceRegion(const std::vector<Eigen::Matrix<InputScalarT,EigenDim,1> > &points, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0) {
+        polytopes_.emplace_back(points, compute_topology, simplicial_facets, merge_tol);
+    }
+    SpaceRegion(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim+1,Eigen::Dynamic> > &halfspaces, bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) {
+        polytopes_.emplace_back(halfspaces, compute_topology, simplicial_facets, dist_tol, merge_tol);
+    }
+    SpaceRegion(const std::vector<Eigen::Matrix<InputScalarT,EigenDim+1,1> > &halfspaces, bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) {
+        polytopes_.emplace_back(halfspaces, compute_topology, simplicial_facets, dist_tol, merge_tol);
+    }
 
     ~SpaceRegion() {}
 
     SpaceRegion unionWith(const SpaceRegion &sr) const {
-        std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> > polytopes(polytopes_);
-        polytopes.insert(polytopes.end(), sr.polytopes_.begin(), sr.polytopes_.end());
-        return SpaceRegion(polytopes);
+        std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> > res_polytopes(polytopes_);
+        res_polytopes.insert(res_polytopes.end(), sr.polytopes_.begin(), sr.polytopes_.end());
+        return SpaceRegion(std::move(res_polytopes));
     }
 
-    SpaceRegion intesectionWith(const SpaceRegion &sr) const {
-//        std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> > polytopes(polytopes_);
-//        polytopes.insert(polytopes.end(), sr.polytopes_.begin(), sr.polytopes_.end());
-//        return SpaceRegion(polytopes);
+    SpaceRegion intersectionWith(const SpaceRegion &sr, bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) const {
+        std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> > res_polytopes;
+        for (size_t i = 0; i < polytopes_.size(); i++) {
+            for (size_t j = 0; j < sr.polytopes_.size(); j++) {
+                ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> poly_tmp(polytopes_[i].intersectionWith(sr.polytopes_[j], compute_topology, simplicial_facets, dist_tol, merge_tol));
+                if (!poly_tmp.isEmpty()) {
+                    res_polytopes.emplace_back(std::move(poly_tmp));
+                }
+            }
+        }
+        return SpaceRegion(std::move(res_polytopes));
     }
 
-    SpaceRegion complement(const SpaceRegion &sr) const {
-//        std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> > polytopes(polytopes_);
-//        polytopes.insert(polytopes.end(), sr.polytopes_.begin(), sr.polytopes_.end());
-//        return SpaceRegion(polytopes);
+    SpaceRegion complement(bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) const {
+        std::vector<std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > > tuples;
+        tuples.emplace_back(0);
+        for (size_t p = 0; p < polytopes_.size(); p++) {
+            const std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> >& hs(polytopes_[p].getFacetHyperplanes());
+            std::vector<std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > > tuples_new;
+            for (size_t t = 0; t < tuples.size(); t++) {
+                std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > tup_curr(tuples[t]);
+                tup_curr.resize(tup_curr.size() + 1);
+                for (size_t h = 0; h < hs.size(); h++) {
+                    tup_curr[tup_curr.size()-1] = -hs[h];
+                    tuples_new.emplace_back(tup_curr);
+                }
+            }
+            tuples = std::move(tuples_new);
+        }
+
+        std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> > res_polytopes;
+        for (size_t t = 0; t < tuples.size(); t++) {
+            ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> poly_tmp(tuples[t], compute_topology, simplicial_facets, dist_tol, merge_tol);
+            if (!poly_tmp.isEmpty()) {
+                res_polytopes.emplace_back(std::move(poly_tmp));
+            }
+        }
+        return SpaceRegion(std::move(res_polytopes));
     }
 
+//    SpaceRegion minus(const SpaceRegion &sr, bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) const {
+//        return intersectionWith(sr.complement());
+//    }
 
     inline bool isEmpty() const {
         for (size_t i = 0; i < polytopes_.size(); i++) {
@@ -80,7 +125,11 @@ private:
     std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> > polytopes_;
 
     static Eigen::Matrix<OutputScalarT,EigenDim,1> nan_point_;
+
 };
 
 template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
 Eigen::Matrix<OutputScalarT,EigenDim,1> SpaceRegion<InputScalarT,OutputScalarT,EigenDim>::nan_point_ = Eigen::Matrix<OutputScalarT,EigenDim,1>::Constant(std::numeric_limits<OutputScalarT>::quiet_NaN());
+
+typedef SpaceRegion<float,float,2> SpaceRegion2D;
+typedef SpaceRegion<float,float,3> SpaceRegion3D;

@@ -270,12 +270,12 @@ bool evaluateHalfspaceIntersection(const Eigen::Ref<const Eigen::Matrix<InputSca
     is_bounded = true;
 
     // 'Precondition' qhull input...
-    if (std::abs(hs_coeffs.row(EigenDim).maxCoeff() - hs_coeffs.row(EigenDim).minCoeff()) < dist_tol) {
-        hs_coeffs.conservativeResize(Eigen::NoChange, 2*num_halfspaces);
-        hs_coeffs.rightCols(num_halfspaces) = hs_coeffs.leftCols(num_halfspaces);
-        hs_coeffs.block(EigenDim,num_halfspaces,1,num_halfspaces).array() -= 1.0;
-        num_halfspaces *= 2;
-    }
+//    if (std::abs(hs_coeffs.row(EigenDim).maxCoeff() - hs_coeffs.row(EigenDim).minCoeff()) < dist_tol) {
+    hs_coeffs.conservativeResize(Eigen::NoChange, 2*num_halfspaces);
+    hs_coeffs.rightCols(num_halfspaces) = hs_coeffs.leftCols(num_halfspaces);
+    hs_coeffs.block(EigenDim,num_halfspaces,1,num_halfspaces).array() -= 1.0;
+    num_halfspaces *= 2;
+//    }
 
     // Run qhull in halfspace mode
     std::vector<double> fpv(EigenDim);
@@ -814,7 +814,7 @@ public:
     ConvexPolytope intersectionWith(const ConvexPolytope &poly, bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) const {
         std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > hs_intersection(halfspaces_);
         hs_intersection.insert(hs_intersection.end(), poly.halfspaces_.begin(), poly.halfspaces_.end());
-        return ConvexPolytope(hs_intersection, compute_topology, simplicial_facets, dist_tol, merge_tol);
+        return ConvexPolytope(std::move(hs_intersection), compute_topology, simplicial_facets, dist_tol, merge_tol);
     }
 
     inline bool isEmpty() const { return is_empty_; }
@@ -915,3 +915,6 @@ private:
     }
 
 };
+
+typedef ConvexPolytope<float,float,2> ConvexPolytope2D;
+typedef ConvexPolytope<float,float,3> ConvexPolytope3D;
