@@ -44,6 +44,7 @@ public:
         return SpaceRegion(std::move(res_polytopes));
     }
 
+    // Inefficient
     SpaceRegion complement(bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) const {
         std::vector<std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > > tuples;
         tuples.emplace_back(0);
@@ -96,6 +97,30 @@ public:
             if (!polytopes_[i].isBounded()) return false;
         }
         return true;
+    }
+
+    // Inefficient
+    double getVolume(double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) const {
+        if (!isBounded()) return std::numeric_limits<double>::infinity();
+
+        std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> > subsets;
+        subsets.emplace_back(std::vector<Eigen::Matrix<InputScalarT,EigenDim+1,1> >(0));
+        std::vector<size_t> subset_sizes;
+        subset_sizes.emplace_back(0);
+        double volume = 0.0;
+        for (size_t i = 0; i < polytopes_.size(); i++) {
+            std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> > subsets_tmp(subsets);
+            std::vector<size_t> subset_sizes_tmp(subset_sizes);
+            for (size_t j = 0; j < subsets_tmp.size(); j++) {
+                subsets_tmp[j] = subsets_tmp[j].intersectionWith(polytopes_[i], false, false, dist_tol, merge_tol);
+                subset_sizes_tmp[j]++;
+                volume += (2.0*(subset_sizes_tmp[j]%2) - 1.0)*subsets_tmp[j].getVolume();
+            }
+            std::move(std::begin(subsets_tmp), std::end(subsets_tmp), std::back_inserter(subsets));
+            std::move(std::begin(subset_sizes_tmp), std::end(subset_sizes_tmp), std::back_inserter(subset_sizes));
+        }
+
+        return volume;
     }
 
     inline const Eigen::Matrix<OutputScalarT,EigenDim,1>& getInteriorPoint() const {
