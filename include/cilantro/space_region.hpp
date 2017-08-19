@@ -61,8 +61,17 @@ public:
             tuples = std::move(tuples_new);
         }
 
+//        std::cout << "Generated " << tuples.size() << " tuples!" << std::endl;
+
         std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> > res_polytopes;
         for (size_t t = 0; t < tuples.size(); t++) {
+
+//            std::cout << "Tuple " << t << ":" << std::endl;
+//            for (size_t tt = 0; tt < tuples[t].size(); tt++) {
+//                std::cout << tuples[t][tt].transpose() << ",   ";
+//            }
+//            std::cout << std::endl;
+
             ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> poly_tmp(tuples[t], compute_topology, simplicial_facets, dist_tol, merge_tol);
             if (!poly_tmp.isEmpty()) {
                 res_polytopes.emplace_back(std::move(poly_tmp));
@@ -71,9 +80,9 @@ public:
         return SpaceRegion(std::move(res_polytopes));
     }
 
-//    SpaceRegion minus(const SpaceRegion &sr, bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) const {
-//        return intersectionWith(sr.complement());
-//    }
+    SpaceRegion relativeComplement(const SpaceRegion &sr, bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) const {
+        return intersectionWith(sr.complement(compute_topology, simplicial_facets, dist_tol, merge_tol), compute_topology, simplicial_facets, dist_tol, merge_tol);
+    }
 
     inline bool isEmpty() const {
         for (size_t i = 0; i < polytopes_.size(); i++) {
@@ -96,27 +105,26 @@ public:
         return nan_point_;
     }
 
-    inline bool containsPoint(const Eigen::Matrix<OutputScalarT,EigenDim,1> &point) const {
+    inline bool containsPoint(const Eigen::Matrix<OutputScalarT,EigenDim,1> &point, OutputScalarT offset = 0.0) const {
         for (size_t i = 0; i < polytopes_.size(); i++) {
-            if (polytopes_[i].containsPoint(point)) return true;
+            if (polytopes_[i].containsPoint(point, offset)) return true;
         }
         return false;
     }
 
     inline Eigen::Matrix<bool,1,Eigen::Dynamic> getInteriorPointsIndexMask(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points, OutputScalarT offset = 0.0) const {
-        Eigen::Matrix<bool,1,Eigen::Dynamic> mask(Eigen::Matrix<bool,1,Eigen::Dynamic>::Zero(1,points.size()));
-        for (size_t i = 0; i < polytopes_.size(); i++) {
-            mask = mask.cwiseMax(polytopes_[i].getInteriorPointsIndexMask(points, offset));
+        Eigen::Matrix<bool,1,Eigen::Dynamic> mask(1,points.size());
+        for (size_t i = 0; i < points.size(); i++) {
+            mask(i) = containsPoint(points[i], offset);
         }
         return mask;
     }
 
     std::vector<size_t> getInteriorPointIndices(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points, OutputScalarT offset = 0.0) const {
-        Eigen::Matrix<bool,1,Eigen::Dynamic> mask(getInteriorPointsIndexMask(points, offset));
         std::vector<size_t> indices;
         indices.reserve(points.size());
         for (size_t i = 0; i < points.size(); i++) {
-            if (mask[i]) indices.emplace_back(i);
+            if (containsPoint(points[i], offset)) indices.emplace_back(i);
         }
         return indices;
     }

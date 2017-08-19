@@ -116,13 +116,13 @@ bool findFeasiblePointInHalfspaceIntersection(const Eigen::Ref<const Eigen::Matr
     G.topLeftCorner(EigenDim+1,EigenDim+1) = ineq_data*(ineq_data.transpose());
     G.row(EigenDim+1).setZero();
     G.col(EigenDim+1).setZero();
-    G(EigenDim+1,EigenDim+1) = 1.0;
+    //G(EigenDim+1,EigenDim+1) = 1.0;
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(G, Eigen::ComputeFullU | Eigen::ComputeFullV);
     Eigen::VectorXd S(svd.singularValues());
     for (size_t i = 0; i < S.size(); i++) {
-        if (S(i) < tol_sq) S(i) = tol_sq;
+        if (S(i) < tol_sq) S(i) = 1.0;
     }
-//    G = svd.matrixU()*(S.asDiagonal())*(svd.matrixV().transpose());
+    //G = svd.matrixU()*(S.asDiagonal())*(svd.matrixV().transpose());
     G = dist_tol*svd.matrixU()*(S.asDiagonal())*(svd.matrixV().transpose());
 
     // Linear term
@@ -413,6 +413,7 @@ bool halfspaceIntersectionFromVertices(const Eigen::Ref<const Eigen::Matrix<Inpu
             orgQhull::Qhull qh;
             qh.qh()->TRIangulate = False;
             qh.qh()->premerge_centrum = merge_tol;
+            qh.qh()->PRINTprecision = False;
             qh.runQhull("", true_dim, num_points, proj_vert.data(), "");
             //qh.defineVertexNeighborFacets();
             orgQhull::QhullFacetList qh_facets = qh.facetList();
@@ -486,6 +487,7 @@ bool halfspaceIntersectionFromVertices(const Eigen::Ref<const Eigen::Matrix<Inpu
     orgQhull::Qhull qh;
     qh.qh()->TRIangulate = False;
     qh.qh()->premerge_centrum = merge_tol;
+    qh.qh()->PRINTprecision = False;
     qh.runQhull("", EigenDim, num_points, vert_data.data(), "");
     //qh.defineVertexNeighborFacets();
     orgQhull::QhullFacetList qh_facets = qh.facetList();
@@ -574,6 +576,7 @@ void computeConvexHullAreaAndVolume(const Eigen::Ref<const Eigen::Matrix<ScalarT
             orgQhull::Qhull qh;
             qh.qh()->TRIangulate = False;
             qh.qh()->premerge_centrum = merge_tol;
+            qh.qh()->PRINTprecision = False;
             qh.runQhull("", true_dim, num_points, proj_vert.data(), "");
             //qh.defineVertexNeighborFacets();
 
@@ -598,6 +601,7 @@ void computeConvexHullAreaAndVolume(const Eigen::Ref<const Eigen::Matrix<ScalarT
     orgQhull::Qhull qh;
     qh.qh()->TRIangulate = False;
     qh.qh()->premerge_centrum = merge_tol;
+    qh.qh()->PRINTprecision = False;
     qh.runQhull("", EigenDim, num_points, vert_data.data(), "");
     //qh.defineVertexNeighborFacets();
 
@@ -678,6 +682,7 @@ bool convexHullFromPoints(const Eigen::Ref<const Eigen::Matrix<InputScalarT,Eige
     orgQhull::Qhull qh;
     if (simplicial_facets) qh.qh()->TRIangulate = True;
     qh.qh()->premerge_centrum = merge_tol;
+    qh.qh()->PRINTprecision = False;
     qh.runQhull("", EigenDim, num_points, vert_data.data(), "");
     qh.defineVertexNeighborFacets();
     orgQhull::QhullFacetList qh_facets = qh.facetList();
@@ -834,9 +839,11 @@ public:
         return Eigen::Map<Eigen::Matrix<OutputScalarT,EigenDim+1,Eigen::Dynamic> >((OutputScalarT *)halfspaces_.data(), EigenDim+1, halfspaces_.size());
     }
 
-    inline bool containsPoint(const Eigen::Matrix<OutputScalarT,EigenDim,1> &point) const {
-        Eigen::Map<Eigen::Matrix<OutputScalarT,EigenDim+1,Eigen::Dynamic> > hs_map(getFacetHyperplanesMatrixMap());
-        return ((point.transpose()*hs_map.topRows(EigenDim) + hs_map.row(EigenDim)).array() <= 0.0).all();
+    inline bool containsPoint(const Eigen::Matrix<OutputScalarT,EigenDim,1> &point, OutputScalarT offset = 0.0) const {
+        for (size_t i = 0; i < halfspaces_.size(); i++) {
+            if (point.dot(halfspaces_[i].head(EigenDim)) + halfspaces_[i](EigenDim) > -offset) return false;
+        }
+        return true;
     }
 
     inline Eigen::Matrix<OutputScalarT,Eigen::Dynamic,Eigen::Dynamic> getPointSignedDistancesFromFacets(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points) const {
@@ -846,15 +853,18 @@ public:
     }
 
     inline Eigen::Matrix<bool,1,Eigen::Dynamic> getInteriorPointsIndexMask(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points, OutputScalarT offset = 0.0) const {
-        return (getPointSignedDistancesFromFacets(points).array() <= -offset).colwise().all();
+        Eigen::Matrix<bool,1,Eigen::Dynamic> mask(1,points.size());
+        for (size_t i = 0; i < points.size(); i++) {
+            mask(i) = containsPoint(points[i], offset);
+        }
+        return mask;
     }
 
     std::vector<size_t> getInteriorPointIndices(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points, OutputScalarT offset = 0.0) const {
-        Eigen::Matrix<bool,1,Eigen::Dynamic> distance_test((getPointSignedDistancesFromFacets(points).array() <= -offset).colwise().all());
         std::vector<size_t> indices;
         indices.reserve(points.size());
         for (size_t i = 0; i < points.size(); i++) {
-            if (distance_test[i]) indices.emplace_back(i);
+            if (containsPoint(points[i], offset)) indices.emplace_back(i);
         }
         return indices;
     }
