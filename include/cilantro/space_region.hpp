@@ -123,6 +123,8 @@ public:
         return volume;
     }
 
+    inline const std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> >& getConvexPolytopes() const { return polytopes_; }
+
     inline const Eigen::Matrix<OutputScalarT,EigenDim,1>& getInteriorPoint() const {
         for (size_t i = 0; i < polytopes_.size(); i++) {
             if (!polytopes_[i].isEmpty()) return polytopes_[i].getInteriorPoint();
@@ -137,7 +139,7 @@ public:
         return false;
     }
 
-    inline Eigen::Matrix<bool,1,Eigen::Dynamic> getInteriorPointsIndexMask(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points, OutputScalarT offset = 0.0) const {
+    Eigen::Matrix<bool,1,Eigen::Dynamic> getInteriorPointsIndexMask(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points, OutputScalarT offset = 0.0) const {
         Eigen::Matrix<bool,1,Eigen::Dynamic> mask(1,points.size());
         for (size_t i = 0; i < points.size(); i++) {
             mask(i) = containsPoint(points[i], offset);

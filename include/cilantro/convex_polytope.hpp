@@ -852,7 +852,7 @@ public:
         return (hs_map.topRows(EigenDim).transpose()*pts_map).colwise() + hs_map.row(EigenDim).transpose();
     }
 
-    inline Eigen::Matrix<bool,1,Eigen::Dynamic> getInteriorPointsIndexMask(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points, OutputScalarT offset = 0.0) const {
+    Eigen::Matrix<bool,1,Eigen::Dynamic> getInteriorPointsIndexMask(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points, OutputScalarT offset = 0.0) const {
         Eigen::Matrix<bool,1,Eigen::Dynamic> mask(1,points.size());
         for (size_t i = 0; i < points.size(); i++) {
             mask(i) = containsPoint(points[i], offset);
