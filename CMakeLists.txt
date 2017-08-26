@@ -15,6 +15,7 @@ find_package(Pangolin REQUIRED)
 
 include_directories(${Pangolin_INCLUDE_DIRS})
 include_directories(3rd_party)
+include_directories(3rd_party/qhull)
 include_directories(include)
 
 # Build library
