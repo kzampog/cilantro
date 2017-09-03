@@ -52,7 +52,7 @@ ConnectedComponentSegmentation& ConnectedComponentSegmentation::segment(std::vec
     min_segment_size_ = min_segment_size;
     max_segment_size_ = max_segment_size;
 
-    std::vector<bool> has_been_assigned(points_->size(), 0);
+    std::vector<bool> has_been_assigned(points_->size(), false);
 
     std::vector<size_t> neighbors;
     std::vector<float> distances;
