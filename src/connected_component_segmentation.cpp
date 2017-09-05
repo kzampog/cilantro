@@ -61,25 +61,21 @@ ConnectedComponentSegmentation& ConnectedComponentSegmentation::segment(std::vec
     for (size_t i = 0; i < seeds_ind.size(); i++) {
         if (has_been_assigned[seeds_ind[i]]) continue;
 
-        std::vector<size_t> curr_cc_ind;
-        std::vector<bool> is_in_stack(points_->size(), 0);
-
         std::stack<size_t> seeds_stack;
         seeds_stack.push(seeds_ind[i]);
-        is_in_stack[seeds_ind[i]] = 1;
+        has_been_assigned[seeds_ind[i]] = true;
+
+        std::vector<size_t> curr_cc_ind;
         while (!seeds_stack.empty()) {
             size_t curr_seed = seeds_stack.top();
             seeds_stack.pop();
-
-            has_been_assigned[curr_seed] = 1;
             curr_cc_ind.emplace_back(curr_seed);
 
             kd_tree_->radiusSearch((*points_)[curr_seed], dist_thresh_, neighbors, distances);
-
-            for (size_t j = 0; j < neighbors.size(); j++) {
-                if (is_similar_(curr_seed,neighbors[j]) && !is_in_stack[neighbors[j]]) {
+            for (size_t j = 1; j < neighbors.size(); j++) {
+                if (!has_been_assigned[neighbors[j]] && is_similar_(curr_seed,neighbors[j])) {
                     seeds_stack.push(neighbors[j]);
-                    is_in_stack[neighbors[j]] = 1;
+                    has_been_assigned[neighbors[j]] = true;
                 }
             }
 
