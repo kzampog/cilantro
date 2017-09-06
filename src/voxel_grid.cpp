@@ -120,7 +120,7 @@ PointCloud VoxelGrid::getDownsampledCloud(size_t min_points_in_bin) const {
 
 const std::vector<size_t>& VoxelGrid::getGridBinNeighbors(const Eigen::Vector3f &point) const {
     Eigen::Vector3i grid_coords = ((point-min_pt_)/bin_size_).array().floor().cast<int>();
-    if ((grid_coords.array() < Eigen::Vector3i::Zero().array()).any()) return empty_indices_;
+    if ((grid_coords.array() < 0).any()) return empty_indices_;
 
     auto it = grid_lookup_table_.find(grid_coords);
     if (it == grid_lookup_table_.end()) return empty_indices_;
