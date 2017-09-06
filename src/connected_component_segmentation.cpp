@@ -78,7 +78,6 @@ ConnectedComponentSegmentation& ConnectedComponentSegmentation::segment(std::vec
                     has_been_assigned[neighbors[j]] = true;
                 }
             }
-
         }
 
         if (curr_cc_ind.size() >= min_segment_size_ && curr_cc_ind.size() <= max_segment_size_) {

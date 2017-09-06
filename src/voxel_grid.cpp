@@ -5,7 +5,8 @@ VoxelGrid::VoxelGrid(const std::vector<Eigen::Vector3f> &points, float bin_size)
         : input_points_(&points),
           input_normals_(NULL),
           input_colors_(NULL),
-          bin_size_(bin_size)
+          bin_size_(bin_size),
+          empty_indices_(0)
 {
     build_lookup_table_();
 }
@@ -14,7 +15,8 @@ VoxelGrid::VoxelGrid(const PointCloud &cloud, float bin_size)
         : input_points_(&cloud.points),
           input_normals_(cloud.hasNormals()?&cloud.normals:NULL),
           input_colors_(cloud.hasColors()?&cloud.colors:NULL),
-          bin_size_(bin_size)
+          bin_size_(bin_size),
+          empty_indices_(0)
 {
     build_lookup_table_();
 }
@@ -116,17 +118,17 @@ PointCloud VoxelGrid::getDownsampledCloud(size_t min_points_in_bin) const {
     return PointCloud(getDownsampledPoints(min_points_in_bin), getDownsampledNormals(min_points_in_bin), getDownsampledColors(min_points_in_bin));
 }
 
-std::vector<size_t> VoxelGrid::getGridBinNeighbors(const Eigen::Vector3f &point) const {
+const std::vector<size_t>& VoxelGrid::getGridBinNeighbors(const Eigen::Vector3f &point) const {
     Eigen::Vector3i grid_coords = ((point-min_pt_)/bin_size_).array().floor().cast<int>();
-    if ((grid_coords.array() < Eigen::Vector3i::Zero().array()).any()) return std::vector<size_t>(0);
+    if ((grid_coords.array() < Eigen::Vector3i::Zero().array()).any()) return empty_indices_;
 
     auto it = grid_lookup_table_.find(grid_coords);
-    if (it == grid_lookup_table_.end()) return std::vector<size_t>(0);
+    if (it == grid_lookup_table_.end()) return empty_indices_;
 
     return it->second;
 }
 
-std::vector<size_t> VoxelGrid::getGridBinNeighbors(size_t point_ind) const {
+const std::vector<size_t>& VoxelGrid::getGridBinNeighbors(size_t point_ind) const {
     return VoxelGrid::getGridBinNeighbors((*input_points_)[point_ind]);
 }
 

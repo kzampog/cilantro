@@ -18,8 +18,8 @@ public:
 
     PointCloud getDownsampledCloud(size_t min_points_in_bin = 1) const;
 
-    std::vector<size_t> getGridBinNeighbors(const Eigen::Vector3f &point) const;
-    std::vector<size_t> getGridBinNeighbors(size_t point_ind) const;
+    const std::vector<size_t>& getGridBinNeighbors(const Eigen::Vector3f &point) const;
+    const std::vector<size_t>& getGridBinNeighbors(size_t point_ind) const;
 
 private:
 
@@ -53,6 +53,8 @@ private:
 
     Eigen::Vector3f min_pt_;
     float bin_size_;
+
+    std::vector<size_t> empty_indices_;
 
     std::map<Eigen::Vector3i, std::vector<size_t>, EigenVector3iComparator_> grid_lookup_table_;
 //    std::unordered_map<Eigen::Vector3i, std::vector<size_t>, EigenVector3iHasher_> grid_lookup_table_;
