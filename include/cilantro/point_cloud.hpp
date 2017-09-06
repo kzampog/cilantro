@@ -7,6 +7,7 @@ struct PointCloud {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     PointCloud();
+    PointCloud(const std::vector<Eigen::Vector3f> &points);
     PointCloud(const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const std::vector<Eigen::Vector3f> &colors);
     PointCloud(const PointCloud &cloud, const std::vector<size_t> &indices, bool negate = false);
 

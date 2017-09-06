@@ -3,6 +3,10 @@
 
 PointCloud::PointCloud() {}
 
+PointCloud::PointCloud(const std::vector<Eigen::Vector3f> &points)
+        : points(points)
+{}
+
 PointCloud::PointCloud(const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const std::vector<Eigen::Vector3f> &colors)
         : points(points),
           normals(normals),
