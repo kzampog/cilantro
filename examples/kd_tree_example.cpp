@@ -16,7 +16,7 @@ int main(int argc, char ** argv) {
     cloud.points.push_back(Eigen::Vector3f(1, 1, 0));
     cloud.points.push_back(Eigen::Vector3f(1, 1, 1));
 
-    KDTree tree(cloud);
+    KDTree3D tree(cloud.points);
 
     std::vector<size_t> ind;
     std::vector<float> dist;

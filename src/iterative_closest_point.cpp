@@ -5,7 +5,7 @@ IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> 
         : dst_points_(&dst_p),
           dst_normals_(NULL),
           src_points_(&src_p),
-          kd_tree_ptr_(new KDTree(dst_p)),
+          kd_tree_ptr_(new KDTree3D(dst_p)),
           kd_tree_owned_(true),
           metric_(Metric::POINT_TO_POINT),
           src_points_trans_(std::vector<Eigen::Vector3f>(src_p.size()))
@@ -13,11 +13,11 @@ IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> 
     init_params_();
 }
 
-IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &src_p, const KDTree &kd_tree)
+IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &src_p, const KDTree3D &kd_tree)
         : dst_points_(&dst_p),
           dst_normals_(NULL),
           src_points_(&src_p),
-          kd_tree_ptr_((KDTree*)&kd_tree),
+          kd_tree_ptr_((KDTree3D*)&kd_tree),
           kd_tree_owned_(false),
           metric_(Metric::POINT_TO_POINT),
           src_points_trans_(std::vector<Eigen::Vector3f>(src_p.size()))
@@ -29,7 +29,7 @@ IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> 
         : dst_points_(&dst_p),
           dst_normals_(&dst_n),
           src_points_(&src_p),
-          kd_tree_ptr_(new KDTree(dst_p)),
+          kd_tree_ptr_(new KDTree3D(dst_p)),
           kd_tree_owned_(true),
           metric_((dst_n.size() == dst_p.size()) ? Metric::POINT_TO_PLANE : Metric::POINT_TO_POINT),
           src_points_trans_(std::vector<Eigen::Vector3f>(src_p.size()))
@@ -37,11 +37,11 @@ IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> 
     init_params_();
 }
 
-IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &dst_n, const std::vector<Eigen::Vector3f> &src_p, const KDTree &kd_tree)
+IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &dst_n, const std::vector<Eigen::Vector3f> &src_p, const KDTree3D &kd_tree)
         : dst_points_(&dst_p),
           dst_normals_(&dst_n),
           src_points_(&src_p),
-          kd_tree_ptr_((KDTree*)&kd_tree),
+          kd_tree_ptr_((KDTree3D*)&kd_tree),
           kd_tree_owned_(false),
           metric_((dst_n.size() == dst_p.size()) ? Metric::POINT_TO_PLANE : Metric::POINT_TO_POINT),
           src_points_trans_(std::vector<Eigen::Vector3f>(src_p.size()))
@@ -53,7 +53,7 @@ IterativeClosestPoint::IterativeClosestPoint(const PointCloud &dst, const PointC
         : dst_points_(&dst.points),
           dst_normals_((dst.hasNormals()) ? &dst.normals : NULL),
           src_points_(&src.points),
-          kd_tree_ptr_(new KDTree(dst.points)),
+          kd_tree_ptr_(new KDTree3D(dst.points)),
           kd_tree_owned_(true),
           metric_((dst.hasNormals()) ? metric : Metric::POINT_TO_POINT),
           src_points_trans_(std::vector<Eigen::Vector3f>(src.points.size()))
@@ -61,11 +61,11 @@ IterativeClosestPoint::IterativeClosestPoint(const PointCloud &dst, const PointC
     init_params_();
 }
 
-IterativeClosestPoint::IterativeClosestPoint(const PointCloud &dst, const PointCloud &src, const KDTree &kd_tree, const Metric &metric)
+IterativeClosestPoint::IterativeClosestPoint(const PointCloud &dst, const PointCloud &src, const KDTree3D &kd_tree, const Metric &metric)
         : dst_points_(&dst.points),
           dst_normals_((dst.hasNormals()) ? &dst.normals : NULL),
           src_points_(&src.points),
-          kd_tree_ptr_((KDTree*)&kd_tree),
+          kd_tree_ptr_((KDTree3D*)&kd_tree),
           kd_tree_owned_(false),
           metric_((dst.hasNormals()) ? metric : Metric::POINT_TO_POINT),
           src_points_trans_(std::vector<Eigen::Vector3f>(src.points.size()))

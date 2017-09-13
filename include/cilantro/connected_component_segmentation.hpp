@@ -1,15 +1,16 @@
 #pragma once
 
 #include <cilantro/kd_tree.hpp>
+#include <cilantro/point_cloud.hpp>
 
 class ConnectedComponentSegmentation {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     ConnectedComponentSegmentation(const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const std::vector<Eigen::Vector3f> &colors);
-    ConnectedComponentSegmentation(const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const std::vector<Eigen::Vector3f> &colors, const KDTree &kd_tree);
+    ConnectedComponentSegmentation(const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const std::vector<Eigen::Vector3f> &colors, const KDTree3D &kd_tree);
     ConnectedComponentSegmentation(const PointCloud &cloud);
-    ConnectedComponentSegmentation(const PointCloud &cloud, const KDTree &kd_tree);
+    ConnectedComponentSegmentation(const PointCloud &cloud, const KDTree3D &kd_tree);
     ~ConnectedComponentSegmentation();
 
     ConnectedComponentSegmentation& segment(std::vector<size_t> seeds_ind,
@@ -31,7 +32,7 @@ private:
     const std::vector<Eigen::Vector3f> *points_;
     const std::vector<Eigen::Vector3f> *normals_;
     const std::vector<Eigen::Vector3f> *colors_;
-    KDTree *kd_tree_;
+    KDTree3D *kd_tree_;
     bool kd_tree_owned_;
 
     float dist_thresh_;

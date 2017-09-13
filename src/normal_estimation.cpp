@@ -4,15 +4,15 @@
 NormalEstimation::NormalEstimation(const std::vector<Eigen::Vector3f> &points)
         : input_cloud_(NULL),
           input_points_(&points),
-          kd_tree_ptr_(new KDTree(points)),
+          kd_tree_ptr_(new KDTree3D(points)),
           kd_tree_owned_(true),
           view_point_(Eigen::Vector3f::Zero())
 {}
 
-NormalEstimation::NormalEstimation(const std::vector<Eigen::Vector3f> &points, const KDTree &kd_tree)
+NormalEstimation::NormalEstimation(const std::vector<Eigen::Vector3f> &points, const KDTree3D &kd_tree)
         : input_cloud_(NULL),
           input_points_(&points),
-          kd_tree_ptr_((KDTree*)&kd_tree),
+          kd_tree_ptr_((KDTree3D*)&kd_tree),
           kd_tree_owned_(false),
           view_point_(Eigen::Vector3f::Zero())
 {}
@@ -20,15 +20,15 @@ NormalEstimation::NormalEstimation(const std::vector<Eigen::Vector3f> &points, c
 NormalEstimation::NormalEstimation(const PointCloud &cloud)
         : input_cloud_((PointCloud *)&cloud),
           input_points_(&cloud.points),
-          kd_tree_ptr_(new KDTree(cloud)),
+          kd_tree_ptr_(new KDTree3D(cloud.points)),
           kd_tree_owned_(true),
           view_point_(Eigen::Vector3f::Zero())
 {}
 
-NormalEstimation::NormalEstimation(const PointCloud &cloud, const KDTree &kd_tree)
+NormalEstimation::NormalEstimation(const PointCloud &cloud, const KDTree3D &kd_tree)
         : input_cloud_((PointCloud *)&cloud),
           input_points_(&cloud.points),
-          kd_tree_ptr_((KDTree*)&kd_tree),
+          kd_tree_ptr_((KDTree3D*)&kd_tree),
           kd_tree_owned_(false),
           view_point_(Eigen::Vector3f::Zero())
 {}
@@ -150,17 +150,17 @@ void NormalEstimation::estimateNormalsInPlaceKNNInRadius(size_t k, float radius)
     input_cloud_->normals = estimateNormalsKNNInRadius(k, radius);
 }
 
-std::vector<Eigen::Vector3f> NormalEstimation::estimateNormals(const KDTree::Neighborhood &nh) const {
-    if (nh.type == KDTree::NeighborhoodType::KNN) {
+std::vector<Eigen::Vector3f> NormalEstimation::estimateNormals(const KDTree3D::Neighborhood &nh) const {
+    if (nh.type == KDTree3D::NeighborhoodType::KNN) {
         return estimateNormalsKNN(nh.maxNumberOfNeighbors);
-    } else if (nh.type == KDTree::NeighborhoodType::RADIUS) {
+    } else if (nh.type == KDTree3D::NeighborhoodType::RADIUS) {
         return estimateNormalsRadius(nh.radius);
     } else {
         return estimateNormalsKNNInRadius(nh.maxNumberOfNeighbors, nh.radius);
     }
 }
 
-void NormalEstimation::estimateNormalsInPlace(const KDTree::Neighborhood &nh) const {
+void NormalEstimation::estimateNormalsInPlace(const KDTree3D::Neighborhood &nh) const {
     if (input_cloud_ == NULL) return;
     input_cloud_->normals = estimateNormals(nh);
 }

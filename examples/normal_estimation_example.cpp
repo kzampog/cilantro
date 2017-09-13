@@ -20,13 +20,13 @@ int main(int argc, char ** argv) {
     cloud = vg.getDownsampledCloud();
 
     begin = clock();
-    KDTree tree(cloud);
+    KDTree3D tree(cloud.points);
     NormalEstimation ne(cloud, tree);
     end = clock();
     kd_tree_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
 
     begin = clock();
-    ne.estimateNormalsInPlace(KDTree::Neighborhood(KDTree::NeighborhoodType::KNN_IN_RADIUS, 7, 0.01));
+    ne.estimateNormalsInPlace(KDTree3D::Neighborhood(KDTree3D::NeighborhoodType::KNN_IN_RADIUS, 7, 0.01));
 //    ne.estimateNormalsInPlaceKNNInRadius(7, 0.01);
 //    ne.estimateNormalsInPlaceRadius(0.01);
 //    ne.estimateNormalsInPlaceKNN(7);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cilantro/kd_tree.hpp>
+#include <cilantro/point_cloud.hpp>
 
 class IterativeClosestPoint {
 public:
@@ -9,11 +10,11 @@ public:
     enum struct Metric { POINT_TO_POINT, POINT_TO_PLANE };
 
     IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &src_p);
-    IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &src_p, const KDTree &kd_tree);
+    IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &src_p, const KDTree3D &kd_tree);
     IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &dst_n, const std::vector<Eigen::Vector3f> &src_p);
-    IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &dst_n, const std::vector<Eigen::Vector3f> &src_p, const KDTree &kd_tree);
+    IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &dst_n, const std::vector<Eigen::Vector3f> &src_p, const KDTree3D &kd_tree);
     IterativeClosestPoint(const PointCloud &dst, const PointCloud &src, const Metric &metric = Metric::POINT_TO_POINT);
-    IterativeClosestPoint(const PointCloud &dst, const PointCloud &src, const KDTree &kd_tree, const Metric &metric = Metric::POINT_TO_POINT);
+    IterativeClosestPoint(const PointCloud &dst, const PointCloud &src, const KDTree3D &kd_tree, const Metric &metric = Metric::POINT_TO_POINT);
 
     ~IterativeClosestPoint();
 
@@ -98,7 +99,7 @@ private:
     const std::vector<Eigen::Vector3f> *dst_points_;
     const std::vector<Eigen::Vector3f> *dst_normals_;
     const std::vector<Eigen::Vector3f> *src_points_;
-    KDTree *kd_tree_ptr_;
+    KDTree3D *kd_tree_ptr_;
     bool kd_tree_owned_;
     Metric metric_;
 

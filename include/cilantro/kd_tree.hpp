@@ -1,32 +1,77 @@
 #pragma once
 
 #include <nanoflann/nanoflann.hpp>
-#include <cilantro/point_cloud.hpp>
+#include <Eigen/Dense>
 
+template <typename ScalarT, ptrdiff_t EigenDim>
 class KDTree {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     enum struct NeighborhoodType {KNN, RADIUS, KNN_IN_RADIUS};
     struct Neighborhood {
-        inline Neighborhood() : type(NeighborhoodType::KNN), maxNumberOfNeighbors(5) {}
-        inline Neighborhood(size_t knn, float radius) : type(NeighborhoodType::KNN_IN_RADIUS), maxNumberOfNeighbors(knn), radius(radius) {}
-        inline Neighborhood(NeighborhoodType type, size_t knn, float radius) : type(type), maxNumberOfNeighbors(knn), radius(radius) {}
+        inline Neighborhood() : type(NeighborhoodType::KNN), maxNumberOfNeighbors(1) {}
+        inline Neighborhood(size_t knn, ScalarT radius) : type(NeighborhoodType::KNN_IN_RADIUS), maxNumberOfNeighbors(knn), radius(radius) {}
+        inline Neighborhood(NeighborhoodType type, size_t knn, ScalarT radius) : type(type), maxNumberOfNeighbors(knn), radius(radius) {}
 
         NeighborhoodType type;
         size_t maxNumberOfNeighbors;
-        float radius;
+        ScalarT radius;
     };
 
-    KDTree(const std::vector<Eigen::Vector3f> &points, size_t max_leaf_size = 10);
-    KDTree(const PointCloud &cloud, size_t max_leaf_size = 10);
-    ~KDTree();
+    KDTree(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > &points, size_t max_leaf_size = 10)
+            : data_map_((ScalarT *)points.data(), EigenDim, points.cols()),
+              mat_to_kd_(data_map_),
+              kd_tree_(EigenDim, mat_to_kd_, nanoflann::KDTreeSingleIndexAdaptorParams(max_leaf_size))
+    {
+        params_.sorted = true;
+        kd_tree_.buildIndex();
+    }
 
-    void kNNSearch(const Eigen::Vector3f &query_pt, size_t k, std::vector<size_t> &neighbors, std::vector<float> &distances) const;
-    void radiusSearch(const Eigen::Vector3f &query_pt, float radius, std::vector<size_t> &neighbors, std::vector<float> &distances) const;
-    void kNNInRadiusSearch(const Eigen::Vector3f &query_pt, size_t k, float radius, std::vector<size_t> &neighbors, std::vector<float> &distances) const;
+    KDTree(const std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > &points, size_t max_leaf_size = 10)
+            : data_map_((ScalarT *)points.data(), EigenDim, points.size()),
+              mat_to_kd_(data_map_),
+              kd_tree_(EigenDim, mat_to_kd_, nanoflann::KDTreeSingleIndexAdaptorParams(max_leaf_size))
+    {
+        params_.sorted = true;
+        kd_tree_.buildIndex();
+    }
 
-    inline void search(const Eigen::Vector3f &query_pt, std::vector<size_t> &neighbors, std::vector<float> &distances, const Neighborhood &nh) const {
+    ~KDTree() {}
+
+    void kNNSearch(const Eigen::Matrix<ScalarT,EigenDim,1> &query_pt, size_t k, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
+        neighbors.resize(k);
+        distances.resize(k);
+        size_t num_results = kd_tree_.knnSearch(query_pt.data(), k, neighbors.data(), distances.data());
+        neighbors.resize(num_results);
+        distances.resize(num_results);
+    }
+
+    void radiusSearch(const Eigen::Matrix<ScalarT,EigenDim,1> &query_pt, ScalarT radius, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
+        std::vector<std::pair<size_t,ScalarT> > matches;
+        size_t num_results = kd_tree_.radiusSearch(query_pt.data(), radius*radius, matches, params_);
+        neighbors.resize(num_results);
+        distances.resize(num_results);
+        for (size_t i = 0; i < num_results; i++) {
+            neighbors[i] = matches[i].first;
+            distances[i] = matches[i].second;
+        }
+    }
+
+    void kNNInRadiusSearch(const Eigen::Matrix<ScalarT,EigenDim,1> &query_pt, size_t k, ScalarT radius, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
+        KDTree::kNNSearch(query_pt, k, neighbors, distances);
+        size_t ind = neighbors.size() - 1;
+        while (ind >= 0 && distances[ind] >= radius*radius) ind--;
+        neighbors.resize(ind+1);
+        distances.resize(ind+1);
+//    KDTree::radiusSearch(query_pt, radius, neighbors, distances);
+//    if (neighbors.size() > k) {
+//        neighbors.resize(k);
+//        distances.resize(k);
+//    }
+    }
+
+    inline void search(const Eigen::Matrix<ScalarT,EigenDim,1> &query_pt, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances, const Neighborhood &nh) const {
         if (nh.type == NeighborhoodType::KNN) {
             kNNSearch(query_pt, nh.maxNumberOfNeighbors, neighbors, distances);
         } else if (nh.type == NeighborhoodType::RADIUS) {
@@ -37,38 +82,38 @@ public:
     }
 
 private:
-    // std::vector<Eigen::Vector3f> to kd-tree adaptor class
-    struct VectorOfEigenVectorsAdaptor_ {
-        typedef float coord_t;
+    // Eigen Map to kd-tree adaptor class
+    struct EigenMapAdaptor_ {
+        typedef ScalarT coord_t;
 
         // A const ref to the data set origin
-        const std::vector<Eigen::Vector3f> &obj;
+        const Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> >& obj;
 
         /// The constructor that sets the data set source
-        VectorOfEigenVectorsAdaptor_(const std::vector<Eigen::Vector3f> &obj_) : obj(obj_) { }
+        EigenMapAdaptor_(const Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > &obj_) : obj(obj_) {}
 
         /// CRTP helper method
-        inline const std::vector<Eigen::Vector3f>& derived() const { return obj; }
+        inline const Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> >& derived() const { return obj; }
 
         // Must return the number of data points
-        inline size_t kdtree_get_point_count() const { return derived().size(); }
+        inline size_t kdtree_get_point_count() const { return obj.cols(); }
 
         // Returns the distance between the vector "p1[0:size-1]" and the data point with index "idx_p2" stored in the class:
-        inline coord_t kdtree_distance(const coord_t *p1, const size_t idx_p2,size_t /*size*/) const
-        {
-            const coord_t d0=p1[0]-derived()[idx_p2](0);
-            const coord_t d1=p1[1]-derived()[idx_p2](1);
-            const coord_t d2=p1[2]-derived()[idx_p2](2);
-            return d0*d0+d1*d1+d2*d2;
+        inline coord_t kdtree_distance(const coord_t *p1, const size_t idx_p2,size_t /*size*/) const {
+            coord_t d_sq = 0.0;
+            const coord_t *p2 = &(obj(0,idx_p2));
+//            const coord_t *p2 = obj.data()+EigenDim*idx_p2;
+            for (size_t i = 0; i < EigenDim; i++) {
+                coord_t di = p1[i] - p2[i];
+                d_sq += di*di;
+            }
+            return d_sq;
         }
 
         // Returns the dim'th component of the idx'th point in the class:
         // Since this is inlined and the "dim" argument is typically an immediate value, the
         //  "if/else's" are actually solved at compile time.
-        inline coord_t kdtree_get_pt(const size_t idx, int dim) const
-        {
-            return derived()[idx](dim);
-        }
+        inline coord_t kdtree_get_pt(const size_t idx, int dim) const { return obj(dim,idx); }
 
         // Optional bounding-box computation: return false to default to a standard bbox computation loop.
         //   Return true if the BBOX was already computed by the class and returned in "bb" so it can be avoided to redo it again.
@@ -77,8 +122,12 @@ private:
         bool kdtree_get_bbox(BBOX& /*bb*/) const { return false; }
     };
 
-    typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<float, VectorOfEigenVectorsAdaptor_>, VectorOfEigenVectorsAdaptor_, 3> TreeType_;
+    typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<ScalarT, EigenMapAdaptor_>, EigenMapAdaptor_, EigenDim> TreeType_;
 
-    VectorOfEigenVectorsAdaptor_ pcd_to_kd_;
-    TreeType_ *kd_tree_;
+    Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > data_map_;
+    EigenMapAdaptor_ mat_to_kd_;
+    TreeType_ kd_tree_;
+    nanoflann::SearchParams params_;
 };
+
+typedef KDTree<float,3> KDTree3D;

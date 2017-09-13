@@ -7,15 +7,15 @@ ConnectedComponentSegmentation::ConnectedComponentSegmentation(const std::vector
         : points_(&points),
           normals_((normals.size() == points.size()) ? &normals : NULL),
           colors_((colors.size() == points.size()) ? &colors : NULL),
-          kd_tree_(new KDTree(points)),
+          kd_tree_(new KDTree3D(points)),
           kd_tree_owned_(true)
 {}
 
-ConnectedComponentSegmentation::ConnectedComponentSegmentation(const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const std::vector<Eigen::Vector3f> &colors, const KDTree &kd_tree)
+ConnectedComponentSegmentation::ConnectedComponentSegmentation(const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const std::vector<Eigen::Vector3f> &colors, const KDTree3D &kd_tree)
         : points_(&points),
           normals_((normals.size() == points.size()) ? &normals : NULL),
           colors_((colors.size() == points.size()) ? &colors : NULL),
-          kd_tree_((KDTree*)&kd_tree),
+          kd_tree_((KDTree3D*)&kd_tree),
           kd_tree_owned_(false)
 {}
 
@@ -23,15 +23,15 @@ ConnectedComponentSegmentation::ConnectedComponentSegmentation(const PointCloud 
         : points_(&cloud.points),
           normals_((cloud.normals.size() == cloud.points.size()) ? &cloud.normals : NULL),
           colors_((cloud.colors.size() == cloud.points.size()) ? &cloud.colors : NULL),
-          kd_tree_(new KDTree(cloud.points)),
+          kd_tree_(new KDTree3D(cloud.points)),
           kd_tree_owned_(true)
 {}
 
-ConnectedComponentSegmentation::ConnectedComponentSegmentation(const PointCloud &cloud, const KDTree &kd_tree)
+ConnectedComponentSegmentation::ConnectedComponentSegmentation(const PointCloud &cloud, const KDTree3D &kd_tree)
         : points_(&cloud.points),
           normals_((cloud.normals.size() == cloud.points.size()) ? &cloud.normals : NULL),
           colors_((cloud.colors.size() == cloud.points.size()) ? &cloud.colors : NULL),
-          kd_tree_((KDTree*)&kd_tree),
+          kd_tree_((KDTree3D*)&kd_tree),
           kd_tree_owned_(false)
 {}
 
