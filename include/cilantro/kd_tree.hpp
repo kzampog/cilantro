@@ -20,7 +20,7 @@ public:
     };
 
     KDTree(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > &points, size_t max_leaf_size = 10)
-            : data_map_((ScalarT *)points.data(), EigenDim, points.cols()),
+            : data_map_(points.data(), EigenDim, points.cols()),
               mat_to_kd_(data_map_),
               kd_tree_(EigenDim, mat_to_kd_, nanoflann::KDTreeSingleIndexAdaptorParams(max_leaf_size))
     {
@@ -29,7 +29,7 @@ public:
     }
 
     KDTree(const std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > &points, size_t max_leaf_size = 10)
-            : data_map_((ScalarT *)points.data(), EigenDim, points.size()),
+            : data_map_((const ScalarT *)points.data(), EigenDim, points.size()),
               mat_to_kd_(data_map_),
               kd_tree_(EigenDim, mat_to_kd_, nanoflann::KDTreeSingleIndexAdaptorParams(max_leaf_size))
     {
@@ -87,27 +87,20 @@ private:
         typedef ScalarT coord_t;
 
         // A const ref to the data set origin
-        const Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> >& obj;
+        const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> >& obj;
 
         /// The constructor that sets the data set source
-        EigenMapAdaptor_(const Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > &obj_) : obj(obj_) {}
+        EigenMapAdaptor_(const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > &obj_) : obj(obj_) {}
 
         /// CRTP helper method
-        inline const Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> >& derived() const { return obj; }
+        inline const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> >& derived() const { return obj; }
 
         // Must return the number of data points
         inline size_t kdtree_get_point_count() const { return obj.cols(); }
 
         // Returns the distance between the vector "p1[0:size-1]" and the data point with index "idx_p2" stored in the class:
         inline coord_t kdtree_distance(const coord_t *p1, const size_t idx_p2,size_t /*size*/) const {
-            coord_t d_sq = 0.0;
-            const coord_t *p2 = &(obj(0,idx_p2));
-//            const coord_t *p2 = obj.data()+EigenDim*idx_p2;
-            for (size_t i = 0; i < EigenDim; i++) {
-                coord_t di = p1[i] - p2[i];
-                d_sq += di*di;
-            }
-            return d_sq;
+            return (Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,1> >(p1, EigenDim, 1) - obj.col(idx_p2)).squaredNorm();
         }
 
         // Returns the dim'th component of the idx'th point in the class:
@@ -124,7 +117,7 @@ private:
 
     typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<ScalarT, EigenMapAdaptor_>, EigenMapAdaptor_, EigenDim> TreeType_;
 
-    Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > data_map_;
+    Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > data_map_;
     EigenMapAdaptor_ mat_to_kd_;
     TreeType_ kd_tree_;
     nanoflann::SearchParams params_;
