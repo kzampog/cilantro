@@ -6,22 +6,22 @@
 
 int main(int argc, char ** argv) {
 
-    PointCloud cloud;
-    cloud.points.push_back(Eigen::Vector3f(0, 0, 0));
-    cloud.points.push_back(Eigen::Vector3f(1, 0, 0));
-    cloud.points.push_back(Eigen::Vector3f(0, 1, 0));
-    cloud.points.push_back(Eigen::Vector3f(0, 0, 1));
-    cloud.points.push_back(Eigen::Vector3f(0, 1, 1));
-    cloud.points.push_back(Eigen::Vector3f(1, 0, 1));
-    cloud.points.push_back(Eigen::Vector3f(1, 1, 0));
-    cloud.points.push_back(Eigen::Vector3f(1, 1, 1));
+    std::vector<Eigen::Vector3f> points;
+    points.emplace_back(Eigen::Vector3f(0, 0, 0));
+    points.emplace_back(Eigen::Vector3f(1, 0, 0));
+    points.emplace_back(Eigen::Vector3f(0, 1, 0));
+    points.emplace_back(Eigen::Vector3f(0, 0, 1));
+    points.emplace_back(Eigen::Vector3f(0, 1, 1));
+    points.emplace_back(Eigen::Vector3f(1, 0, 1));
+    points.emplace_back(Eigen::Vector3f(1, 1, 0));
+    points.emplace_back(Eigen::Vector3f(1, 1, 1));
 
-    KDTree3D tree(cloud.points);
+    KDTree3D tree(points);
 
     std::vector<size_t> ind;
     std::vector<float> dist;
 
-    tree.kNNInRadiusSearch(Eigen::Vector3f(0, 0, 0), 2, 1.001, ind, dist);
+    tree.kNNInRadiusSearch(Eigen::Vector3f(0.1, 0.1, 0.4), 2, 1.001, ind, dist);
 
     std::cout << "Neighbor indices: ";
     for (int i = 0; i < ind.size(); i++) {
