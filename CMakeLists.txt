@@ -72,6 +72,9 @@ target_link_libraries(rigid_transform_estimator_example cilantro ${Pangolin_LIBR
 add_executable(space_region_example examples/space_region_example.cpp)
 target_link_libraries(space_region_example cilantro ${Pangolin_LIBRARIES})
 
+add_executable(kmeans_example examples/kmeans_example.cpp)
+target_link_libraries(kmeans_example cilantro ${Pangolin_LIBRARIES})
+
 # Install target
 
 install(TARGETS cilantro LIBRARY DESTINATION /usr/local/lib)

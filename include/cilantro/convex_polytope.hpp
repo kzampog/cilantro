@@ -832,11 +832,12 @@ public:
 
     inline const Eigen::Matrix<OutputScalarT,EigenDim,1>& getInteriorPoint() const { return interior_point_; }
 
-    inline const Eigen::Map<Eigen::Matrix<OutputScalarT,EigenDim,Eigen::Dynamic> > getVerticesMatrixMap() const {
-        return Eigen::Map<Eigen::Matrix<OutputScalarT,EigenDim,Eigen::Dynamic> >((OutputScalarT *)vertices_.data(), EigenDim, vertices_.size());
+    inline Eigen::Map<const Eigen::Matrix<OutputScalarT,EigenDim,Eigen::Dynamic> > getVerticesMatrixMap() const {
+        return Eigen::Map<const Eigen::Matrix<OutputScalarT,EigenDim,Eigen::Dynamic> >((const OutputScalarT *)vertices_.data(), EigenDim, vertices_.size());
     }
-    inline const Eigen::Map<Eigen::Matrix<OutputScalarT,EigenDim+1,Eigen::Dynamic> > getFacetHyperplanesMatrixMap() const {
-        return Eigen::Map<Eigen::Matrix<OutputScalarT,EigenDim+1,Eigen::Dynamic> >((OutputScalarT *)halfspaces_.data(), EigenDim+1, halfspaces_.size());
+
+    inline Eigen::Map<const Eigen::Matrix<OutputScalarT,EigenDim+1,Eigen::Dynamic> > getFacetHyperplanesMatrixMap() const {
+        return Eigen::Map<const Eigen::Matrix<OutputScalarT,EigenDim+1,Eigen::Dynamic> >((const OutputScalarT *)halfspaces_.data(), EigenDim+1, halfspaces_.size());
     }
 
     inline bool containsPoint(const Eigen::Matrix<OutputScalarT,EigenDim,1> &point, OutputScalarT offset = 0.0) const {
@@ -848,7 +849,7 @@ public:
 
     inline Eigen::Matrix<OutputScalarT,Eigen::Dynamic,Eigen::Dynamic> getPointSignedDistancesFromFacets(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points) const {
         Eigen::Map<Eigen::Matrix<OutputScalarT,EigenDim,Eigen::Dynamic> > pts_map((OutputScalarT *)points.data(), EigenDim, points.size());
-        Eigen::Map<Eigen::Matrix<OutputScalarT,EigenDim+1,Eigen::Dynamic> > hs_map(getFacetHyperplanesMatrixMap());
+        Eigen::Map<const Eigen::Matrix<OutputScalarT,EigenDim+1,Eigen::Dynamic> > hs_map(getFacetHyperplanesMatrixMap());
         return (hs_map.topRows(EigenDim).transpose()*pts_map).colwise() + hs_map.row(EigenDim).transpose();
     }
 

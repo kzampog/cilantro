@@ -26,7 +26,8 @@ public:
                                             size_t max_segment_size = std::numeric_limits<size_t>::max());
 
     inline const std::vector<std::vector<size_t> >& getComponentPointIndices() const { return component_indices_; }
-    inline const std::vector<size_t>& getLabelMap() const { return label_map_; }
+    inline const std::vector<size_t>& getComponentIndexMap() const { return label_map_; }
+    inline size_t getNumberOfSegments() const { return component_indices_.size(); }
 
 private:
     const std::vector<Eigen::Vector3f> *points_;

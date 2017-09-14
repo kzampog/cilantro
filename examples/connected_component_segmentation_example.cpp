@@ -36,9 +36,9 @@ int main(int argc, char ** argv) {
     std::cout << ccs.getComponentPointIndices().size() << std::endl;
 
     size_t num_labels = ccs.getComponentPointIndices().size();
-    std::vector<size_t> labels = ccs.getLabelMap();
+    std::vector<size_t> labels = ccs.getComponentIndexMap();
 
-    std::map<size_t,Eigen::Vector3f> color_map;
+    std::vector<Eigen::Vector3f> color_map(num_labels+1);
     for (size_t i = 0; i < num_labels; i++) {
         color_map[i] = Eigen::Vector3f::Random().array().abs();
     }
@@ -54,7 +54,7 @@ int main(int argc, char ** argv) {
     viz.addPointCloud("cloud", cloud, Visualizer::RenderingProperties().setColormapType(ColormapType::JET));
     viz.addPointCloudColors("cloud", cols);
 
-    while (!viz.wasStopped()){
+    while (!viz.wasStopped()) {
         viz.spinOnce();
     }
 
