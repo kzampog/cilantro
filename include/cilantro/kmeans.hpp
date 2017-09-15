@@ -2,6 +2,9 @@
 
 #include <random>
 #include <Eigen/Dense>
+#include <cilantro/kd_tree.hpp>
+
+#include <iostream>
 
 template <typename ScalarT, ptrdiff_t EigenDim>
 class KMeans {
@@ -18,20 +21,20 @@ public:
               iteration_count_(0)
     {}
 
-    KMeans& cluster(const std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > &centroids, size_t max_iter = 100) {
+    KMeans& cluster(const std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > &centroids, size_t max_iter = 100, ScalarT tol = std::numeric_limits<ScalarT>::epsilon()) {
         cluster_centroids_ = centroids;
-        cluster_(max_iter);
+        cluster_(max_iter, tol);
         return *this;
     }
 
-    KMeans& cluster(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > &centroids, size_t max_iter = 100) {
+    KMeans& cluster(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > &centroids, size_t max_iter = 100, ScalarT tol = std::numeric_limits<ScalarT>::epsilon()) {
         cluster_centroids_.resize(centroids.cols());
         Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> >((ScalarT *)cluster_centroids_.data(), EigenDim, cluster_centroids_.size()) = centroids;
-        cluster_(max_iter);
+        cluster_(max_iter, tol);
         return *this;
     }
 
-    KMeans& cluster(size_t num_clusters, size_t max_iter = 100) {
+    KMeans& cluster(size_t num_clusters, size_t max_iter = 100, ScalarT tol = std::numeric_limits<ScalarT>::epsilon()) {
         cluster_centroids_.resize((num_clusters > data_map_.cols()) ? data_map_.cols() : num_clusters);
 
         std::vector<size_t> range(data_map_.cols());
@@ -48,7 +51,7 @@ public:
             range.resize(prev_size-1);
         }
 
-        cluster_(max_iter);
+        cluster_(max_iter, tol);
         return *this;
     }
 
@@ -57,13 +60,6 @@ public:
     inline const std::vector<std::vector<size_t> >& getClusterPointIndices() const { return cluster_point_indices_; }
     inline const std::vector<size_t>& getClusterIndexMap() const { return cluster_index_map_; }
     inline size_t getNumberOfClusters() const { return cluster_centroids_.size(); }
-    inline size_t getNumberOfNonEmptyClusters() const {
-        size_t nz_count = 0;
-        for (size_t i = 0; i < cluster_point_indices_.size(); i++) {
-            if (!cluster_point_indices_[i].empty()) nz_count++;
-        }
-        return nz_count;
-    }
     inline size_t getPerformedIterationsCount() const { return iteration_count_; }
 
 private:
@@ -75,33 +71,53 @@ private:
 
     size_t iteration_count_;
 
-    void cluster_(size_t max_iter) {
+    void cluster_(size_t max_iter, ScalarT tol) {
         size_t num_clusters = cluster_centroids_.size();
         size_t num_points = data_map_.cols();
+        ScalarT tol_sq = tol*tol;
 
         cluster_index_map_.resize(num_points);
 
+        size_t extr_dist_ind;
+        ScalarT extr_dist;
+
+        ScalarT dist;
+        ScalarT scale;
+
+        std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > centroids_old;
+
         iteration_count_ = 0;
-        size_t min_ind;
-        ScalarT min_dist, dist;
         while (iteration_count_ < max_iter) {
             bool assignments_unchanged = true;
 
             // Update assignments
-            for (size_t i = 0; i < num_points; i++) {
-                min_dist = std::numeric_limits<ScalarT>::infinity();
-                for (size_t j = 0; j < num_clusters; j++) {
-                    dist = (cluster_centroids_[j] - data_map_.col(i)).squaredNorm();
-                    if (dist < min_dist) {
-                        min_dist = dist;
-                        min_ind = j;
+            if (num_clusters < 29) {
+                for (size_t i = 0; i < num_points; i++) {
+                    extr_dist = std::numeric_limits<ScalarT>::infinity();
+                    for (size_t j = 0; j < num_clusters; j++) {
+                        dist = (cluster_centroids_[j] - data_map_.col(i)).squaredNorm();
+                        if (dist < extr_dist) {
+                            extr_dist = dist;
+                            extr_dist_ind = j;
+                        }
                     }
+                    if (cluster_index_map_[i] != extr_dist_ind) assignments_unchanged = false;
+                    cluster_index_map_[i] = extr_dist_ind;
                 }
-                if (cluster_index_map_[i] != min_ind) assignments_unchanged = false;
-                cluster_index_map_[i] = min_ind;
+            } else {
+                std::vector<size_t> neighbors;
+                std::vector<ScalarT> distances;
+                KDTree<ScalarT,EigenDim> tree(cluster_centroids_);
+                for (size_t i = 0; i < num_points; i++) {
+                    tree.kNNSearch(data_map_.col(i), 1, neighbors, distances);
+                    if (cluster_index_map_[i] != neighbors[0]) assignments_unchanged = false;
+                    cluster_index_map_[i] = neighbors[0];
+                }
             }
 
             if (assignments_unchanged) break;
+
+            if (tol > 0.0) centroids_old = cluster_centroids_;
 
             // Update centroids
             Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> >((ScalarT *)cluster_centroids_.data(), EigenDim, num_clusters).setZero();
@@ -110,11 +126,49 @@ private:
                 cluster_centroids_[cluster_index_map_[i]] += data_map_.col(i);
                 point_count[cluster_index_map_[i]]++;
             }
+
+            // Handle empty clusters
             for (size_t i = 0; i < num_clusters; i++) {
-                cluster_centroids_[i] /= point_count[i];
+                if (point_count[i] != 0) continue;
+
+                // Find largest cluster
+                size_t max_ind = 0;
+                for (size_t j = 1; j < num_clusters; j++) {
+                    if (point_count[j] > point_count[max_ind]) max_ind = j;
+                }
+
+                // Find furthest point from (old) centroid of previously found largest cluster
+                scale = 1.0/point_count[max_ind];
+                Eigen::Matrix<ScalarT,EigenDim,1> old_centroid(cluster_centroids_[max_ind]*scale);
+                extr_dist = -1.0;
+                for (size_t j = 0; j < num_points; j++) {
+                    if (cluster_index_map_[j] == max_ind) {
+                        dist = (data_map_.col(j) - old_centroid).squaredNorm();
+                        if (dist > extr_dist) {
+                            extr_dist = dist;
+                            extr_dist_ind = j;
+                        }
+                    }
+                }
+
+                // Move previously found point to current cluster
+                cluster_index_map_[extr_dist_ind] = i;
+                cluster_centroids_[max_ind] -= data_map_.col(extr_dist_ind);
+                point_count[max_ind]--;
+                point_count[i]++;
+            }
+
+            // Compute new centroids
+            for (size_t i = 0; i < num_clusters; i++) {
+                scale = 1.0/point_count[i];
+                cluster_centroids_[i] *= scale;
             }
 
             iteration_count_++;
+
+            // Check for convergence of centroids
+            if (tol > 0.0 && (Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> >((ScalarT *)cluster_centroids_.data(), EigenDim, num_clusters) - Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> >((ScalarT *)centroids_old.data(), EigenDim, num_clusters)).colwise().squaredNorm().maxCoeff() < tol_sq) break;
+
         }
 
         cluster_point_indices_.resize(num_clusters);

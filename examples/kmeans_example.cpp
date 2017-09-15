@@ -15,19 +15,29 @@ int main(int argc, char ** argv) {
 
     KMeans3D kmc(cloud.points);
 
-    size_t k = 10;
+    size_t k = 100;
 
     clock_t begin, end;
     double elapsed_time;
     begin = clock();
 
-    kmc.cluster(k);
+    kmc.cluster(k, 100, 0.001);
 
     end = clock();
     elapsed_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
     std::cout << "Clustering time: " << elapsed_time << std::endl;
 
-    std::cout << kmc.getNumberOfNonEmptyClusters() << " of " << k << " clusters are non-empty!" << std::endl;
+    std::cout << "Performed iterations: " << kmc.getPerformedIterationsCount() << std::endl;
+
+    const std::vector<std::vector<size_t> >& cpi(kmc.getClusterPointIndices());
+
+    size_t mins = cloud.size(), maxs = 0;
+    for (size_t i = 0; i < cpi.size(); i++) {
+        if (cpi[i].size() < mins) mins = cpi[i].size();
+        if (cpi[i].size() > maxs) maxs = cpi[i].size();
+    }
+
+    std::cout << "Cluster size range is: [" << mins << "," << maxs << "]" << std::endl;
 
     Visualizer viz("win", "disp");
 
