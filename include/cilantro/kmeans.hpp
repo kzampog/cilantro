@@ -173,4 +173,5 @@ private:
     }
 };
 
+typedef KMeans<float,2> KMeans2D;
 typedef KMeans<float,3> KMeans3D;

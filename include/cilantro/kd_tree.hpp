@@ -123,4 +123,5 @@ private:
     nanoflann::SearchParams params_;
 };
 
+typedef KDTree<float,2> KDTree2D;
 typedef KDTree<float,3> KDTree3D;
