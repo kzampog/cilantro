@@ -11,17 +11,17 @@ int main(int argc, char ** argv) {
     PointCloud cloud;
     readPointCloudFromPLYFile(argv[1], cloud);
 
-//    cloud = VoxelGrid(cloud, 0.005).getDownsampledCloud();
+    cloud = VoxelGrid(cloud, 0.005).getDownsampledCloud();
 
     KMeans3D kmc(cloud.points);
 
-    size_t k = 100;
+    size_t k = 10;
 
     clock_t begin, end;
     double elapsed_time;
     begin = clock();
 
-    kmc.cluster(k, 100, 0.001);
+    kmc.cluster(k, 100);
 
     end = clock();
     elapsed_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;

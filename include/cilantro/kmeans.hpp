@@ -1,10 +1,7 @@
 #pragma once
 
 #include <random>
-#include <Eigen/Dense>
 #include <cilantro/kd_tree.hpp>
-
-#include <iostream>
 
 template <typename ScalarT, ptrdiff_t EigenDim>
 class KMeans {
@@ -116,7 +113,6 @@ private:
             }
 
             if (assignments_unchanged) break;
-
             if (tol > 0.0) centroids_old = cluster_centroids_;
 
             // Update centroids
@@ -137,7 +133,7 @@ private:
                     if (point_count[j] > point_count[max_ind]) max_ind = j;
                 }
 
-                // Find furthest point from (old) centroid of previously found largest cluster
+                // Find furthest point from (old) centroid of previously found cluster
                 scale = 1.0/point_count[max_ind];
                 Eigen::Matrix<ScalarT,EigenDim,1> old_centroid(cluster_centroids_[max_ind]*scale);
                 extr_dist = -1.0;
@@ -151,7 +147,7 @@ private:
                     }
                 }
 
-                // Move previously found point to current cluster
+                // Move previously found point to current (empty) cluster
                 cluster_index_map_[extr_dist_ind] = i;
                 cluster_centroids_[max_ind] -= data_map_.col(extr_dist_ind);
                 point_count[max_ind]--;
@@ -168,17 +164,13 @@ private:
 
             // Check for convergence of centroids
             if (tol > 0.0 && (Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> >((ScalarT *)cluster_centroids_.data(), EigenDim, num_clusters) - Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> >((ScalarT *)centroids_old.data(), EigenDim, num_clusters)).colwise().squaredNorm().maxCoeff() < tol_sq) break;
-
         }
 
         cluster_point_indices_.resize(num_clusters);
         for (size_t i = 0; i < num_points; i++) {
             cluster_point_indices_[cluster_index_map_[i]].emplace_back(i);
         }
-
     }
-
-//    static inline bool vector_size_comparator_(const std::vector<size_t> &a, const std::vector<size_t> &b) { return a.size() > b.size(); }
 };
 
 typedef KMeans<float,3> KMeans3D;
