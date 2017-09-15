@@ -38,18 +38,16 @@ NormalEstimation::~NormalEstimation() {
 }
 
 std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsKNN(size_t num_neighbors) const {
-    std::vector<Eigen::Vector3f> normals;
+    std::vector<Eigen::Vector3f> normals(input_points_->size());
 
     Eigen::Vector3f nan(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
     if (input_points_->size() < 3) {
-        normals.resize(input_points_->size());
         for (size_t i = 0; i < normals.size(); i++) {
             normals[i] = nan;
         }
         return normals;
     }
 
-    normals.resize(input_points_->size());
     for (size_t i = 0; i < input_points_->size(); i++) {
         std::vector<size_t> neighbors;
         std::vector<float> distances;
@@ -77,11 +75,10 @@ void NormalEstimation::estimateNormalsInPlaceKNN(size_t num_neighbors) const {
 }
 
 std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsRadius(float radius) const {
-    std::vector<Eigen::Vector3f> normals;
+    std::vector<Eigen::Vector3f> normals(input_points_->size());
 
     Eigen::Vector3f nan(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
 
-    normals.resize(input_points_->size());
     for (size_t i = 0; i < input_points_->size(); i++) {
         std::vector<size_t> neighbors;
         std::vector<float> distances;
@@ -114,11 +111,10 @@ void NormalEstimation::estimateNormalsInPlaceRadius(float radius) const {
 }
 
 std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsKNNInRadius(size_t k, float radius) const {
-    std::vector<Eigen::Vector3f> normals;
+    std::vector<Eigen::Vector3f> normals(input_points_->size());
 
     Eigen::Vector3f nan(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
 
-    normals.resize(input_points_->size());
     for (size_t i = 0; i < input_points_->size(); i++) {
         std::vector<size_t> neighbors;
         std::vector<float> distances;
