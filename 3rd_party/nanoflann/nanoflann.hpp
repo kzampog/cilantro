@@ -165,7 +165,8 @@ namespace nanoflann
 		inline void addPoint(DistanceType dist, IndexType index)
 		{
 			if (dist<radius)
-				m_indices_dists.push_back(std::make_pair(index,dist));
+				m_indices_dists.emplace_back(index,dist);
+//				m_indices_dists.push_back(std::make_pair(index,dist));
 		}
 
 		inline DistanceType worstDist() const { return radius; }
