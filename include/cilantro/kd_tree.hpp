@@ -99,10 +99,10 @@ private:
         // Must return the number of data points
         inline size_t kdtree_get_point_count() const { return obj.cols(); }
 
-        // Returns the distance between the vector "p1[0:size-1]" and the data point with index "idx_p2" stored in the class:
-        inline coord_t kdtree_distance(const coord_t *p1, const size_t idx_p2,size_t /*size*/) const {
-            return (Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,1> >(p1, EigenDim, 1) - obj.col(idx_p2)).squaredNorm();
-        }
+//        // Returns the distance between the vector "p1[0:size-1]" and the data point with index "idx_p2" stored in the class:
+//        inline coord_t kdtree_distance(const coord_t *p1, const size_t idx_p2,size_t /*size*/) const {
+//            return (Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,1> >(p1, EigenDim, 1) - obj.col(idx_p2)).squaredNorm();
+//        }
 
         // Returns the dim'th component of the idx'th point in the class:
         // Since this is inlined and the "dim" argument is typically an immediate value, the
