@@ -13,15 +13,20 @@ int main(int argc, char ** argv) {
 
     cloud = VoxelGrid(cloud, 0.005).getDownsampledCloud();
 
-    KMeans3D kmc(cloud.points);
+    Eigen::MatrixXf data_points(6,cloud.size());
+    data_points.topRows(3) = cloud.pointsMatrixMap();
+    data_points.bottomRows(3) = 0.15*cloud.colorsMatrixMap();
 
-    size_t k = 10;
+    KMeans<float, 6> kmc(data_points);
+//    KMeans3D kmc(cloud.points);
+
+    size_t k = 250;
 
     clock_t begin, end;
     double elapsed_time;
     begin = clock();
 
-    kmc.cluster(k, 100);
+    kmc.cluster(k, 1000);
 
     end = clock();
     elapsed_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
