@@ -12,6 +12,11 @@ set(CMAKE_CXX_FLAGS "-std=c++11")
 # Packages
 
 find_package(Pangolin REQUIRED)
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
 
 include_directories(${Pangolin_INCLUDE_DIRS})
 include_directories(3rd_party)
