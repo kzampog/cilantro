@@ -104,7 +104,7 @@ private:
             } else {
                 std::vector<size_t> neighbors;
                 std::vector<ScalarT> distances;
-                KDTree<ScalarT,EigenDim> tree(cluster_centroids_);
+                KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> tree(cluster_centroids_);
                 for (size_t i = 0; i < num_points; i++) {
                     tree.kNNSearch(data_map_.col(i), 1, neighbors, distances);
                     if (cluster_index_map_[i] != neighbors[0]) assignments_unchanged = false;

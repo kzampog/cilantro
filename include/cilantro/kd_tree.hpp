@@ -3,7 +3,24 @@
 #include <nanoflann/nanoflann.hpp>
 #include <Eigen/Dense>
 
-template <typename ScalarT, ptrdiff_t EigenDim>
+struct KDTreeDistanceAdaptors {
+    template <class ScalarT, class DataSource>
+    using L1 = nanoflann::L1_Adaptor<ScalarT, DataSource, ScalarT>;
+
+    template <class ScalarT, class DataSource>
+    using L2 = nanoflann::L2_Adaptor<ScalarT, DataSource, ScalarT>;
+
+    template <class ScalarT, class DataSource>
+    using L2Simple = nanoflann::L2_Simple_Adaptor<ScalarT, DataSource, ScalarT>;
+
+    template <class ScalarT, class DataSource>
+    using SO2 = nanoflann::SO2_Adaptor<ScalarT, DataSource, ScalarT>;
+
+    template <class ScalarT, class DataSource>
+    using SO3 = nanoflann::SO3_Adaptor<ScalarT, DataSource, ScalarT>;
+};
+
+template <typename ScalarT, ptrdiff_t EigenDim, template <class, class> class DistAdaptor>
 class KDTree {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -99,11 +116,6 @@ private:
         // Must return the number of data points
         inline size_t kdtree_get_point_count() const { return obj.cols(); }
 
-//        // Returns the distance between the vector "p1[0:size-1]" and the data point with index "idx_p2" stored in the class:
-//        inline coord_t kdtree_distance(const coord_t *p1, const size_t idx_p2,size_t /*size*/) const {
-//            return (Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,1> >(p1, EigenDim, 1) - obj.col(idx_p2)).squaredNorm();
-//        }
-
         // Returns the dim'th component of the idx'th point in the class:
         // Since this is inlined and the "dim" argument is typically an immediate value, the
         //  "if/else's" are actually solved at compile time.
@@ -116,13 +128,13 @@ private:
         bool kdtree_get_bbox(BBOX& /*bb*/) const { return false; }
     };
 
-    typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<ScalarT, EigenMapAdaptor_>, EigenMapAdaptor_, EigenDim> TreeType_;
+    typedef nanoflann::KDTreeSingleIndexAdaptor<DistAdaptor<ScalarT, EigenMapAdaptor_>, EigenMapAdaptor_, EigenDim> TreeType_;
 
     Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > data_map_;
-    EigenMapAdaptor_ mat_to_kd_;
+    const EigenMapAdaptor_ mat_to_kd_;
     TreeType_ kd_tree_;
     nanoflann::SearchParams params_;
 };
 
-typedef KDTree<float,2> KDTree2D;
-typedef KDTree<float,3> KDTree3D;
+typedef KDTree<float,2,KDTreeDistanceAdaptors::L2> KDTree2D;
+typedef KDTree<float,3,KDTreeDistanceAdaptors::L2> KDTree3D;
