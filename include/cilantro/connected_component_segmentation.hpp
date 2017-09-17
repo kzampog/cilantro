@@ -36,11 +36,8 @@ private:
     KDTree3D *kd_tree_;
     bool kd_tree_owned_;
 
-    float dist_thresh_;
     float normal_angle_thresh_;
     float color_diff_thresh_;
-    size_t min_segment_size_;
-    size_t max_segment_size_;
 
     std::vector<std::vector<size_t> > component_indices_;
     std::vector<size_t> label_map_;

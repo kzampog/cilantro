@@ -67,7 +67,7 @@ public:
     void radiusSearch(const Eigen::Matrix<ScalarT,EigenDim,1> &query_pt, ScalarT radius, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
         std::vector<std::pair<size_t,ScalarT> > matches;
         matches.reserve(data_map_.cols());
-        size_t num_results = kd_tree_.radiusSearch(query_pt.data(), radius*radius, matches, params_);
+        size_t num_results = kd_tree_.radiusSearch(query_pt.data(), radius, matches, params_);
         neighbors.resize(num_results);
         distances.resize(num_results);
         for (size_t i = 0; i < num_results; i++) {
@@ -79,7 +79,7 @@ public:
     void kNNInRadiusSearch(const Eigen::Matrix<ScalarT,EigenDim,1> &query_pt, size_t k, ScalarT radius, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
         KDTree::kNNSearch(query_pt, k, neighbors, distances);
         size_t ind = neighbors.size() - 1;
-        while (ind >= 0 && distances[ind] >= radius*radius) ind--;
+        while (ind >= 0 && distances[ind] >= radius) ind--;
         neighbors.resize(ind+1);
         distances.resize(ind+1);
 //    KDTree::radiusSearch(query_pt, radius, neighbors, distances);

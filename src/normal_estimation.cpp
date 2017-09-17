@@ -75,6 +75,8 @@ void NormalEstimation::estimateNormalsInPlaceKNN(size_t num_neighbors) const {
 }
 
 std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsRadius(float radius) const {
+    float radius_sq = radius*radius;
+
     std::vector<Eigen::Vector3f> normals(input_points_->size());
 
     Eigen::Vector3f nan(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
@@ -82,7 +84,7 @@ std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsRadius(float radiu
     for (size_t i = 0; i < input_points_->size(); i++) {
         std::vector<size_t> neighbors;
         std::vector<float> distances;
-        kd_tree_ptr_->radiusSearch((*input_points_)[i], radius, neighbors, distances);
+        kd_tree_ptr_->radiusSearch((*input_points_)[i], radius_sq, neighbors, distances);
 
         if (neighbors.size() < 3) {
             normals[i] = nan;
@@ -111,6 +113,8 @@ void NormalEstimation::estimateNormalsInPlaceRadius(float radius) const {
 }
 
 std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsKNNInRadius(size_t k, float radius) const {
+    float radius_sq = radius*radius;
+
     std::vector<Eigen::Vector3f> normals(input_points_->size());
 
     Eigen::Vector3f nan(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
@@ -118,7 +122,7 @@ std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsKNNInRadius(size_t
     for (size_t i = 0; i < input_points_->size(); i++) {
         std::vector<size_t> neighbors;
         std::vector<float> distances;
-        kd_tree_ptr_->kNNInRadiusSearch((*input_points_)[i], k, radius, neighbors, distances);
+        kd_tree_ptr_->kNNInRadiusSearch((*input_points_)[i], k, radius_sq, neighbors, distances);
 
         if (neighbors.size() < 3) {
             normals[i] = nan;
