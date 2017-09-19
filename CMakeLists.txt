@@ -82,8 +82,9 @@ target_link_libraries(kmeans_example cilantro ${Pangolin_LIBRARIES})
 
 # Install target
 
-install(TARGETS cilantro LIBRARY DESTINATION /usr/local/lib)
-install(DIRECTORY include/ DESTINATION /usr/local/include)
+install(TARGETS cilantro LIBRARY DESTINATION lib)
+install(DIRECTORY include/ DESTINATION include)
+install(DIRECTORY 3rd_party/ DESTINATION include)
 
 # Uninstall target
 
