@@ -37,7 +37,7 @@ void readPointCloudFromPLYFile(const std::string &filename, PointCloud &cloud) {
     }
 }
 
-void writePointCloudToPLYFile(const std::string &filename, const PointCloud &cloud) {
+void writePointCloudToPLYFile(const std::string &filename, const PointCloud &cloud, bool binary) {
     if (cloud.empty()) return;
 
     std::vector<float> vertex_data(3 * cloud.size());
@@ -67,6 +67,6 @@ void writePointCloudToPLYFile(const std::string &filename, const PointCloud &clo
         file_to_write.add_properties_to_element("vertex", {"red", "green", "blue"}, color_data);
     }
 
-    file_to_write.write(outputStream, true);
+    file_to_write.write(outputStream, binary);
     fb.close();
 }
