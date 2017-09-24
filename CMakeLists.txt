@@ -19,10 +19,10 @@ if (OPENMP_FOUND)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
+include_directories(include)
+include_directories(3rd_party)
 include_directories(${EIGEN3_INCLUDE_DIRS})
 include_directories(${Pangolin_INCLUDE_DIRS})
-include_directories(3rd_party)
-include_directories(include)
 
 # Build library
 
@@ -34,53 +34,15 @@ target_link_libraries(cilantro ${Pangolin_LIBRARIES})
 
 # Build examples
 
-add_executable(ply_io_example examples/ply_io_example.cpp)
-target_link_libraries(ply_io_example cilantro ${Pangolin_LIBRARIES})
-
-add_executable(principal_component_analysis_example examples/principal_component_analysis_example.cpp)
-target_link_libraries(principal_component_analysis_example cilantro ${Pangolin_LIBRARIES})
-
-add_executable(voxel_grid_example examples/voxel_grid_example.cpp)
-target_link_libraries(voxel_grid_example cilantro ${Pangolin_LIBRARIES})
-
-add_executable(kd_tree_example examples/kd_tree_example.cpp)
-target_link_libraries(kd_tree_example cilantro ${Pangolin_LIBRARIES})
-
-add_executable(normal_estimation_example examples/normal_estimation_example.cpp)
-target_link_libraries(normal_estimation_example cilantro ${Pangolin_LIBRARIES})
-
-add_executable(matrix_io_example examples/matrix_io_example.cpp)
-target_link_libraries(matrix_io_example cilantro ${Pangolin_LIBRARIES})
-
-add_executable(visualizer_example examples/visualizer_example.cpp)
-target_link_libraries(visualizer_example cilantro ${Pangolin_LIBRARIES})
-
-add_executable(convex_hull_example examples/convex_hull_example.cpp)
-target_link_libraries(convex_hull_example cilantro ${Pangolin_LIBRARIES})
-
-add_executable(connected_component_segmentation_example examples/connected_component_segmentation_example.cpp)
-target_link_libraries(connected_component_segmentation_example cilantro ${Pangolin_LIBRARIES})
-
-add_executable(image_viewer_example examples/image_viewer_example.cpp)
-target_link_libraries(image_viewer_example cilantro ${Pangolin_LIBRARIES})
-
-add_executable(image_point_cloud_conversions_example examples/image_point_cloud_conversions_example.cpp)
-target_link_libraries(image_point_cloud_conversions_example cilantro ${Pangolin_LIBRARIES})
-
-add_executable(iterative_closest_point_example examples/iterative_closest_point_example.cpp)
-target_link_libraries(iterative_closest_point_example cilantro ${Pangolin_LIBRARIES})
-
-add_executable(plane_estimator_example examples/plane_estimator_example.cpp)
-target_link_libraries(plane_estimator_example cilantro ${Pangolin_LIBRARIES})
-
-add_executable(rigid_transform_estimator_example examples/rigid_transform_estimator_example.cpp)
-target_link_libraries(rigid_transform_estimator_example cilantro ${Pangolin_LIBRARIES})
-
-add_executable(space_region_example examples/space_region_example.cpp)
-target_link_libraries(space_region_example cilantro ${Pangolin_LIBRARIES})
-
-add_executable(kmeans_example examples/kmeans_example.cpp)
-target_link_libraries(kmeans_example cilantro ${Pangolin_LIBRARIES})
+option(BUILD_EXAMPLES "Build small example apps" ON)
+if(BUILD_EXAMPLES)
+    file(GLOB example_files RELATIVE ${CMAKE_SOURCE_DIR} examples/*.cpp)
+    foreach(example_file ${example_files})
+        get_filename_component(example_name ${example_file} NAME_WE)
+        add_executable(${example_name} ${example_file})
+        target_link_libraries(${example_name} cilantro ${Pangolin_LIBRARIES})
+    endforeach(example_file ${example_files})
+endif()
 
 # Install target
 
