@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nanoflann/nanoflann.hpp>
+#include <cilantro/3rd_party/nanoflann/nanoflann.hpp>
 #include <Eigen/Dense>
 
 struct KDTreeDistanceAdaptors {

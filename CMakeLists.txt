@@ -20,14 +20,13 @@ if (OPENMP_FOUND)
 endif()
 
 include_directories(include)
-include_directories(3rd_party)
 include_directories(${EIGEN3_INCLUDE_DIRS})
 include_directories(${Pangolin_INCLUDE_DIRS})
 
 # Build library
 
-file(GLOB_RECURSE lib_src src/*.cpp)
-file(GLOB_RECURSE 3rd_src 3rd_party/*.cpp 3rd_party/*.c)
+file(GLOB_RECURSE 3rd_src src/3rd_party/*.c src/3rd_party/*.cpp)
+file(GLOB lib_src src/*.cpp)
 
 add_library(cilantro SHARED ${3rd_src} ${lib_src})
 target_link_libraries(cilantro ${Pangolin_LIBRARIES})
@@ -46,9 +45,8 @@ endif()
 
 # Install target
 
-install(TARGETS cilantro LIBRARY DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)
-install(DIRECTORY 3rd_party/ DESTINATION include)
+install(TARGETS cilantro LIBRARY DESTINATION lib)
 
 # Uninstall target
 

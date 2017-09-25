@@ -1,11 +1,11 @@
 #pragma once
 
-#include <type_traits>
-#include <libqhullcpp/Qhull.h>
-#include <libqhullcpp/QhullFacetSet.h>
-#include <libqhullcpp/QhullFacetList.h>
-#include <libqhullcpp/QhullVertexSet.h>
-#include <eigen_quadprog/eiquadprog.hpp>
+//#include <type_traits>
+#include <cilantro/3rd_party/libqhullcpp/Qhull.h>
+#include <cilantro/3rd_party/libqhullcpp/QhullFacetSet.h>
+#include <cilantro/3rd_party/libqhullcpp/QhullFacetList.h>
+#include <cilantro/3rd_party/libqhullcpp/QhullVertexSet.h>
+#include <cilantro/3rd_party/eigen_quadprog/eiquadprog.hpp>
 #include <cilantro/principal_component_analysis.hpp>
 
 template <typename ScalarT, ptrdiff_t EigenDim>

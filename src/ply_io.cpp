@@ -1,6 +1,6 @@
-#include <fstream>
-#include <tinyply/tinyply.h>
 #include <cilantro/ply_io.hpp>
+#include <cilantro/3rd_party/tinyply/tinyply.h>
+#include <fstream>
 
 void readPointCloudFromPLYFile(const std::string &filename, PointCloud &cloud) {
     try {
