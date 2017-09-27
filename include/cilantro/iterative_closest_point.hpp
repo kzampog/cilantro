@@ -59,6 +59,8 @@ public:
         iteration_count_ = 0;
         rot_mat_init_ = rot_mat;
         t_vec_init_ = t_vec;
+        Eigen::JacobiSVD<Eigen::Matrix3f> svd(rot_mat_init_, Eigen::ComputeFullU | Eigen::ComputeFullV);
+        rot_mat_init_ = svd.matrixU()*(svd.matrixV().transpose());
         return *this;
     }
 
