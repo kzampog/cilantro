@@ -1,6 +1,5 @@
 #pragma once
 
-//#include <type_traits>
 #include <cilantro/3rd_party/libqhullcpp/Qhull.h>
 #include <cilantro/3rd_party/libqhullcpp/QhullFacetSet.h>
 #include <cilantro/3rd_party/libqhullcpp/QhullFacetList.h>
@@ -801,13 +800,16 @@ public:
         halfspaces_[1](0) = -1.0;
         halfspaces_[1](EigenDim) = 1.0;
     }
-    ConvexPolytope(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> > &points, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0) {
+
+    template <class Derived, class = typename std::enable_if<std::is_same<typename Derived::Scalar,InputScalarT>::value && Derived::RowsAtCompileTime == EigenDim>::type>
+    ConvexPolytope(const Eigen::MatrixBase<Derived> &points, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0) {
         init_points_(points, compute_topology, simplicial_facets, merge_tol);
     }
     ConvexPolytope(const std::vector<Eigen::Matrix<InputScalarT,EigenDim,1> > &points, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0) {
         init_points_(Eigen::Map<Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> >((InputScalarT *)points.data(),EigenDim,points.size()), compute_topology, simplicial_facets, merge_tol);
     }
-    ConvexPolytope(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim+1,Eigen::Dynamic> > &halfspaces, bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) {
+    template <class Derived, class = typename std::enable_if<std::is_same<typename Derived::Scalar,InputScalarT>::value && Derived::RowsAtCompileTime == EigenDim+1>::type>
+    ConvexPolytope(const Eigen::MatrixBase<Derived> &halfspaces, bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) {
         init_halfspaces_(halfspaces, compute_topology, simplicial_facets, dist_tol, merge_tol);
     }
     ConvexPolytope(const std::vector<Eigen::Matrix<InputScalarT,EigenDim+1,1> > &halfspaces, bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) {
