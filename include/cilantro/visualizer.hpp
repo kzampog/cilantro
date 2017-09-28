@@ -112,7 +112,7 @@ public:
     Visualizer& stopVideoRecording();
     inline bool isRecording() const { return !!video_recorder_; }
 
-    inline pangolin::PangolinGl* getGLContext() const { return gl_context_; }
+    inline pangolin::PangolinGl* getPangolinGLContext() const { return gl_context_; }
     inline pangolin::View* getDisplay() const { return display_; }
 
 private:
