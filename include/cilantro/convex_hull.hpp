@@ -14,6 +14,9 @@ public:
     CloudHullFlat(const PointCloud &cloud, bool compute_topology = true, bool simplicial_facets = true, double merge_tol = 0.0);
 
     inline const std::vector<Eigen::Vector3f>& getVertices3D() const { return vertices_3d_; }
+    inline Eigen::Map<const Eigen::Matrix<float,3,Eigen::Dynamic> > getVertices3DMatrixMap() {
+        return Eigen::Map<const Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)vertices_3d_.data(), 3, vertices_3d_.size());
+    }
 
 private:
     std::vector<Eigen::Vector3f> vertices_3d_;
