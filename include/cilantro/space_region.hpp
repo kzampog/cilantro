@@ -11,14 +11,14 @@ public:
     SpaceRegion(const std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> > &polytopes) : polytopes_(polytopes) {}
     SpaceRegion(const ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> &polytope) : polytopes_(std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> >(1,polytope)) {}
 
-    template <class Derived, class = typename std::enable_if<std::is_same<typename Derived::Scalar,InputScalarT>::value && Derived::RowsAtCompileTime == EigenDim>::type>
+    template <class Derived, class = typename std::enable_if<std::is_same<typename Derived::Scalar,InputScalarT>::value && Derived::RowsAtCompileTime == EigenDim && Derived::IsRowMajor == 0>::type>
     SpaceRegion(const Eigen::MatrixBase<Derived> &points, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0) {
         polytopes_.emplace_back(points, compute_topology, simplicial_facets, merge_tol);
     }
     SpaceRegion(const std::vector<Eigen::Matrix<InputScalarT,EigenDim,1> > &points, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0) {
         polytopes_.emplace_back(points, compute_topology, simplicial_facets, merge_tol);
     }
-    template <class Derived, class = typename std::enable_if<std::is_same<typename Derived::Scalar,InputScalarT>::value && Derived::RowsAtCompileTime == EigenDim+1>::type>
+    template <class Derived, class = typename std::enable_if<std::is_same<typename Derived::Scalar,InputScalarT>::value && Derived::RowsAtCompileTime == EigenDim+1 && Derived::IsRowMajor == 0>::type>
     SpaceRegion(const Eigen::MatrixBase<Derived> &halfspaces, bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) {
         polytopes_.emplace_back(halfspaces, compute_topology, simplicial_facets, dist_tol, merge_tol);
     }
