@@ -6,6 +6,8 @@ bool estimateRigidTransformPointToPoint(const Eigen::Ref<const Eigen::Matrix<flo
                                         Eigen::Ref<Eigen::Vector3f> t_vec)
 {
     if (src.cols() < 3 || src.cols() != dst.cols()) {
+        rot_mat.setIdentity();
+        t_vec.setZero();
         return false;
     }
 
@@ -39,6 +41,8 @@ bool estimateRigidTransformPointToPoint(const Eigen::Ref<const Eigen::Matrix<flo
                                         Eigen::Ref<Eigen::Vector3f> t_vec)
 {
     if (dst_ind.size() != src_ind.size()) {
+        rot_mat.setIdentity();
+        t_vec.setZero();
         return false;
     }
 
@@ -61,6 +65,8 @@ bool estimateRigidTransformPointToPlane(const Eigen::Ref<const Eigen::Matrix<flo
                                         float convergence_tol)
 {
     if (src_p.cols() < 6 || src_p.cols() != dst_p.cols() || dst_p.cols() != dst_n.cols()) {
+        rot_mat.setIdentity();
+        t_vec.setZero();
         return false;
     }
 
@@ -129,6 +135,8 @@ bool estimateRigidTransformPointToPlane(const Eigen::Ref<const Eigen::Matrix<flo
                                         float convergence_tol)
 {
     if (dst_ind.size() != src_ind.size()) {
+        rot_mat.setIdentity();
+        t_vec.setZero();
         return false;
     }
 
