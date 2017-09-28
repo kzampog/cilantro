@@ -2,12 +2,12 @@
 #include <cilantro/principal_component_analysis.hpp>
 
 PlaneEstimator::PlaneEstimator(const std::vector<Eigen::Vector3f> &points)
-        : RandomSampleConsensus(3, 50, 100, 0.1, true),
+        : RandomSampleConsensus(3, points.size()/2 + points.size()%2, 100, 0.1, true),
           points_(&points)
 {}
 
 PlaneEstimator::PlaneEstimator(const PointCloud &cloud)
-        : RandomSampleConsensus(3, 50, 100, 0.1, true),
+        : RandomSampleConsensus(3, cloud.size()/2 + cloud.size()%2, 100, 0.1, true),
           points_(&cloud.points)
 {}
 

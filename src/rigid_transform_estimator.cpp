@@ -3,7 +3,7 @@
 
 RigidTransformEstimator::RigidTransformEstimator(const std::vector<Eigen::Vector3f> &dst_points,
                                                  const std::vector<Eigen::Vector3f> &src_points)
-        : RandomSampleConsensus(3, 50, 100, 0.01, true),
+        : RandomSampleConsensus(3, dst_points.size()/2 + dst_points.size()%2, 100, 0.01, true),
           dst_points_(&dst_points),
           src_points_(&src_points)
 {}
@@ -12,7 +12,7 @@ RigidTransformEstimator::RigidTransformEstimator(const std::vector<Eigen::Vector
                                                  const std::vector<Eigen::Vector3f> &src_points,
                                                  const std::vector<size_t> &dst_ind,
                                                  const std::vector<size_t> &src_ind)
-        : RandomSampleConsensus(3, 50, 100, 0.01, true),
+        : RandomSampleConsensus(3, dst_ind.size()/2 + dst_ind.size()%2, 100, 0.01, true),
           dst_points_tmp_(std::vector<Eigen::Vector3f>(dst_ind.size())),
           src_points_tmp_(std::vector<Eigen::Vector3f>(src_ind.size())),
           dst_points_(&dst_points_tmp_),
@@ -26,7 +26,7 @@ RigidTransformEstimator::RigidTransformEstimator(const std::vector<Eigen::Vector
 
 RigidTransformEstimator::RigidTransformEstimator(const PointCloud &dst,
                                                  const PointCloud &src)
-        : RandomSampleConsensus(3, 50, 100, 0.01, true),
+        : RandomSampleConsensus(3, dst.size()/2 + dst.size()%2, 100, 0.01, true),
           dst_points_(&dst.points),
           src_points_(&src.points)
 {}
@@ -35,7 +35,7 @@ RigidTransformEstimator::RigidTransformEstimator(const PointCloud &dst,
                                                  const PointCloud &src,
                                                  const std::vector<size_t> &dst_ind,
                                                  const std::vector<size_t> &src_ind)
-        : RandomSampleConsensus(3, 50, 100, 0.01, true),
+        : RandomSampleConsensus(3, dst_ind.size()/2 + dst_ind.size()%2, 100, 0.01, true),
           dst_points_tmp_(std::vector<Eigen::Vector3f>(dst_ind.size())),
           src_points_tmp_(std::vector<Eigen::Vector3f>(src_ind.size())),
           dst_points_(&dst_points_tmp_),
