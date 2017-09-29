@@ -93,7 +93,6 @@ private:
     static void point_size_callback_(Visualizer &viz, int key);
     static void reset_view_callback_(Visualizer &viz);
     static void wireframe_toggle_callback_(Visualizer &viz);
-//    static void draw_func_(Visualizer &viz, pangolin::View &view);
 
     struct {
         inline bool operator()(const std::pair<Renderable*, float> &p1, const std::pair<Renderable*, float> &p2) const {

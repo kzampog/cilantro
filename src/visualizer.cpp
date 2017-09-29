@@ -529,8 +529,3 @@ void Visualizer::wireframe_toggle_callback_(Visualizer &viz) {
         viz.setRenderingProperties(it->first, rp);
     }
 }
-
-//void Visualizer::draw_func_(Visualizer &viz, pangolin::View &view) {
-//    viz.clearRenderArea();
-//    viz.render();
-//}
