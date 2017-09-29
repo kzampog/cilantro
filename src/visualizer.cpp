@@ -1,12 +1,6 @@
 #include <cilantro/visualizer.hpp>
 
-Eigen::Vector3f Visualizer::no_color_ = Eigen::Vector3f(-1.0f,-1.0f,-1.0f);
-Eigen::Vector3f Visualizer::default_color_ = Eigen::Vector3f(1.0f,1.0f,1.0f);
-
-Visualizer::Visualizer(const std::string &window_name, const std::string &display_name)
-        : clear_color_(Eigen::Vector3f(0.7f, 0.7f, 1.0f)),
-          video_record_on_render_(false)
-{
+void Visualizer::init_(const std::string &window_name, const std::string &display_name) {
     gl_context_ = pangolin::FindContext(window_name);
     if (!gl_context_) {
         pangolin::CreateWindowAndBind(window_name);
@@ -31,12 +25,25 @@ Visualizer::Visualizer(const std::string &window_name, const std::string &displa
     // Pangolin searches internally for existing named displays
     display_ = &(pangolin::Display(display_name));
 
-    initial_model_view_ = pangolin::ModelViewLookAt(0, 0, 0, 0, 0, 1, pangolin::AxisNegY);
+    initial_model_view_ = pangolin::ModelViewLookAt(0, 0, 0, 0, 0, 1, 0, -1, 0);
     gl_render_state_.reset(new pangolin::OpenGlRenderState(pangolin::ProjectionMatrix(640, 480, 528, 528, 320, 240, 0.2, 100), initial_model_view_));
     input_handler_.reset(new pangolin::Handler3D(*gl_render_state_));
     display_->SetHandler(input_handler_.get());
     display_->SetAspect(-4.0f/3.0f);
-//    display_->extern_draw_function = std::bind(draw_func_, std::ref(*this), std::placeholders::_1);
+
+    clear_color_ = Eigen::Vector3f(0.7f, 0.7f, 1.0f);
+    cam_axes_rot_.setIdentity();
+    cam_axes_rot_(1,1) = -1.0f;
+    cam_axes_rot_(2,2) = -1.0f;
+    video_record_on_render_ = false;
+}
+
+Visualizer::Visualizer() {
+    init_("Window", "Display");
+}
+
+Visualizer::Visualizer(const std::string &window_name, const std::string &display_name) {
+    init_(window_name, display_name);
 }
 
 Visualizer::~Visualizer() {}
@@ -367,6 +374,45 @@ Visualizer& Visualizer::setProjectionMatrix(int w, int h, pangolin::GLprecision 
     gl_context_->MakeCurrent();
     gl_render_state_->SetProjectionMatrix(pangolin::ProjectionMatrix(w, h, fu, fv, u0, v0, zNear, zFar));
     display_->SetAspect(-(double)w/((double)h));
+
+    return *this;
+}
+
+Visualizer& Visualizer::setProjectionMatrix(int w, int h, const Eigen::Matrix3f &intrinsics, pangolin::GLprecision zNear, pangolin::GLprecision zFar) {
+    gl_context_->MakeCurrent();
+    gl_render_state_->SetProjectionMatrix(pangolin::ProjectionMatrix(w, h, intrinsics(0,0), intrinsics(1,1), intrinsics(0,2), intrinsics(1,2), zNear, zFar));
+    display_->SetAspect(-(double)w/((double)h));
+
+    return *this;
+}
+
+Eigen::Matrix4f Visualizer::getCameraPose() const {
+//    return (cam_axes_rot_*pangolin::ToEigen<float>(gl_render_state_->GetModelViewMatrix())).inverse();
+    Eigen::Matrix4f model_view_rot(cam_axes_rot_*pangolin::ToEigen<float>(gl_render_state_->GetModelViewMatrix()));
+    Eigen::Matrix3f rot = model_view_rot.topLeftCorner(3,3).transpose();
+    model_view_rot.topLeftCorner(3,3) = rot;
+    model_view_rot.topRightCorner(3,1) = -rot*model_view_rot.topRightCorner(3,1);
+
+    return model_view_rot;
+}
+
+Visualizer& Visualizer::setCameraPose(const Eigen::Vector3f &position, const Eigen::Vector3f &look_at, const Eigen::Vector3f &up_direction) {
+    gl_render_state_->SetModelViewMatrix(pangolin::ModelViewLookAt(position(0), position(1), position(2), look_at(0), look_at(1), look_at(2), up_direction(0), up_direction(1), up_direction(2)));
+}
+
+Visualizer& Visualizer::setCameraPose(float pos_x, float pos_y, float pos_z, float look_at_x, float look_at_y, float look_at_z, float up_dir_x, float up_dir_y, float up_dir_z) {
+    gl_render_state_->SetModelViewMatrix(pangolin::ModelViewLookAt(pos_x, pos_y, pos_z, look_at_x, look_at_y, look_at_z, up_dir_x, up_dir_y, up_dir_z));
+}
+
+Visualizer& Visualizer::setCameraPose(const Eigen::Matrix4f &pose) {
+    Eigen::Matrix3f rot = pose.topLeftCorner(3,3).transpose();
+    Eigen::Matrix4f model_view;
+    model_view.topLeftCorner(3,3) = rot;
+    model_view.topRightCorner(3,1) = -rot*pose.topRightCorner(3,1);
+    model_view.bottomLeftCorner(1,3).setZero();
+    model_view(3,3) = 1.0f;
+    model_view = cam_axes_rot_*model_view;
+    gl_render_state_->SetModelViewMatrix(model_view);
 
     return *this;
 }

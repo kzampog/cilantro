@@ -8,6 +8,7 @@ class Visualizer {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+    Visualizer();
     Visualizer(const std::string &window_name, const std::string &display_name);
     ~Visualizer();
 
@@ -57,6 +58,12 @@ public:
     inline Visualizer& setClearColor(float r, float g, float b) { clear_color_ = Eigen::Vector3f(r,g,b); return *this; }
 
     Visualizer& setProjectionMatrix(int w, int h, pangolin::GLprecision fu, pangolin::GLprecision fv, pangolin::GLprecision u0, pangolin::GLprecision v0, pangolin::GLprecision zNear, pangolin::GLprecision zFar);
+    Visualizer& setProjectionMatrix(int w, int h, const Eigen::Matrix3f &intrinsics, pangolin::GLprecision zNear, pangolin::GLprecision zFar);
+
+    Eigen::Matrix4f getCameraPose() const;
+    Visualizer& setCameraPose(const Eigen::Vector3f &position, const Eigen::Vector3f &look_at, const Eigen::Vector3f &up_direction);
+    Visualizer& setCameraPose(float pos_x, float pos_y, float pos_z, float look_at_x, float look_at_y, float look_at_z, float up_dir_x, float up_dir_y, float up_dir_z);
+    Visualizer& setCameraPose(const Eigen::Matrix4f &pose);
 
     Visualizer& registerKeyboardCallback(const std::vector<int> &keys, std::function<void(Visualizer&,int,void*)> func, void *cookie);
 
@@ -69,7 +76,9 @@ public:
     inline bool isRecording() const { return !!video_recorder_; }
 
     inline pangolin::PangolinGl* getPangolinGLContext() const { return gl_context_; }
-    inline pangolin::View* getDisplay() const { return display_; }
+    inline pangolin::View* getPangolinDisplay() const { return display_; }
+
+    inline pangolin::OpenGlRenderState* getPangolinRenderState() const { return gl_render_state_.get(); }
 
 private:
     pangolin::PangolinGl *gl_context_;
@@ -83,12 +92,12 @@ private:
     float video_scale_;
     bool video_rgba_;
     bool video_record_on_render_;
-
-    static Eigen::Vector3f no_color_;
-    static Eigen::Vector3f default_color_;
     Eigen::Vector3f clear_color_;
+    Eigen::Matrix4f cam_axes_rot_;
 
     std::map<std::string, std::shared_ptr<Renderable> > renderables_;
+
+    void init_(const std::string &window_name, const std::string &display_name);
 
     static void point_size_callback_(Visualizer &viz, int key);
     static void reset_view_callback_(Visualizer &viz);

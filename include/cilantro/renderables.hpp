@@ -52,6 +52,8 @@ struct RenderingProperties {
 };
 
 struct Renderable {
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     Renderable() : visible(true), centroid(Eigen::Vector3f::Zero()) {}
     bool visible;
     Eigen::Vector3f centroid;                       // For render priority...
@@ -62,6 +64,8 @@ struct Renderable {
 };
 
 struct PointsRenderable : public Renderable {
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     std::vector<Eigen::Vector3f> points;
     std::vector<Eigen::Vector3f> colors;
     std::vector<float> pointValues;
@@ -72,6 +76,8 @@ struct PointsRenderable : public Renderable {
 };
 
 struct NormalsRenderable : public Renderable {
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     std::vector<Eigen::Vector3f> points;
     std::vector<Eigen::Vector3f> normals;
     pangolin::GlBuffer lineEndPointBuffer;
@@ -80,6 +86,8 @@ struct NormalsRenderable : public Renderable {
 };
 
 struct CorrespondencesRenderable : public Renderable {
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     std::vector<Eigen::Vector3f> srcPoints;
     std::vector<Eigen::Vector3f> dstPoints;
     pangolin::GlBuffer lineEndPointBuffer;
@@ -88,6 +96,8 @@ struct CorrespondencesRenderable : public Renderable {
 };
 
 struct AxisRenderable : public Renderable {
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     float scale;
     Eigen::Matrix4f transform;
     void applyRenderingProperties();
@@ -95,6 +105,8 @@ struct AxisRenderable : public Renderable {
 };
 
 struct TriangleMeshRenderable : public Renderable {
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     std::vector<Eigen::Vector3f> vertices;
     std::vector<std::vector<size_t> > faces;
     std::vector<Eigen::Vector3f> vertexNormals;

@@ -3,6 +3,7 @@
 #include <cilantro/voxel_grid.hpp>
 
 #include <iostream>
+#include <ctime>
 
 void callback_test(Visualizer &viz, int key, void *cookie) {
     std::string name = *((std::string *)cookie);
@@ -54,8 +55,22 @@ int main(int argc, char ** argv) {
     std::string name2 = "corr";
     viz2.registerKeyboardCallback(std::vector<int>(1,'c'), callback_test, &name2);
 
+    clock_t t0 = clock();
+
+    Eigen::Vector3f cam_pos(0,0,0), look_at(0,0,1), up_dir(0,-1,0);
+
     while (!viz.wasStopped() && !viz2.wasStopped()) {
+        double t = 1000.0*double(clock() - t0)/CLOCKS_PER_SEC;
+
+        cam_pos(0) = 0.0 + 2.0*std::cos(t/20.0);
+        cam_pos(2) = 1.0 + 2.0*std::sin(t/20.0);
+
+        cam_pos(1) = 0.3*std::sin(t/10.0);
+
+        viz.setCameraPose(cam_pos, look_at, up_dir);
+
         viz.spinOnce();
+
         viz2.spinOnce();
 //        viz.clearRenderArea();
 //        viz.render();
