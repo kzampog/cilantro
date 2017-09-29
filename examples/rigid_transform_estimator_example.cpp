@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
     std::vector<size_t> dst_ind(100);
     std::vector<size_t> src_ind(100);
 
-    viz.addPointCloud("dst", dst, Visualizer::RenderingProperties().setDrawingColor(0,0,1));
+    viz.addPointCloud("dst", dst, RenderingProperties().setDrawingColor(0,0,1));
     while (!viz.wasStopped()) {
         if (randomize) {
             randomize = false;
@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
             }
 
             src.pointsMatrixMap() = (R_ref*src.pointsMatrixMap()).colwise() + t_ref;
-            viz.addPointCloud("src", src, Visualizer::RenderingProperties().setDrawingColor(1,0,0));
+            viz.addPointCloud("src", src, RenderingProperties().setDrawingColor(1,0,0));
         }
 
         if (re_estimate) {
@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
 
             src.pointsMatrixMap() = (tform.rotation*src.pointsMatrixMap()).colwise() + tform.translation;
 
-            viz.addPointCloud("src", src, Visualizer::RenderingProperties().setDrawingColor(1,0,0));
+            viz.addPointCloud("src", src, RenderingProperties().setDrawingColor(1,0,0));
         }
 
         viz.spinOnce();

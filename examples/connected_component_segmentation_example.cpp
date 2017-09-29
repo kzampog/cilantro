@@ -51,7 +51,7 @@ int main(int argc, char ** argv) {
 
     Visualizer viz("win", "disp");
 
-    viz.addPointCloud("cloud", cloud, Visualizer::RenderingProperties().setColormapType(ColormapType::JET));
+    viz.addPointCloud("cloud", cloud, RenderingProperties().setColormapType(ColormapType::JET));
     viz.addPointCloudColors("cloud", cols);
 
     while (!viz.wasStopped()) {

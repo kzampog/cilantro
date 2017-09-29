@@ -1,56 +1,12 @@
 #pragma once
 
+#include <cilantro/renderables.hpp>
 #include <cilantro/point_cloud.hpp>
-#include <cilantro/colormap.hpp>
-#include <pangolin/pangolin.h>
 #include <pangolin/display/display_internal.h>
 
 class Visualizer {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-    struct RenderingProperties {
-        inline RenderingProperties() : drawingColor(no_color_),
-                                       pointSize(2.0f),
-                                       lineWidth(1.0f),
-                                       opacity(1.0f),
-                                       normalLength(0.05f),
-                                       correspondencesFraction(1.0),
-                                       drawWireframe(false),
-                                       useFaceNormals(true),
-                                       useFaceColors(false),
-                                       minScalarValue(std::numeric_limits<float>::quiet_NaN()),
-                                       maxScalarValue(std::numeric_limits<float>::quiet_NaN()),
-                                       colormapType(ColormapType::JET)
-        {}
-        inline ~RenderingProperties() {}
-
-        Eigen::Vector3f drawingColor;
-        float pointSize;
-        float lineWidth;
-        float opacity;
-        float normalLength;
-        float correspondencesFraction;
-        bool drawWireframe;
-        bool useFaceNormals;
-        bool useFaceColors;
-        float minScalarValue;
-        float maxScalarValue;
-        ColormapType colormapType;
-
-        inline RenderingProperties& setDrawingColor(const Eigen::Vector3f &color) { drawingColor = color; return *this; }
-        inline RenderingProperties& setDrawingColor(float r, float g, float b) { drawingColor = Eigen::Vector3f(r,g,b); return *this; }
-        inline RenderingProperties& setPointSize(float sz) { pointSize = sz; return *this; }
-        inline RenderingProperties& setLineWidth(float lw) { lineWidth = lw; return *this; }
-        inline RenderingProperties& setOpacity(float op) { opacity = op; return *this; }
-        inline RenderingProperties& setNormalLength(float nl) { normalLength = nl; return *this; }
-        inline RenderingProperties& setCorrespondencesFraction(float cf) { correspondencesFraction = cf; return *this; }
-        inline RenderingProperties& setDrawWireframe(bool dw) { drawWireframe = dw; return *this; }
-        inline RenderingProperties& setUseFaceNormals(bool fn) { useFaceNormals = fn; return *this; }
-        inline RenderingProperties& setUseFaceColors(bool fc) { useFaceColors = fc; return *this; }
-        inline RenderingProperties& setScalarValuesRange(float min, float max) { minScalarValue = min; maxScalarValue = max; return *this; }
-        inline RenderingProperties& setColormapType(const ColormapType ct) { colormapType = ct; return *this; }
-    };
 
     Visualizer(const std::string &window_name, const std::string &display_name);
     ~Visualizer();
@@ -87,9 +43,9 @@ public:
 
     inline bool wasStopped() const { return gl_context_->quit; }
 
-    bool getVisibility(const std::string &name) const;
-    Visualizer& setVisibility(const std::string &name, bool visible);
-    inline Visualizer& toggleVisibility(const std::string &name) { setVisibility(name, !getVisibility(name)); return *this; }
+    bool getVisibilityStatus(const std::string &name) const;
+    Visualizer& setVisibilityStatus(const std::string &name, bool visible);
+    inline Visualizer& toggleVisibilityStatus(const std::string &name) { setVisibilityStatus(name, !getVisibilityStatus(name)); return *this; }
 
     RenderingProperties getRenderingProperties(const std::string &name) const;
     Visualizer& setRenderingProperties(const std::string &name, const RenderingProperties &rp);
@@ -116,65 +72,6 @@ public:
     inline pangolin::View* getDisplay() const { return display_; }
 
 private:
-    struct Renderable_ {
-        Renderable_() : visible(true), centroid(Eigen::Vector3f::Zero()) {}
-        bool visible;
-        Eigen::Vector3f centroid;                       // For render priority...
-        RenderingProperties renderingProperties;
-        virtual void applyRenderingProperties() = 0;    // Updates GPU buffers
-        inline void applyRenderingProperties(const RenderingProperties &rp) { renderingProperties = rp; applyRenderingProperties(); }
-        virtual void render() = 0;
-    };
-
-    struct PointsRenderable_ : public Renderable_ {
-        std::vector<Eigen::Vector3f> points;
-        std::vector<Eigen::Vector3f> colors;
-        std::vector<float> pointValues;
-        pangolin::GlBuffer pointBuffer;
-        pangolin::GlBuffer colorBuffer;
-        void applyRenderingProperties();
-        void render();
-    };
-
-    struct NormalsRenderable_ : public Renderable_ {
-        std::vector<Eigen::Vector3f> points;
-        std::vector<Eigen::Vector3f> normals;
-        pangolin::GlBuffer lineEndPointBuffer;
-        void applyRenderingProperties();
-        void render();
-    };
-
-    struct CorrespondencesRenderable_ : public Renderable_ {
-        std::vector<Eigen::Vector3f> srcPoints;
-        std::vector<Eigen::Vector3f> dstPoints;
-        pangolin::GlBuffer lineEndPointBuffer;
-        void applyRenderingProperties();
-        void render();
-    };
-
-    struct AxisRenderable_ : public Renderable_ {
-        float scale;
-        Eigen::Matrix4f transform;
-        void applyRenderingProperties();
-        void render();
-    };
-
-    struct TriangleMeshRenderable_ : public Renderable_ {
-        std::vector<Eigen::Vector3f> vertices;
-        std::vector<std::vector<size_t> > faces;
-        std::vector<Eigen::Vector3f> vertexNormals;
-        std::vector<Eigen::Vector3f> faceNormals;
-        std::vector<Eigen::Vector3f> vertexColors;
-        std::vector<Eigen::Vector3f> faceColors;
-        std::vector<float> vertexValues;
-        std::vector<float> faceValues;
-        pangolin::GlBuffer vertexBuffer;
-        pangolin::GlBuffer colorBuffer;
-        pangolin::GlBuffer normalBuffer;
-        void applyRenderingProperties();
-        void render();
-    };
-
     pangolin::PangolinGl *gl_context_;
     pangolin::View *display_;
 
@@ -191,7 +88,7 @@ private:
     static Eigen::Vector3f default_color_;
     Eigen::Vector3f clear_color_;
 
-    std::map<std::string, std::shared_ptr<Renderable_> > renderables_;
+    std::map<std::string, std::shared_ptr<Renderable> > renderables_;
 
     static void point_size_callback_(Visualizer &viz, int key);
     static void reset_view_callback_(Visualizer &viz);
@@ -199,7 +96,7 @@ private:
 //    static void draw_func_(Visualizer &viz, pangolin::View &view);
 
     struct {
-        inline bool operator()(const std::pair<Visualizer::Renderable_*, float> &p1, const std::pair<Visualizer::Renderable_*, float> &p2) const {
+        inline bool operator()(const std::pair<Renderable*, float> &p1, const std::pair<Renderable*, float> &p2) const {
             if (p1.first->renderingProperties.opacity == 1.0f) {
                 return true;
             } else if (p2.first->renderingProperties.opacity == 1.0f) {

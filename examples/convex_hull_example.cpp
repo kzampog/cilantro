@@ -79,7 +79,7 @@ int main(int argc, char ** argv) {
 
     Visualizer viz("win", "disp");
 
-    viz.addPointCloud("cloud", cloud, Visualizer::RenderingProperties().setOpacity(1.0));
+    viz.addPointCloud("cloud", cloud, RenderingProperties().setOpacity(1.0));
     viz.addTriangleMesh("mesh", ch.getVertices(), ch.getFacetVertexIndices());
     viz.addTriangleMeshVertexNormals("mesh", hc.normals);
     viz.addTriangleMeshVertexColors("mesh", v_colors);
@@ -87,7 +87,7 @@ int main(int argc, char ** argv) {
     viz.addTriangleMeshVertexValues("mesh", v_vals);
     viz.addTriangleMeshFaceValues("mesh", f_vals);
 
-    Visualizer::RenderingProperties rp = viz.getRenderingProperties("mesh");
+    RenderingProperties rp = viz.getRenderingProperties("mesh");
     rp.setUseFaceNormals(true).setUseFaceColors(false).setOpacity(0.8).setColormapType(ColormapType::BLUE2RED);
     viz.setRenderingProperties("mesh", rp);
 

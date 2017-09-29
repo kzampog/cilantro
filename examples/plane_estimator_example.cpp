@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
             std::cout << "RANSAC iterations: " << pe.getPerformedIterationsCount() << ", inlier count: " << pe.getNumberOfInliers() << std::endl;
 
             PointCloud planar_cloud(cloud, inliers);
-            viz.addPointCloud("plane", planar_cloud, Visualizer::RenderingProperties().setDrawingColor(1,0,0).setPointSize(3.0));
+            viz.addPointCloud("plane", planar_cloud, RenderingProperties().setDrawingColor(1,0,0).setPointSize(3.0));
         }
         viz.spinOnce();
     }
