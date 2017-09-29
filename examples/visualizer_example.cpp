@@ -39,7 +39,6 @@ int main(int argc, char ** argv) {
     std::string name = "nrm";
     viz.registerKeyboardCallback(std::vector<int>(1,'n'), callback_test, &name);
 
-
     // Second
     PointCloud cloud2(cloud);
     for (size_t i = 0; i < cloud2.size(); i++) {
@@ -64,18 +63,13 @@ int main(int argc, char ** argv) {
 
         cam_pos(0) = 0.0 + 2.0*std::cos(t/20.0);
         cam_pos(2) = 1.0 + 2.0*std::sin(t/20.0);
-
         cam_pos(1) = 0.3*std::sin(t/10.0);
 
         viz.setCameraPose(cam_pos, look_at, up_dir);
 
         viz.spinOnce();
-
         viz2.spinOnce();
-//        viz.clearRenderArea();
-//        viz.render();
-//        viz2.render();
-//        viz2.finishFrame();
+
     }
 
     return 0;
