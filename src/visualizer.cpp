@@ -396,6 +396,13 @@ Eigen::Matrix4f Visualizer::getCameraPose() const {
     return model_view_rot;
 }
 
+Visualizer& Visualizer::getCameraPose(Eigen::Vector3f &position, Eigen::Vector3f &look_at, Eigen::Vector3f &up_direction) const {
+    Eigen::Matrix4f pose = getCameraPose();
+    position = pose.topRightCorner(3,1);
+    look_at = position + pose.block<3,1>(0,2);
+    up_direction = -pose.block<3,1>(0,1);
+}
+
 Visualizer& Visualizer::setCameraPose(const Eigen::Vector3f &position, const Eigen::Vector3f &look_at, const Eigen::Vector3f &up_direction) {
     gl_render_state_->SetModelViewMatrix(pangolin::ModelViewLookAt(position(0), position(1), position(2), look_at(0), look_at(1), look_at(2), up_direction(0), up_direction(1), up_direction(2)));
 }

@@ -61,6 +61,7 @@ public:
     Visualizer& setProjectionMatrix(int w, int h, const Eigen::Matrix3f &intrinsics, pangolin::GLprecision zNear, pangolin::GLprecision zFar);
 
     Eigen::Matrix4f getCameraPose() const;
+    Visualizer& getCameraPose(Eigen::Vector3f &position, Eigen::Vector3f &look_at, Eigen::Vector3f &up_direction) const;
     Visualizer& setCameraPose(const Eigen::Vector3f &position, const Eigen::Vector3f &look_at, const Eigen::Vector3f &up_direction);
     Visualizer& setCameraPose(float pos_x, float pos_y, float pos_z, float look_at_x, float look_at_y, float look_at_z, float up_dir_x, float up_dir_y, float up_dir_z);
     Visualizer& setCameraPose(const Eigen::Matrix4f &pose);

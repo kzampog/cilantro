@@ -7,7 +7,7 @@
 
 void callback_test(Visualizer &viz, int key, void *cookie) {
     std::string name = *((std::string *)cookie);
-    std::cout << ((char)key) << " " << name << std::endl;
+    std::cout << "Toggling visibility for " << name << std::endl;
     viz.toggleVisibilityStatus(name);
 }
 
