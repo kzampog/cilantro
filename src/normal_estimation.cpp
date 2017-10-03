@@ -61,6 +61,8 @@ std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsKNN(size_t num_nei
         PrincipalComponentAnalysis3D pca(neighborhood);
         normals[i] = pca.getEigenVectorsMatrix().col(2);
 
+//        (*input_points_)[i] = pca.reconstruct<2>(pca.project<2>((*input_points_)[i]));
+
         if (normals[i].dot(view_point_ - (*input_points_)[i]) < 0.0f) {
             normals[i] *= -1.0f;
         }
@@ -99,6 +101,8 @@ std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsRadius(float radiu
         PrincipalComponentAnalysis3D pca(neighborhood);
         normals[i] = pca.getEigenVectorsMatrix().col(2);
 
+//        (*input_points_)[i] = pca.reconstruct<2>(pca.project<2>((*input_points_)[i]));
+
         if (normals[i].dot(view_point_ - (*input_points_)[i]) < 0.0f) {
             normals[i] *= -1.0f;
         }
@@ -136,6 +140,8 @@ std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsKNNInRadius(size_t
 
         PrincipalComponentAnalysis3D pca(neighborhood);
         normals[i] = pca.getEigenVectorsMatrix().col(2);
+
+//        (*input_points_)[i] = pca.reconstruct<2>(pca.project<2>((*input_points_)[i]));
 
         if (normals[i].dot(view_point_ - (*input_points_)[i]) < 0.0f) {
             normals[i] *= -1.0f;
