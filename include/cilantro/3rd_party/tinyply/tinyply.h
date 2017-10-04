@@ -39,8 +39,8 @@ namespace tinyply
 	template<> inline int16_t endian_swap(const int16_t & v) { uint16_t r = endian_swap(*(uint16_t*)&v); return *(int16_t*)&r; }
 	template<> inline int32_t endian_swap(const int32_t & v) { uint32_t r = endian_swap(*(uint32_t*)&v); return *(int32_t*)&r; }
 	template<> inline int64_t endian_swap(const int64_t & v) { uint64_t r = endian_swap(*(uint64_t*)&v); return *(int64_t*)&r; }
-	inline float endian_swap_float(const uint32_t & v) { uint32_t r = endian_swap(v); return *(float*)&r; }
-	inline double endian_swap_double(const uint64_t & v) { uint64_t r = endian_swap(v); return *(double*)&r; }
+	inline float endian_swap_float(const uint32_t & v) { union {float f; uint32_t i;}; i = endian_swap(v); return f; }
+	inline double endian_swap_double(const uint64_t & v) { union {double d; uint64_t i;}; i = endian_swap(v); return d; }
 
 	struct DataCursor
 	{
@@ -69,13 +69,13 @@ namespace tinyply
 		};
 
 		PlyProperty(std::istream & is);
-		PlyProperty(Type type, const std::string & name) : propertyType(type), isList(false), name(name) {}
-		PlyProperty(Type list_type, Type prop_type, const std::string & name, int listCount) : listType(list_type), propertyType(prop_type), isList(true), name(name), listCount(listCount) {}
+		PlyProperty(Type type, const std::string & _name) : propertyType(type), isList(false), name(_name) {}
+		PlyProperty(Type list_type, Type prop_type, const std::string & _name, int list_count) : listType(list_type), propertyType(prop_type), isList(true), name(_name), listCount(list_count) {}
 
 		Type listType, propertyType;
 		bool isList;
-		int listCount = 0;
 		std::string name;
+		int listCount = 0;
 	};
 
 	inline std::string make_key(const std::string & a, const std::string & b)
@@ -185,7 +185,7 @@ namespace tinyply
 		void parse_internal(std::istream & is);
 	public:
 		PlyElement(std::istream & istream);
-		PlyElement(const std::string & name, size_t count) : name(name), size(count) {}
+		PlyElement(const std::string & _name, size_t count) : name(_name), size(count) {}
 		std::string name;
 		size_t size;
 		std::vector<PlyProperty> properties;
@@ -233,11 +233,11 @@ namespace tinyply
 			else return 0;
 
 			// count and verify large enough
-			auto instance_counter = [&](const std::string & elementKey, const std::string & propertyKey)
+			auto instance_counter = [&](const std::string & _elementKey, const std::string & propertyKey)
 			{
 				for (auto e : get_elements())
 				{
-					if (e.name != elementKey) continue;
+					if (e.name != _elementKey) continue;
 					for (auto p : e.properties)
 					{
 						if (p.name == propertyKey)
@@ -380,3 +380,4 @@ namespace tinyply
 } // namesapce tinyply
 
 #endif // tinyply_h
+

@@ -62,7 +62,6 @@ PlyFile::PlyFile(std::istream & is)
 bool PlyFile::parse_header(std::istream & is)
 {
     std::string line;
-    bool gotMagic = false;
     while (std::getline(is, line))
     {
         std::istringstream ls(line);
@@ -70,7 +69,6 @@ bool PlyFile::parse_header(std::istream & is)
         ls >> token;
         if (token == "ply" || token == "PLY" || token == "")
         {
-            gotMagic = true;
             continue;
         }
         else if (token == "comment")    read_header_text(line, ls, comments, 8);
@@ -203,9 +201,9 @@ void PlyFile::read(std::istream & is)
     read_internal(is);
 }
 
-void PlyFile::write(std::ostream & os, bool isBinary)
+void PlyFile::write(std::ostream & os, bool _isBinary)
 {
-    if (isBinary) write_binary_internal(os);
+    if (_isBinary) write_binary_internal(os);
     else write_ascii_internal(os);
 }
 
@@ -244,7 +242,7 @@ void PlyFile::write_binary_internal(std::ostream & os)
 void PlyFile::write_ascii_internal(std::ostream & os)
 {
     write_header(os);
-    
+
     for (auto & e : elements)
     {
         for (size_t i = 0; i < e.size; ++i)
@@ -265,7 +263,7 @@ void PlyFile::write_ascii_internal(std::ostream & os)
                     write_property_ascii(p.propertyType, os, (cursor->data + cursor->offset), cursor->offset);
                 }
             }
-            os << std::endl;
+            os << "\n";
         }
     }
 }
@@ -274,33 +272,33 @@ void PlyFile::write_header(std::ostream & os)
 {
     const std::locale & fixLoc = std::locale("C");
     os.imbue(fixLoc);
-    
-    os << "ply" << std::endl;
+
+    os << "ply\n";
     if (isBinary)
-        os << ((isBigEndian) ? "format binary_big_endian 1.0" : "format binary_little_endian 1.0") << std::endl;
+        os << ((isBigEndian) ? "format binary_big_endian 1.0" : "format binary_little_endian 1.0") << "\n";
     else
-        os << "format ascii 1.0" << std::endl;
-    
+        os << "format ascii 1.0\n";
+
     for (const auto & comment : comments)
-        os << "comment " << comment << std::endl;
-    
+        os << "comment " << comment << "\n";
+
     for (auto & e : elements)
     {
-        os << "element " << e.name << " " << e.size << std::endl;
+        os << "element " << e.name << " " << e.size << "\n";
         for (const auto & p : e.properties)
         {
             if (p.isList)
             {
                 os << "property list " << PropertyTable[p.listType].str << " "
-                << PropertyTable[p.propertyType].str << " " << p.name << std::endl;
+                << PropertyTable[p.propertyType].str << " " << p.name << "\n";
             }
             else
             {
-                os << "property " << PropertyTable[p.propertyType].str << " " << p.name << std::endl;
+                os << "property " << PropertyTable[p.propertyType].str << " " << p.name << "\n";
             }
         }
     }
-    os << "end_header" << std::endl;
+    os << "end_header\n";
 }
 
 void PlyFile::read_internal(std::istream & is)
@@ -309,15 +307,15 @@ void PlyFile::read_internal(std::istream & is)
     std::function<void(const PlyProperty & property, std::istream & is)> skip;
     if (isBinary)
     {
-        read = [&](PlyProperty::Type t, void * dest, size_t & destOffset, std::istream & is) { read_property_binary(t, dest, destOffset, is); };
-        skip = [&](const PlyProperty & property, std::istream & is) { skip_property_binary(property, is); };
+        read = [&](PlyProperty::Type t, void * dest, size_t & destOffset, std::istream & _is) { read_property_binary(t, dest, destOffset, _is); };
+        skip = [&](const PlyProperty & property, std::istream & _is) { skip_property_binary(property, _is); };
     }
     else
     {
-        read = [&](PlyProperty::Type t, void * dest, size_t & destOffset, std::istream & is) { read_property_ascii(t, dest, destOffset, is); };
-        skip = [&](const PlyProperty & property, std::istream & is) { skip_property_ascii(property, is); };
+        read = [&](PlyProperty::Type t, void * dest, size_t & destOffset, std::istream & _is) { read_property_ascii(t, dest, destOffset, _is); };
+        skip = [&](const PlyProperty & property, std::istream & _is) { skip_property_ascii(property, _is); };
     }
-    
+
     for (auto & element : get_elements())
     {
         if (std::find(requestedElements.begin(), requestedElements.end(), element.name) != requestedElements.end())
@@ -358,3 +356,4 @@ void PlyFile::read_internal(std::istream & is)
         else continue;
     }
 }
+
