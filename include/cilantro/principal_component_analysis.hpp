@@ -93,7 +93,7 @@ private:
     Eigen::Matrix<ScalarT,EigenDim,1> eigenvalues_;
     Eigen::Matrix<ScalarT,EigenDim,EigenDim> eigenvectors_;
 
-    void compute_() {
+    inline void compute_() {
         Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > data_mat(data_, EigenDim, num_points_);
 
         mean_ = data_mat.rowwise().mean();
@@ -102,7 +102,7 @@ private:
         Eigen::JacobiSVD<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > svd(centered, Eigen::ComputeFullU | Eigen::ComputeThinV);
         eigenvectors_ = svd.matrixU();
         if (eigenvectors_.determinant() < 0.0f) {
-            eigenvectors_.col(EigenDim-1) *= -1.0f;
+            eigenvectors_.col(EigenDim-1) = -eigenvectors_.col(EigenDim-1);
         }
         eigenvalues_ = svd.singularValues().array().square();
     }
