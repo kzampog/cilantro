@@ -3,7 +3,7 @@
 #include <random>
 #include <cilantro/kd_tree.hpp>
 
-template <typename ScalarT, ptrdiff_t EigenDim>
+template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor>
 class KMeans {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -18,20 +18,20 @@ public:
               iteration_count_(0)
     {}
 
-    KMeans& cluster(const std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > &centroids, size_t max_iter = 100, ScalarT tol = std::numeric_limits<ScalarT>::epsilon()) {
+    KMeans& cluster(const std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > &centroids, size_t max_iter = 100, ScalarT tol = std::numeric_limits<ScalarT>::epsilon(), bool use_kd_tree = false) {
         cluster_centroids_ = centroids;
-        cluster_(max_iter, tol);
+        cluster_(max_iter, tol, use_kd_tree);
         return *this;
     }
 
-    KMeans& cluster(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > &centroids, size_t max_iter = 100, ScalarT tol = std::numeric_limits<ScalarT>::epsilon()) {
+    KMeans& cluster(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > &centroids, size_t max_iter = 100, ScalarT tol = std::numeric_limits<ScalarT>::epsilon(), bool use_kd_tree = false) {
         cluster_centroids_.resize(centroids.cols());
         Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> >((ScalarT *)cluster_centroids_.data(), EigenDim, cluster_centroids_.size()) = centroids;
-        cluster_(max_iter, tol);
+        cluster_(max_iter, tol, use_kd_tree);
         return *this;
     }
 
-    KMeans& cluster(size_t num_clusters, size_t max_iter = 100, ScalarT tol = std::numeric_limits<ScalarT>::epsilon()) {
+    KMeans& cluster(size_t num_clusters, size_t max_iter = 100, ScalarT tol = std::numeric_limits<ScalarT>::epsilon(), bool use_kd_tree = false) {
         cluster_centroids_.resize((num_clusters > data_map_.cols()) ? data_map_.cols() : num_clusters);
 
         std::vector<size_t> range(data_map_.cols());
@@ -48,7 +48,7 @@ public:
             range.resize(prev_size-1);
         }
 
-        cluster_(max_iter, tol);
+        cluster_(max_iter, tol, use_kd_tree);
         return *this;
     }
 
@@ -68,7 +68,7 @@ private:
 
     size_t iteration_count_;
 
-    void cluster_(size_t max_iter, ScalarT tol) {
+    void cluster_(size_t max_iter, ScalarT tol, bool use_kd_tree) {
         size_t num_clusters = cluster_centroids_.size();
         size_t num_points = data_map_.cols();
         ScalarT tol_sq = tol*tol;
@@ -83,16 +83,35 @@ private:
 
         std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > centroids_old;
 
+        KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> data_adaptor(data_map_);
+        DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> > dist_adaptor(data_adaptor);
+
         iteration_count_ = 0;
         while (iteration_count_ < max_iter) {
             bool assignments_unchanged = true;
 
             // Update assignments
-            if (num_clusters < 29) {
+            if (use_kd_tree) {
+                std::vector<size_t> neighbors;
+                std::vector<ScalarT> distances;
+                KDTree<ScalarT,EigenDim,DistAdaptor> tree(cluster_centroids_);
+                for (size_t i = 0; i < num_points; i++) {
+                    tree.kNNSearch(data_map_.col(i), 1, neighbors, distances);
+                    if (cluster_index_map_[i] != neighbors[0]) assignments_unchanged = false;
+                    cluster_index_map_[i] = neighbors[0];
+                }
+            } else {
                 for (size_t i = 0; i < num_points; i++) {
                     extr_dist = std::numeric_limits<ScalarT>::infinity();
                     for (size_t j = 0; j < num_clusters; j++) {
-                        dist = (cluster_centroids_[j] - data_map_.col(i)).squaredNorm();
+                        // Resolved at compile time
+                        if (std::is_same<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> >, KDTreeDistanceAdaptors::L2<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> > >::value ||
+                            std::is_same<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> >, KDTreeDistanceAdaptors::L2Simple<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> > >::value)
+                        {
+                            dist = (cluster_centroids_[j] - data_map_.col(i)).squaredNorm();
+                        } else {
+                            dist = dist_adaptor.evalMetric(&(cluster_centroids_[j][0]), i, EigenDim);
+                        }
                         if (dist < extr_dist) {
                             extr_dist = dist;
                             extr_dist_ind = j;
@@ -100,15 +119,6 @@ private:
                     }
                     if (cluster_index_map_[i] != extr_dist_ind) assignments_unchanged = false;
                     cluster_index_map_[i] = extr_dist_ind;
-                }
-            } else {
-                std::vector<size_t> neighbors;
-                std::vector<ScalarT> distances;
-                KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> tree(cluster_centroids_);
-                for (size_t i = 0; i < num_points; i++) {
-                    tree.kNNSearch(data_map_.col(i), 1, neighbors, distances);
-                    if (cluster_index_map_[i] != neighbors[0]) assignments_unchanged = false;
-                    cluster_index_map_[i] = neighbors[0];
                 }
             }
 
@@ -173,5 +183,5 @@ private:
     }
 };
 
-typedef KMeans<float,2> KMeans2D;
-typedef KMeans<float,3> KMeans3D;
+typedef KMeans<float,2,KDTreeDistanceAdaptors::L2> KMeans2D;
+typedef KMeans<float,3,KDTreeDistanceAdaptors::L2> KMeans3D;

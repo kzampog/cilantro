@@ -13,20 +13,25 @@ int main(int argc, char ** argv) {
 
     cloud = VoxelGrid(cloud, 0.005).getDownsampledCloud();
 
-    Eigen::MatrixXf data_points(6,cloud.size());
-    data_points.topRows(3) = cloud.pointsMatrixMap();
-    data_points.bottomRows(3) = 0.15*cloud.colorsMatrixMap();
+//    Eigen::MatrixXf data_points(6,cloud.size());
+//    data_points.topRows(3) = cloud.pointsMatrixMap();
+//    data_points.bottomRows(3) = 0.15*cloud.colorsMatrixMap();
+//    KMeans<float, 6, KDTreeDistanceAdaptors::L2> kmc(data_points);
 
-    KMeans<float, 6> kmc(data_points);
-//    KMeans3D kmc(cloud.points);
+//    KMeans<float,3,KDTreeDistanceAdaptors::L1> kmc(cloud.points);
+    KMeans3D kmc(cloud.points);
 
     size_t k = 250;
+    size_t max_iter = 100;
+    float tol = std::numeric_limits<float>::epsilon();
+    bool use_kd_tree = true;
 
     clock_t begin, end;
     double elapsed_time;
     begin = clock();
 
-    kmc.cluster(k, 1000);
+//    kmc.cluster(k, 1000);
+    kmc.cluster(k, max_iter, tol, use_kd_tree);
 
     end = clock();
     elapsed_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
@@ -61,16 +66,12 @@ int main(int argc, char ** argv) {
     viz.addPointCloud("cloud", cloud);
     viz.addPointCloudColors("cloud", cols);
 
+    viz.addPointCloud("centroids", kmc.getClusterCentroids(), RenderingProperties().setPointSize(5.0f));
+    viz.addPointCloudColors("centroids", std::vector<Eigen::Vector3f>(kmc.getClusterCentroids().size(), Eigen::Vector3f(1,1,1)));
+
     while (!viz.wasStopped()) {
         viz.spinOnce();
     }
-
-//    for (size_t i = 0; i < idx_map.size(); i++) {
-//        std::cout << idx_map[i] << " ";
-//    }
-//    std::cout << std::endl;
-
-//    std::cout << kmc.getClusterCentroidsMatrixMap() << std::endl;
 
     return 0;
 }

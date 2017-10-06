@@ -3,24 +3,55 @@
 #include <cilantro/3rd_party/nanoflann/nanoflann.hpp>
 #include <Eigen/Dense>
 
-struct KDTreeDistanceAdaptors {
-    template <class ScalarT, class DataSource>
-    using L1 = nanoflann::L1_Adaptor<ScalarT, DataSource, ScalarT>;
+struct KDTreeDataAdaptors {
+    // Eigen Map to nanoflann adaptor class
+    template <class ScalarT, ptrdiff_t EigenDim>
+    struct EigenMap {
+        typedef ScalarT coord_t;
 
-    template <class ScalarT, class DataSource>
-    using L2 = nanoflann::L2_Adaptor<ScalarT, DataSource, ScalarT>;
+        // A const ref to the data set origin
+        const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> >& obj;
 
-    template <class ScalarT, class DataSource>
-    using L2Simple = nanoflann::L2_Simple_Adaptor<ScalarT, DataSource, ScalarT>;
+        /// The constructor that sets the data set source
+        EigenMap(const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > &obj_) : obj(obj_) {}
 
-    template <class ScalarT, class DataSource>
-    using SO2 = nanoflann::SO2_Adaptor<ScalarT, DataSource, ScalarT>;
+        /// CRTP helper method
+        inline const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> >& derived() const { return obj; }
 
-    template <class ScalarT, class DataSource>
-    using SO3 = nanoflann::SO3_Adaptor<ScalarT, DataSource, ScalarT>;
+        // Must return the number of data points
+        inline size_t kdtree_get_point_count() const { return obj.cols(); }
+
+        // Returns the dim'th component of the idx'th point in the class:
+        // Since this is inlined and the "dim" argument is typically an immediate value, the
+        //  "if/else's" are actually solved at compile time.
+        inline coord_t kdtree_get_pt(const size_t idx, int dim) const { return obj(dim,idx); }
+
+        // Optional bounding-box computation: return false to default to a standard bbox computation loop.
+        //   Return true if the BBOX was already computed by the class and returned in "bb" so it can be avoided to redo it again.
+        //   Look at bb.size() to find out the expected dimensionality (e.g. 2 or 3 for point clouds)
+        template <class BBOX>
+        bool kdtree_get_bbox(BBOX& /*bb*/) const { return false; }
+    };
 };
 
-template <typename ScalarT, ptrdiff_t EigenDim, template <class, class> class DistAdaptor>
+struct KDTreeDistanceAdaptors {
+    template <class DataAdaptor>
+    using L1 = nanoflann::L1_Adaptor<typename DataAdaptor::coord_t, DataAdaptor, typename DataAdaptor::coord_t>;
+
+    template <class DataAdaptor>
+    using L2 = nanoflann::L2_Adaptor<typename DataAdaptor::coord_t, DataAdaptor, typename DataAdaptor::coord_t>;
+
+    template <class DataAdaptor>
+    using L2Simple = nanoflann::L2_Simple_Adaptor<typename DataAdaptor::coord_t, DataAdaptor, typename DataAdaptor::coord_t>;
+
+    template <class DataAdaptor>
+    using SO2 = nanoflann::SO2_Adaptor<typename DataAdaptor::coord_t, DataAdaptor, typename DataAdaptor::coord_t>;
+
+    template <class DataAdaptor>
+    using SO3 = nanoflann::SO3_Adaptor<typename DataAdaptor::coord_t, DataAdaptor, typename DataAdaptor::coord_t>;
+};
+
+template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor>
 class KDTree {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -100,38 +131,10 @@ public:
     }
 
 private:
-    // Eigen Map to kd-tree adaptor class
-    struct EigenMapAdaptor_ {
-        typedef ScalarT coord_t;
-
-        // A const ref to the data set origin
-        const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> >& obj;
-
-        /// The constructor that sets the data set source
-        EigenMapAdaptor_(const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > &obj_) : obj(obj_) {}
-
-        /// CRTP helper method
-        inline const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> >& derived() const { return obj; }
-
-        // Must return the number of data points
-        inline size_t kdtree_get_point_count() const { return obj.cols(); }
-
-        // Returns the dim'th component of the idx'th point in the class:
-        // Since this is inlined and the "dim" argument is typically an immediate value, the
-        //  "if/else's" are actually solved at compile time.
-        inline coord_t kdtree_get_pt(const size_t idx, int dim) const { return obj(dim,idx); }
-
-        // Optional bounding-box computation: return false to default to a standard bbox computation loop.
-        //   Return true if the BBOX was already computed by the class and returned in "bb" so it can be avoided to redo it again.
-        //   Look at bb.size() to find out the expected dimensionality (e.g. 2 or 3 for point clouds)
-        template <class BBOX>
-        bool kdtree_get_bbox(BBOX& /*bb*/) const { return false; }
-    };
-
-    typedef nanoflann::KDTreeSingleIndexAdaptor<DistAdaptor<ScalarT, EigenMapAdaptor_>, EigenMapAdaptor_, EigenDim> TreeType_;
+    typedef nanoflann::KDTreeSingleIndexAdaptor<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> >, KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>, EigenDim> TreeType_;
 
     Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > data_map_;
-    const EigenMapAdaptor_ mat_to_kd_;
+    const KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> mat_to_kd_;
     TreeType_ kd_tree_;
     nanoflann::SearchParams params_;
 };
