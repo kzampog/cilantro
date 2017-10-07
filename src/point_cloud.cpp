@@ -54,8 +54,6 @@ PointCloud& PointCloud::clear() {
     return *this;
 }
 
-#include <iostream>
-
 PointCloud& PointCloud::append(const PointCloud &cloud) {
     size_t original_size = size();
     points.insert(points.end(), cloud.points.begin(), cloud.points.end());
@@ -82,13 +80,16 @@ PointCloud& PointCloud::remove(const std::vector<size_t> &indices) {
         valid_ind--;
     }
 
+    bool has_normals = hasNormals();
+    bool has_colors = hasColors();
+
     auto ind_it = indices_set.begin();
     while (ind_it != indices_set.end() && *ind_it < valid_ind) {
         std::swap(points[*ind_it], points[valid_ind]);
-        if (hasNormals()) {
+        if (has_normals) {
             std::swap(normals[*ind_it], normals[valid_ind]);
         }
-        if (hasColors()) {
+        if (has_colors) {
             std::swap(colors[*ind_it], colors[valid_ind]);
         }
         valid_ind--;
@@ -109,4 +110,57 @@ PointCloud& PointCloud::remove(const std::vector<size_t> &indices) {
     }
 
     return *this;
+}
+
+PointCloud& PointCloud::removeInvalidPoints() {
+    std::vector<size_t> ind_to_remove;
+    ind_to_remove.reserve(points.size());
+    for (size_t i = 0; i < points.size(); i++) {
+        if (!points[i].allFinite()) ind_to_remove.emplace_back(i);
+    }
+
+    return remove(ind_to_remove);
+}
+
+PointCloud& PointCloud::removeInvalidNormals() {
+    if (!hasNormals()) return *this;
+
+    std::vector<size_t> ind_to_remove;
+    ind_to_remove.reserve(normals.size());
+    for (size_t i = 0; i < normals.size(); i++) {
+        if (!normals[i].allFinite()) ind_to_remove.emplace_back(i);
+    }
+
+    return remove(ind_to_remove);
+}
+
+PointCloud& PointCloud::removeInvalidColors() {
+    if (!hasColors()) return *this;
+
+    std::vector<size_t> ind_to_remove;
+    ind_to_remove.reserve(colors.size());
+    for (size_t i = 0; i < colors.size(); i++) {
+        if (!colors[i].allFinite()) ind_to_remove.emplace_back(i);
+    }
+
+    return remove(ind_to_remove);
+}
+
+PointCloud& PointCloud::removeInvalidData() {
+    bool has_normals = hasNormals();
+    bool has_colors = hasColors();
+
+    std::vector<size_t> ind_to_remove;
+    ind_to_remove.reserve(points.size());
+    for (size_t i = 0; i < points.size(); i++) {
+        if (!points[i].allFinite()) {
+            ind_to_remove.emplace_back(i);
+        } else if (has_normals && !normals[i].allFinite()) {
+            ind_to_remove.emplace_back(i);
+        } else if (has_colors && (!colors[i].allFinite())) {
+            ind_to_remove.emplace_back(i);
+        }
+    }
+
+    return remove(ind_to_remove);
 }

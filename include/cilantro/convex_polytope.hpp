@@ -68,7 +68,7 @@ bool checkLinearInequalityConstraintRedundancy(const Eigen::Matrix<ScalarT,Eigen
 //    Eigen::VectorXd ineq_test0(ineq_to_test.template cast<double>());
 //    std::cout << "dist: " << (sol.dot(ineq_test0.head(EigenDim)) + ineq_test0(EigenDim)) << std::endl;
 
-    if (std::isinf(val) || std::isnan(val) || x.array().isNaN().any() || x.array().isInf().any()) return false;
+    if (std::isinf(val) || std::isnan(val) || !x.allFinite()) return false;
 
     return x.head(EigenDim).dot(ineq_test.head(EigenDim)) + ineq_test(EigenDim) < -dist_tol;
 }
@@ -150,7 +150,7 @@ bool findFeasiblePointInHalfspaceIntersection(const Eigen::Ref<const Eigen::Matr
 
     //std::cout << val << ", for: " << x.transpose() << "   (" << feasible_point.transpose() << ")" << std::endl;
 
-    if (std::isinf(val) || std::isnan(val) || x.array().isNaN().any() || x.array().isInf().any()) {
+    if (std::isinf(val) || std::isnan(val) || !x.allFinite()) {
         feasible_point.setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
         return false;
     }

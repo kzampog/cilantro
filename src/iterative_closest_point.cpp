@@ -123,7 +123,7 @@ void IterativeClosestPoint::estimate_transform_() {
         for (size_t i = 0; i < src_points_trans_.size(); i++) {
             kd_tree_ptr_->kNNSearch(src_points_trans_[i], 1, neighbors, distances);
             if (distances[0] < corr_thresh_squared) {
-                if (metric_ == Metric::POINT_TO_PLANE && (*dst_normals_)[neighbors[0]].array().isNaN().any()) continue;
+                if (metric_ == Metric::POINT_TO_PLANE && !(*dst_normals_)[neighbors[0]].allFinite()) continue;
                 dst_ind[k] = neighbors[0];
                 src_ind[k] = i;
                 k++;

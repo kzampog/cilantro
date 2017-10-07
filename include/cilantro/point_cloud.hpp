@@ -24,6 +24,11 @@ struct PointCloud {
     PointCloud& append(const PointCloud &cloud);
     PointCloud& remove(const std::vector<size_t> &indices);
 
+    PointCloud& removeInvalidPoints();
+    PointCloud& removeInvalidNormals();
+    PointCloud& removeInvalidColors();
+    PointCloud& removeInvalidData();
+
     inline Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> > pointsMatrixMap() { return Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)points.data(), 3, points.size()); }
     inline Eigen::Map<const Eigen::Matrix<float,3,Eigen::Dynamic> > pointsMatrixMap() const { return Eigen::Map<const Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)points.data(), 3, points.size()); }
 

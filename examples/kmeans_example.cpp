@@ -11,7 +11,7 @@ int main(int argc, char ** argv) {
     PointCloud cloud;
     readPointCloudFromPLYFile(argv[1], cloud);
 
-    cloud = VoxelGrid(cloud, 0.005).getDownsampledCloud();
+    cloud = VoxelGrid(cloud, 0.005).getDownsampledCloud().removeInvalidData();
 
 //    Eigen::MatrixXf data_points(6,cloud.size());
 //    data_points.topRows(3) = cloud.pointsMatrixMap();

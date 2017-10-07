@@ -40,7 +40,7 @@ NormalEstimation::~NormalEstimation() {
 std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsKNN(size_t num_neighbors) const {
     std::vector<Eigen::Vector3f> normals(input_points_->size());
 
-    Eigen::Vector3f nan(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
+    Eigen::Vector3f nan(Eigen::Vector3f::Constant(std::numeric_limits<float>::quiet_NaN()));
     if (input_points_->size() < 3) {
         for (size_t i = 0; i < normals.size(); i++) {
             normals[i] = nan;
@@ -81,7 +81,7 @@ std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsRadius(float radiu
 
     std::vector<Eigen::Vector3f> normals(input_points_->size());
 
-    Eigen::Vector3f nan(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
+    Eigen::Vector3f nan(Eigen::Vector3f::Constant(std::numeric_limits<float>::quiet_NaN()));
 
     for (size_t i = 0; i < input_points_->size(); i++) {
         std::vector<size_t> neighbors;
@@ -121,7 +121,7 @@ std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsKNNInRadius(size_t
 
     std::vector<Eigen::Vector3f> normals(input_points_->size());
 
-    Eigen::Vector3f nan(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
+    Eigen::Vector3f nan(Eigen::Vector3f::Constant(std::numeric_limits<float>::quiet_NaN()));
 
     for (size_t i = 0; i < input_points_->size(); i++) {
         std::vector<size_t> neighbors;
