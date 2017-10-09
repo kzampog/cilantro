@@ -164,3 +164,19 @@ PointCloud& PointCloud::removeInvalidData() {
 
     return remove(ind_to_remove);
 }
+
+PointCloud& PointCloud::transform(const Eigen::Ref<const Eigen::Matrix3f> &rotation, const Eigen::Ref<const Eigen::Vector3f> &translation) {
+    if (!empty()) {
+        Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> > points_map(pointsMatrixMap());
+        points_map = (rotation*points_map).colwise() + translation;
+        if (hasNormals()) {
+            Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> > normals_map(normalsMatrixMap());
+            normals_map = rotation*normals_map;
+        }
+    }
+    return *this;
+}
+
+PointCloud& PointCloud::transform(const Eigen::Ref<const Eigen::Matrix4f> &rigid_transform) {
+    return transform(rigid_transform.topLeftCorner(3,3), rigid_transform.topRightCorner(3,1));
+}

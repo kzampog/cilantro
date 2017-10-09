@@ -877,7 +877,30 @@ public:
     inline const std::vector<std::vector<size_t> >& getFacetNeighborFacets() const { return face_neighbor_faces_; }
     inline const std::vector<size_t>& getVertexPointIndices() const { return vertex_point_indices_; }
 
-private:
+    ConvexPolytope& transform(const Eigen::Ref<const Eigen::Matrix<OutputScalarT,EigenDim,EigenDim> > &rotation, const Eigen::Ref<const Eigen::Matrix<OutputScalarT,EigenDim,1> > &translation) {
+        if (is_empty_) return *this;
+
+        Eigen::Map<Eigen::Matrix<OutputScalarT,EigenDim,Eigen::Dynamic> > v_map((OutputScalarT *)vertices_.data(), EigenDim, vertices_.size());
+        v_map = (rotation*v_map).colwise() + translation;
+
+        interior_point_ = rotation*interior_point_ + translation;
+
+        Eigen::Matrix<OutputScalarT,EigenDim+1,EigenDim+1> hs_tform;
+        hs_tform.topLeftCorner(EigenDim,EigenDim) = rotation;
+        hs_tform.block(EigenDim,0,1,EigenDim) = -translation.transpose()*rotation;
+        hs_tform.col(EigenDim).setZero();
+        hs_tform(EigenDim,EigenDim) = 1.0;
+
+        Eigen::Map<Eigen::Matrix<OutputScalarT,EigenDim+1,Eigen::Dynamic> > hs_map((OutputScalarT *)halfspaces_.data(), EigenDim+1, halfspaces_.size());
+        hs_map = hs_tform*hs_map;
+
+        return *this;
+    }
+    ConvexPolytope& transform(const Eigen::Ref<const Eigen::Matrix<OutputScalarT,EigenDim+1,EigenDim+1> > &rigid_transform) {
+        return transform(rigid_transform.topLeftCorner(EigenDim,EigenDim), rigid_transform.topRightCorner(EigenDim,1));
+    }
+
+protected:
     // Polytope properties
     bool is_empty_;
     bool is_bounded_;

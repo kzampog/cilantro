@@ -52,7 +52,7 @@ int main(int argc, char ** argv) {
     PointCloud cloud;
     readPointCloudFromPLYFile(argv[1], cloud);
 
-    CloudHull ch(cloud);
+    PointCloudHull ch(cloud);
 
     PointCloud hc(cloud, ch.getVertexPointIndices());
 
@@ -77,53 +77,45 @@ int main(int argc, char ** argv) {
     }
 
 
-    Visualizer viz("win", "disp");
+    Visualizer viz1("win1", "disp");
 
-    viz.addPointCloud("cloud", cloud, RenderingProperties().setOpacity(1.0));
-    viz.addTriangleMesh("mesh", ch.getVertices(), ch.getFacetVertexIndices());
-    viz.addTriangleMeshVertexNormals("mesh", hc.normals);
-    viz.addTriangleMeshVertexColors("mesh", v_colors);
-    viz.addTriangleMeshFaceColors("mesh", f_colors);
-    viz.addTriangleMeshVertexValues("mesh", v_vals);
-    viz.addTriangleMeshFaceValues("mesh", f_vals);
+    viz1.addPointCloud("cloud", cloud, RenderingProperties().setOpacity(1.0));
+    viz1.addTriangleMesh("mesh", ch.getVertices(), ch.getFacetVertexIndices());
+    viz1.addTriangleMeshVertexNormals("mesh", hc.normals);
+    viz1.addTriangleMeshVertexColors("mesh", v_colors);
+    viz1.addTriangleMeshFaceColors("mesh", f_colors);
+    viz1.addTriangleMeshVertexValues("mesh", v_vals);
+    viz1.addTriangleMeshFaceValues("mesh", f_vals);
 
-    RenderingProperties rp = viz.getRenderingProperties("mesh");
+    RenderingProperties rp = viz1.getRenderingProperties("mesh");
     rp.setUseFaceNormals(true).setUseFaceColors(false).setOpacity(0.8).setColormapType(ColormapType::BLUE2RED);
-    viz.setRenderingProperties("mesh", rp);
+    viz1.setRenderingProperties("mesh", rp);
 
 
-    while (!viz.wasStopped()) {
-        viz.spinOnce();
+    PrincipalComponentAnalysis3D proj(cloud.points);
+
+    std::vector<Eigen::Vector2f> pts = proj.project<2>(cloud.points);
+    cloud.points = proj.reconstruct<2>(pts);
+
+    PointCloudHullFlat ch2d(cloud);
+
+    Visualizer viz2("win2", "disp");
+
+    std::vector<std::vector<size_t> > face_v_ind = ch2d.getFacetVertexIndices();
+    std::vector<Eigen::Vector3f> p_src(face_v_ind.size()), p_dst(face_v_ind.size());
+    for (size_t i = 0; i < face_v_ind.size(); i++) {
+        p_src[i] = ch2d.getVertices3D()[face_v_ind[i][0]];
+        p_dst[i] = ch2d.getVertices3D()[face_v_ind[i][1]];
     }
 
+    viz2.addPointCloud("cloud", cloud, RenderingProperties().setOpacity(0.5));
+    viz2.addPointCloud("hull_cloud", ch2d.getVertices3D(), RenderingProperties().setDrawingColor(1,0,0).setPointSize(10.0));
+    viz2.addPointCorrespondences("hull_lines", p_src, p_dst, RenderingProperties().setDrawingColor(1,0,0).setLineWidth(5.0).setCorrespondencesFraction(1.0));
 
-
-//    PointCloud cloud;
-//    readPointCloudFromPLYFile(argv[1], cloud);
-//
-//    PrincipalComponentAnalysis3D proj(cloud.points);
-//
-//    std::vector<Eigen::Vector2f> pts = proj.project<2>(cloud.points);
-//    cloud.points = proj.reconstruct<2>(pts);
-//
-//    CloudHullFlat ch2d(cloud);
-//
-//    Visualizer viz("win", "disp");
-//
-//    std::vector<std::vector<size_t> > face_v_ind = ch2d.getFacetVertexIndices();
-//    std::vector<Eigen::Vector3f> p_src(face_v_ind.size()), p_dst(face_v_ind.size());
-//    for (size_t i = 0; i < face_v_ind.size(); i++) {
-//        p_src[i] = ch2d.getVertices3D()[face_v_ind[i][0]];
-//        p_dst[i] = ch2d.getVertices3D()[face_v_ind[i][1]];
-//    }
-//
-//    viz.addPointCloud("cloud", cloud, Visualizer::RenderingProperties().setOpacity(0.5));
-//    viz.addPointCloud("hull_cloud", ch2d.getVertices3D(), Visualizer::RenderingProperties().setDrawingColor(1,0,0).setPointSize(20.0));
-//    viz.addPointCorrespondences("hull_lines", p_src, p_dst, Visualizer::RenderingProperties().setDrawingColor(1,0,0).setLineWidth(10.0).setCorrespondencesFraction(1.0));
-//
-//    while (!viz.wasStopped()) {
-//        viz.spinOnce();
-//    }
+    while (!viz1.wasStopped() && !viz2.wasStopped()) {
+        viz1.spinOnce();
+        viz2.spinOnce();
+    }
 
     return 0;
 }

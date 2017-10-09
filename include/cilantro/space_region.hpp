@@ -159,7 +159,7 @@ public:
         return indices;
     }
 
-private:
+protected:
     std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> > polytopes_;
 
     static Eigen::Matrix<OutputScalarT,EigenDim,1> nan_point_;
