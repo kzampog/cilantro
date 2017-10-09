@@ -159,6 +159,17 @@ public:
         return indices;
     }
 
+    SpaceRegion& transform(const Eigen::Ref<const Eigen::Matrix<OutputScalarT,EigenDim,EigenDim> > &rotation, const Eigen::Ref<const Eigen::Matrix<OutputScalarT,EigenDim,1> > &translation) {
+        for (size_t i = 0; i < polytopes_.size(); i++) {
+            polytopes_[i].transform(rotation, translation);
+        }
+        return *this;
+    }
+
+    SpaceRegion& transform(const Eigen::Ref<const Eigen::Matrix<OutputScalarT,EigenDim+1,EigenDim+1> > &rigid_transform) {
+        return transform(rigid_transform.topLeftCorner(EigenDim,EigenDim), rigid_transform.topRightCorner(EigenDim,1));
+    }
+
 protected:
     std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> > polytopes_;
 

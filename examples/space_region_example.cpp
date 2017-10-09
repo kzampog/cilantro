@@ -17,11 +17,13 @@ int main(int argc, char ** argv) {
 
     SpaceRegion2D sr2(vertices);
 
-    SpaceRegion2D sr3(std::vector<Eigen::Vector3f>(1,Eigen::Vector3f(-1,1,-55)));
+    SpaceRegion2D sr3(std::vector<Eigen::Vector3f>(1,Eigen::Vector3f(-1,1,-70)));
 
 //    SpaceRegion2D sr = sr1.unionWith(sr2).complement();
     SpaceRegion2D sr = sr1.intersectionWith(sr2.complement()).unionWith(sr2.intersectionWith(sr1.complement())).intersectionWith(sr3);
 //    SpaceRegion2D sr = sr2.relativeComplement(sr1);
+
+    sr.transform(Eigen::Rotation2D<float>(-M_PI/4.0).toRotationMatrix(), Eigen::Vector2f(80,220));
 
     pangolin::ManagedImage<unsigned char> img(640,480);
     for (size_t x = 0; x < img.w; x++) {
