@@ -1,7 +1,5 @@
 #include <cilantro/image_viewer.hpp>
 
-#include <ctime>
-
 int main( int argc, char* argv[] )
 {
 //    std::string uri = "files://[/home/kzampog/Desktop/rgbd_sequences/dok_demo/rgb_*.png,/home/kzampog/Desktop/rgbd_sequences/dok_demo/depth_*.png]";

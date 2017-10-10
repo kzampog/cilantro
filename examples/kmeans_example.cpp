@@ -3,9 +3,6 @@
 #include <cilantro/visualizer.hpp>
 #include <cilantro/voxel_grid.hpp>
 
-#include <iostream>
-#include <ctime>
-
 int main(int argc, char ** argv) {
 
     PointCloud cloud;
@@ -26,16 +23,17 @@ int main(int argc, char ** argv) {
     float tol = std::numeric_limits<float>::epsilon();
     bool use_kd_tree = true;
 
-    clock_t begin, end;
-    double elapsed_time;
-    begin = clock();
+
+    auto start = std::chrono::high_resolution_clock::now();
 
 //    kmc.cluster(k, 1000);
     kmc.cluster(k, max_iter, tol, use_kd_tree);
 
-    end = clock();
-    elapsed_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
-    std::cout << "Clustering time: " << elapsed_time << std::endl;
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> elapsed = end - start;
+
+    std::cout << "Clustering time: " << elapsed.count() << "ms" << std::endl;
+
 
     std::cout << "Performed iterations: " << kmc.getPerformedIterationsCount() << std::endl;
 

@@ -1,8 +1,6 @@
 #include <cilantro/convex_hull.hpp>
 #include <cilantro/ply_io.hpp>
 #include <cilantro/visualizer.hpp>
-#include <cilantro/principal_component_analysis.hpp>
-#include <iostream>
 
 int main(int argc, char ** argv) {
 

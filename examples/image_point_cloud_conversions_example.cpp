@@ -2,9 +2,6 @@
 #include <cilantro/visualizer.hpp>
 #include <cilantro/image_viewer.hpp>
 
-#include <cilantro/ply_io.hpp>
-
-#include <ctime>
 
 int main(int argc, char ** argv) {
 //    std::string uri = "files://[/home/kzampog/Desktop/rgbd_sequences/dok_demo/rgb_*.png,/home/kzampog/Desktop/rgbd_sequences/dok_demo/depth_*.png]";
@@ -29,10 +26,6 @@ int main(int argc, char ** argv) {
         pangolin::ManagedImage<Eigen::Matrix<unsigned char,3,1> > rgb_img2(w,h);
         pangolin::ManagedImage<unsigned short> depth_img2(w,h);
 
-        clock_t begin, end;
-        double build_time;
-        begin = clock();
-
         RGBDImagesToPointCloud(rgb_img, depth_img, K, cloud, false);
 //        depthImageToPointCloud(depth_img, K, cloud, false);
 
@@ -46,9 +39,6 @@ int main(int argc, char ** argv) {
         pointCloudToRGBDImages(cloud, K, rgb_img2, depth_img2);
 //        pointCloudToDepthImage(cloud, K, depth_img2);
 
-        end = clock();
-        build_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
-        std::cout << "Images to cloud and back: " << build_time << std::endl;
 
         pcdv.addPointCloud("cloud", cloud).spinOnce();
         rgbv.setImage(rgb_img2.ptr, w, h, "RGB24").spinOnce();

@@ -2,38 +2,29 @@
 #include <cilantro/ply_io.hpp>
 
 #include <iostream>
-#include <ctime>
 
 int main(int argc, char ** argv) {
 
     PointCloud cloud;
-    cloud.points.push_back(Eigen::Vector3f(0, 0, 0));
-    cloud.points.push_back(Eigen::Vector3f(1, 0, 0));
-    cloud.points.push_back(Eigen::Vector3f(0, 100, 0));
-    cloud.points.push_back(Eigen::Vector3f(0, 0, 1000));
-    cloud.points.push_back(Eigen::Vector3f(0, 100, 1000));
-    cloud.points.push_back(Eigen::Vector3f(1, 0, 1000));
-    cloud.points.push_back(Eigen::Vector3f(1, 100, 0));
-    cloud.points.push_back(Eigen::Vector3f(1, 100, 1000));
+    cloud.points.emplace_back(0, 0, 0);
+    cloud.points.emplace_back(1, 0, 0);
+    cloud.points.emplace_back(0, 100, 0);
+    cloud.points.emplace_back(0, 0, 1000);
+    cloud.points.emplace_back(0, 100, 1000);
+    cloud.points.emplace_back(1, 0, 1000);
+    cloud.points.emplace_back(1, 100, 0);
+    cloud.points.emplace_back(1, 100, 1000);
 
 //    PointCloud cloud;
 //    readPointCloudFromPLYFile(argv[1], cloud);
 
-    clock_t begin, end;
-    double compute_time;
-
-    begin = clock();
     PrincipalComponentAnalysis3D pca(cloud.points);
-    end = clock();
-    compute_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
-
-    std::cout << "Compute time: " << compute_time << std::endl;
 
     std::cout << "Data mean: " << pca.getDataMean().transpose() << std::endl;
     std::cout << "Eigenvalues: " << pca.getEigenValues().transpose() << std::endl;
     std::cout << "Eigenvectors: " << std::endl << pca.getEigenVectorsMatrix() << std::endl;
 
-    std::cout << "Determinant: " << pca.getEigenVectorsMatrix().determinant() << std::endl;
+//    std::cout << "Determinant: " << pca.getEigenVectorsMatrix().determinant() << std::endl;
 
 //    Eigen::MatrixXf pts(Eigen::MatrixXf::Map((float *)cloud.points.data(), 3, cloud.points.size()));
 //

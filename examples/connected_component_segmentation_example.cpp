@@ -1,10 +1,7 @@
 #include <cilantro/connected_component_segmentation.hpp>
 #include <cilantro/ply_io.hpp>
 #include <cilantro/visualizer.hpp>
-
 #include <cilantro/voxel_grid.hpp>
-
-#include <ctime>
 
 int main(int argc, char ** argv) {
 
@@ -20,20 +17,18 @@ int main(int argc, char ** argv) {
 
     ConnectedComponentSegmentation ccs(cloud);
 
-    clock_t begin, end;
-    double elapsed_time;
-    begin = clock();
+    auto start = std::chrono::high_resolution_clock::now();
 
 //    ccs.segment(std::vector<size_t>(1, 10000), 0.02, (float)(2.0*M_PI/180.0), 5.0, 100, cloud.size(), 0.0);
     ccs.segment(0.02, (float)(2.0*M_PI/180.0), 5.0, 100, cloud.size());
 //    ccs.segment(0.02, (float)(2.0*M_PI/180.0), 5.0, 0, cloud.size(), 0.0);
 
-    end = clock();
-    elapsed_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> elapsed = end - start;
 
-    std::cout << "Segmentation time: " << elapsed_time << std::endl;
+    std::cout << "Segmentation time: " << elapsed.count() << "ms" << std::endl;
 
-    std::cout << ccs.getComponentPointIndices().size() << std::endl;
+    std::cout << ccs.getComponentPointIndices().size() << " components found" << std::endl;
 
     size_t num_labels = ccs.getComponentPointIndices().size();
     std::vector<size_t> labels = ccs.getComponentIndexMap();

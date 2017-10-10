@@ -3,8 +3,6 @@
 #include <cilantro/voxel_grid.hpp>
 #include <cilantro/visualizer.hpp>
 
-#include <ctime>
-
 bool proceed = false;
 
 void callback(Visualizer &viz, int key, void *cookie) {
@@ -58,9 +56,7 @@ int main(int argc, char ** argv) {
     }
     proceed = false;
 
-    clock_t begin, end;
-    double build_time;
-    begin = clock();
+    auto start = std::chrono::high_resolution_clock::now();
 
     Eigen::Matrix3f R_est;
     Eigen::Vector3f t_est;
@@ -72,10 +68,9 @@ int main(int argc, char ** argv) {
 //    icp.setInitialTransformation(R_ref.transpose(), (-R_ref.transpose()*t_ref));
     icp.getTransformation(R_est, t_est);
 
-    end = clock();
-
-    build_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
-    std::cout << "Elapsed time: " << build_time << std::endl;
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> elapsed = end - start;
+    std::cout << "Elapsed time: " << elapsed.count() << "ms" << std::endl;
 
     std::cout << "Iterations performed: " << icp.getPerformedIterationsCount() << std::endl;
     std::cout << "Has converged: " << icp.hasConverged() << std::endl;

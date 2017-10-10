@@ -1,10 +1,7 @@
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/plane_estimator.hpp>
-
 #include <cilantro/ply_io.hpp>
 #include <cilantro/visualizer.hpp>
-
-#include <iostream>
 
 bool re_estimate = false;
 

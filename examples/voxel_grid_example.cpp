@@ -1,9 +1,6 @@
 #include <cilantro/voxel_grid.hpp>
 #include <cilantro/ply_io.hpp>
 #include <cilantro/visualizer.hpp>
-#include <iostream>
-
-#include <ctime>
 
 int main(int argc, char ** argv) {
 
@@ -18,27 +15,24 @@ int main(int argc, char ** argv) {
 //
 //    std::cout << cloud_d.normals[0] << std::endl;
 
-    clock_t begin, end;
-    double build_time, ds_time;
-
     PointCloud cloud;
     readPointCloudFromPLYFile(argv[1], cloud);
 
-    begin = clock();
+    auto start = std::chrono::high_resolution_clock::now();
     VoxelGrid vg(cloud, 0.01f);
-    end = clock();
-    build_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> build_time = end - start;
 
-    begin = clock();
+    start = std::chrono::high_resolution_clock::now();
     PointCloud cloud_d = vg.getDownsampledCloud();
-    end = clock();
-    ds_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
+    end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> ds_time = end - start;
 
     std::cout << "Before: " << cloud.size() << std::endl;
     std::cout << "After: " << cloud_d.size() << std::endl;
 
-    std::cout << "Build time: " << build_time << std::endl;
-    std::cout << "Downsampling time: " << ds_time << std::endl;
+    std::cout << "Build time: " << build_time.count() << "ms" << std::endl;
+    std::cout << "Downsampling time: " << ds_time.count() << "ms" << std::endl;
 
     Visualizer viz("win", "disp");
 

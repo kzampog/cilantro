@@ -1,16 +1,9 @@
 #include <cilantro/normal_estimation.hpp>
 #include <cilantro/ply_io.hpp>
 #include <cilantro/visualizer.hpp>
-#include <iostream>
-
 #include <cilantro/voxel_grid.hpp>
 
-#include <ctime>
-
 int main(int argc, char ** argv) {
-    clock_t begin, end;
-    double kd_tree_time, estimation_time;
-
     PointCloud cloud;
     readPointCloudFromPLYFile(argv[1], cloud);
 
@@ -19,22 +12,22 @@ int main(int argc, char ** argv) {
     VoxelGrid vg(cloud, 0.005);
     cloud = vg.getDownsampledCloud();
 
-    begin = clock();
+    auto start = std::chrono::high_resolution_clock::now();
     KDTree3D tree(cloud.points);
     NormalEstimation ne(cloud, tree);
-    end = clock();
-    kd_tree_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> kd_tree_time = end - start;
 
-    begin = clock();
+    start = std::chrono::high_resolution_clock::now();
 //    ne.estimateNormalsInPlace(KDTree3D::Neighborhood(KDTree3D::NeighborhoodType::KNN_IN_RADIUS, 7, 0.01));
 //    ne.estimateNormalsInPlaceKNNInRadius(7, 0.01);
 //    ne.estimateNormalsInPlaceRadius(0.01);
     ne.estimateNormalsInPlaceKNN(7);
-    end = clock();
-    estimation_time = 1000.0*double(end - begin) / CLOCKS_PER_SEC;
+    end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> estimation_time = end - start;
 
-    std::cout << "kd-tree time: " << kd_tree_time << std::endl;
-    std::cout << "Estimation time: " << estimation_time << std::endl;
+    std::cout << "kd-tree time: " << kd_tree_time.count() << "ms" << std::endl;
+    std::cout << "Estimation time: " << estimation_time.count() << "ms" << std::endl;
 
     Visualizer viz("win", "disp");
 
