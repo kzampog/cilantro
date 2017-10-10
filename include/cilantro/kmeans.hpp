@@ -3,6 +3,10 @@
 #include <random>
 #include <cilantro/kd_tree.hpp>
 
+
+#include <iostream>
+
+
 template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor>
 class KMeans {
 public:
@@ -95,12 +99,14 @@ private:
                 std::vector<size_t> neighbors;
                 std::vector<ScalarT> distances;
                 KDTree<ScalarT,EigenDim,DistAdaptor> tree(cluster_centroids_);
+#pragma omp parallel for shared (assignments_unchanged) private (neighbors, distances)
                 for (size_t i = 0; i < num_points; i++) {
                     tree.kNNSearch(data_map_.col(i), 1, neighbors, distances);
                     if (cluster_index_map_[i] != neighbors[0]) assignments_unchanged = false;
                     cluster_index_map_[i] = neighbors[0];
                 }
             } else {
+#pragma omp parallel for shared (assignments_unchanged) private (extr_dist, extr_dist_ind, dist)
                 for (size_t i = 0; i < num_points; i++) {
                     extr_dist = std::numeric_limits<ScalarT>::infinity();
                     for (size_t j = 0; j < num_clusters; j++) {
@@ -147,9 +153,11 @@ private:
                 scale = 1.0/point_count[max_ind];
                 Eigen::Matrix<ScalarT,EigenDim,1> old_centroid(cluster_centroids_[max_ind]*scale);
                 extr_dist = -1.0;
+#pragma omp parallel for shared (extr_dist, extr_dist_ind) private (dist)
                 for (size_t j = 0; j < num_points; j++) {
                     if (cluster_index_map_[j] == max_ind) {
                         dist = (data_map_.col(j) - old_centroid).squaredNorm();
+#pragma omp critical
                         if (dist > extr_dist) {
                             extr_dist = dist;
                             extr_dist_ind = j;
