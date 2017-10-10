@@ -180,6 +180,7 @@ void IterativeClosestPoint::compute_residuals_(const Metric &metric, std::vector
     std::vector<float> distances(1);
     residuals.resize(src_points_->size());
     if (metric == Metric::POINT_TO_PLANE) {
+#pragma omp parallel for private (neighbors, distances)
         for (size_t i = 0; i < residuals.size(); i++) {
             kd_tree_ptr_->kNNSearch(src_points_trans_[i], 1, neighbors, distances);
             const Eigen::Vector3f& dp = (*dst_points_)[neighbors[0]];
@@ -187,6 +188,7 @@ void IterativeClosestPoint::compute_residuals_(const Metric &metric, std::vector
             residuals[i] = std::abs(dn.dot(src_points_trans_[i] - dp));
         }
     } else if (metric == Metric::POINT_TO_POINT) {
+#pragma omp parallel for private (neighbors, distances)
         for (size_t i = 0; i < residuals.size(); i++) {
             kd_tree_ptr_->kNNSearch(src_points_trans_[i], 1, neighbors, distances);
             residuals[i] = std::sqrt(distances[0]);

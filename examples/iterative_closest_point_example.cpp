@@ -70,7 +70,7 @@ int main(int argc, char ** argv) {
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> elapsed = end - start;
-    std::cout << "Elapsed time: " << elapsed.count() << "ms" << std::endl;
+    std::cout << "Registration time: " << elapsed.count() << "ms" << std::endl;
 
     std::cout << "Iterations performed: " << icp.getPerformedIterationsCount() << std::endl;
     std::cout << "Has converged: " << icp.hasConverged() << std::endl;
@@ -93,8 +93,14 @@ int main(int argc, char ** argv) {
     }
     proceed = false;
 
+    start = std::chrono::high_resolution_clock::now();
+    auto residuals = icp.getResiduals(IterativeClosestPoint::Metric::POINT_TO_POINT);
+    end = std::chrono::high_resolution_clock::now();
+    elapsed = end - start;
+    std::cout << "Residual computation time: " << elapsed.count() << "ms" << std::endl;
+
     viz.clear();
-    viz.addPointCloud("src", src_trans).addPointCloudValues("src", icp.getResiduals(IterativeClosestPoint::Metric::POINT_TO_POINT));
+    viz.addPointCloud("src", src_trans).addPointCloudValues("src", residuals);
 
     while (!proceed) {
         viz.spinOnce();

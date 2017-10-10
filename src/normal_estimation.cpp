@@ -48,6 +48,7 @@ std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsKNN(size_t num_nei
         return normals;
     }
 
+#pragma omp parallel for shared (normals)
     for (size_t i = 0; i < input_points_->size(); i++) {
         std::vector<size_t> neighbors;
         std::vector<float> distances;
@@ -83,6 +84,7 @@ std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsRadius(float radiu
 
     Eigen::Vector3f nan(Eigen::Vector3f::Constant(std::numeric_limits<float>::quiet_NaN()));
 
+#pragma omp parallel for shared (normals)
     for (size_t i = 0; i < input_points_->size(); i++) {
         std::vector<size_t> neighbors;
         std::vector<float> distances;
@@ -123,6 +125,7 @@ std::vector<Eigen::Vector3f> NormalEstimation::estimateNormalsKNNInRadius(size_t
 
     Eigen::Vector3f nan(Eigen::Vector3f::Constant(std::numeric_limits<float>::quiet_NaN()));
 
+#pragma omp parallel for shared (normals)
     for (size_t i = 0; i < input_points_->size(); i++) {
         std::vector<size_t> neighbors;
         std::vector<float> distances;
