@@ -34,30 +34,35 @@ private:
 //        }
 //    };
 
-    class EigenVector3iComparator_ {
-    public:
-        inline bool operator()(const Eigen::Vector3i &p1, const Eigen::Vector3i &p2) const {
-            if (p1[0] < p2[0]) return true;
-            if (p1[0] == p2[0]) {
-                if (p1[1] < p2[1]) return true;
-                if (p1[1] == p2[1]) {
-                    return p1[2] < p2[2];
-                } else return false;
-            } else return false;
-        }
-    };
+//    class EigenVector3iComparator_ {
+//    public:
+//        inline bool operator()(const Eigen::Vector3i &p1, const Eigen::Vector3i &p2) const {
+//            if (p1[0] < p2[0]) return true;
+//            if (p1[0] == p2[0]) {
+//                if (p1[1] < p2[1]) return true;
+//                if (p1[1] == p2[1]) {
+//                    return p1[2] < p2[2];
+//                } else return false;
+//            } else return false;
+//        }
+//    };
 
     const std::vector<Eigen::Vector3f> * input_points_;
     const std::vector<Eigen::Vector3f> * input_normals_;
     const std::vector<Eigen::Vector3f> * input_colors_;
 
-    Eigen::Vector3f min_pt_;
     float bin_size_;
+//    Eigen::Vector3f min_pt_;
+    std::array<float,3> min_pt_;
+    Eigen::Map<Eigen::Vector3f> min_pt_map_;
 
     std::vector<size_t> empty_indices_;
 
-    std::map<Eigen::Vector3i, std::vector<size_t>, EigenVector3iComparator_> grid_lookup_table_;
+    std::map<std::array<int,3>,std::vector<size_t> > grid_lookup_table_;
+//    std::map<Eigen::Vector3i, std::vector<size_t>, EigenVector3iComparator_> grid_lookup_table_;
 //    std::unordered_map<Eigen::Vector3i, std::vector<size_t>, EigenVector3iHasher_> grid_lookup_table_;
+
+    std::vector<std::map<std::array<int,3>,std::vector<size_t> >::iterator> map_iterators_;
 
     void build_lookup_table_();
 };

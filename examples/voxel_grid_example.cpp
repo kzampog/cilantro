@@ -25,6 +25,7 @@ int main(int argc, char ** argv) {
 
     start = std::chrono::high_resolution_clock::now();
     PointCloud cloud_d = vg.getDownsampledCloud();
+//    std::vector<Eigen::Vector3f> cloud_d = vg.getDownsampledPoints();
     end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> ds_time = end - start;
 
