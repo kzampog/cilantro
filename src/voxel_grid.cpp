@@ -132,7 +132,7 @@ PointCloud VoxelGrid::getDownsampledCloud(size_t min_points_in_bin) const {
     if (do_normals) normals.reserve(grid_lookup_table_.size());
     if (do_colors) colors.reserve(grid_lookup_table_.size());
 
-#pragma omp parallel for shared (points, normals, colors) private (point, normal, color)
+//#pragma omp parallel for shared (points, normals, colors) private (point, normal, color)
     for (size_t k = 0; k < map_iterators_.size(); k++) {
         auto it = map_iterators_[k];
 
@@ -145,7 +145,7 @@ PointCloud VoxelGrid::getDownsampledCloud(size_t min_points_in_bin) const {
             bin_points.col(i) = (*input_points_)[bin_ind[i]];
         }
         point = bin_points.rowwise().mean();
-//        points.emplace_back(point);
+        points.emplace_back(point);
 
         if (do_normals) {
             Eigen::MatrixXf bin_normals(3, bin_ind.size());
@@ -162,7 +162,7 @@ PointCloud VoxelGrid::getDownsampledCloud(size_t min_points_in_bin) const {
                 }
             }
             normal = (neg > pos) ? -bin_normals.rowwise().mean().normalized() : bin_normals.rowwise().mean().normalized();
-//            normals.emplace_back(normal);
+            normals.emplace_back(normal);
         }
 
         if (do_colors) {
@@ -172,15 +172,15 @@ PointCloud VoxelGrid::getDownsampledCloud(size_t min_points_in_bin) const {
             }
 
             color = bin_colors.rowwise().mean();
-//            colors.emplace_back(color);
+            colors.emplace_back(color);
         }
 
-#pragma omp critical
-        {
-            points.emplace_back(point);
-            if (do_normals) normals.emplace_back(normal);
-            if (do_colors) colors.emplace_back(color);
-        }
+//#pragma omp critical
+//        {
+//            points.emplace_back(point);
+//            if (do_normals) normals.emplace_back(normal);
+//            if (do_colors) colors.emplace_back(color);
+//        }
     }
 
     return PointCloud(points, normals, colors);
