@@ -142,7 +142,7 @@ void VoxelGrid::build_lookup_table_() {
     for (size_t i = 0; i < input_points_->size(); i++) {
         auto it = grid_lookup_table_.find(grid_coords.col(i));
         if (it == grid_lookup_table_.end()) {
-            grid_lookup_table_.insert(std::pair<Eigen::Vector3i,std::vector<size_t> >(grid_coords.col(i), std::vector<size_t>(1, i)));
+            grid_lookup_table_.insert(std::make_pair(grid_coords.col(i), std::vector<size_t>(1, i)));
         } else {
             it->second.emplace_back(i);
         }
