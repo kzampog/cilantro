@@ -26,11 +26,13 @@ std::vector<Eigen::Vector3f> VoxelGrid::getDownsampledPoints(size_t min_points_i
     for (size_t k = 0; k < map_iterators_.size(); k++) {
         auto it = map_iterators_[k];
 
-        if (it->second.size() < min_points_in_bin) continue;
+        const std::vector<size_t>& bin_ind(it->second);
 
-        Eigen::MatrixXf bin_points(3, it->second.size());
-        for (size_t i = 0; i < it->second.size(); i++) {
-            bin_points.col(i) = (*input_points_)[it->second[i]];
+        if (bin_ind.size() < min_points_in_bin) continue;
+
+        Eigen::MatrixXf bin_points(3, bin_ind.size());
+        for (size_t i = 0; i < bin_ind.size(); i++) {
+            bin_points.col(i) = (*input_points_)[bin_ind[i]];
         }
         Eigen::Vector3f pt(bin_points.rowwise().mean());
 
@@ -74,13 +76,15 @@ std::vector<Eigen::Vector3f> VoxelGrid::getDownsampledNormals(size_t min_points_
     for (size_t k = 0; k < map_iterators_.size(); k++) {
         auto it = map_iterators_[k];
 
-        if (it->second.size() < min_points_in_bin) continue;
+        const std::vector<size_t>& bin_ind(it->second);
 
-        Eigen::MatrixXf bin_normals(3, it->second.size());
-        Eigen::Vector3f ref_dir = (*input_normals_)[it->second[0]];
+        if (bin_ind.size() < min_points_in_bin) continue;
+
+        Eigen::MatrixXf bin_normals(3, bin_ind.size());
+        Eigen::Vector3f ref_dir = (*input_normals_)[bin_ind[0]];
         size_t pos = 0, neg = 0;
-        for (size_t i = 0; i < it->second.size(); i++) {
-            const Eigen::Vector3f& curr_normal = (*input_normals_)[it->second[i]];
+        for (size_t i = 0; i < bin_ind.size(); i++) {
+            const Eigen::Vector3f& curr_normal = (*input_normals_)[bin_ind[i]];
             if (ref_dir.dot(curr_normal) < 0.0f) {
                 bin_normals.col(i) = -curr_normal;
                 neg++;
@@ -104,11 +108,13 @@ std::vector<Eigen::Vector3f> VoxelGrid::getDownsampledColors(size_t min_points_i
     for (size_t k = 0; k < map_iterators_.size(); k++) {
         auto it = map_iterators_[k];
 
-        if (it->second.size() < min_points_in_bin) continue;
+        const std::vector<size_t>& bin_ind(it->second);
 
-        Eigen::MatrixXf bin_colors(3, it->second.size());
-        for (size_t i = 0; i < it->second.size(); i++) {
-            bin_colors.col(i) = (*input_colors_)[it->second[i]];
+        if (bin_ind.size() < min_points_in_bin) continue;
+
+        Eigen::MatrixXf bin_colors(3, bin_ind.size());
+        for (size_t i = 0; i < bin_ind.size(); i++) {
+            bin_colors.col(i) = (*input_colors_)[bin_ind[i]];
         }
 
         Eigen::Vector3f avg = bin_colors.rowwise().mean();
@@ -131,6 +137,7 @@ PointCloud VoxelGrid::getDownsampledCloud(size_t min_points_in_bin) const {
     if (do_colors) colors.reserve(grid_lookup_table_.size());
 
 //#pragma omp parallel for shared (points, normals, colors) private (point, normal, color)
+//    for (auto it = grid_lookup_table_.begin(); it != grid_lookup_table_.end(); ++it) {
     for (size_t k = 0; k < map_iterators_.size(); k++) {
         auto it = map_iterators_[k];
 
@@ -198,7 +205,6 @@ const std::vector<size_t>& VoxelGrid::getGridBinNeighbors(size_t point_ind) cons
 void VoxelGrid::build_lookup_table_() {
     if (input_points_->empty()) return;
 
-//    min_pt_map_.setConstant(std::numeric_limits<float>::infinity());
     min_pt_[0] = std::numeric_limits<float>::infinity();
     min_pt_[1] = std::numeric_limits<float>::infinity();
     min_pt_[2] = std::numeric_limits<float>::infinity();
@@ -223,5 +229,4 @@ void VoxelGrid::build_lookup_table_() {
             it->second.emplace_back(i);
         }
     }
-
 }
