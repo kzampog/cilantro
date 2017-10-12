@@ -162,7 +162,7 @@ private:
                         {
                             dist = (old_centroid - data_map_.col(j)).squaredNorm();
                         } else {
-                            dist = dist_adaptor.evalMetric(&(old_centroid[0]), i, EigenDim);
+                            dist = dist_adaptor.evalMetric(&(old_centroid[0]), j, EigenDim);
                         }
 #pragma omp critical
                         if (dist > extr_dist) {
