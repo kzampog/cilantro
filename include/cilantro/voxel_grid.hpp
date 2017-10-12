@@ -54,7 +54,6 @@ private:
     float bin_size_;
 //    Eigen::Vector3f min_pt_;
     std::array<float,3> min_pt_;
-    Eigen::Map<Eigen::Vector3f> min_pt_map_;
 
     std::vector<size_t> empty_indices_;
 

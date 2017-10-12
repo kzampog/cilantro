@@ -5,7 +5,6 @@ VoxelGrid::VoxelGrid(const std::vector<Eigen::Vector3f> &points, float bin_size)
           input_normals_(NULL),
           input_colors_(NULL),
           bin_size_(bin_size),
-          min_pt_map_(min_pt_.data()),
           empty_indices_(0)
 {
     build_lookup_table_();
@@ -16,7 +15,6 @@ VoxelGrid::VoxelGrid(const PointCloud &cloud, float bin_size)
           input_normals_(cloud.hasNormals()?&cloud.normals:NULL),
           input_colors_(cloud.hasColors()?&cloud.colors:NULL),
           bin_size_(bin_size),
-          min_pt_map_(min_pt_.data()),
           empty_indices_(0)
 {
     build_lookup_table_();
@@ -200,10 +198,10 @@ const std::vector<size_t>& VoxelGrid::getGridBinNeighbors(size_t point_ind) cons
 void VoxelGrid::build_lookup_table_() {
     if (input_points_->empty()) return;
 
-    min_pt_map_.setConstant(std::numeric_limits<float>::infinity());
-//    min_pt_[0] = std::numeric_limits<float>::infinity();
-//    min_pt_[1] = std::numeric_limits<float>::infinity();
-//    min_pt_[2] = std::numeric_limits<float>::infinity();
+//    min_pt_map_.setConstant(std::numeric_limits<float>::infinity());
+    min_pt_[0] = std::numeric_limits<float>::infinity();
+    min_pt_[1] = std::numeric_limits<float>::infinity();
+    min_pt_[2] = std::numeric_limits<float>::infinity();
     for (size_t i = 0; i < input_points_->size(); i++) {
         if ((*input_points_)[i][0] < min_pt_[0]) min_pt_[0] = (*input_points_)[i][0];
         if ((*input_points_)[i][1] < min_pt_[1]) min_pt_[1] = (*input_points_)[i][1];
