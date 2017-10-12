@@ -156,7 +156,14 @@ private:
 #pragma omp parallel for shared (extr_dist, extr_dist_ind) private (dist)
                 for (size_t j = 0; j < num_points; j++) {
                     if (cluster_index_map_[j] == max_ind) {
-                        dist = (data_map_.col(j) - old_centroid).squaredNorm();
+                        // Resolved at compile time
+                        if (std::is_same<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> >, KDTreeDistanceAdaptors::L2<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> > >::value ||
+                            std::is_same<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> >, KDTreeDistanceAdaptors::L2Simple<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> > >::value)
+                        {
+                            dist = (old_centroid - data_map_.col(j)).squaredNorm();
+                        } else {
+                            dist = dist_adaptor.evalMetric(&(old_centroid[0]), i, EigenDim);
+                        }
 #pragma omp critical
                         if (dist > extr_dist) {
                             extr_dist = dist;
