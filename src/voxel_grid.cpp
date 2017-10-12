@@ -136,7 +136,7 @@ PointCloud VoxelGrid::getDownsampledCloud(size_t min_points_in_bin) const {
     for (size_t k = 0; k < map_iterators_.size(); k++) {
         auto it = map_iterators_[k];
 
-        std::vector<size_t>& bin_ind(it->second);
+        const std::vector<size_t>& bin_ind(it->second);
 
         if (bin_ind.size() < min_points_in_bin) continue;
 
