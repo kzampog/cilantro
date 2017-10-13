@@ -1,5 +1,5 @@
 #include <cilantro/connected_component_segmentation.hpp>
-#include <stack>
+//#include <stack>
 
 ConnectedComponentSegmentation::ConnectedComponentSegmentation(const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const std::vector<Eigen::Vector3f> &colors)
         : points_(&points),
@@ -49,29 +49,38 @@ ConnectedComponentSegmentation& ConnectedComponentSegmentation::segment(std::vec
     normal_angle_thresh_ = normal_angle_thresh;
     color_diff_thresh_ = color_diff_thresh;
 
-    std::vector<bool> has_been_assigned(points_->size(), false);
+    std::vector<char> has_been_assigned(points_->size(), false);
 
     std::vector<size_t> neighbors;
     std::vector<float> distances;
+
+    std::vector<size_t> seeds_stack;
+    seeds_stack.reserve(points_->size());
+
+    std::vector<size_t> curr_cc_ind;
+    curr_cc_ind.reserve(points_->size());
 
     component_indices_.clear();
     for (size_t i = 0; i < seeds_ind.size(); i++) {
         if (has_been_assigned[seeds_ind[i]]) continue;
 
-        std::stack<size_t> seeds_stack;
-        seeds_stack.push(seeds_ind[i]);
+        seeds_stack.clear();
+        seeds_stack.emplace_back(seeds_ind[i]);
+
         has_been_assigned[seeds_ind[i]] = true;
 
-        std::vector<size_t> curr_cc_ind;
+        curr_cc_ind.clear();
+
         while (!seeds_stack.empty()) {
-            size_t curr_seed = seeds_stack.top();
-            seeds_stack.pop();
+            size_t curr_seed = seeds_stack[seeds_stack.size()-1];
+            seeds_stack.resize(seeds_stack.size()-1);
+
             curr_cc_ind.emplace_back(curr_seed);
 
             kd_tree_->radiusSearch((*points_)[curr_seed], radius_sq, neighbors, distances);
             for (size_t j = 1; j < neighbors.size(); j++) {
                 if (!has_been_assigned[neighbors[j]] && is_similar_(curr_seed,neighbors[j])) {
-                    seeds_stack.push(neighbors[j]);
+                    seeds_stack.emplace_back(neighbors[j]);
                     has_been_assigned[neighbors[j]] = true;
                 }
             }
