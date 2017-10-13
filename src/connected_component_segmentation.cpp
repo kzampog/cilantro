@@ -1,5 +1,8 @@
 #include <cilantro/connected_component_segmentation.hpp>
+#include <set>
 //#include <stack>
+
+#include <iostream>
 
 ConnectedComponentSegmentation::ConnectedComponentSegmentation(const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const std::vector<Eigen::Vector3f> &colors)
         : points_(&points),
@@ -47,47 +50,76 @@ ConnectedComponentSegmentation& ConnectedComponentSegmentation::segment(std::vec
     float radius_sq = dist_thresh*dist_thresh;
 
     normal_angle_thresh_ = normal_angle_thresh;
-    color_diff_thresh_ = color_diff_thresh;
+    color_diff_thresh_sq_ = color_diff_thresh*color_diff_thresh;
 
-    std::vector<char> has_been_assigned(points_->size(), false);
+    const size_t unassigned = std::numeric_limits<size_t>::max();
+    std::vector<size_t> current_label(points_->size(), unassigned);
+
+    std::vector<size_t> frontier_set;
+    frontier_set.reserve(points_->size());
+
+    std::vector<std::set<size_t> > ind_per_seed(seeds_ind.size());
+    std::vector<std::set<size_t> > seeds_to_merge_with(seeds_ind.size());
 
     std::vector<size_t> neighbors;
     std::vector<float> distances;
 
-    std::vector<size_t> seeds_stack;
-    seeds_stack.reserve(points_->size());
-
-    std::vector<size_t> curr_cc_ind;
-    curr_cc_ind.reserve(points_->size());
-
-    component_indices_.clear();
+#pragma omp parallel for shared (seeds_ind, current_label, ind_per_seed, seeds_to_merge_with) private (neighbors, distances, frontier_set)
     for (size_t i = 0; i < seeds_ind.size(); i++) {
-        if (has_been_assigned[seeds_ind[i]]) continue;
+        if (current_label[seeds_ind[i]] != unassigned) continue;
 
-        seeds_stack.clear();
-        seeds_stack.emplace_back(seeds_ind[i]);
+        seeds_to_merge_with[i].insert(i);
 
-        has_been_assigned[seeds_ind[i]] = true;
+        frontier_set.clear();
+        frontier_set.emplace_back(seeds_ind[i]);
 
-        curr_cc_ind.clear();
+        current_label[seeds_ind[i]] = i;
 
-        while (!seeds_stack.empty()) {
-            size_t curr_seed = seeds_stack[seeds_stack.size()-1];
-            seeds_stack.resize(seeds_stack.size()-1);
+        while (!frontier_set.empty()) {
+            size_t curr_seed = frontier_set[frontier_set.size()-1];
+            frontier_set.resize(frontier_set.size()-1);
 
-            curr_cc_ind.emplace_back(curr_seed);
+            ind_per_seed[i].insert(curr_seed);
 
             kd_tree_->radiusSearch((*points_)[curr_seed], radius_sq, neighbors, distances);
             for (size_t j = 1; j < neighbors.size(); j++) {
-                if (!has_been_assigned[neighbors[j]] && is_similar_(curr_seed,neighbors[j])) {
-                    seeds_stack.emplace_back(neighbors[j]);
-                    has_been_assigned[neighbors[j]] = true;
+                if (is_similar_(curr_seed, neighbors[j])) {
+                    size_t curr_lbl = current_label[neighbors[j]];
+                    if (curr_lbl == unassigned) {
+                        frontier_set.emplace_back(neighbors[j]);
+                        current_label[neighbors[j]] = i;
+                    } else {
+                        if (curr_lbl != i) seeds_to_merge_with[i].insert(curr_lbl);
+                    }
                 }
             }
         }
 
-        if (curr_cc_ind.size() >= min_segment_size && curr_cc_ind.size() <= max_segment_size) {
-            component_indices_.emplace_back(curr_cc_ind);
+    }
+
+    for (size_t i = 0; i < seeds_to_merge_with.size(); i++) {
+        for (auto it = seeds_to_merge_with[i].begin(); it != seeds_to_merge_with[i].end(); ++it) {
+            seeds_to_merge_with[*it].insert(i);
+        }
+    }
+
+    component_indices_.clear();
+    for (size_t i = seeds_to_merge_with.size()-1; i < -1; i--) {
+        if (seeds_to_merge_with[i].empty()) continue;
+        size_t min_seed_ind = *seeds_to_merge_with[i].begin();
+        if (min_seed_ind < i) {
+            for (auto ti = seeds_to_merge_with[i].begin(); ti != seeds_to_merge_with[i].end(); ++ti) {
+                if (*ti < i) seeds_to_merge_with[*ti].insert(seeds_to_merge_with[i].begin(), seeds_to_merge_with[i].end());
+            }
+//            seeds_to_merge_with[i].clear();
+        } else {
+            std::set<size_t> curr_cc_ind;
+            for (auto it = seeds_to_merge_with[i].begin(); it != seeds_to_merge_with[i].end(); ++it) {
+                curr_cc_ind.insert(ind_per_seed[*it].begin(), ind_per_seed[*it].end());
+            }
+            if (curr_cc_ind.size() >= min_segment_size && curr_cc_ind.size() <= max_segment_size) {
+                component_indices_.emplace_back(curr_cc_ind.begin(), curr_cc_ind.end());
+            }
         }
     }
 

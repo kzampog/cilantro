@@ -37,7 +37,7 @@ private:
     bool kd_tree_owned_;
 
     float normal_angle_thresh_;
-    float color_diff_thresh_;
+    float color_diff_thresh_sq_;
 
     std::vector<std::vector<size_t> > component_indices_;
     std::vector<size_t> label_map_;
@@ -51,7 +51,7 @@ private:
                 if (angle > normal_angle_thresh_) return false;
             }
         }
-        if (colors_ != NULL && ((*colors_)[i]-(*colors_)[j]).norm() > color_diff_thresh_) return false;
+        if (colors_ != NULL && ((*colors_)[i]-(*colors_)[j]).squaredNorm() > color_diff_thresh_sq_) return false;
         return true;
     }
 

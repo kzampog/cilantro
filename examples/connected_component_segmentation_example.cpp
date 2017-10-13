@@ -19,9 +19,7 @@ int main(int argc, char ** argv) {
 
     auto start = std::chrono::high_resolution_clock::now();
 
-//    ccs.segment(std::vector<size_t>(1, 10000), 0.02, (float)(2.0*M_PI/180.0), 5.0, 100, cloud.size(), 0.0);
     ccs.segment(0.02, (float)(2.0*M_PI/180.0), 5.0, 100, cloud.size());
-//    ccs.segment(0.02, (float)(2.0*M_PI/180.0), 5.0, 0, cloud.size(), 0.0);
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> elapsed = end - start;
