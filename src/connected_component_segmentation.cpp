@@ -99,7 +99,7 @@ ConnectedComponentSegmentation& ConnectedComponentSegmentation::segment(std::vec
 
     for (size_t i = 0; i < seeds_to_merge_with.size(); i++) {
         for (auto it = seeds_to_merge_with[i].begin(); it != seeds_to_merge_with[i].end(); ++it) {
-            seeds_to_merge_with[*it].insert(i);
+            if (*it > i) seeds_to_merge_with[*it].insert(i);
         }
     }
 
@@ -108,8 +108,8 @@ ConnectedComponentSegmentation& ConnectedComponentSegmentation::segment(std::vec
         if (seeds_to_merge_with[i].empty()) continue;
         size_t min_seed_ind = *seeds_to_merge_with[i].begin();
         if (min_seed_ind < i) {
-            for (auto ti = seeds_to_merge_with[i].begin(); ti != seeds_to_merge_with[i].end(); ++ti) {
-                if (*ti < i) seeds_to_merge_with[*ti].insert(seeds_to_merge_with[i].begin(), seeds_to_merge_with[i].end());
+            for (auto it = seeds_to_merge_with[i].begin(); it != seeds_to_merge_with[i].end(); ++it) {
+                if (*it < i) seeds_to_merge_with[*it].insert(seeds_to_merge_with[i].begin(), seeds_to_merge_with[i].end());
             }
 //            seeds_to_merge_with[i].clear();
         } else {
