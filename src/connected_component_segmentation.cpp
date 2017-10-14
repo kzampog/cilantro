@@ -58,7 +58,8 @@ ConnectedComponentSegmentation& ConnectedComponentSegmentation::segment(std::vec
     std::vector<size_t> frontier_set;
     frontier_set.reserve(points_->size());
 
-    std::vector<std::set<size_t> > ind_per_seed(seeds_ind.size());
+//    std::vector<std::set<size_t> > ind_per_seed(seeds_ind.size());
+    std::vector<std::vector<size_t> > ind_per_seed(seeds_ind.size());
     std::vector<std::set<size_t> > seeds_to_merge_with(seeds_ind.size());
 
     std::vector<size_t> neighbors;
@@ -79,7 +80,8 @@ ConnectedComponentSegmentation& ConnectedComponentSegmentation::segment(std::vec
             size_t curr_seed = frontier_set[frontier_set.size()-1];
             frontier_set.resize(frontier_set.size()-1);
 
-            ind_per_seed[i].insert(curr_seed);
+//            ind_per_seed[i].insert(curr_seed);
+            ind_per_seed[i].emplace_back(curr_seed);
 
             kd_tree_->radiusSearch((*points_)[curr_seed], radius_sq, neighbors, distances);
             for (size_t j = 1; j < neighbors.size(); j++) {
