@@ -9,7 +9,7 @@ int main(int argc, char ** argv) {
     readPointCloudFromPLYFile(argv[1], cloud);
 
     VoxelGrid vg(cloud, 0.005);
-    cloud = vg.getDownsampledCloud();
+    cloud = vg.getDownsampledCloud().removeInvalidData();
 
 //    NormalEstimation(cloud).estimateNormalsInPlaceRadius(0.02);
 
