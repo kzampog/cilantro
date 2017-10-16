@@ -27,6 +27,7 @@ public:
 
     inline const std::vector<std::vector<size_t> >& getComponentPointIndices() const { return component_indices_; }
     inline const std::vector<size_t>& getComponentIndexMap() const { return label_map_; }
+    std::vector<size_t> getUnlabeledPointIndices() const;
     inline size_t getNumberOfSegments() const { return component_indices_.size(); }
 
 private:

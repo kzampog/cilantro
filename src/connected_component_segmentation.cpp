@@ -40,6 +40,16 @@ ConnectedComponentSegmentation::~ConnectedComponentSegmentation() {
     if (kd_tree_owned_) delete kd_tree_;
 }
 
+std::vector<size_t> ConnectedComponentSegmentation::getUnlabeledPointIndices() const {
+    std::vector<size_t> res;
+    res.reserve(label_map_.size());
+    size_t no_label = component_indices_.size();
+    for (size_t i = 0; i < label_map_.size(); i++) {
+        if (label_map_[i] == no_label) res.emplace_back(i);
+    }
+    return res;
+}
+
 ConnectedComponentSegmentation& ConnectedComponentSegmentation::segment(std::vector<size_t> seeds_ind,
                                                                         float dist_thresh,
                                                                         float normal_angle_thresh,
