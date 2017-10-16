@@ -23,20 +23,24 @@ VoxelGrid::VoxelGrid(const PointCloud &cloud, float bin_size)
 std::vector<Eigen::Vector3f> VoxelGrid::getDownsampledPoints(size_t min_points_in_bin) const {
     std::vector<Eigen::Vector3f> points;
     points.reserve(grid_lookup_table_.size());
+
+    Eigen::Vector3f point;
+    float scale;
+
     for (size_t k = 0; k < map_iterators_.size(); k++) {
         auto it = map_iterators_[k];
 
         const std::vector<size_t>& bin_ind(it->second);
-
         if (bin_ind.size() < min_points_in_bin) continue;
 
-        Eigen::MatrixXf bin_points(3, bin_ind.size());
-        for (size_t i = 0; i < bin_ind.size(); i++) {
-            bin_points.col(i) = (*input_points_)[bin_ind[i]];
-        }
-        Eigen::Vector3f pt(bin_points.rowwise().mean());
+        scale = 1.0f/bin_ind.size();
 
-        points.emplace_back(pt);
+        point.setZero();
+        for (size_t i = 0; i < bin_ind.size(); i++) {
+            point += (*input_points_)[bin_ind[i]];
+        }
+
+        points.emplace_back(scale*point);
     }
 
     return points;
@@ -73,28 +77,31 @@ std::vector<Eigen::Vector3f> VoxelGrid::getDownsampledNormals(size_t min_points_
 //    }
 
     normals.reserve(grid_lookup_table_.size());
+
+    Eigen::Vector3f normal;
+
     for (size_t k = 0; k < map_iterators_.size(); k++) {
         auto it = map_iterators_[k];
 
         const std::vector<size_t>& bin_ind(it->second);
-
         if (bin_ind.size() < min_points_in_bin) continue;
 
-        Eigen::MatrixXf bin_normals(3, bin_ind.size());
+        normal.setZero();
         Eigen::Vector3f ref_dir = (*input_normals_)[bin_ind[0]];
         size_t pos = 0, neg = 0;
         for (size_t i = 0; i < bin_ind.size(); i++) {
             const Eigen::Vector3f& curr_normal = (*input_normals_)[bin_ind[i]];
             if (ref_dir.dot(curr_normal) < 0.0f) {
-                bin_normals.col(i) = -curr_normal;
+                normal -= curr_normal;
                 neg++;
             } else {
-                bin_normals.col(i) = curr_normal;
+                normal += curr_normal;
                 pos++;
             }
         }
-        Eigen::Vector3f avg = (neg > pos) ? -bin_normals.rowwise().mean().normalized() : bin_normals.rowwise().mean().normalized();
-        normals.emplace_back(avg);
+        if (neg > pos) normal *= -1.0f;
+
+        normals.emplace_back(normal.normalized());
     }
 
     return normals;
@@ -105,21 +112,24 @@ std::vector<Eigen::Vector3f> VoxelGrid::getDownsampledColors(size_t min_points_i
     if (input_colors_ == NULL) return colors;
 
     colors.reserve(grid_lookup_table_.size());
+
+    Eigen::Vector3f color;
+    float scale;
+
     for (size_t k = 0; k < map_iterators_.size(); k++) {
         auto it = map_iterators_[k];
 
         const std::vector<size_t>& bin_ind(it->second);
-
         if (bin_ind.size() < min_points_in_bin) continue;
 
-        Eigen::MatrixXf bin_colors(3, bin_ind.size());
+        scale = 1.0f/bin_ind.size();
+
+        color.setZero();
         for (size_t i = 0; i < bin_ind.size(); i++) {
-            bin_colors.col(i) = (*input_colors_)[bin_ind[i]];
+            color += (*input_colors_)[bin_ind[i]];
         }
 
-        Eigen::Vector3f avg = bin_colors.rowwise().mean();
-
-        colors.emplace_back(avg);
+        colors.emplace_back(scale*color);
     }
 
     return colors;
@@ -136,56 +146,60 @@ PointCloud VoxelGrid::getDownsampledCloud(size_t min_points_in_bin) const {
     if (do_normals) normals.reserve(grid_lookup_table_.size());
     if (do_colors) colors.reserve(grid_lookup_table_.size());
 
-//#pragma omp parallel for shared (points, normals, colors) private (point, normal, color)
+    float scale;
+
 //    for (auto it = grid_lookup_table_.begin(); it != grid_lookup_table_.end(); ++it) {
+//#pragma omp parallel for shared (points, normals, colors) private (point, normal, color, scale) num_threads(4)
     for (size_t k = 0; k < map_iterators_.size(); k++) {
         auto it = map_iterators_[k];
 
         const std::vector<size_t>& bin_ind(it->second);
-
         if (bin_ind.size() < min_points_in_bin) continue;
 
-        Eigen::MatrixXf bin_points(3, bin_ind.size());
+        scale = 1.0f/bin_ind.size();
+
+        point.setZero();
         for (size_t i = 0; i < bin_ind.size(); i++) {
-            bin_points.col(i) = (*input_points_)[bin_ind[i]];
+            point += (*input_points_)[bin_ind[i]];
         }
-        point = bin_points.rowwise().mean();
-        points.emplace_back(point);
+
+        points.emplace_back(scale*point);
 
         if (do_normals) {
-            Eigen::MatrixXf bin_normals(3, bin_ind.size());
+            normal.setZero();
             Eigen::Vector3f ref_dir = (*input_normals_)[bin_ind[0]];
             size_t pos = 0, neg = 0;
             for (size_t i = 0; i < bin_ind.size(); i++) {
                 const Eigen::Vector3f& curr_normal = (*input_normals_)[bin_ind[i]];
                 if (ref_dir.dot(curr_normal) < 0.0f) {
-                    bin_normals.col(i) = -curr_normal;
+                    normal -= curr_normal;
                     neg++;
                 } else {
-                    bin_normals.col(i) = curr_normal;
+                    normal += curr_normal;
                     pos++;
                 }
             }
-            normal = (neg > pos) ? -bin_normals.rowwise().mean().normalized() : bin_normals.rowwise().mean().normalized();
-            normals.emplace_back(normal);
+            if (neg > pos) normal *= -1.0f;
+
+            normals.emplace_back(normal.normalized());
         }
 
         if (do_colors) {
-            Eigen::MatrixXf bin_colors(3, bin_ind.size());
+            color.setZero();
             for (size_t i = 0; i < bin_ind.size(); i++) {
-                bin_colors.col(i) = (*input_colors_)[bin_ind[i]];
+                color += (*input_colors_)[bin_ind[i]];
             }
 
-            color = bin_colors.rowwise().mean();
-            colors.emplace_back(color);
+            colors.emplace_back(scale*color);
         }
 
 //#pragma omp critical
 //        {
-//            points.emplace_back(point);
-//            if (do_normals) normals.emplace_back(normal);
-//            if (do_colors) colors.emplace_back(color);
+//            points.emplace_back(scale*point);
+//            if (do_normals) normals.emplace_back(normal.normalized());
+//            if (do_colors) colors.emplace_back(scale*color);
 //        }
+
     }
 
     return PointCloud(points, normals, colors);
