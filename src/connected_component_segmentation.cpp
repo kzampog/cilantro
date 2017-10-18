@@ -95,8 +95,8 @@ ConnectedComponentSegmentation& ConnectedComponentSegmentation::segment(std::vec
 
             kd_tree_->radiusSearch((*points_)[curr_seed], radius_sq, neighbors, distances);
             for (size_t j = 1; j < neighbors.size(); j++) {
-                if (is_similar_(curr_seed, neighbors[j])) {
-                    size_t curr_lbl = current_label[neighbors[j]];
+                const size_t& curr_lbl = current_label[neighbors[j]];
+                if (curr_lbl == i || is_similar_(curr_seed, neighbors[j])) {
                     if (curr_lbl == unassigned) {
                         frontier_set.emplace_back(neighbors[j]);
                         current_label[neighbors[j]] = i;
