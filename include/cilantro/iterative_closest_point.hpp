@@ -113,24 +113,24 @@ public:
     }
 
     inline IterativeClosestPoint& getResiduals(std::vector<float> &residuals) {
-        compute_residuals_(metric_, residuals);
+        compute_residuals_(corr_type_, metric_, residuals);
         return *this;
     }
 
     inline const std::vector<float> getResiduals() {
         std::vector<float> residuals;
-        compute_residuals_(metric_, residuals);
+        compute_residuals_(corr_type_, metric_, residuals);
         return residuals;
     }
 
-    inline IterativeClosestPoint& getResiduals(const Metric &metric, std::vector<float> &residuals) {
-        compute_residuals_(metric, residuals);
+    inline IterativeClosestPoint& getResiduals(const CorrespondencesType &corr_type, const Metric &metric, std::vector<float> &residuals) {
+        compute_residuals_(corr_type, metric, residuals);
         return *this;
     }
 
-    inline const std::vector<float> getResiduals(const Metric &metric) {
+    inline const std::vector<float> getResiduals(const CorrespondencesType &corr_type, const Metric &metric) {
         std::vector<float> residuals;
-        compute_residuals_(metric, residuals);
+        compute_residuals_(corr_type, metric, residuals);
         return residuals;
     }
 
@@ -184,5 +184,5 @@ private:
     void init_params_();
     void find_correspondences_(std::vector<size_t> &dst_ind, std::vector<size_t> &src_ind);
     void estimate_transform_();
-    void compute_residuals_(const Metric &metric, std::vector<float> &residuals);
+    void compute_residuals_(const CorrespondencesType &corr_type, const Metric &metric, std::vector<float> &residuals);
 };

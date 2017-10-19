@@ -74,6 +74,7 @@ int main(int argc, char ** argv) {
     icp.setCorrespondencePointWeight(1.0);
     icp.setCorrespondenceNormalWeight(50.0);
     icp.setCorrespondenceColorWeight(50.0);
+
 //    icp.setInitialTransformation(R_ref.transpose(), (-R_ref.transpose()*t_ref));
     icp.getTransformation(R_est, t_est);
 
@@ -103,7 +104,7 @@ int main(int argc, char ** argv) {
     proceed = false;
 
     start = std::chrono::high_resolution_clock::now();
-    auto residuals = icp.getResiduals(IterativeClosestPoint::Metric::POINT_TO_POINT);
+    auto residuals = icp.getResiduals(IterativeClosestPoint::CorrespondencesType::POINTS, IterativeClosestPoint::Metric::POINT_TO_POINT);
     end = std::chrono::high_resolution_clock::now();
     elapsed = end - start;
     std::cout << "Residual computation time: " << elapsed.count() << "ms" << std::endl;

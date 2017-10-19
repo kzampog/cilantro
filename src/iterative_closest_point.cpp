@@ -318,18 +318,26 @@ void IterativeClosestPoint::estimate_transform_() {
     }
 }
 
-void IterativeClosestPoint::compute_residuals_(const Metric &metric, std::vector<float> &residuals) {
+void IterativeClosestPoint::compute_residuals_(const CorrespondencesType &corr_type, const Metric &metric, std::vector<float> &residuals) {
     if (iteration_count_ == 0) estimate_transform_();
+
+    CorrespondencesType req_corr_type = correct_correspondences_type_(corr_type);
 
     size_t neighbor;
     float distance;
 
     residuals.resize(src_points_->size());
-    if (corr_type_ == CorrespondencesType::POINTS) {
+    if (req_corr_type == CorrespondencesType::POINTS) {
+        KDTree<float,3,KDTreeDistanceAdaptors::L2> *kd_tree;
+        if (req_corr_type == corr_type_) {
+            kd_tree = kd_tree_3d_;
+        } else {
+            kd_tree = new KDTree<float,3,KDTreeDistanceAdaptors::L2>(*dst_points_);
+        }
 #pragma omp parallel for shared (residuals) private (neighbor, distance)
         for (size_t i = 0; i < src_points_trans_.size(); i++) {
             Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
-            kd_tree_3d_->nearestNeighborSearch(pt_trans, neighbor, distance);
+            kd_tree->nearestNeighborSearch(pt_trans, neighbor, distance);
             if (metric == Metric::POINT_TO_PLANE) {
                 const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
                 const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
@@ -338,11 +346,20 @@ void IterativeClosestPoint::compute_residuals_(const Metric &metric, std::vector
                 residuals[i] = std::sqrt(distance);
             }
         }
-    } else if (corr_type_ == CorrespondencesType::NORMALS) {
+        if (req_corr_type != corr_type_) {
+            delete kd_tree;
+        }
+    } else if (req_corr_type == CorrespondencesType::NORMALS) {
+        KDTree<float,3,KDTreeDistanceAdaptors::L2> *kd_tree;
+        if (req_corr_type == corr_type_) {
+            kd_tree = kd_tree_3d_;
+        } else {
+            kd_tree = new KDTree<float,3,KDTreeDistanceAdaptors::L2>(*dst_normals_);
+        }
 #pragma omp parallel for shared (residuals) private (neighbor, distance)
         for (size_t i = 0; i < src_points_trans_.size(); i++) {
             Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
-            kd_tree_3d_->nearestNeighborSearch(rot_mat_*(*src_normals_)[i], neighbor, distance);
+            kd_tree->nearestNeighborSearch(rot_mat_*(*src_normals_)[i], neighbor, distance);
             if (metric == Metric::POINT_TO_PLANE) {
                 const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
                 const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
@@ -351,11 +368,20 @@ void IterativeClosestPoint::compute_residuals_(const Metric &metric, std::vector
                 residuals[i] = std::sqrt(distance);
             }
         }
-    } else if (corr_type_ == CorrespondencesType::COLORS) {
+        if (req_corr_type != corr_type_) {
+            delete kd_tree;
+        }
+    } else if (req_corr_type == CorrespondencesType::COLORS) {
+        KDTree<float,3,KDTreeDistanceAdaptors::L2> *kd_tree;
+        if (req_corr_type == corr_type_) {
+            kd_tree = kd_tree_3d_;
+        } else {
+            kd_tree = new KDTree<float,3,KDTreeDistanceAdaptors::L2>(*dst_colors_);
+        }
 #pragma omp parallel for shared (residuals) private (neighbor, distance)
         for (size_t i = 0; i < src_points_trans_.size(); i++) {
             Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
-            kd_tree_3d_->nearestNeighborSearch((*src_colors_)[i], neighbor, distance);
+            kd_tree->nearestNeighborSearch((*src_colors_)[i], neighbor, distance);
             if (metric == Metric::POINT_TO_PLANE) {
                 const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
                 const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
@@ -364,14 +390,28 @@ void IterativeClosestPoint::compute_residuals_(const Metric &metric, std::vector
                 residuals[i] = std::sqrt(distance);
             }
         }
-    } else if (corr_type_ == CorrespondencesType::POINTS_NORMALS) {
+        if (req_corr_type != corr_type_) {
+            delete kd_tree;
+        }
+    } else if (req_corr_type == CorrespondencesType::POINTS_NORMALS) {
+        KDTree<float,6,KDTreeDistanceAdaptors::L2> *kd_tree;
+        std::vector<Eigen::Matrix<float,6,1> > data_holder;
+        if (req_corr_type == corr_type_) {
+            kd_tree = kd_tree_6d_;
+        } else {
+            data_holder.resize(dst_points_->size());
+            Eigen::Map<Eigen::Matrix<float,6,Eigen::Dynamic> > data_map((float *)data_holder.data(), 6, data_holder.size());
+            data_map.topRows(3) = point_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_points_->data(), 3, dst_points_->size());
+            data_map.bottomRows(3) = normal_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_normals_->data(), 3, dst_normals_->size());
+            kd_tree = new KDTree<float,6,KDTreeDistanceAdaptors::L2>(data_holder);
+        }
 #pragma omp parallel for shared (residuals) private (neighbor, distance)
         for (size_t i = 0; i < src_points_trans_.size(); i++) {
             Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
             Eigen::Matrix<float,6,1> query_pt;
             query_pt.head(3) = point_dist_weight_*pt_trans;
             query_pt.tail(3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
-            kd_tree_6d_->nearestNeighborSearch(query_pt, neighbor, distance);
+            kd_tree->nearestNeighborSearch(query_pt, neighbor, distance);
             if (metric == Metric::POINT_TO_PLANE) {
                 const Eigen::Vector3f& dp = (*dst_points_)[neighbor];
                 const Eigen::Vector3f& dn = (*dst_normals_)[neighbor];
@@ -380,14 +420,28 @@ void IterativeClosestPoint::compute_residuals_(const Metric &metric, std::vector
                 residuals[i] = std::sqrt(distance);
             }
         }
-    } else if (corr_type_ == CorrespondencesType::POINTS_COLORS) {
+        if (req_corr_type != corr_type_) {
+            delete kd_tree;
+        }
+    } else if (req_corr_type == CorrespondencesType::POINTS_COLORS) {
+        KDTree<float,6,KDTreeDistanceAdaptors::L2> *kd_tree;
+        std::vector<Eigen::Matrix<float,6,1> > data_holder;
+        if (req_corr_type == corr_type_) {
+            kd_tree = kd_tree_6d_;
+        } else {
+            data_holder.resize(dst_points_->size());
+            Eigen::Map<Eigen::Matrix<float,6,Eigen::Dynamic> > data_map((float *)data_holder.data(), 6, data_holder.size());
+            data_map.topRows(3) = point_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_points_->data(), 3, dst_points_->size());
+            data_map.bottomRows(3) = color_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_colors_->data(), 3, dst_colors_->size());
+            kd_tree = new KDTree<float,6,KDTreeDistanceAdaptors::L2>(data_holder);
+        }
 #pragma omp parallel for shared (residuals) private (neighbor, distance)
         for (size_t i = 0; i < src_points_trans_.size(); i++) {
             Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
             Eigen::Matrix<float,6,1> query_pt;
             query_pt.head(3) = point_dist_weight_*pt_trans;
             query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
-            kd_tree_6d_->nearestNeighborSearch(query_pt, neighbor, distance);
+            kd_tree->nearestNeighborSearch(query_pt, neighbor, distance);
             if (metric == Metric::POINT_TO_PLANE) {
                 const Eigen::Vector3f& dp = (*dst_points_)[neighbor];
                 const Eigen::Vector3f& dn = (*dst_normals_)[neighbor];
@@ -396,14 +450,28 @@ void IterativeClosestPoint::compute_residuals_(const Metric &metric, std::vector
                 residuals[i] = std::sqrt(distance);
             }
         }
-    } else if (corr_type_ == CorrespondencesType::NORMALS_COLORS) {
+        if (req_corr_type != corr_type_) {
+            delete kd_tree;
+        }
+    } else if (req_corr_type == CorrespondencesType::NORMALS_COLORS) {
+        KDTree<float,6,KDTreeDistanceAdaptors::L2> *kd_tree;
+        std::vector<Eigen::Matrix<float,6,1> > data_holder;
+        if (req_corr_type == corr_type_) {
+            kd_tree = kd_tree_6d_;
+        } else {
+            data_holder.resize(dst_points_->size());
+            Eigen::Map<Eigen::Matrix<float,6,Eigen::Dynamic> > data_map((float *)data_holder.data(), 6, data_holder.size());
+            data_map.topRows(3) = normal_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_normals_->data(), 3, dst_normals_->size());
+            data_map.bottomRows(3) = color_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_colors_->data(), 3, dst_colors_->size());
+            kd_tree = new KDTree<float,6,KDTreeDistanceAdaptors::L2>(data_holder);
+        }
 #pragma omp parallel for shared (residuals) private (neighbor, distance)
         for (size_t i = 0; i < src_points_trans_.size(); i++) {
             Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
             Eigen::Matrix<float,6,1> query_pt;
             query_pt.head(3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
             query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
-            kd_tree_6d_->nearestNeighborSearch(query_pt, neighbor, distance);
+            kd_tree->nearestNeighborSearch(query_pt, neighbor, distance);
             if (metric == Metric::POINT_TO_PLANE) {
                 const Eigen::Vector3f& dp = (*dst_points_)[neighbor];
                 const Eigen::Vector3f& dn = (*dst_normals_)[neighbor];
@@ -412,7 +480,22 @@ void IterativeClosestPoint::compute_residuals_(const Metric &metric, std::vector
                 residuals[i] = std::sqrt(distance);
             }
         }
-    } else if (corr_type_ == CorrespondencesType::POINTS_NORMALS_COLORS) {
+        if (req_corr_type != corr_type_) {
+            delete kd_tree;
+        }
+    } else if (req_corr_type == CorrespondencesType::POINTS_NORMALS_COLORS) {
+        KDTree<float,9,KDTreeDistanceAdaptors::L2> *kd_tree;
+        std::vector<Eigen::Matrix<float,9,1> > data_holder;
+        if (req_corr_type == corr_type_) {
+            kd_tree = kd_tree_9d_;
+        } else {
+            data_holder.resize(dst_points_->size());
+            Eigen::Map<Eigen::Matrix<float,9,Eigen::Dynamic> > data_map((float *)data_holder.data(), 9, data_holder.size());
+            data_map.topRows(3) = point_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_points_->data(), 3, dst_points_->size());
+            data_map.block(3,0,3,dst_data_points_9d_.size()) = normal_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_normals_->data(), 3, dst_normals_->size());
+            data_map.bottomRows(3) = color_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_colors_->data(), 3, dst_colors_->size());
+            kd_tree = new KDTree<float,9,KDTreeDistanceAdaptors::L2>(data_holder);
+        }
 #pragma omp parallel for shared (residuals) private (neighbor, distance)
         for (size_t i = 0; i < src_points_trans_.size(); i++) {
             Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
@@ -420,7 +503,7 @@ void IterativeClosestPoint::compute_residuals_(const Metric &metric, std::vector
             query_pt.head(3) = point_dist_weight_*pt_trans;
             query_pt.segment(3,3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
             query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
-            kd_tree_9d_->nearestNeighborSearch(query_pt, neighbor, distance);
+            kd_tree->nearestNeighborSearch(query_pt, neighbor, distance);
             if (metric == Metric::POINT_TO_PLANE) {
                 const Eigen::Vector3f& dp = (*dst_points_)[neighbor];
                 const Eigen::Vector3f& dn = (*dst_normals_)[neighbor];
@@ -428,6 +511,9 @@ void IterativeClosestPoint::compute_residuals_(const Metric &metric, std::vector
             } else if (metric == Metric::POINT_TO_POINT) {
                 residuals[i] = std::sqrt(distance);
             }
+        }
+        if (req_corr_type != corr_type_) {
+            delete kd_tree;
         }
     }
 }
