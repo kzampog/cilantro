@@ -22,6 +22,9 @@ int main(int argc, char ** argv) {
     src = dst;
     for (size_t i = 0; i < src.size(); i++) {
         src.points[i] += 0.005f*Eigen::Vector3f::Random();
+        src.normals[i] += 0.005f*Eigen::Vector3f::Random();
+        src.normals[i].normalize();
+        src.colors[i] += 0.010f*Eigen::Vector3f::Random();
     }
 
     PointCloud dst2;
@@ -29,6 +32,7 @@ int main(int argc, char ** argv) {
         if (dst.points[i][0] > -0.4) {
             dst2.points.push_back(dst.points[i]);
             dst2.normals.push_back(dst.normals[i]);
+            dst2.colors.push_back(dst.colors[i]);
         }
     }
     dst = dst2;
@@ -64,7 +68,12 @@ int main(int argc, char ** argv) {
 //    estimateRigidTransformPointToPlane(dst, src, ind, ind, R_est, t_est, 10, 1e-4f);
 //    IterativeClosestPoint icp(dst, src, IterativeClosestPoint::Metric::POINT_TO_POINT);
     IterativeClosestPoint icp(dst, src, IterativeClosestPoint::Metric::POINT_TO_PLANE);
-    icp.setMaxCorrespondenceDistance(0.05f).setConvergenceTolerance(1e-3f).setMaxNumberOfIterations(200).setMaxNumberOfPointToPlaneIterations(1);
+//    icp.setMaxCorrespondenceDistance(0.05f).setConvergenceTolerance(1e-3f).setMaxNumberOfIterations(200).setMaxNumberOfPointToPlaneIterations(1);
+    icp.setMaxCorrespondenceDistance(0.5f).setConvergenceTolerance(1e-3f).setMaxNumberOfIterations(200).setMaxNumberOfPointToPlaneIterations(1);
+    icp.setCorrespondencesType(IterativeClosestPoint::CorrespondencesType::POINTS_NORMALS_COLORS);
+    icp.setCorrespondencePointWeight(1.0);
+    icp.setCorrespondenceNormalWeight(50.0);
+    icp.setCorrespondenceColorWeight(50.0);
 //    icp.setInitialTransformation(R_ref.transpose(), (-R_ref.transpose()*t_ref));
     icp.getTransformation(R_est, t_est);
 

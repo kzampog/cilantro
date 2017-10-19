@@ -8,7 +8,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     enum struct Metric {POINT_TO_POINT, POINT_TO_PLANE};
-    enum struct CorrespondencesType {POINTS, POINTS_NORMALS, POINTS_COLORS, POINTS_NORMALS_COLORS};
+    enum struct CorrespondencesType {POINTS, NORMALS, COLORS, POINTS_NORMALS, POINTS_COLORS, NORMALS_COLORS, POINTS_NORMALS_COLORS};
 
     IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &src_p);
     IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &dst_n, const std::vector<Eigen::Vector3f> &src_p);
@@ -17,7 +17,7 @@ public:
     ~IterativeClosestPoint();
 
     inline Metric getMetric() const { return metric_; }
-    inline IterativeClosestPoint& setMetric(const Metric metric) {
+    inline IterativeClosestPoint& setMetric(const Metric &metric) {
         if (dst_normals_ != NULL && metric != metric_) {
             iteration_count_ = 0;
             metric_ = metric;
@@ -38,24 +38,30 @@ public:
 
     inline float getCorrespondencePointWeight() const { return point_dist_weight_; }
     inline IterativeClosestPoint& setCorrespondencePointWeight(float point_dist_weight) {
-        delete_kd_trees_();
-        iteration_count_ = 0;
+        if (corr_type_ == CorrespondencesType::POINTS_NORMALS || corr_type_ == CorrespondencesType::POINTS_COLORS || corr_type_ == CorrespondencesType::POINTS_NORMALS_COLORS) {
+            delete_kd_trees_();
+            iteration_count_ = 0;
+        }
         point_dist_weight_ = point_dist_weight;
         return *this;
     }
 
     inline float getCorrespondenceNormalWeight() const { return normal_dist_weight_; }
     inline IterativeClosestPoint& setCorrespondenceNormalWeight (float normal_dist_weight) {
-        delete_kd_trees_();
-        iteration_count_ = 0;
+        if (corr_type_ == CorrespondencesType::POINTS_NORMALS || corr_type_ == CorrespondencesType::NORMALS_COLORS || corr_type_ == CorrespondencesType::POINTS_NORMALS_COLORS) {
+            delete_kd_trees_();
+            iteration_count_ = 0;
+        }
         normal_dist_weight_ = normal_dist_weight;
         return *this;
     }
 
     inline float getCorrespondenceColorWeight() const { return color_dist_weight_; }
     inline IterativeClosestPoint& setCorrespondenceColorWeight (float color_dist_weight) {
-        delete_kd_trees_();
-        iteration_count_ = 0;
+        if (corr_type_ == CorrespondencesType::POINTS_COLORS || corr_type_ == CorrespondencesType::NORMALS_COLORS || corr_type_ == CorrespondencesType::POINTS_NORMALS_COLORS) {
+            delete_kd_trees_();
+            iteration_count_ = 0;
+        }
         color_dist_weight_ = color_dist_weight;
         return *this;
     }
@@ -144,8 +150,8 @@ private:
     KDTree<float,6,KDTreeDistanceAdaptors::L2> *kd_tree_6d_;
     KDTree<float,9,KDTreeDistanceAdaptors::L2> *kd_tree_9d_;
 
-    Metric metric_;
     CorrespondencesType corr_type_;
+    Metric metric_;
 
     float point_dist_weight_;
     float normal_dist_weight_;
@@ -167,11 +173,16 @@ private:
     Eigen::Vector3f t_vec_;
     std::vector<Eigen::Vector3f> src_points_trans_;
 
+    std::vector<Eigen::Matrix<float,6,1> > dst_data_points_6d_;
+    std::vector<Eigen::Matrix<float,9,1> > dst_data_points_9d_;
+
+    void build_kd_trees_();
     void delete_kd_trees_();
     Eigen::Matrix3f orthonormalize_rotation_(const Eigen::Matrix3f &rot_mat) const;
     CorrespondencesType correct_correspondences_type_(const CorrespondencesType &corr_type) const;
 
     void init_params_();
+    void find_correspondences_(std::vector<size_t> &dst_ind, std::vector<size_t> &src_ind);
     void estimate_transform_();
     void compute_residuals_(const Metric &metric, std::vector<float> &residuals);
 };
