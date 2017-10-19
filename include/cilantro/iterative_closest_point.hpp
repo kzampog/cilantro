@@ -7,14 +7,12 @@ class IterativeClosestPoint {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    enum struct Metric { POINT_TO_POINT, POINT_TO_PLANE };
+    enum struct Metric {POINT_TO_POINT, POINT_TO_PLANE};
+    enum struct CorrespondencesType {POINTS, POINTS_NORMALS, POINTS_COLORS, POINTS_NORMALS_COLORS};
 
     IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &src_p);
-    IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &src_p, const KDTree3D &kd_tree);
     IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &dst_n, const std::vector<Eigen::Vector3f> &src_p);
-    IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &dst_n, const std::vector<Eigen::Vector3f> &src_p, const KDTree3D &kd_tree);
-    IterativeClosestPoint(const PointCloud &dst, const PointCloud &src, const Metric &metric = Metric::POINT_TO_POINT);
-    IterativeClosestPoint(const PointCloud &dst, const PointCloud &src, const KDTree3D &kd_tree, const Metric &metric = Metric::POINT_TO_POINT);
+    IterativeClosestPoint(const PointCloud &dst, const PointCloud &src, const Metric &metric = Metric::POINT_TO_PLANE, const CorrespondencesType &corr_type = CorrespondencesType::POINTS);
 
     ~IterativeClosestPoint();
 
@@ -24,6 +22,41 @@ public:
             iteration_count_ = 0;
             metric_ = metric;
         }
+        return *this;
+    }
+
+    inline CorrespondencesType getCorrespondencesType() const { return corr_type_; }
+    inline IterativeClosestPoint& setCorrespondencesType(const CorrespondencesType &corr_type) {
+        CorrespondencesType correct_corr_type = correct_correspondences_type_(corr_type);
+        if (correct_corr_type != corr_type_) {
+            delete_kd_trees_();
+            iteration_count_ = 0;
+            corr_type_ = correct_corr_type;
+        }
+        return *this;
+    }
+
+    inline float getCorrespondencePointWeight() const { return point_dist_weight_; }
+    inline IterativeClosestPoint& setCorrespondencePointWeight(float point_dist_weight) {
+        delete_kd_trees_();
+        iteration_count_ = 0;
+        point_dist_weight_ = point_dist_weight;
+        return *this;
+    }
+
+    inline float getCorrespondenceNormalWeight() const { return normal_dist_weight_; }
+    inline IterativeClosestPoint& setCorrespondenceNormalWeight (float normal_dist_weight) {
+        delete_kd_trees_();
+        iteration_count_ = 0;
+        normal_dist_weight_ = normal_dist_weight;
+        return *this;
+    }
+
+    inline float getCorrespondenceColorWeight() const { return color_dist_weight_; }
+    inline IterativeClosestPoint& setCorrespondenceColorWeight (float color_dist_weight) {
+        delete_kd_trees_();
+        iteration_count_ = 0;
+        color_dist_weight_ = color_dist_weight;
         return *this;
     }
 
@@ -55,12 +88,14 @@ public:
         return *this;
     }
 
+    inline void getInitialTransformation(Eigen::Ref<Eigen::Matrix3f> rot_mat_init, Eigen::Ref<Eigen::Vector3f> t_vec_init) const {
+        rot_mat_init = rot_mat_init_;
+        t_vec_init = t_vec_init_;
+    }
     inline IterativeClosestPoint& setInitialTransformation(const Eigen::Ref<const Eigen::Matrix3f> &rot_mat, const Eigen::Ref<const Eigen::Vector3f> &t_vec) {
         iteration_count_ = 0;
-        rot_mat_init_ = rot_mat;
+        rot_mat_init_ = orthonormalize_rotation_(rot_mat);
         t_vec_init_ = t_vec;
-        Eigen::JacobiSVD<Eigen::Matrix3f> svd(rot_mat_init_, Eigen::ComputeFullU | Eigen::ComputeFullV);
-        rot_mat_init_ = svd.matrixU()*(svd.matrixV().transpose());
         return *this;
     }
 
@@ -100,10 +135,21 @@ private:
     // Data pointers and parameters
     const std::vector<Eigen::Vector3f> *dst_points_;
     const std::vector<Eigen::Vector3f> *dst_normals_;
+    const std::vector<Eigen::Vector3f> *dst_colors_;
     const std::vector<Eigen::Vector3f> *src_points_;
-    KDTree3D *kd_tree_ptr_;
-    bool kd_tree_owned_;
+    const std::vector<Eigen::Vector3f> *src_normals_;
+    const std::vector<Eigen::Vector3f> *src_colors_;
+
+    KDTree<float,3,KDTreeDistanceAdaptors::L2> *kd_tree_3d_;
+    KDTree<float,6,KDTreeDistanceAdaptors::L2> *kd_tree_6d_;
+    KDTree<float,9,KDTreeDistanceAdaptors::L2> *kd_tree_9d_;
+
     Metric metric_;
+    CorrespondencesType corr_type_;
+
+    float point_dist_weight_;
+    float normal_dist_weight_;
+    float color_dist_weight_;
 
     float corr_dist_thres_;
     float convergence_tol_;
@@ -120,6 +166,10 @@ private:
     Eigen::Matrix3f rot_mat_;
     Eigen::Vector3f t_vec_;
     std::vector<Eigen::Vector3f> src_points_trans_;
+
+    void delete_kd_trees_();
+    Eigen::Matrix3f orthonormalize_rotation_(const Eigen::Matrix3f &rot_mat) const;
+    CorrespondencesType correct_correspondences_type_(const CorrespondencesType &corr_type) const;
 
     void init_params_();
     void estimate_transform_();

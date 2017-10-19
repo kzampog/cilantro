@@ -20,14 +20,13 @@ bool estimateRigidTransformPointToPoint(const Eigen::Ref<const Eigen::Matrix<flo
     Eigen::Matrix3f cov = dst_centered*(src_centered.transpose())/src.cols();
 
     Eigen::JacobiSVD<Eigen::Matrix3f> svd(cov, Eigen::ComputeFullU | Eigen::ComputeFullV);
-    Eigen::Matrix3f U(svd.matrixU());
-    Eigen::Matrix3f Vt(svd.matrixV().transpose());
-
-    if (U.determinant() * Vt.determinant() < 0.0f) {
+    if (svd.matrixU().determinant() * svd.matrixV().determinant() < 0.0f) {
+        Eigen::Matrix3f U(svd.matrixU());
         U.col(2) *= -1.0f;
+        rot_mat = U*svd.matrixV().transpose();
+    } else {
+        rot_mat = svd.matrixU()*svd.matrixV().transpose();
     }
-
-    rot_mat = U*Vt;
     t_vec = mu_dst - rot_mat*mu_src;
 
     return true;
@@ -113,7 +112,13 @@ bool estimateRigidTransformPointToPlane(const Eigen::Ref<const Eigen::Matrix<flo
 
         // Orthonormalize rotation
         Eigen::JacobiSVD<Eigen::Matrix3f> svd(rot_mat, Eigen::ComputeFullU | Eigen::ComputeFullV);
-        rot_mat = svd.matrixU()*(svd.matrixV().transpose());
+        if (svd.matrixU().determinant() * svd.matrixV().determinant() < 0.0f) {
+            Eigen::Matrix3f U(svd.matrixU());
+            U.col(2) *= -1.0f;
+            rot_mat = U*svd.matrixV().transpose();
+        } else {
+            rot_mat = svd.matrixU()*svd.matrixV().transpose();
+        }
 
         iter++;
 

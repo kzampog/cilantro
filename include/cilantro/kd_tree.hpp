@@ -87,6 +87,10 @@ public:
 
     ~KDTree() {}
 
+    void nearestNeighborSearch(const Eigen::Matrix<ScalarT,EigenDim,1> &query_pt, size_t &neighbor, ScalarT &distance) const {
+        kd_tree_.knnSearch(query_pt.data(), 1, &neighbor, &distance);
+    }
+
     void kNNSearch(const Eigen::Matrix<ScalarT,EigenDim,1> &query_pt, size_t k, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
         neighbors.resize(k);
         distances.resize(k);
