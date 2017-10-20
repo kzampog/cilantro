@@ -3,10 +3,6 @@
 #include <random>
 #include <cilantro/kd_tree.hpp>
 
-
-#include <iostream>
-
-
 template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor>
 class KMeans {
 public:

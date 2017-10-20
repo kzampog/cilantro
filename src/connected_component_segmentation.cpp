@@ -1,8 +1,5 @@
 #include <cilantro/connected_component_segmentation.hpp>
 #include <set>
-//#include <stack>
-
-#include <iostream>
 
 ConnectedComponentSegmentation::ConnectedComponentSegmentation(const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const std::vector<Eigen::Vector3f> &colors)
         : points_(&points),
