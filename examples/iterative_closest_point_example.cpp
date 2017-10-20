@@ -11,9 +11,6 @@ void callback(Visualizer &viz, int key, void *cookie) {
 
 int main(int argc, char ** argv) {
 
-    Visualizer viz("win", "disp");
-    viz.registerKeyboardCallback(std::vector<int>(1,'a'), callback, NULL);
-
     PointCloud dst, src;
     readPointCloudFromPLYFile(argv[1], dst);
 
@@ -52,10 +49,15 @@ int main(int argc, char ** argv) {
 //    }
 //    std::random_shuffle(ind.begin(), ind.end());
 
+    Visualizer viz("win", "disp");
+    viz.registerKeyboardCallback(std::vector<int>(1,'a'), callback, NULL);
+
     viz.addPointCloud("dst", dst, RenderingProperties().setDrawingColor(0,0,1));
     viz.addPointCloud("src", src, RenderingProperties().setDrawingColor(1,0,0));
 
-    while (!proceed) {
+    std::cout << "Press 'a' to compute transformation" << std::endl;
+    while (!proceed && !viz.wasStopped()) {
+        if (viz.wasStopped()) return 0;
         viz.spinOnce();
     }
     proceed = false;
@@ -98,7 +100,9 @@ int main(int argc, char ** argv) {
     viz.addPointCloud("dst", dst, RenderingProperties().setDrawingColor(0,0,1));
     viz.addPointCloud("src", src_trans, RenderingProperties().setDrawingColor(1,0,0));
 
-    while (!proceed) {
+    std::cout << "Press 'a' to compute residuals" << std::endl;
+    while (!proceed && !viz.wasStopped()) {
+        if (viz.wasStopped()) return 0;
         viz.spinOnce();
     }
     proceed = false;
@@ -112,10 +116,10 @@ int main(int argc, char ** argv) {
     viz.clear();
     viz.addPointCloud("src", src_trans).addPointCloudValues("src", residuals);
 
-    while (!proceed) {
+    while (!proceed && !viz.wasStopped()) {
+        if (viz.wasStopped()) return 0;
         viz.spinOnce();
     }
-    proceed = false;
 
     return 0;
 }
