@@ -9,7 +9,7 @@
 bool re_estimate = false;
 bool randomize = true;
 
-void callback(Visualizer &viz, int key, void *cookie) {
+void callback(cilantro::Visualizer &viz, int key, void *cookie) {
     if (key == 'a') {
         re_estimate = true;
     }
@@ -20,12 +20,12 @@ void callback(Visualizer &viz, int key, void *cookie) {
 
 int main(int argc, char **argv) {
 
-    PointCloud dst;
+    cilantro::PointCloud dst;
     readPointCloudFromPLYFile(argv[1], dst);
 
-    PointCloud src(dst);
+    cilantro::PointCloud src(dst);
 
-    Visualizer viz("win", "disp");
+    cilantro::Visualizer viz("win", "disp");
     std::vector<int> keys;
     keys.push_back('a');
     keys.push_back('d');
@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
     std::vector<size_t> dst_ind(100);
     std::vector<size_t> src_ind(100);
 
-    viz.addPointCloud("dst", dst, RenderingProperties().setDrawingColor(0,0,1));
+    viz.addPointCloud("dst", dst, cilantro::RenderingProperties().setDrawingColor(0,0,1));
     while (!viz.wasStopped()) {
         if (randomize) {
             randomize = false;
@@ -64,22 +64,26 @@ int main(int argc, char **argv) {
             }
 
             src.pointsMatrixMap() = (R_ref*src.pointsMatrixMap()).colwise() + t_ref;
-            viz.addPointCloud("src", src, RenderingProperties().setDrawingColor(1,0,0));
+            viz.addPointCloud("src", src, cilantro::RenderingProperties().setDrawingColor(1,0,0));
+
+            std::cout << "Press 'a' for a transform estimate" << std::endl;
         }
 
         if (re_estimate) {
             re_estimate = false;
 
-            RigidTransformEstimator te(dst,src,dst_ind,src_ind);
+            cilantro::RigidTransformEstimator te(dst,src,dst_ind,src_ind);
             te.setMaxInlierResidual(0.01).setTargetInlierCount((size_t)(0.50*dst_ind.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
-            RigidTransformParameters tform = te.getModelParameters();
+            cilantro::RigidTransformParameters tform = te.getModelParameters();
             std::vector<size_t> inliers = te.getModelInliers();
 
             std::cout << "RANSAC iterations: " << te.getPerformedIterationsCount() << ", inlier count: " << te.getNumberOfInliers() << std::endl;
 
             src.pointsMatrixMap() = (tform.rotation*src.pointsMatrixMap()).colwise() + tform.translation;
 
-            viz.addPointCloud("src", src, RenderingProperties().setDrawingColor(1,0,0));
+            viz.addPointCloud("src", src, cilantro::RenderingProperties().setDrawingColor(1,0,0));
+
+            std::cout << "Press 'd' for a new random pose" << std::endl;
         }
 
         viz.spinOnce();

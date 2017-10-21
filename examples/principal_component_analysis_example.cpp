@@ -5,7 +5,7 @@
 
 int main(int argc, char ** argv) {
 
-    PointCloud cloud;
+    cilantro::PointCloud cloud;
     cloud.points.emplace_back(0, 0, 0);
     cloud.points.emplace_back(1, 0, 0);
     cloud.points.emplace_back(0, 100, 0);
@@ -18,7 +18,7 @@ int main(int argc, char ** argv) {
 //    PointCloud cloud;
 //    readPointCloudFromPLYFile(argv[1], cloud);
 
-    PrincipalComponentAnalysis3D pca(cloud.points);
+    cilantro::PrincipalComponentAnalysis3D pca(cloud.points);
 
     std::cout << "Data mean: " << pca.getDataMean().transpose() << std::endl;
     std::cout << "Eigenvalues: " << pca.getEigenValues().transpose() << std::endl;

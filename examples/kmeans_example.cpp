@@ -5,10 +5,10 @@
 
 int main(int argc, char ** argv) {
 
-    PointCloud cloud;
-    readPointCloudFromPLYFile(argv[1], cloud);
+    cilantro::PointCloud cloud;
+    cilantro::readPointCloudFromPLYFile(argv[1], cloud);
 
-    cloud = VoxelGrid(cloud, 0.005).getDownsampledCloud().removeInvalidData();
+    cloud = cilantro::VoxelGrid(cloud, 0.005).getDownsampledCloud().removeInvalidData();
 
 //    Eigen::MatrixXf data_points(6,cloud.size());
 //    data_points.topRows(3) = cloud.pointsMatrixMap();
@@ -16,7 +16,7 @@ int main(int argc, char ** argv) {
 //    KMeans<float, 6, KDTreeDistanceAdaptors::L2> kmc(data_points);
 
 //    KMeans<float,3,KDTreeDistanceAdaptors::L1> kmc(cloud.points);
-    KMeans3D kmc(cloud.points);
+    cilantro::KMeans3D kmc(cloud.points);
 
     size_t k = 250;
     size_t max_iter = 100;
@@ -47,7 +47,7 @@ int main(int argc, char ** argv) {
 
     std::cout << "Cluster size range is: [" << mins << "," << maxs << "]" << std::endl;
 
-    Visualizer viz("win", "disp");
+    cilantro::Visualizer viz("win", "disp");
 
     std::vector<Eigen::Vector3f> color_map(k);
     for (size_t i = 0; i < k; i++) {
@@ -64,7 +64,7 @@ int main(int argc, char ** argv) {
     viz.addPointCloud("cloud", cloud);
     viz.addPointCloudColors("cloud", cols);
 
-    viz.addPointCloud("centroids", kmc.getClusterCentroids(), RenderingProperties().setPointSize(5.0f));
+    viz.addPointCloud("centroids", kmc.getClusterCentroids(), cilantro::RenderingProperties().setPointSize(5.0f));
     viz.addPointCloudColors("centroids", std::vector<Eigen::Vector3f>(kmc.getClusterCentroids().size(), Eigen::Vector3f(1,1,1)));
 
     while (!viz.wasStopped()) {

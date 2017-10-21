@@ -9,15 +9,15 @@ int main(int argc, char ** argv) {
 
     std::unique_ptr<pangolin::VideoInterface> dok = pangolin::OpenVideo(uri);
 
-    Visualizer pcdv("CLOUD", "disp");
-    ImageViewer rgbv("RGB", "disp");
-    ImageViewer depthv("DEPTH", "disp");
+    cilantro::Visualizer pcdv("CLOUD", "disp");
+    cilantro::ImageViewer rgbv("RGB", "disp");
+    cilantro::ImageViewer depthv("DEPTH", "disp");
 
     Eigen::Matrix3f K;
     K << 528, 0, 320, 0, 528, 240, 0, 0, 1;
 
     size_t w = 640, h = 480;
-    PointCloud cloud;
+    cilantro::PointCloud cloud;
     unsigned char* img = new unsigned char[dok->SizeBytes()];
     while (dok->GrabNext(img, true)) {
         pangolin::Image<Eigen::Matrix<unsigned char,3,1> > rgb_img((Eigen::Matrix<unsigned char,3,1> *)img, w, h, w*sizeof(Eigen::Matrix<unsigned char,3,1>));

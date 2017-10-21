@@ -47,12 +47,12 @@ int main(int argc, char ** argv) {
 //    }
 
 
-    PointCloud cloud;
-    readPointCloudFromPLYFile(argv[1], cloud);
+    cilantro::PointCloud cloud;
+    cilantro::readPointCloudFromPLYFile(argv[1], cloud);
 
-    PointCloudHull ch(cloud);
+    cilantro::PointCloudHull ch(cloud);
 
-    PointCloud hc(cloud, ch.getVertexPointIndices());
+    cilantro::PointCloud hc(cloud, ch.getVertexPointIndices());
 
     std::vector<Eigen::Vector3f> v_colors(ch.getVertices().size());
     std::vector<float> v_vals(ch.getVertices().size());
@@ -75,9 +75,9 @@ int main(int argc, char ** argv) {
     }
 
 
-    Visualizer viz1("win1", "disp");
+    cilantro::Visualizer viz1("win1", "disp");
 
-    viz1.addPointCloud("cloud", cloud, RenderingProperties().setOpacity(1.0));
+    viz1.addPointCloud("cloud", cloud, cilantro::RenderingProperties().setOpacity(1.0));
     viz1.addTriangleMesh("mesh", ch.getVertices(), ch.getFacetVertexIndices());
     viz1.addTriangleMeshVertexNormals("mesh", hc.normals);
     viz1.addTriangleMeshVertexColors("mesh", v_colors);
@@ -85,19 +85,19 @@ int main(int argc, char ** argv) {
     viz1.addTriangleMeshVertexValues("mesh", v_vals);
     viz1.addTriangleMeshFaceValues("mesh", f_vals);
 
-    RenderingProperties rp = viz1.getRenderingProperties("mesh");
-    rp.setUseFaceNormals(true).setUseFaceColors(false).setOpacity(0.8).setColormapType(ColormapType::BLUE2RED);
+    cilantro::RenderingProperties rp = viz1.getRenderingProperties("mesh");
+    rp.setUseFaceNormals(true).setUseFaceColors(false).setOpacity(0.8).setColormapType(cilantro::ColormapType::BLUE2RED);
     viz1.setRenderingProperties("mesh", rp);
 
 
-    PrincipalComponentAnalysis3D proj(cloud.points);
+    cilantro::PrincipalComponentAnalysis3D proj(cloud.points);
 
     std::vector<Eigen::Vector2f> pts = proj.project<2>(cloud.points);
     cloud.points = proj.reconstruct<2>(pts);
 
-    PointCloudHullFlat ch2d(cloud);
+    cilantro::PointCloudHullFlat ch2d(cloud);
 
-    Visualizer viz2("win2", "disp");
+    cilantro::Visualizer viz2("win2", "disp");
 
     std::vector<std::vector<size_t> > face_v_ind = ch2d.getFacetVertexIndices();
     std::vector<Eigen::Vector3f> p_src(face_v_ind.size()), p_dst(face_v_ind.size());
@@ -106,9 +106,9 @@ int main(int argc, char ** argv) {
         p_dst[i] = ch2d.getVertices3D()[face_v_ind[i][1]];
     }
 
-    viz2.addPointCloud("cloud", cloud, RenderingProperties().setOpacity(0.5));
-    viz2.addPointCloud("hull_cloud", ch2d.getVertices3D(), RenderingProperties().setDrawingColor(1,0,0).setPointSize(10.0));
-    viz2.addPointCorrespondences("hull_lines", p_src, p_dst, RenderingProperties().setDrawingColor(1,0,0).setLineWidth(5.0).setCorrespondencesFraction(1.0));
+    viz2.addPointCloud("cloud", cloud, cilantro::RenderingProperties().setOpacity(0.5));
+    viz2.addPointCloud("hull_cloud", ch2d.getVertices3D(), cilantro::RenderingProperties().setDrawingColor(1,0,0).setPointSize(10.0));
+    viz2.addPointCorrespondences("hull_lines", p_src, p_dst, cilantro::RenderingProperties().setDrawingColor(1,0,0).setLineWidth(5.0).setCorrespondencesFraction(1.0));
 
     while (!viz1.wasStopped() && !viz2.wasStopped()) {
         viz1.spinOnce();

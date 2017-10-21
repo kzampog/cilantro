@@ -11,11 +11,11 @@ int main(int argc, char ** argv) {
 
     bool binary = false;
 
-    writeEigenMatrixToFile("mat.dat", dok, binary);
+    cilantro::writeEigenMatrixToFile("mat.dat", dok, binary);
 
     Eigen::MatrixXf dok2;
 
-    readEigenMatrixFromFile("mat.dat", dok2, binary);
+    cilantro::readEigenMatrixFromFile("mat.dat", dok2, binary);
 
     std::cout << "After:" << std::endl;
     std::cout << dok2 << std::endl;
@@ -32,11 +32,11 @@ int main(int argc, char ** argv) {
     }
     std::cout << std::endl;
 
-    writeVectorToFile("mat.dat", v, binary);
+    cilantro::writeVectorToFile("mat.dat", v, binary);
 
     std::vector<float> v2;
 
-    readVectorFromFile("mat.dat", v2, binary);
+    cilantro::readVectorFromFile("mat.dat", v2, binary);
 
     std::cout << "After:" << std::endl;
     for (int i = 0; i < v2.size(); i++) {

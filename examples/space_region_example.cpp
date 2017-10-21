@@ -9,18 +9,18 @@ int main(int argc, char ** argv) {
     vertices.emplace_back(200, 100);
     vertices.emplace_back(200, 200);
 
-    SpaceRegion2D sr1(vertices);
+    cilantro::SpaceRegion2D sr1(vertices);
 
     for (size_t i = 0; i < vertices.size(); i++) {
         vertices[i] += Eigen::Vector2f(50,50);
     }
 
-    SpaceRegion2D sr2(vertices);
+    cilantro::SpaceRegion2D sr2(vertices);
 
-    SpaceRegion2D sr3(std::vector<Eigen::Vector3f>(1,Eigen::Vector3f(-1,1,-70)));
+    cilantro::SpaceRegion2D sr3(std::vector<Eigen::Vector3f>(1,Eigen::Vector3f(-1,1,-70)));
 
 //    SpaceRegion2D sr = sr1.unionWith(sr2).complement();
-    SpaceRegion2D sr = sr1.intersectionWith(sr2.complement()).unionWith(sr2.intersectionWith(sr1.complement())).intersectionWith(sr3);
+    cilantro::SpaceRegion2D sr = sr1.intersectionWith(sr2.complement()).unionWith(sr2.intersectionWith(sr1.complement())).intersectionWith(sr3);
 //    SpaceRegion2D sr = sr2.relativeComplement(sr1);
 
     sr.transform(Eigen::Rotation2D<float>(-M_PI/4.0).toRotationMatrix(), Eigen::Vector2f(80,220));
@@ -32,7 +32,7 @@ int main(int argc, char ** argv) {
         }
     }
 
-    ImageViewer viz("win", "disp");
+    cilantro::ImageViewer viz("win", "disp");
     viz.setImage(img, "GRAY8");
     while (!viz.wasStopped()) {
         viz.spinOnce();

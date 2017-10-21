@@ -7,8 +7,8 @@ int main( int argc, char* argv[] )
 
     std::unique_ptr<pangolin::VideoInterface> dok = pangolin::OpenVideo(uri);
 
-    ImageViewer rgbv("RGB", "disp1");
-    ImageViewer depthv("DEPTH", "disp2");
+    cilantro::ImageViewer rgbv("RGB", "disp1");
+    cilantro::ImageViewer depthv("DEPTH", "disp2");
 
     size_t w = 640, h = 480;
     unsigned char* img = new unsigned char[dok->SizeBytes()];

@@ -5,17 +5,17 @@
 
 int main(int argc, char ** argv) {
 
-    PointCloud cloud;
-    readPointCloudFromPLYFile(argv[1], cloud);
+    cilantro::PointCloud cloud;
+    cilantro::readPointCloudFromPLYFile(argv[1], cloud);
 
-    VoxelGrid vg(cloud, 0.005);
+    cilantro::VoxelGrid vg(cloud, 0.005);
     cloud = vg.getDownsampledCloud().removeInvalidData();
 
 //    NormalEstimation(cloud).estimateNormalsInPlaceRadius(0.02);
 
     std::cout << cloud.size() << std::endl;
 
-    ConnectedComponentSegmentation ccs(cloud);
+    cilantro::ConnectedComponentSegmentation ccs(cloud);
 
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -42,9 +42,9 @@ int main(int argc, char ** argv) {
         cols[i] = color_map[labels[i]];
     }
 
-    Visualizer viz("win", "disp");
+    cilantro::Visualizer viz("win", "disp");
 
-    viz.addPointCloud("cloud", cloud, RenderingProperties().setColormapType(ColormapType::JET));
+    viz.addPointCloud("cloud", cloud, cilantro::RenderingProperties().setColormapType(cilantro::ColormapType::JET));
     viz.addPointCloudColors("cloud", cols);
 
     while (!viz.wasStopped()) {

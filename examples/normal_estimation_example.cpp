@@ -4,17 +4,17 @@
 #include <cilantro/voxel_grid.hpp>
 
 int main(int argc, char ** argv) {
-    PointCloud cloud;
+    cilantro::PointCloud cloud;
     readPointCloudFromPLYFile(argv[1], cloud);
 
     cloud.normals.clear();
 
-    VoxelGrid vg(cloud, 0.005);
+    cilantro::VoxelGrid vg(cloud, 0.005);
     cloud = vg.getDownsampledCloud();
 
     auto start = std::chrono::high_resolution_clock::now();
-    KDTree3D tree(cloud.points);
-    NormalEstimation ne(cloud, tree);
+    cilantro::KDTree3D tree(cloud.points);
+    cilantro::NormalEstimation ne(cloud, tree);
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> kd_tree_time = end - start;
 
@@ -29,7 +29,7 @@ int main(int argc, char ** argv) {
     std::cout << "kd-tree time: " << kd_tree_time.count() << "ms" << std::endl;
     std::cout << "Estimation time: " << estimation_time.count() << "ms" << std::endl;
 
-    Visualizer viz("win", "disp");
+    cilantro::Visualizer viz("win", "disp");
 
     viz.addPointCloud("cloud_d", cloud);
     viz.addPointCloudNormals("normals_d", cloud);

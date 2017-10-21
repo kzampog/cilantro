@@ -4,7 +4,7 @@
 
 
 int main(int argc, char **argv) {
-    PointCloud cloud;
+    cilantro::PointCloud cloud;
 
     // Get file paths
     std::string fileInPath, fileOutPath;
@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
     for (size_t i = 0; i < cloud.points.size(); i += 50) {
         ind.push_back(i);
     }
-    PointCloud pc(cloud, ind);
+    cilantro::PointCloud pc(cloud, ind);
 
     // Write ply file
     std::cout << "Writing pointcloud to " << fileOutPath << std::endl;

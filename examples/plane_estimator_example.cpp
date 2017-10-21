@@ -5,7 +5,7 @@
 
 bool re_estimate = false;
 
-void callback(Visualizer &viz, int key, void *cookie) {
+void callback(cilantro::Visualizer &viz, int key, void *cookie) {
     if (key == 'a') {
         re_estimate = true;
     }
@@ -13,25 +13,29 @@ void callback(Visualizer &viz, int key, void *cookie) {
 
 int main(int argc, char **argv) {
 
-    PointCloud cloud;
+    cilantro::PointCloud cloud;
     readPointCloudFromPLYFile(argv[1], cloud);
 
-    Visualizer viz("win", "disp");
+    cilantro::Visualizer viz("win", "disp");
     viz.registerKeyboardCallback(std::vector<int>(1,'a'), callback, NULL);
+
+    std::cout << "Press 'a' for a new estimate" << std::endl;
 
     viz.addPointCloud("cloud", cloud);
     while (!viz.wasStopped()) {
         if (re_estimate) {
             re_estimate = false;
 
-            PlaneEstimator pe(cloud);
+            cilantro::PlaneEstimator pe(cloud);
             pe.setMaxInlierResidual(0.01).setTargetInlierCount((size_t)(0.15*cloud.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
-            PlaneParameters plane = pe.getModelParameters();
+            cilantro::PlaneParameters plane = pe.getModelParameters();
             std::vector<size_t> inliers = pe.getModelInliers();
             std::cout << "RANSAC iterations: " << pe.getPerformedIterationsCount() << ", inlier count: " << pe.getNumberOfInliers() << std::endl;
 
-            PointCloud planar_cloud(cloud, inliers);
-            viz.addPointCloud("plane", planar_cloud, RenderingProperties().setDrawingColor(1,0,0).setPointSize(3.0));
+            cilantro::PointCloud planar_cloud(cloud, inliers);
+            viz.addPointCloud("plane", planar_cloud, cilantro::RenderingProperties().setDrawingColor(1,0,0).setPointSize(3.0));
+
+            std::cout << "Press 'a' for a new estimate" << std::endl;
         }
         viz.spinOnce();
     }

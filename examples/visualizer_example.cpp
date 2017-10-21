@@ -5,7 +5,7 @@
 #include <iostream>
 #include <ctime>
 
-void callback_test(Visualizer &viz, int key, void *cookie) {
+void callback_test(cilantro::Visualizer &viz, int key, void *cookie) {
     std::string name = *((std::string *)cookie);
     std::cout << "Toggling visibility for " << name << std::endl;
     viz.toggleVisibilityStatus(name);
@@ -13,10 +13,10 @@ void callback_test(Visualizer &viz, int key, void *cookie) {
 
 int main(int argc, char ** argv) {
 
-    PointCloud cloud;
+    cilantro::PointCloud cloud;
     readPointCloudFromPLYFile(argv[1], cloud);
 
-    VoxelGrid vg(cloud, 0.01);
+    cilantro::VoxelGrid vg(cloud, 0.01);
     cloud = vg.getDownsampledCloud();
 
 //    pangolin::CreateWindowAndBind("VIS_WIN",640,480);
@@ -25,31 +25,31 @@ int main(int argc, char ** argv) {
 //            .AddDisplay(pangolin::Display("disp2"));
 
     // First
-    Visualizer viz("VIS_WIN", "disp1");
+    cilantro::Visualizer viz("VIS_WIN", "disp1");
 
     std::vector<float> scalars (cloud.size());
     for (size_t i = 0; i < cloud.size(); i++)
         scalars[i] = cloud.points[i].norm();
-    viz.addPointCloud("pcd", cloud, RenderingProperties().setColormapType(ColormapType::JET));
+    viz.addPointCloud("pcd", cloud, cilantro::RenderingProperties().setColormapType(cilantro::ColormapType::JET));
     viz.addPointCloudValues("pcd", scalars);
-    viz.addPointCloudNormals("nrm", cloud, RenderingProperties().setCorrespondencesFraction(0.20).setOpacity(0.5));
+    viz.addPointCloudNormals("nrm", cloud, cilantro::RenderingProperties().setCorrespondencesFraction(0.20).setOpacity(0.5));
 
-    viz.addCoordinateSystem("axis", 0.4f, Eigen::Matrix4f::Identity(), RenderingProperties().setLineWidth(10.0f));
+    viz.addCoordinateSystem("axis", 0.4f, Eigen::Matrix4f::Identity(), cilantro::RenderingProperties().setLineWidth(10.0f));
 
     std::string name = "nrm";
     viz.registerKeyboardCallback(std::vector<int>(1,'n'), callback_test, &name);
 
     // Second
-    PointCloud cloud2(cloud);
+    cilantro::PointCloud cloud2(cloud);
     for (size_t i = 0; i < cloud2.size(); i++) {
         cloud2.points[i] += Eigen::Vector3f(1.0, 0.0, 1.0);
     }
 
-    Visualizer viz2("VIS_WIN2", "disp2");
-    viz2.addPointCloud("pcd1", cloud, RenderingProperties().setDrawingColor(1,0,0).setOpacity(0.5));
-    viz2.addPointCloud("pcd2", cloud2, RenderingProperties().setDrawingColor(0,0,1).setOpacity(0.4));
-    viz2.addPointCorrespondences("corr", cloud, cloud2, RenderingProperties().setCorrespondencesFraction(0.01).setOpacity(0.4));
-    viz2.addCoordinateSystem("axis", 0.4f, Eigen::Matrix4f::Identity(), RenderingProperties().setLineWidth(10.0f));
+    cilantro::Visualizer viz2("VIS_WIN2", "disp2");
+    viz2.addPointCloud("pcd1", cloud, cilantro::RenderingProperties().setDrawingColor(1,0,0).setOpacity(0.5));
+    viz2.addPointCloud("pcd2", cloud2, cilantro::RenderingProperties().setDrawingColor(0,0,1).setOpacity(0.4));
+    viz2.addPointCorrespondences("corr", cloud, cloud2, cilantro::RenderingProperties().setCorrespondencesFraction(0.01).setOpacity(0.4));
+    viz2.addCoordinateSystem("axis", 0.4f, Eigen::Matrix4f::Identity(), cilantro::RenderingProperties().setLineWidth(10.0f));
 
     std::string name2 = "corr";
     viz2.registerKeyboardCallback(std::vector<int>(1,'c'), callback_test, &name2);
@@ -69,7 +69,6 @@ int main(int argc, char ** argv) {
 
         viz.spinOnce();
         viz2.spinOnce();
-
     }
 
     return 0;

@@ -5,16 +5,16 @@
 
 bool proceed = false;
 
-void callback(Visualizer &viz, int key, void *cookie) {
+void callback(cilantro::Visualizer &viz, int key, void *cookie) {
     if (key == 'a') proceed = true;
 }
 
 int main(int argc, char ** argv) {
 
-    PointCloud dst, src;
-    readPointCloudFromPLYFile(argv[1], dst);
+    cilantro::PointCloud dst, src;
+    cilantro::readPointCloudFromPLYFile(argv[1], dst);
 
-    dst = VoxelGrid(dst, 0.005).getDownsampledCloud();
+    dst = cilantro::VoxelGrid(dst, 0.005).getDownsampledCloud();
 
     src = dst;
     for (size_t i = 0; i < src.size(); i++) {
@@ -24,7 +24,7 @@ int main(int argc, char ** argv) {
         src.colors[i] += 0.010f*Eigen::Vector3f::Random();
     }
 
-    PointCloud dst2;
+    cilantro::PointCloud dst2;
     for (size_t i = 0; i < dst.size(); i++) {
         if (dst.points[i][0] > -0.4) {
             dst2.points.push_back(dst.points[i]);
@@ -49,11 +49,11 @@ int main(int argc, char ** argv) {
 //    }
 //    std::random_shuffle(ind.begin(), ind.end());
 
-    Visualizer viz("win", "disp");
+    cilantro::Visualizer viz("win", "disp");
     viz.registerKeyboardCallback(std::vector<int>(1,'a'), callback, NULL);
 
-    viz.addPointCloud("dst", dst, RenderingProperties().setDrawingColor(0,0,1));
-    viz.addPointCloud("src", src, RenderingProperties().setDrawingColor(1,0,0));
+    viz.addPointCloud("dst", dst, cilantro::RenderingProperties().setDrawingColor(0,0,1));
+    viz.addPointCloud("src", src, cilantro::RenderingProperties().setDrawingColor(1,0,0));
 
     std::cout << "Press 'a' to compute transformation" << std::endl;
     while (!proceed && !viz.wasStopped()) {
@@ -69,10 +69,10 @@ int main(int argc, char ** argv) {
 //    estimateRigidTransformPointToPoint(dst.points, src.points, ind, ind, R_est, t_est);
 //    estimateRigidTransformPointToPlane(dst, src, ind, ind, R_est, t_est, 10, 1e-4f);
 //    IterativeClosestPoint icp(dst, src, IterativeClosestPoint::Metric::POINT_TO_POINT);
-    IterativeClosestPoint icp(dst, src, IterativeClosestPoint::Metric::POINT_TO_PLANE);
+    cilantro::IterativeClosestPoint icp(dst, src, cilantro::IterativeClosestPoint::Metric::POINT_TO_PLANE);
 //    icp.setMaxCorrespondenceDistance(0.05f).setConvergenceTolerance(1e-3f).setMaxNumberOfIterations(200).setMaxNumberOfPointToPlaneIterations(1);
     icp.setMaxCorrespondenceDistance(0.5f).setConvergenceTolerance(1e-3f).setMaxNumberOfIterations(200).setMaxNumberOfPointToPlaneIterations(1);
-    icp.setCorrespondencesType(IterativeClosestPoint::CorrespondencesType::POINTS_NORMALS_COLORS);
+    icp.setCorrespondencesType(cilantro::IterativeClosestPoint::CorrespondencesType::POINTS_NORMALS_COLORS);
     icp.setCorrespondencePointWeight(1.0);
     icp.setCorrespondenceNormalWeight(50.0);
     icp.setCorrespondenceColorWeight(50.0);
@@ -92,13 +92,13 @@ int main(int argc, char ** argv) {
     std::cout << "ESTIMATED transformation R:" << std::endl << R_est << std::endl;
     std::cout << "ESTIMATED transformation t:" << std::endl << t_est.transpose() << std::endl;
 
-    PointCloud src_trans(src);
+    cilantro::PointCloud src_trans(src);
 
     src_trans.pointsMatrixMap() = (R_est*src_trans.pointsMatrixMap()).colwise() + t_est;
     src_trans.normalsMatrixMap() = R_est*src_trans.normalsMatrixMap();
 
-    viz.addPointCloud("dst", dst, RenderingProperties().setDrawingColor(0,0,1));
-    viz.addPointCloud("src", src_trans, RenderingProperties().setDrawingColor(1,0,0));
+    viz.addPointCloud("dst", dst, cilantro::RenderingProperties().setDrawingColor(0,0,1));
+    viz.addPointCloud("src", src_trans, cilantro::RenderingProperties().setDrawingColor(1,0,0));
 
     std::cout << "Press 'a' to compute residuals" << std::endl;
     while (!proceed && !viz.wasStopped()) {
@@ -108,7 +108,7 @@ int main(int argc, char ** argv) {
     proceed = false;
 
     start = std::chrono::high_resolution_clock::now();
-    auto residuals = icp.getResiduals(IterativeClosestPoint::CorrespondencesType::POINTS, IterativeClosestPoint::Metric::POINT_TO_POINT);
+    auto residuals = icp.getResiduals(cilantro::IterativeClosestPoint::CorrespondencesType::POINTS, cilantro::IterativeClosestPoint::Metric::POINT_TO_POINT);
     end = std::chrono::high_resolution_clock::now();
     elapsed = end - start;
     std::cout << "Residual computation time: " << elapsed.count() << "ms" << std::endl;
