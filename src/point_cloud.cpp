@@ -182,7 +182,7 @@ namespace cilantro {
         return transform(rigid_transform.topLeftCorner(3,3), rigid_transform.topRightCorner(3,1));
     }
 
-    PointCloud PointCloud::transformed(const Eigen::Ref<const Eigen::Matrix3f> &rotation, const Eigen::Ref<const Eigen::Vector3f> &translation) {
+    PointCloud PointCloud::transformed(const Eigen::Ref<const Eigen::Matrix3f> &rotation, const Eigen::Ref<const Eigen::Vector3f> &translation) const {
         PointCloud cloud;
         cloud.points.resize(points.size());
         cloud.normals.resize(normals.size());
@@ -196,7 +196,7 @@ namespace cilantro {
         return cloud;
     }
 
-    PointCloud PointCloud::transformed(const Eigen::Ref<const Eigen::Matrix4f> &rigid_transform) {
+    PointCloud PointCloud::transformed(const Eigen::Ref<const Eigen::Matrix4f> &rigid_transform) const {
         return transformed(rigid_transform.topLeftCorner(3,3), rigid_transform.topRightCorner(3,1));
     }
 }
