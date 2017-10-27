@@ -181,4 +181,22 @@ namespace cilantro {
     PointCloud& PointCloud::transform(const Eigen::Ref<const Eigen::Matrix4f> &rigid_transform) {
         return transform(rigid_transform.topLeftCorner(3,3), rigid_transform.topRightCorner(3,1));
     }
+
+    PointCloud PointCloud::transformed(const Eigen::Ref<const Eigen::Matrix3f> &rotation, const Eigen::Ref<const Eigen::Vector3f> &translation) {
+        PointCloud cloud;
+        cloud.points.resize(points.size());
+        cloud.normals.resize(normals.size());
+        cloud.colors = colors;
+        if (!cloud.empty()) {
+            cloud.pointsMatrixMap() = (rotation*pointsMatrixMap()).colwise() + translation;
+            if (cloud.hasNormals()) {
+                cloud.normalsMatrixMap() = rotation*normalsMatrixMap();
+            }
+        }
+        return cloud;
+    }
+
+    PointCloud PointCloud::transformed(const Eigen::Ref<const Eigen::Matrix4f> &rigid_transform) {
+        return transformed(rigid_transform.topLeftCorner(3,3), rigid_transform.topRightCorner(3,1));
+    }
 }

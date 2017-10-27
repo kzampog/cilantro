@@ -33,6 +33,9 @@ namespace cilantro {
         PointCloud& transform(const Eigen::Ref<const Eigen::Matrix3f> &rotation, const Eigen::Ref<const Eigen::Vector3f> &translation);
         PointCloud& transform(const Eigen::Ref<const Eigen::Matrix4f> &rigid_transform);
 
+        PointCloud transformed(const Eigen::Ref<const Eigen::Matrix3f> &rotation, const Eigen::Ref<const Eigen::Vector3f> &translation);
+        PointCloud transformed(const Eigen::Ref<const Eigen::Matrix4f> &rigid_transform);
+
         inline Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> > pointsMatrixMap() { return Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)points.data(), 3, points.size()); }
         inline Eigen::Map<const Eigen::Matrix<float,3,Eigen::Dynamic> > pointsMatrixMap() const { return Eigen::Map<const Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)points.data(), 3, points.size()); }
 
