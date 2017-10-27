@@ -60,6 +60,12 @@ namespace cilantro {
             return *static_cast<ModelEstimator*>(this);
         }
 
+        inline ModelEstimator& getModelParameters(ModelParamsType &model_params) {
+            if (iteration_count_ == 0) estimate_model_();
+            model_params = model_params_;
+            return *static_cast<ModelEstimator*>(this);
+        }
+
         inline const ModelParamsType& getModelParameters() {
             if (iteration_count_ == 0) estimate_model_();
             return model_params_;
