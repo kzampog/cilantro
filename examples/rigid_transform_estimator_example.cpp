@@ -1,7 +1,7 @@
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/rigid_transform_estimator.hpp>
 
-#include <cilantro/ply_io.hpp>
+#include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
 
 #include <iostream>

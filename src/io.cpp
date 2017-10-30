@@ -1,6 +1,5 @@
-#include <cilantro/ply_io.hpp>
+#include <cilantro/io.hpp>
 #include <cilantro/3rd_party/tinyply/tinyply.h>
-#include <fstream>
 
 namespace cilantro {
     void readPointCloudFromPLYFile(const std::string &filename, PointCloud &cloud) {
@@ -70,5 +69,24 @@ namespace cilantro {
 
         file_to_write.write(outputStream, binary);
         fb.close();
+    }
+
+    size_t getFileSizeInBytes(const std::string &file_name) {
+        std::ifstream in(file_name, std::ifstream::ate | std::ifstream::binary);
+        return in.tellg();
+    }
+
+    size_t readRawDataFromFile(const std::string &file_name, void * data_ptr, size_t num_bytes) {
+        size_t num_bytes_to_read = (num_bytes == 0) ? getFileSizeInBytes(file_name) : num_bytes;
+        std::ifstream in(file_name, std::ios::in | std::ios::binary);
+        in.read((char*)data_ptr, num_bytes_to_read);
+        in.close();
+        return num_bytes_to_read;
+    }
+
+    void writeRawDataToFile(const std::string &file_name, void * data_ptr, size_t num_bytes) {
+        std::ofstream out(file_name, std::ios::out | std::ios::binary);
+        out.write((char*)data_ptr, num_bytes);
+        out.close();
     }
 }

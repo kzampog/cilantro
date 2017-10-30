@@ -1,4 +1,4 @@
-#include <cilantro/matrix_io.hpp>
+#include <cilantro/io.hpp>
 #include <iostream>
 
 int main(int argc, char ** argv) {

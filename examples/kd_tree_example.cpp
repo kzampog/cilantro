@@ -1,5 +1,5 @@
 #include <cilantro/kd_tree.hpp>
-#include <cilantro/ply_io.hpp>
+#include <cilantro/io.hpp>
 
 #include <iostream>
 

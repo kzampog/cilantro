@@ -1,5 +1,5 @@
 #include <cilantro/kmeans.hpp>
-#include <cilantro/ply_io.hpp>
+#include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/voxel_grid.hpp>
 

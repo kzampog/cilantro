@@ -1,5 +1,5 @@
 #include <cilantro/principal_component_analysis.hpp>
-#include <cilantro/ply_io.hpp>
+#include <cilantro/io.hpp>
 
 #include <iostream>
 

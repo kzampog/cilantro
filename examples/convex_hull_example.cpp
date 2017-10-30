@@ -1,5 +1,5 @@
 #include <cilantro/convex_hull.hpp>
-#include <cilantro/ply_io.hpp>
+#include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
 
 int main(int argc, char ** argv) {
