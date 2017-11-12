@@ -107,7 +107,16 @@ namespace cilantro {
 
         struct {
             inline bool operator() (const std::pair<Renderable*, float> &p1, const std::pair<Renderable*, float> &p2) const {
-                return std::make_pair(p1.first->renderingProperties.opacity == 1.0f, p1.second) > std::make_pair(p2.first->renderingProperties.opacity == 1.0f, p2.second);
+                bool is_opaque1 = p1.first->renderingProperties.opacity == 1.0f;
+                bool is_opaque2 = p2.first->renderingProperties.opacity == 1.0f;
+                if (is_opaque1 > is_opaque2) {
+                    return true;
+                } else if (is_opaque1 < is_opaque2) {
+                    return false;
+                } else {
+                    return p1.second > p2.second;
+                }
+//                return std::make_pair(p1.first->renderingProperties.opacity == 1.0f, p1.second) > std::make_pair(p2.first->renderingProperties.opacity == 1.0f, p2.second);
             }
         } render_priority_comparator_;
     };
