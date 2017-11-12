@@ -1,44 +1,6 @@
 #include <cilantro/visualizer.hpp>
 
 namespace cilantro {
-    void Visualizer::init_(const std::string &window_name, const std::string &display_name) {
-        gl_context_ = pangolin::FindContext(window_name);
-        if (!gl_context_) {
-            pangolin::CreateWindowAndBind(window_name);
-            gl_context_ = pangolin::FindContext(window_name);
-        }
-        gl_context_->MakeCurrent();
-
-        // Default callbacks
-        pangolin::RegisterKeyPressCallback('q', pangolin::Quit);
-        pangolin::RegisterKeyPressCallback('Q', pangolin::Quit);
-        auto inc_fun = std::bind(point_size_callback_, std::ref(*this), '+');
-        pangolin::RegisterKeyPressCallback('+', inc_fun);
-        auto dec_fun = std::bind(point_size_callback_, std::ref(*this), '-');
-        pangolin::RegisterKeyPressCallback('-', dec_fun);
-        auto reset_fun = std::bind(reset_view_callback_, std::ref(*this));
-        pangolin::RegisterKeyPressCallback('r', reset_fun);
-        pangolin::RegisterKeyPressCallback('R', reset_fun);
-        auto wireframe_fun = std::bind(wireframe_toggle_callback_, std::ref(*this));
-        pangolin::RegisterKeyPressCallback('w', wireframe_fun);
-        pangolin::RegisterKeyPressCallback('W', wireframe_fun);
-
-        // Pangolin searches internally for existing named displays
-        display_ = &(pangolin::Display(display_name));
-
-        initial_model_view_ = pangolin::ModelViewLookAt(0, 0, 0, 0, 0, 1, 0, -1, 0);
-        gl_render_state_.reset(new pangolin::OpenGlRenderState(pangolin::ProjectionMatrix(640, 480, 528, 528, 320, 240, 0.2, 100), initial_model_view_));
-        input_handler_.reset(new pangolin::Handler3D(*gl_render_state_));
-        display_->SetHandler(input_handler_.get());
-        display_->SetAspect(-4.0f/3.0f);
-
-        clear_color_ = Eigen::Vector3f(0.7f, 0.7f, 1.0f);
-        cam_axes_rot_.setIdentity();
-        cam_axes_rot_(1,1) = -1.0f;
-        cam_axes_rot_(2,2) = -1.0f;
-        video_record_on_render_ = false;
-    }
-
     Visualizer::Visualizer() {
         init_("Window", "Display");
     }
@@ -551,6 +513,44 @@ namespace cilantro {
         }
         video_record_on_render_ = false;
         return *this;
+    }
+
+    void Visualizer::init_(const std::string &window_name, const std::string &display_name) {
+        gl_context_ = pangolin::FindContext(window_name);
+        if (!gl_context_) {
+            pangolin::CreateWindowAndBind(window_name);
+            gl_context_ = pangolin::FindContext(window_name);
+        }
+        gl_context_->MakeCurrent();
+
+        // Default callbacks
+        pangolin::RegisterKeyPressCallback('q', pangolin::Quit);
+        pangolin::RegisterKeyPressCallback('Q', pangolin::Quit);
+        auto inc_fun = std::bind(point_size_callback_, std::ref(*this), '+');
+        pangolin::RegisterKeyPressCallback('+', inc_fun);
+        auto dec_fun = std::bind(point_size_callback_, std::ref(*this), '-');
+        pangolin::RegisterKeyPressCallback('-', dec_fun);
+        auto reset_fun = std::bind(reset_view_callback_, std::ref(*this));
+        pangolin::RegisterKeyPressCallback('r', reset_fun);
+        pangolin::RegisterKeyPressCallback('R', reset_fun);
+        auto wireframe_fun = std::bind(wireframe_toggle_callback_, std::ref(*this));
+        pangolin::RegisterKeyPressCallback('w', wireframe_fun);
+        pangolin::RegisterKeyPressCallback('W', wireframe_fun);
+
+        // Pangolin searches internally for existing named displays
+        display_ = &(pangolin::Display(display_name));
+
+        initial_model_view_ = pangolin::ModelViewLookAt(0, 0, 0, 0, 0, 1, 0, -1, 0);
+        gl_render_state_.reset(new pangolin::OpenGlRenderState(pangolin::ProjectionMatrix(640, 480, 528, 528, 320, 240, 0.2, 100), initial_model_view_));
+        input_handler_.reset(new pangolin::Handler3D(*gl_render_state_));
+        display_->SetHandler(input_handler_.get());
+        display_->SetAspect(-4.0f/3.0f);
+
+        clear_color_ = Eigen::Vector3f(0.7f, 0.7f, 1.0f);
+        cam_axes_rot_.setIdentity();
+        cam_axes_rot_(1,1) = -1.0f;
+        cam_axes_rot_(2,2) = -1.0f;
+        video_record_on_render_ = false;
     }
 
     void Visualizer::point_size_callback_(Visualizer &viz, int key) {

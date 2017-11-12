@@ -1,16 +1,12 @@
 #include <cilantro/image_viewer.hpp>
 
 namespace cilantro {
+    ImageViewer::ImageViewer() {
+        init_("Window", "Display");
+    }
+
     ImageViewer::ImageViewer(const std::string &window_name, const std::string &display_name) {
-        gl_context_ = pangolin::FindContext(window_name);
-        if (!gl_context_) {
-            pangolin::CreateWindowAndBind(window_name);
-            gl_context_ = pangolin::FindContext(window_name);
-        }
-        gl_context_->MakeCurrent();
-        pangolin::RegisterKeyPressCallback('q', pangolin::Quit);
-        pangolin::RegisterKeyPressCallback('Q', pangolin::Quit);
-        display_ = &(pangolin::Display(display_name));
+        init_(window_name, display_name);
     }
 
     ImageViewer::~ImageViewer() {}
@@ -63,8 +59,20 @@ namespace cilantro {
     ImageViewer& ImageViewer::render() {
         gl_context_->MakeCurrent();
         display_->Activate();
-//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         gl_texture_.RenderToViewportFlipY();
         return *this;
+    }
+
+    void ImageViewer::init_(const std::string &window_name, const std::string &display_name) {
+        gl_context_ = pangolin::FindContext(window_name);
+        if (!gl_context_) {
+            pangolin::CreateWindowAndBind(window_name);
+            gl_context_ = pangolin::FindContext(window_name);
+        }
+        gl_context_->MakeCurrent();
+        pangolin::RegisterKeyPressCallback('q', pangolin::Quit);
+        pangolin::RegisterKeyPressCallback('Q', pangolin::Quit);
+        display_ = &(pangolin::Display(display_name));
     }
 }

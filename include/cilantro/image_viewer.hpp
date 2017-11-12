@@ -6,6 +6,7 @@
 namespace cilantro {
     class ImageViewer {
     public:
+        ImageViewer();
         ImageViewer(const std::string &window_name, const std::string &display_name);
         ~ImageViewer();
 
@@ -28,10 +29,15 @@ namespace cilantro {
 
         inline bool wasStopped() const { return gl_context_->quit; }
 
+        inline pangolin::PangolinGl* getPangolinGLContext() const { return gl_context_; }
+        inline pangolin::View* getPangolinDisplay() const { return display_; }
+
     private:
         pangolin::PangolinGl *gl_context_;
         pangolin::View *display_;
         pangolin::GlTexture gl_texture_;
         pangolin::GlPixFormat gl_pix_format_;
+
+        void init_(const std::string &window_name, const std::string &display_name);
     };
 }
