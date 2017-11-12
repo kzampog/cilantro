@@ -106,14 +106,8 @@ namespace cilantro {
         static void wireframe_toggle_callback_(Visualizer &viz);
 
         struct {
-            inline bool operator()(const std::pair<Renderable*, float> &p1, const std::pair<Renderable*, float> &p2) const {
-                if (p1.first->renderingProperties.opacity == 1.0f) {
-                    return true;
-                } else if (p2.first->renderingProperties.opacity == 1.0f) {
-                    return false;
-                } else {
-                    return p1.second > p2.second;
-                }
+            inline bool operator() (const std::pair<Renderable*, float> &p1, const std::pair<Renderable*, float> &p2) const {
+                return std::make_pair(p1.first->renderingProperties.opacity == 1.0f, p1.second) > std::make_pair(p2.first->renderingProperties.opacity == 1.0f, p2.second);
             }
         } render_priority_comparator_;
     };

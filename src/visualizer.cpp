@@ -307,7 +307,7 @@ namespace cilantro {
         for (auto it = renderables_.begin(); it != renderables_.end(); ++it) {
             if (it->second->visible) {
                 objects[k].first = it->second.get();
-                objects[k].second = (R*(it->second->centroid) + t).norm();
+                objects[k].second = (R*(it->second->centroid) + t).squaredNorm();
                 k++;
             }
         }
@@ -320,8 +320,8 @@ namespace cilantro {
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//    glClearColor(clear_color_(0), clear_color_(1), clear_color_(2), 1.0f);
-//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//        glClearColor(clear_color_(0), clear_color_(1), clear_color_(2), 1.0f);
+//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         for (size_t i = 0; i < objects.size(); i++) {
             objects[i].first->render();
