@@ -234,16 +234,15 @@ namespace cilantro {
         min_pt_[2] = std::floor(min_pt_[2]/bin_size_)*bin_size_;
 
         map_iterators_.reserve(input_points_->size());
-        std::vector<std::array<int,3> > grid_coords(input_points_->size());
+        std::array<int,3> grid_coords;
         for (size_t i = 0; i < input_points_->size(); i++) {
-            grid_coords[i][0] = (int)(((*input_points_)[i][0] - min_pt_[0])/bin_size_);
-            grid_coords[i][1] = (int)(((*input_points_)[i][1] - min_pt_[1])/bin_size_);
-            grid_coords[i][2] = (int)(((*input_points_)[i][2] - min_pt_[2])/bin_size_);
+            grid_coords[0] = (int)(((*input_points_)[i][0] - min_pt_[0])/bin_size_);
+            grid_coords[1] = (int)(((*input_points_)[i][1] - min_pt_[1])/bin_size_);
+            grid_coords[2] = (int)(((*input_points_)[i][2] - min_pt_[2])/bin_size_);
 
-            auto it = grid_lookup_table_.find(grid_coords[i]);
+            auto it = grid_lookup_table_.find(grid_coords);
             if (it == grid_lookup_table_.end()) {
-//            grid_lookup_table_.insert(std::make_pair(grid_coords[i], std::vector<size_t>(1, i)));
-                map_iterators_.emplace_back(grid_lookup_table_.insert(std::make_pair(grid_coords[i], std::vector<size_t>(1, i))).first);
+                map_iterators_.emplace_back(grid_lookup_table_.insert(std::make_pair(grid_coords, std::vector<size_t>(1, i))).first);
             } else {
                 it->second.emplace_back(i);
             }
