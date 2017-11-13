@@ -228,6 +228,10 @@ namespace cilantro {
             if ((*input_points_)[i][1] < min_pt_[1]) min_pt_[1] = (*input_points_)[i][1];
             if ((*input_points_)[i][2] < min_pt_[2]) min_pt_[2] = (*input_points_)[i][2];
         }
+        // Round to integer grid coordinates
+        min_pt_[0] = std::floor(min_pt_[0]/bin_size_)*bin_size_;
+        min_pt_[1] = std::floor(min_pt_[1]/bin_size_)*bin_size_;
+        min_pt_[2] = std::floor(min_pt_[2]/bin_size_)*bin_size_;
 
         map_iterators_.reserve(input_points_->size());
         std::vector<std::array<int,3> > grid_coords(input_points_->size());
