@@ -87,6 +87,7 @@ int main(int argc, char ** argv) {
 
     cilantro::RenderingProperties rp = viz1.getRenderingProperties("mesh");
     rp.setUseFaceNormals(true).setUseFaceColors(false).setOpacity(0.8).setColormapType(cilantro::ColormapType::BLUE2RED);
+//    rp.setDrawNormals(true);
     viz1.setRenderingProperties("mesh", rp);
 
 
@@ -107,8 +108,8 @@ int main(int argc, char ** argv) {
     }
 
     viz2.addPointCloud("cloud", cloud, cilantro::RenderingProperties().setOpacity(0.5));
-    viz2.addPointCloud("hull_cloud", ch2d.getVertices3D(), cilantro::RenderingProperties().setDrawingColor(1,0,0).setPointSize(10.0));
-    viz2.addPointCorrespondences("hull_lines", p_src, p_dst, cilantro::RenderingProperties().setDrawingColor(1,0,0).setLineWidth(5.0).setCorrespondencesFraction(1.0));
+    viz2.addPointCloud("hull_cloud", ch2d.getVertices3D(), cilantro::RenderingProperties().setPointColor(1,0,0).setPointSize(10.0));
+    viz2.addPointCorrespondences("hull_lines", p_src, p_dst, cilantro::RenderingProperties().setLineColor(0,0,1).setLineWidth(5.0).setLineDensityFraction(1.0));
 
     while (!viz1.wasStopped() && !viz2.wasStopped()) {
         viz1.spinOnce();

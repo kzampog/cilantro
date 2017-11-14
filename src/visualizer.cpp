@@ -17,10 +17,11 @@ namespace cilantro {
             renderables_.erase(name);
             return *this;
         }
-        renderables_[name] = std::shared_ptr<PointsRenderable>(new PointsRenderable);
-        PointsRenderable *obj_ptr = (PointsRenderable *)renderables_[name].get();
+        renderables_[name] = std::shared_ptr<PointCloudRenderable>(new PointCloudRenderable);
+        PointCloudRenderable *obj_ptr = (PointCloudRenderable *)renderables_[name].get();
         // Copy fields
         obj_ptr->points = cloud.points;
+        if (cloud.hasNormals()) obj_ptr->normals = cloud.normals;
         if (cloud.hasColors()) obj_ptr->colors = cloud.colors;
         obj_ptr->centroid = Eigen::Map<Eigen::MatrixXf>((float *)cloud.points.data(), 3, cloud.points.size()).rowwise().mean();
         // Update buffers
@@ -35,8 +36,8 @@ namespace cilantro {
             renderables_.erase(name);
             return *this;
         }
-        renderables_[name] = std::shared_ptr<PointsRenderable>(new PointsRenderable);
-        PointsRenderable *obj_ptr = (PointsRenderable *)renderables_[name].get();
+        renderables_[name] = std::shared_ptr<PointCloudRenderable>(new PointCloudRenderable);
+        PointCloudRenderable *obj_ptr = (PointCloudRenderable *)renderables_[name].get();
         // Copy fields
         obj_ptr->points = points;
         obj_ptr->centroid = Eigen::Map<Eigen::MatrixXf>((float *)points.data(), 3, points.size()).rowwise().mean();
@@ -46,11 +47,23 @@ namespace cilantro {
         return *this;
     }
 
+    Visualizer& Visualizer::addPointCloudNormals(const std::string &name, const std::vector<Eigen::Vector3f> &normals) {
+        gl_context_->MakeCurrent();
+        auto it = renderables_.find(name);
+        if (it == renderables_.end()) return *this;
+        PointCloudRenderable *obj_ptr = (PointCloudRenderable *)it->second.get();
+        if (normals.size() != obj_ptr->points.size()) return *this;
+        obj_ptr->normals = normals;
+        obj_ptr->applyRenderingProperties();
+
+        return *this;
+    }
+
     Visualizer& Visualizer::addPointCloudColors(const std::string &name, const std::vector<Eigen::Vector3f> &colors) {
         gl_context_->MakeCurrent();
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
-        PointsRenderable *obj_ptr = (PointsRenderable *)it->second.get();
+        PointCloudRenderable *obj_ptr = (PointCloudRenderable *)it->second.get();
         if (colors.size() != obj_ptr->points.size()) return *this;
         obj_ptr->colors = colors;
         obj_ptr->applyRenderingProperties();
@@ -62,34 +75,12 @@ namespace cilantro {
         gl_context_->MakeCurrent();
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
-        PointsRenderable *obj_ptr = (PointsRenderable *)it->second.get();
+        PointCloudRenderable *obj_ptr = (PointCloudRenderable *)it->second.get();
         if (point_values.size() != obj_ptr->points.size()) return *this;
         obj_ptr->pointValues = point_values;
         obj_ptr->applyRenderingProperties();
 
         return *this;
-    }
-
-    Visualizer& Visualizer::addPointCloudNormals(const std::string &name, const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const RenderingProperties &rp) {
-        gl_context_->MakeCurrent();
-        if (points.empty() || points.size() != normals.size()) {
-            renderables_.erase(name);
-            return *this;
-        }
-        renderables_[name] = std::shared_ptr<NormalsRenderable>(new NormalsRenderable);
-        NormalsRenderable *obj_ptr = (NormalsRenderable *)renderables_[name].get();
-        // Copy fields
-        obj_ptr->points = points;
-        obj_ptr->normals = normals;
-        obj_ptr->centroid = Eigen::Map<Eigen::MatrixXf>((float *)points.data(), 3, points.size()).rowwise().mean();
-        // Update buffers
-        ((Renderable *)obj_ptr)->applyRenderingProperties(rp);
-
-        return *this;
-    }
-
-    Visualizer& Visualizer::addPointCloudNormals(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp) {
-        return addPointCloudNormals(name, cloud.points, cloud.normals, rp);
     }
 
     Visualizer& Visualizer::addPointCorrespondences(const std::string &name, const std::vector<Eigen::Vector3f> &points_src, const std::vector<Eigen::Vector3f> &points_dst, const RenderingProperties &rp) {
@@ -115,10 +106,10 @@ namespace cilantro {
         return addPointCorrespondences(name, cloud_src.points, cloud_dst.points, rp);
     }
 
-    Visualizer& Visualizer::addCoordinateSystem(const std::string &name, float scale, const Eigen::Matrix4f &tf, const RenderingProperties &rp) {
+    Visualizer& Visualizer::addCoordinateFrame(const std::string &name, float scale, const Eigen::Matrix4f &tf, const RenderingProperties &rp) {
         gl_context_->MakeCurrent();
-        renderables_[name] = std::shared_ptr<AxisRenderable>(new AxisRenderable);
-        AxisRenderable *obj_ptr = (AxisRenderable *)renderables_[name].get();
+        renderables_[name] = std::shared_ptr<CoordinateFrameRenderable>(new CoordinateFrameRenderable);
+        CoordinateFrameRenderable *obj_ptr = (CoordinateFrameRenderable *)renderables_[name].get();
         // Copy fields
         obj_ptr->scale = scale;
         obj_ptr->transform = tf;

@@ -52,8 +52,8 @@ int main(int argc, char ** argv) {
     cilantro::Visualizer viz("win", "disp");
     viz.registerKeyboardCallback(std::vector<int>(1,'a'), callback, NULL);
 
-    viz.addPointCloud("dst", dst, cilantro::RenderingProperties().setDrawingColor(0,0,1));
-    viz.addPointCloud("src", src, cilantro::RenderingProperties().setDrawingColor(1,0,0));
+    viz.addPointCloud("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
+    viz.addPointCloud("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
 
     std::cout << "Press 'a' to compute transformation" << std::endl;
     while (!proceed && !viz.wasStopped()) {
@@ -97,8 +97,8 @@ int main(int argc, char ** argv) {
     src_trans.pointsMatrixMap() = (R_est*src_trans.pointsMatrixMap()).colwise() + t_est;
     src_trans.normalsMatrixMap() = R_est*src_trans.normalsMatrixMap();
 
-    viz.addPointCloud("dst", dst, cilantro::RenderingProperties().setDrawingColor(0,0,1));
-    viz.addPointCloud("src", src_trans, cilantro::RenderingProperties().setDrawingColor(1,0,0));
+    viz.addPointCloud("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
+    viz.addPointCloud("src", src_trans, cilantro::RenderingProperties().setPointColor(1,0,0));
 
     std::cout << "Press 'a' to compute residuals" << std::endl;
     while (!proceed && !viz.wasStopped()) {

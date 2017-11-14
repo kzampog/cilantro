@@ -30,11 +30,10 @@ int main(int argc, char ** argv) {
     std::vector<float> scalars (cloud.size());
     for (size_t i = 0; i < cloud.size(); i++)
         scalars[i] = cloud.points[i].norm();
-    viz.addPointCloud("pcd", cloud, cilantro::RenderingProperties().setColormapType(cilantro::ColormapType::JET));
+    viz.addPointCloud("pcd", cloud, cilantro::RenderingProperties().setColormapType(cilantro::ColormapType::JET).setLineDensityFraction(0.2f).setOpacity(0.5).setDrawNormals(true));
     viz.addPointCloudValues("pcd", scalars);
-    viz.addPointCloudNormals("nrm", cloud, cilantro::RenderingProperties().setCorrespondencesFraction(0.20).setOpacity(0.5));
 
-    viz.addCoordinateSystem("axis", 0.4f, Eigen::Matrix4f::Identity(), cilantro::RenderingProperties().setLineWidth(10.0f));
+    viz.addCoordinateFrame("axis", 0.4f, Eigen::Matrix4f::Identity(), cilantro::RenderingProperties().setLineWidth(10.0f));
 
     std::string name = "nrm";
     viz.registerKeyboardCallback(std::vector<int>(1,'n'), callback_test, &name);
@@ -46,10 +45,10 @@ int main(int argc, char ** argv) {
     }
 
     cilantro::Visualizer viz2("VIS_WIN2", "disp2");
-    viz2.addPointCloud("pcd1", cloud, cilantro::RenderingProperties().setDrawingColor(1,0,0).setOpacity(0.5));
-    viz2.addPointCloud("pcd2", cloud2, cilantro::RenderingProperties().setDrawingColor(0,0,1).setOpacity(0.4));
-    viz2.addPointCorrespondences("corr", cloud, cloud2, cilantro::RenderingProperties().setCorrespondencesFraction(0.01).setOpacity(0.4));
-    viz2.addCoordinateSystem("axis", 0.4f, Eigen::Matrix4f::Identity(), cilantro::RenderingProperties().setLineWidth(10.0f));
+    viz2.addPointCloud("pcd1", cloud, cilantro::RenderingProperties().setPointColor(1,0,0).setOpacity(0.5));
+    viz2.addPointCloud("pcd2", cloud2, cilantro::RenderingProperties().setPointColor(0,0,1).setOpacity(0.4));
+    viz2.addPointCorrespondences("corr", cloud, cloud2, cilantro::RenderingProperties().setLineDensityFraction(0.01).setOpacity(0.4));
+    viz2.addCoordinateFrame("axis", 0.4f, Eigen::Matrix4f::Identity(), cilantro::RenderingProperties().setLineWidth(10.0f));
 
     std::string name2 = "corr";
     viz2.registerKeyboardCallback(std::vector<int>(1,'c'), callback_test, &name2);

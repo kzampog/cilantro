@@ -31,8 +31,7 @@ int main(int argc, char ** argv) {
 
     cilantro::Visualizer viz("win", "disp");
 
-    viz.addPointCloud("cloud_d", cloud);
-    viz.addPointCloudNormals("normals_d", cloud);
+    viz.addPointCloud("cloud_d", cloud, cilantro::RenderingProperties().setDrawNormals(true));
 
     while (!viz.wasStopped()){
         viz.spinOnce();

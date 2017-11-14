@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
             std::cout << "RANSAC iterations: " << pe.getPerformedIterationsCount() << ", inlier count: " << pe.getNumberOfInliers() << std::endl;
 
             cilantro::PointCloud planar_cloud(cloud, inliers);
-            viz.addPointCloud("plane", planar_cloud, cilantro::RenderingProperties().setDrawingColor(1,0,0).setPointSize(3.0));
+            viz.addPointCloud("plane", planar_cloud, cilantro::RenderingProperties().setPointColor(1,0,0).setPointSize(3.0));
 
             std::cout << "Press 'a' for a new estimate" << std::endl;
         }

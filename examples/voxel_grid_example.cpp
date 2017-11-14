@@ -42,9 +42,7 @@ int main(int argc, char ** argv) {
     std::cout << "Downsampling time: " << ds_time.count() << "ms" << std::endl;
 
     cilantro::Visualizer viz("win", "disp");
-
-    viz.addPointCloud("cloud_d", cloud_d);
-    viz.addPointCloudNormals("normals_d", cloud_d);
+    viz.addPointCloud("cloud_d", cloud_d, cilantro::RenderingProperties().setDrawNormals(true));
 
     while (!viz.wasStopped()){
         viz.spinOnce();
