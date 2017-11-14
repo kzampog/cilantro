@@ -33,8 +33,6 @@ namespace cilantro {
     }
 
     void writePointCloudToPLYFile(const std::string &filename, const PointCloud &cloud, bool binary) {
-        if (cloud.empty()) return;
-
         std::vector<float> vertex_data(3*cloud.size());
         std::memcpy(vertex_data.data(), cloud.points.data(), 3 * cloud.size() * sizeof(float));
 
