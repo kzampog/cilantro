@@ -3,13 +3,13 @@
 
 namespace cilantro {
     void readPointCloudFromPLYFile(const std::string &filename, PointCloud &cloud) {
-        std::ifstream ss(filename, std::ios::binary);
-        tinyply::PlyFile file(ss);
-
         // Data holders
         std::vector<float> vertex_data;
         std::vector<float> normal_data;
         std::vector<uint8_t> color_data;
+
+        std::ifstream ss(filename, std::ios::binary);
+        tinyply::PlyFile file(ss);
 
         // Initialize PLY data holders
         size_t vertex_count = file.request_properties_from_element("vertex", {"x", "y", "z"}, vertex_data);
@@ -33,22 +33,17 @@ namespace cilantro {
     }
 
     void writePointCloudToPLYFile(const std::string &filename, const PointCloud &cloud, bool binary) {
+        tinyply::PlyFile file;
+
         std::vector<float> vertex_data(3*cloud.size());
-        std::memcpy(vertex_data.data(), cloud.points.data(), 3 * cloud.size() * sizeof(float));
-
-        // Write to file
-        std::filebuf fb;
-        fb.open(filename, std::ios::out | std::ios::binary);
-        std::ostream output_stream(&fb);
-
-        tinyply::PlyFile file_to_write;
-        file_to_write.add_properties_to_element("vertex", {"x", "y", "z"}, vertex_data);
+        std::memcpy(vertex_data.data(), cloud.points.data(), 3*cloud.size()*sizeof(float));
+        file.add_properties_to_element("vertex", {"x", "y", "z"}, vertex_data);
 
         std::vector<float> normal_data;
         if (cloud.hasNormals()) {
             normal_data.resize(3*cloud.normals.size());
-            std::memcpy(normal_data.data(), cloud.normals.data(), 3 * cloud.normals.size() * sizeof(float));
-            file_to_write.add_properties_to_element("vertex", {"nx", "ny", "nz"}, normal_data);
+            std::memcpy(normal_data.data(), cloud.normals.data(), 3*cloud.normals.size()*sizeof(float));
+            file.add_properties_to_element("vertex", {"nx", "ny", "nz"}, normal_data);
         }
 
         std::vector<uint8_t> color_data;
@@ -59,10 +54,14 @@ namespace cilantro {
                 color_data[3 * i + 1] = (uint8_t)(cloud.colors[i](1)*255.0f);
                 color_data[3 * i + 2] = (uint8_t)(cloud.colors[i](2)*255.0f);
             }
-            file_to_write.add_properties_to_element("vertex", {"red", "green", "blue"}, color_data);
+            file.add_properties_to_element("vertex", {"red", "green", "blue"}, color_data);
         }
 
-        file_to_write.write(output_stream, binary);
+        // Write to file
+        std::filebuf fb;
+        fb.open(filename, std::ios::out | std::ios::binary);
+        std::ostream output_stream(&fb);
+        file.write(output_stream, binary);
         fb.close();
     }
 
