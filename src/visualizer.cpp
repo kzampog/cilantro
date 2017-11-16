@@ -255,16 +255,13 @@ namespace cilantro {
         }
         Eigen::Vector3f t(mv(0,3), mv(1,3), mv(2,3));
 
-        size_t k = 0;
-        std::vector<std::pair<Renderable*, float> > objects(renderables_.size());
+        std::vector<std::pair<std::pair<bool, float>, Renderable*> > objects;
+        objects.reserve(renderables_.size());
         for (auto it = renderables_.begin(); it != renderables_.end(); ++it) {
             if (it->second->visible) {
-                objects[k].first = it->second.get();
-                objects[k].second = (R*(it->second->centroid) + t).squaredNorm();
-                k++;
+                objects.emplace_back(std::make_pair(it->second->renderingProperties.opacity == 1.0f, (R*(it->second->centroid)+t).squaredNorm()), it->second.get());
             }
         }
-        objects.resize(k);
 
         std::sort(objects.begin(), objects.end(), render_priority_comparator_);
 
@@ -273,11 +270,9 @@ namespace cilantro {
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//        glClearColor(clear_color_(0), clear_color_(1), clear_color_(2), 1.0f);
-//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         for (size_t i = 0; i < objects.size(); i++) {
-            objects[i].first->render();
+            objects[i].second->render();
         }
 
         if (video_record_on_render_ && video_recorder_) {

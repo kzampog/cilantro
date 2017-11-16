@@ -13,7 +13,6 @@ namespace cilantro {
         Visualizer(const std::string &window_name, const std::string &display_name);
         ~Visualizer();
 
-
         Visualizer& addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp = RenderingProperties());
         Visualizer& addPointCloud(const std::string &name, const std::vector<Eigen::Vector3f> &points, const RenderingProperties &rp = RenderingProperties());
         Visualizer& addPointCloudNormals(const std::string &name, const std::vector<Eigen::Vector3f> &normals);
@@ -104,19 +103,8 @@ namespace cilantro {
         static void reset_view_callback_(Visualizer &viz);
         static void wireframe_toggle_callback_(Visualizer &viz);
 
-        struct {
-            inline bool operator() (const std::pair<Renderable*, float> &p1, const std::pair<Renderable*, float> &p2) const {
-                bool is_opaque1 = p1.first->renderingProperties.opacity == 1.0f;
-                bool is_opaque2 = p2.first->renderingProperties.opacity == 1.0f;
-                if (is_opaque1 > is_opaque2) {
-                    return true;
-                } else if (is_opaque1 < is_opaque2) {
-                    return false;
-                } else {
-                    return p1.second > p2.second;
-                }
-//                return std::make_pair(p1.first->renderingProperties.opacity == 1.0f, p1.second) > std::make_pair(p2.first->renderingProperties.opacity == 1.0f, p2.second);
-            }
-        } render_priority_comparator_;
+        static inline bool render_priority_comparator_(const std::pair<std::pair<bool,float>, Renderable*> &o1, const std::pair<std::pair<bool,float>, Renderable*> &o2) {
+            return o1.first > o2.first;
+        }
     };
 }

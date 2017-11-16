@@ -44,7 +44,7 @@ int main(int argc, char ** argv) {
     cilantro::Visualizer viz("win", "disp");
     viz.addPointCloud("cloud_d", cloud_d, cilantro::RenderingProperties().setDrawNormals(true));
 
-    while (!viz.wasStopped()){
+    while (!viz.wasStopped()) {
         viz.spinOnce();
     }
 
