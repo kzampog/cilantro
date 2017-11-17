@@ -33,6 +33,9 @@ namespace cilantro {
         Visualizer& addTriangleMeshVertexValues(const std::string &name, const std::vector<float> &vertex_values);
         Visualizer& addTriangleMeshFaceValues(const std::string &name, const std::vector<float> &face_values);
 
+        Visualizer& addText(const std::string &name, const std::string &text, const Eigen::Vector3f &position, const RenderingProperties &rp = RenderingProperties());
+        Visualizer& addText(const std::string &name, const std::string &text, float x, float y, float z, const RenderingProperties &rp = RenderingProperties());
+
         inline Visualizer& clear() { renderables_.clear(); return *this; }
         inline Visualizer& remove(const std::string &name) { renderables_.erase(name); return *this; }
 
@@ -103,7 +106,7 @@ namespace cilantro {
         static void reset_view_callback_(Visualizer &viz);
         static void wireframe_toggle_callback_(Visualizer &viz);
 
-        static inline bool render_priority_comparator_(const std::pair<std::pair<bool,float>, Renderable*> &o1, const std::pair<std::pair<bool,float>, Renderable*> &o2) {
+        static inline bool render_priority_comparator_(const std::pair<std::tuple<bool,bool,float>, Renderable*> &o1, const std::pair<std::tuple<bool,bool,float>, Renderable*> &o2) {
             return o1.first > o2.first;
         }
     };

@@ -21,7 +21,9 @@ namespace cilantro {
                                        useFaceColors(false),
                                        minScalarValue(std::numeric_limits<float>::quiet_NaN()),
                                        maxScalarValue(std::numeric_limits<float>::quiet_NaN()),
-                                       colormapType(ColormapType::JET)
+                                       colormapType(ColormapType::JET),
+                                       fontSize(15.0f),
+                                       textAnchorPoint(0.5f,0.5f)
         {}
         inline ~RenderingProperties() {}
 
@@ -43,6 +45,8 @@ namespace cilantro {
         float minScalarValue;
         float maxScalarValue;
         ColormapType colormapType;
+        float fontSize;
+        Eigen::Vector2f textAnchorPoint;
 
         inline RenderingProperties& setPointColor(const Eigen::Vector3f &color) { pointColor = color; return *this; }
         inline RenderingProperties& setPointColor(float r, float g, float b) { pointColor = Eigen::Vector3f(r,g,b); return *this; }
@@ -60,6 +64,9 @@ namespace cilantro {
         inline RenderingProperties& setUseFaceColors(bool fc) { useFaceColors = fc; return *this; }
         inline RenderingProperties& setScalarValuesRange(float min, float max) { minScalarValue = min; maxScalarValue = max; return *this; }
         inline RenderingProperties& setColormapType(const ColormapType ct) { colormapType = ct; return *this; }
+        inline RenderingProperties& setFontSize(float fs) { fontSize = fs; return *this; }
+        inline RenderingProperties& setTextAnchorPoint(const Eigen::Vector2f &ap) { textAnchorPoint = ap; return *this; }
+        inline RenderingProperties& setTextAnchorPoint(float x_fraction, float y_fraction) { textAnchorPoint = Eigen::Vector2f(x_fraction,y_fraction); return *this; }
     };
 
     struct Renderable {
@@ -131,5 +138,16 @@ namespace cilantro {
         pangolin::GlBuffer normalBuffer;
         pangolin::GlBuffer colorBuffer;
         pangolin::GlBuffer normalEndPointBuffer;
+    };
+
+    struct TextRenderable : public Renderable {
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        void applyRenderingProperties();
+        void render();
+
+        std::string text;
+        std::shared_ptr<pangolin::GlFont> glFont;
+        pangolin::GlText glText;
     };
 }

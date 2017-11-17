@@ -1,6 +1,8 @@
 #include <cilantro/renderables.hpp>
 
 namespace cilantro {
+    extern "C" const unsigned char AnonymousPro_ttf[];
+
     Eigen::Vector3f RenderingProperties::defaultColor = Eigen::Vector3f(1.0f,1.0f,1.0f);
     Eigen::Vector3f RenderingProperties::noColor = Eigen::Vector3f(-1.0f,-1.0f,-1.0f);
 
@@ -298,5 +300,56 @@ namespace cilantro {
             glLineWidth(renderingProperties.lineWidth);
             pangolin::RenderVbo(normalEndPointBuffer, GL_LINES);
         }
+    }
+
+    void TextRenderable::applyRenderingProperties() {
+        glFont.reset(new pangolin::GlFont(AnonymousPro_ttf, renderingProperties.fontSize));
+        glText = glFont->Text(text);
+    }
+
+    void TextRenderable::render() {
+        if (renderingProperties.pointColor == RenderingProperties::noColor)
+            glColor4f(RenderingProperties::defaultColor(0), RenderingProperties::defaultColor(1), RenderingProperties::defaultColor(2), renderingProperties.opacity);
+        else
+            glColor4f(renderingProperties.pointColor(0), renderingProperties.pointColor(1), renderingProperties.pointColor(2), renderingProperties.opacity);
+
+        // find object point (x,y,z)' in pixel coords
+        GLdouble projection[16];
+        GLdouble modelview[16];
+        GLint    view[4];
+        GLdouble scrn[3];
+
+#ifdef HAVE_GLES_2
+        std::copy(glEngine().projection.top().m, glEngine().projection.top().m+16, projection);
+    std::copy(glEngine().modelview.top().m, glEngine().modelview.top().m+16, modelview);
+#else
+        glGetDoublev(GL_PROJECTION_MATRIX, projection );
+        glGetDoublev(GL_MODELVIEW_MATRIX, modelview );
+#endif
+        glGetIntegerv(GL_VIEWPORT, view );
+
+        pangolin::glProject(centroid[0], centroid[1], centroid[2], modelview, projection, view, scrn, scrn + 1, scrn + 2);
+
+        pangolin::DisplayBase().Activate();
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(-0.5, pangolin::DisplayBase().v.w-0.5, -0.5, pangolin::DisplayBase().v.h-0.5, -1, 1);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+
+        const Eigen::Vector2f& anchor = renderingProperties.textAnchorPoint;
+        glTranslatef((GLfloat)scrn[0] - anchor[0]*glText.Width(), (GLfloat)scrn[1] - anchor[1]*glText.Height(), (GLfloat)scrn[2]);
+        glText.Draw();
+
+        // Restore viewport
+        glViewport(view[0],view[1],view[2],view[3]);
+
+        // Restore modelview / project matrices
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
     }
 }

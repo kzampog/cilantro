@@ -236,6 +236,23 @@ namespace cilantro {
         return *this;
     }
 
+    Visualizer& Visualizer::addText(const std::string &name, const std::string &text, const Eigen::Vector3f &position, const RenderingProperties &rp) {
+        gl_context_->MakeCurrent();
+        renderables_[name] = std::shared_ptr<TextRenderable>(new TextRenderable);
+        TextRenderable *obj_ptr = (TextRenderable *)renderables_[name].get();
+        // Copy fields
+        obj_ptr->text = text;
+        obj_ptr->centroid = position;
+        // Update buffers
+        ((Renderable *)obj_ptr)->applyRenderingProperties(rp);
+
+        return *this;
+    }
+
+    Visualizer& Visualizer::addText(const std::string &name, const std::string &text, float x, float y, float z, const RenderingProperties &rp) {
+        return addText(name, text, Eigen::Vector3f(x,y,z), rp);
+    }
+
     Visualizer& Visualizer::clearRenderArea() {
         gl_context_->MakeCurrent();
         display_->Activate(*gl_render_state_);
@@ -255,11 +272,11 @@ namespace cilantro {
         }
         Eigen::Vector3f t(mv(0,3), mv(1,3), mv(2,3));
 
-        std::vector<std::pair<std::pair<bool, float>, Renderable*> > objects;
+        std::vector<std::pair<std::tuple<bool,bool,float>, Renderable*> > objects;
         objects.reserve(renderables_.size());
         for (auto it = renderables_.begin(); it != renderables_.end(); ++it) {
             if (it->second->visible) {
-                objects.emplace_back(std::make_pair(it->second->renderingProperties.opacity == 1.0f, (R*(it->second->centroid)+t).squaredNorm()), it->second.get());
+                objects.emplace_back(std::make_tuple(dynamic_cast<TextRenderable *>(it->second.get()) == NULL, it->second->renderingProperties.opacity == 1.0f, (R*(it->second->centroid)+t).squaredNorm()), it->second.get());
             }
         }
 
