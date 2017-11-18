@@ -61,8 +61,15 @@ namespace cilantro {
         inline Visualizer& setClearColor(const Eigen::Vector3f &color) { clear_color_ = color; return *this; }
         inline Visualizer& setClearColor(float r, float g, float b) { clear_color_ = Eigen::Vector3f(r,g,b); return *this; }
 
-        Visualizer& setProjectionMatrix(int w, int h, pangolin::GLprecision fu, pangolin::GLprecision fv, pangolin::GLprecision u0, pangolin::GLprecision v0, pangolin::GLprecision zNear, pangolin::GLprecision zFar);
-        Visualizer& setProjectionMatrix(int w, int h, const Eigen::Matrix3f &intrinsics, pangolin::GLprecision zNear, pangolin::GLprecision zFar);
+        Visualizer& setPerspectiveProjectionMatrix(int w, int h, pangolin::GLprecision fu, pangolin::GLprecision fv, pangolin::GLprecision u0, pangolin::GLprecision v0, pangolin::GLprecision zNear, pangolin::GLprecision zFar);
+        Visualizer& setPerspectiveProjectionMatrix(int w, int h, const Eigen::Matrix3f &intrinsics, pangolin::GLprecision zNear, pangolin::GLprecision zFar);
+
+        Visualizer& setOrthographicProjectionMatrix(pangolin::GLprecision left, pangolin::GLprecision right, pangolin::GLprecision bottom, pangolin::GLprecision top, pangolin::GLprecision near, pangolin::GLprecision far);
+        Visualizer& setOrthographicProjectionMatrix(pangolin::GLprecision height, pangolin::GLprecision near, pangolin::GLprecision far);
+
+        inline Visualizer& enablePerspectiveProjection() { input_handler_->EnablePerspectiveProjection(); return *this; }
+        inline Visualizer& enableOrthographicProjection() { input_handler_->EnableOrthographicProjection(); return *this; }
+        inline Visualizer& toggleProjectionMode() { input_handler_->ToggleProjectionMode(); return *this; }
 
         Eigen::Matrix4f getCameraPose() const;
         const Visualizer& getCameraPose(Eigen::Vector3f &position, Eigen::Vector3f &look_at, Eigen::Vector3f &up_direction) const;

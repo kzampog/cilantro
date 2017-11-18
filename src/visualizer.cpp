@@ -336,18 +336,29 @@ namespace cilantro {
         return res;
     }
 
-    Visualizer& Visualizer::setProjectionMatrix(int w, int h, pangolin::GLprecision fu, pangolin::GLprecision fv, pangolin::GLprecision u0, pangolin::GLprecision v0, pangolin::GLprecision zNear, pangolin::GLprecision zFar) {
-        gl_context_->MakeCurrent();
-        gl_render_state_->SetProjectionMatrix(pangolin::ProjectionMatrix(w, h, fu, fv, u0, v0, zNear, zFar));
+    Visualizer& Visualizer::setPerspectiveProjectionMatrix(int w, int h, pangolin::GLprecision fu, pangolin::GLprecision fv, pangolin::GLprecision u0, pangolin::GLprecision v0, pangolin::GLprecision zNear, pangolin::GLprecision zFar) {
         display_->SetAspect(-(double)w/((double)h));
+        input_handler_->SetPerspectiveProjectionMatrix(pangolin::ProjectionMatrix(w, h, fu, fv, u0, v0, zNear, zFar));
 
         return *this;
     }
 
-    Visualizer& Visualizer::setProjectionMatrix(int w, int h, const Eigen::Matrix3f &intrinsics, pangolin::GLprecision zNear, pangolin::GLprecision zFar) {
-        gl_context_->MakeCurrent();
-        gl_render_state_->SetProjectionMatrix(pangolin::ProjectionMatrix(w, h, intrinsics(0,0), intrinsics(1,1), intrinsics(0,2), intrinsics(1,2), zNear, zFar));
+    Visualizer& Visualizer::setPerspectiveProjectionMatrix(int w, int h, const Eigen::Matrix3f &intrinsics, pangolin::GLprecision zNear, pangolin::GLprecision zFar) {
         display_->SetAspect(-(double)w/((double)h));
+        input_handler_->SetPerspectiveProjectionMatrix(pangolin::ProjectionMatrix(w, h, intrinsics(0,0), intrinsics(1,1), intrinsics(0,2), intrinsics(1,2), zNear, zFar));
+
+        return *this;
+    }
+
+    Visualizer& Visualizer::setOrthographicProjectionMatrix(pangolin::GLprecision left, pangolin::GLprecision right, pangolin::GLprecision bottom, pangolin::GLprecision top, pangolin::GLprecision near, pangolin::GLprecision far) {
+        input_handler_->SetOrthographicProjectionMatrix(left, right, bottom, top, near, far);
+
+        return *this;
+    }
+
+    Visualizer& Visualizer::setOrthographicProjectionMatrix(pangolin::GLprecision height, pangolin::GLprecision near, pangolin::GLprecision far) {
+        double aspect = std::abs(display_->aspect);
+        input_handler_->SetOrthographicProjectionMatrix(-height*aspect/2.0, height*aspect/2.0, -height/2.0, height/2.0, near, far);
 
         return *this;
     }

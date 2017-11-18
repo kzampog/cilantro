@@ -19,7 +19,6 @@ namespace cilantro {
               ortho_near(0.2f),
               ortho_far(100.0f),
               perspective_projection(visualizer->gl_render_state_->GetProjectionMatrix()),
-              orthographic_projection(pangolin::ProjectionMatrixOrthographic(ortho_left,ortho_right,ortho_bottom,ortho_top,ortho_near,ortho_far)),
               cam_state(visualizer->gl_render_state_.get()),
               enforce_up(enforce_up),
               cameraspec(pangolin::CameraSpecOpenGl),
@@ -68,7 +67,7 @@ namespace cilantro {
                     cam_state->SetProjectionMatrix(perspective_projection);
                 } else {
                     ortho = true;
-                    cam_state->SetProjectionMatrix(orthographic_projection);
+                    cam_state->SetProjectionMatrix(pangolin::ProjectionMatrixOrthographic(ortho_left, ortho_right, ortho_bottom, ortho_top, ortho_near, ortho_far));
                 }
                 break;
             case 'q':
@@ -157,29 +156,26 @@ namespace cilantro {
             std::copy(Pc,Pc+3,rot_center);
         }
 
-        if (ortho && (button == pangolin::MouseWheelUp || button == pangolin::MouseWheelDown)) {
-            ortho_left *= 1.0f + ((button == pangolin::MouseWheelUp) ? -1.0f : 1.0f) * zoomFraction;
-            ortho_right *= 1.0f + ((button == pangolin::MouseWheelUp) ? -1.0f : 1.0f) * zoomFraction;
-            ortho_bottom *= 1.0f + ((button == pangolin::MouseWheelUp) ? -1.0f : 1.0f) * zoomFraction;
-            ortho_top *= 1.0f + ((button == pangolin::MouseWheelUp) ? -1.0f : 1.0f) * zoomFraction;
-            orthographic_projection = pangolin::ProjectionMatrixOrthographic(ortho_left,ortho_right,ortho_bottom,ortho_top,ortho_near,ortho_far);
-            cam_state->SetProjectionMatrix(orthographic_projection);
-            return;
-        }
-
-        if( button == pangolin::MouseWheelUp || button == pangolin::MouseWheelDown)
-        {
-            pangolin::LieSetIdentity(T_nc);
-            const pangolin::GLprecision t[3] = { 0,0,(button==pangolin::MouseWheelUp?1:-1)*100*translationFactor};
-            pangolin::LieSetTranslation<>(T_nc,t);
-            if( !(button_state & pangolin::MouseButtonRight) && !(rot_center[0]==0 && rot_center[1]==0 && rot_center[2]==0) )
-            {
-                pangolin::LieSetTranslation<>(T_nc,rot_center);
-                const pangolin::GLprecision s = (button==pangolin::MouseWheelUp?-1.0:1.0) * zoomFraction;
-                pangolin::MatMul<3,1>(T_nc+(3*3), s);
+        if(button == pangolin::MouseWheelUp || button == pangolin::MouseWheelDown) {
+            if (ortho) {
+                ortho_left *= 1.0f + ((button == pangolin::MouseWheelUp) ? -1.0f : 1.0f) * zoomFraction;
+                ortho_right *= 1.0f + ((button == pangolin::MouseWheelUp) ? -1.0f : 1.0f) * zoomFraction;
+                ortho_bottom *= 1.0f + ((button == pangolin::MouseWheelUp) ? -1.0f : 1.0f) * zoomFraction;
+                ortho_top *= 1.0f + ((button == pangolin::MouseWheelUp) ? -1.0f : 1.0f) * zoomFraction;
+                cam_state->SetProjectionMatrix(pangolin::ProjectionMatrixOrthographic(ortho_left,ortho_right,ortho_bottom,ortho_top,ortho_near,ortho_far));
+            } else {
+                pangolin::LieSetIdentity(T_nc);
+                const pangolin::GLprecision t[3] = { 0,0,(button==pangolin::MouseWheelUp?1:-1)*100*translationFactor};
+                pangolin::LieSetTranslation<>(T_nc,t);
+                if( !(button_state & pangolin::MouseButtonRight) && !(rot_center[0]==0 && rot_center[1]==0 && rot_center[2]==0) )
+                {
+                    pangolin::LieSetTranslation<>(T_nc,rot_center);
+                    const pangolin::GLprecision s = (button==pangolin::MouseWheelUp?-1.0:1.0) * zoomFraction;
+                    pangolin::MatMul<3,1>(T_nc+(3*3), s);
+                }
+                pangolin::OpenGlMatrix& spec = cam_state->GetModelViewMatrix();
+                pangolin::LieMul4x4bySE3<>(spec.m,T_nc,spec.m);
             }
-            pangolin::OpenGlMatrix& spec = cam_state->GetModelViewMatrix();
-            pangolin::LieMul4x4bySE3<>(spec.m,T_nc,spec.m);
         }
 
     }
@@ -338,6 +334,49 @@ namespace cilantro {
             pangolin::LieMulSE3(T_nc, T_n2, T_2c );
             pangolin::OpenGlMatrix& spec = cam_state->GetModelViewMatrix();
             pangolin::LieMul4x4bySE3<>(spec.m,T_nc,spec.m);
+        }
+    }
+
+    void VisualizerHandler::SetPerspectiveProjectionMatrix(const pangolin::OpenGlMatrix &mat) {
+        perspective_projection = mat;
+        if (!ortho) {
+            cam_state->SetProjectionMatrix(perspective_projection);
+        }
+    }
+
+    void VisualizerHandler::SetOrthographicProjectionMatrix(pangolin::GLprecision left, pangolin::GLprecision right, pangolin::GLprecision bottom, pangolin::GLprecision top, pangolin::GLprecision near, pangolin::GLprecision far) {
+        ortho_left = (float)left;
+        ortho_right = (float)right;
+        ortho_bottom = (float)bottom;
+        ortho_top = (float)top;
+        ortho_near = (float)near;
+        ortho_far = (float)far;
+        if (ortho) {
+            cam_state->SetProjectionMatrix(pangolin::ProjectionMatrixOrthographic(left, right, bottom, top, near, far));
+        }
+    }
+
+    void VisualizerHandler::EnablePerspectiveProjection() {
+        if (ortho) {
+            ortho = false;
+            cam_state->SetProjectionMatrix(perspective_projection);
+        }
+    }
+
+    void VisualizerHandler::EnableOrthographicProjection() {
+        if (!ortho) {
+            ortho = true;
+            cam_state->SetProjectionMatrix(pangolin::ProjectionMatrixOrthographic(ortho_left,ortho_right,ortho_bottom,ortho_top,ortho_near,ortho_far));
+        }
+    }
+
+    void VisualizerHandler::ToggleProjectionMode() {
+        if (ortho) {
+            ortho = false;
+            cam_state->SetProjectionMatrix(perspective_projection);
+        } else {
+            ortho = true;
+            cam_state->SetProjectionMatrix(pangolin::ProjectionMatrixOrthographic(ortho_left,ortho_right,ortho_bottom,ortho_top,ortho_near,ortho_far));
         }
     }
 }

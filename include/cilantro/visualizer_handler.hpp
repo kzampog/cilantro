@@ -20,6 +20,13 @@ namespace cilantro {
         void MouseMotion(pangolin::View&, int x, int y, int button_state);
         void Special(pangolin::View&, pangolin::InputSpecial inType, float x, float y, float p1, float p2, float p3, float p4, int button_state);
 
+        void SetPerspectiveProjectionMatrix(const pangolin::OpenGlMatrix &mat);
+        void SetOrthographicProjectionMatrix(pangolin::GLprecision left, pangolin::GLprecision right, pangolin::GLprecision bottom, pangolin::GLprecision top, pangolin::GLprecision near, pangolin::GLprecision far);
+
+        void EnablePerspectiveProjection();
+        void EnableOrthographicProjection();
+        void ToggleProjectionMode();
+
 #ifdef USE_EIGEN
         // Return selected point in world coordinates
         inline Eigen::Vector3d Selected_P_w() const {
@@ -45,7 +52,6 @@ namespace cilantro {
         float ortho_near;
         float ortho_far;
         pangolin::OpenGlMatrix perspective_projection;
-        pangolin::OpenGlMatrix orthographic_projection;
 
         pangolin::OpenGlRenderState* cam_state;
         const static int hwin = 8;
