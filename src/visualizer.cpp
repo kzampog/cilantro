@@ -353,7 +353,6 @@ namespace cilantro {
     }
 
     Eigen::Matrix4f Visualizer::getCameraPose() const {
-//    return (cam_axes_rot_*pangolin::ToEigen<float>(gl_render_state_->GetModelViewMatrix())).inverse();
         Eigen::Matrix4f model_view_rot(cam_axes_rot_*pangolin::ToEigen<float>(gl_render_state_->GetModelViewMatrix()));
         Eigen::Matrix3f rot = model_view_rot.topLeftCorner(3,3).transpose();
         model_view_rot.topLeftCorner(3,3) = rot;
@@ -362,19 +361,25 @@ namespace cilantro {
         return model_view_rot;
     }
 
-    Visualizer& Visualizer::getCameraPose(Eigen::Vector3f &position, Eigen::Vector3f &look_at, Eigen::Vector3f &up_direction) const {
+    const Visualizer& Visualizer::getCameraPose(Eigen::Vector3f &position, Eigen::Vector3f &look_at, Eigen::Vector3f &up_direction) const {
         Eigen::Matrix4f pose = getCameraPose();
         position = pose.topRightCorner(3,1);
         look_at = position + pose.block<3,1>(0,2);
         up_direction = -pose.block<3,1>(0,1);
+
+        return *this;
     }
 
     Visualizer& Visualizer::setCameraPose(const Eigen::Vector3f &position, const Eigen::Vector3f &look_at, const Eigen::Vector3f &up_direction) {
         gl_render_state_->SetModelViewMatrix(pangolin::ModelViewLookAt(position(0), position(1), position(2), look_at(0), look_at(1), look_at(2), up_direction(0), up_direction(1), up_direction(2)));
+
+        return *this;
     }
 
     Visualizer& Visualizer::setCameraPose(float pos_x, float pos_y, float pos_z, float look_at_x, float look_at_y, float look_at_z, float up_dir_x, float up_dir_y, float up_dir_z) {
         gl_render_state_->SetModelViewMatrix(pangolin::ModelViewLookAt(pos_x, pos_y, pos_z, look_at_x, look_at_y, look_at_z, up_dir_x, up_dir_y, up_dir_z));
+
+        return *this;
     }
 
     Visualizer& Visualizer::setCameraPose(const Eigen::Matrix4f &pose) {
@@ -386,6 +391,49 @@ namespace cilantro {
         model_view(3,3) = 1.0f;
         model_view = cam_axes_rot_*model_view;
         gl_render_state_->SetModelViewMatrix(model_view);
+
+        return *this;
+    }
+
+    Eigen::Matrix4f Visualizer::getDefaultCameraPose() const {
+        Eigen::Matrix4f model_view_rot(cam_axes_rot_*pangolin::ToEigen<float>(input_handler_->default_model_view));
+        Eigen::Matrix3f rot = model_view_rot.topLeftCorner(3,3).transpose();
+        model_view_rot.topLeftCorner(3,3) = rot;
+        model_view_rot.topRightCorner(3,1) = -rot*model_view_rot.topRightCorner(3,1);
+
+        return model_view_rot;
+    }
+
+    const Visualizer& Visualizer::getDefaultCameraPose(Eigen::Vector3f &position, Eigen::Vector3f &look_at, Eigen::Vector3f &up_direction) const {
+        Eigen::Matrix4f pose = getDefaultCameraPose();
+        position = pose.topRightCorner(3,1);
+        look_at = position + pose.block<3,1>(0,2);
+        up_direction = -pose.block<3,1>(0,1);
+
+        return *this;
+    }
+
+    Visualizer& Visualizer::setDefaultCameraPose(const Eigen::Vector3f &position, const Eigen::Vector3f &look_at, const Eigen::Vector3f &up_direction) {
+        input_handler_->default_model_view = pangolin::ModelViewLookAt(position(0), position(1), position(2), look_at(0), look_at(1), look_at(2), up_direction(0), up_direction(1), up_direction(2));
+
+        return *this;
+    }
+
+    Visualizer& Visualizer::setDefaultCameraPose(float pos_x, float pos_y, float pos_z, float look_at_x, float look_at_y, float look_at_z, float up_dir_x, float up_dir_y, float up_dir_z) {
+        input_handler_->default_model_view = pangolin::ModelViewLookAt(pos_x, pos_y, pos_z, look_at_x, look_at_y, look_at_z, up_dir_x, up_dir_y, up_dir_z);
+
+        return *this;
+    }
+
+    Visualizer& Visualizer::setDefaultCameraPose(const Eigen::Matrix4f &pose) {
+        Eigen::Matrix3f rot = pose.topLeftCorner(3,3).transpose();
+        Eigen::Matrix4f model_view;
+        model_view.topLeftCorner(3,3) = rot;
+        model_view.topRightCorner(3,1) = -rot*pose.topRightCorner(3,1);
+        model_view.bottomLeftCorner(1,3).setZero();
+        model_view(3,3) = 1.0f;
+        model_view = cam_axes_rot_*model_view;
+        input_handler_->default_model_view = model_view;
 
         return *this;
     }
@@ -526,64 +574,18 @@ namespace cilantro {
         }
         gl_context_->MakeCurrent();
 
-        // Default callbacks
-        pangolin::RegisterKeyPressCallback('q', pangolin::Quit);
-        pangolin::RegisterKeyPressCallback('Q', pangolin::Quit);
-        auto inc_fun = std::bind(point_size_callback_, std::ref(*this), '+');
-        pangolin::RegisterKeyPressCallback('+', inc_fun);
-        auto dec_fun = std::bind(point_size_callback_, std::ref(*this), '-');
-        pangolin::RegisterKeyPressCallback('-', dec_fun);
-        auto reset_fun = std::bind(reset_view_callback_, std::ref(*this));
-        pangolin::RegisterKeyPressCallback('r', reset_fun);
-        pangolin::RegisterKeyPressCallback('R', reset_fun);
-        auto wireframe_fun = std::bind(wireframe_toggle_callback_, std::ref(*this));
-        pangolin::RegisterKeyPressCallback('w', wireframe_fun);
-        pangolin::RegisterKeyPressCallback('W', wireframe_fun);
-
         // Pangolin searches internally for existing named displays
         display_ = &(pangolin::Display(display_name));
-
-        initial_model_view_ = pangolin::ModelViewLookAt(0, 0, 0, 0, 0, 1, 0, -1, 0);
-        gl_render_state_.reset(new pangolin::OpenGlRenderState(pangolin::ProjectionMatrix(640, 480, 528, 528, 320, 240, 0.2, 100), initial_model_view_));
-        input_handler_.reset(new pangolin::Handler3D(*gl_render_state_));
-        display_->SetHandler(input_handler_.get());
         display_->SetAspect(-4.0f/3.0f);
+
+        gl_render_state_.reset(new pangolin::OpenGlRenderState(pangolin::ProjectionMatrix(640, 480, 528, 528, 320, 240, 0.2, 100), pangolin::ModelViewLookAt(0, 0, 0, 0, 0, 1, 0, -1, 0)));
+        input_handler_.reset(new VisualizerHandler(this));
+        display_->SetHandler(input_handler_.get());
 
         clear_color_ = Eigen::Vector3f(0.7f, 0.7f, 1.0f);
         cam_axes_rot_.setIdentity();
         cam_axes_rot_(1,1) = -1.0f;
         cam_axes_rot_(2,2) = -1.0f;
         video_record_on_render_ = false;
-    }
-
-    void Visualizer::point_size_callback_(Visualizer &viz, int key) {
-        if (key == '+') {
-            for (auto it = viz.renderables_.begin(); it != viz.renderables_.end(); ++it) {
-                RenderingProperties rp = viz.getRenderingProperties(it->first);
-                rp.pointSize += 1.0f;
-                rp.lineWidth += 1.0f;
-                viz.setRenderingProperties(it->first, rp);
-            }
-        } else if (key == '-') {
-            for (auto it = viz.renderables_.begin(); it != viz.renderables_.end(); ++it) {
-                RenderingProperties rp = viz.getRenderingProperties(it->first);
-                rp.pointSize = std::max(rp.pointSize - 1.0f, 1.0f);
-                rp.lineWidth = std::max(rp.lineWidth - 1.0f, 1.0f);
-                viz.setRenderingProperties(it->first, rp);
-            }
-        }
-    }
-
-    void Visualizer::reset_view_callback_(Visualizer &viz) {
-        viz.gl_render_state_->SetModelViewMatrix(viz.initial_model_view_);
-    }
-
-    void Visualizer::wireframe_toggle_callback_(Visualizer &viz) {
-        for (auto it = viz.renderables_.begin(); it != viz.renderables_.end(); ++it) {
-            RenderingProperties rp = viz.getRenderingProperties(it->first);
-            bool wireframe = rp.drawWireframe;
-            rp.setDrawWireframe(!wireframe);
-            viz.setRenderingProperties(it->first, rp);
-        }
     }
 }

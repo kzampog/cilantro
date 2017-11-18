@@ -1,11 +1,13 @@
 #pragma once
 
 #include <cilantro/renderables.hpp>
+#include <cilantro/visualizer_handler.hpp>
 #include <cilantro/point_cloud.hpp>
 #include <pangolin/display/display_internal.h>
 
 namespace cilantro {
     class Visualizer {
+        friend class VisualizerHandler;
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -63,10 +65,16 @@ namespace cilantro {
         Visualizer& setProjectionMatrix(int w, int h, const Eigen::Matrix3f &intrinsics, pangolin::GLprecision zNear, pangolin::GLprecision zFar);
 
         Eigen::Matrix4f getCameraPose() const;
-        Visualizer& getCameraPose(Eigen::Vector3f &position, Eigen::Vector3f &look_at, Eigen::Vector3f &up_direction) const;
+        const Visualizer& getCameraPose(Eigen::Vector3f &position, Eigen::Vector3f &look_at, Eigen::Vector3f &up_direction) const;
         Visualizer& setCameraPose(const Eigen::Vector3f &position, const Eigen::Vector3f &look_at, const Eigen::Vector3f &up_direction);
         Visualizer& setCameraPose(float pos_x, float pos_y, float pos_z, float look_at_x, float look_at_y, float look_at_z, float up_dir_x, float up_dir_y, float up_dir_z);
         Visualizer& setCameraPose(const Eigen::Matrix4f &pose);
+
+        Eigen::Matrix4f getDefaultCameraPose() const;
+        const Visualizer& getDefaultCameraPose(Eigen::Vector3f &position, Eigen::Vector3f &look_at, Eigen::Vector3f &up_direction) const;
+        Visualizer& setDefaultCameraPose(const Eigen::Vector3f &position, const Eigen::Vector3f &look_at, const Eigen::Vector3f &up_direction);
+        Visualizer& setDefaultCameraPose(float pos_x, float pos_y, float pos_z, float look_at_x, float look_at_y, float look_at_z, float up_dir_x, float up_dir_y, float up_dir_z);
+        Visualizer& setDefaultCameraPose(const Eigen::Matrix4f &pose);
 
         Visualizer& registerKeyboardCallback(const std::vector<int> &keys, std::function<void(Visualizer&,int,void*)> func, void *cookie);
 
@@ -82,14 +90,14 @@ namespace cilantro {
         inline pangolin::View* getPangolinDisplay() const { return display_; }
 
         inline pangolin::OpenGlRenderState* getPangolinRenderState() const { return gl_render_state_.get(); }
+        inline VisualizerHandler* getInputHandler() const { return input_handler_.get(); }
 
     private:
         pangolin::PangolinGl *gl_context_;
         pangolin::View *display_;
 
         std::shared_ptr<pangolin::OpenGlRenderState> gl_render_state_;
-        std::shared_ptr<pangolin::Handler3D> input_handler_;
-        pangolin::OpenGlMatrix initial_model_view_;
+        std::shared_ptr<VisualizerHandler> input_handler_;
         std::shared_ptr<pangolin::VideoOutput> video_recorder_;
         size_t video_fps_;
         float video_scale_;
@@ -101,10 +109,6 @@ namespace cilantro {
         std::map<std::string, std::shared_ptr<Renderable> > renderables_;
 
         void init_(const std::string &window_name, const std::string &display_name);
-
-        static void point_size_callback_(Visualizer &viz, int key);
-        static void reset_view_callback_(Visualizer &viz);
-        static void wireframe_toggle_callback_(Visualizer &viz);
 
         static inline bool render_priority_comparator_(const std::pair<std::tuple<bool,bool,float>, Renderable*> &o1, const std::pair<std::tuple<bool,bool,float>, Renderable*> &o2) {
             return o1.first > o2.first;

@@ -2,9 +2,6 @@
 #include <cilantro/io.hpp>
 #include <cilantro/voxel_grid.hpp>
 
-#include <iostream>
-#include <ctime>
-
 void callback_test(cilantro::Visualizer &viz, int key, void *cookie) {
     std::string name = *((std::string *)cookie);
     std::cout << "Toggling visibility for " << name << std::endl;
@@ -32,11 +29,8 @@ int main(int argc, char ** argv) {
         scalars[i] = cloud.points[i].norm();
     viz.addPointCloud("pcd", cloud, cilantro::RenderingProperties().setColormapType(cilantro::ColormapType::JET).setLineDensityFraction(0.2f).setOpacity(0.5).setDrawNormals(true));
     viz.addPointCloudValues("pcd", scalars);
-
     viz.addCoordinateFrame("axis", 0.4f, Eigen::Matrix4f::Identity(), cilantro::RenderingProperties().setLineWidth(10.0f));
-
-    std::string name = "nrm";
-    viz.registerKeyboardCallback(std::vector<int>(1,'n'), callback_test, &name);
+    viz.addText("text", "Coordinate Frame", 0, 0, 0, cilantro::RenderingProperties().setFontSize(20.0f).setPointColor(1,1,0).setTextAnchorPoint(0.5,-1));
 
     // Second
     cilantro::PointCloud cloud2(cloud);
@@ -47,11 +41,11 @@ int main(int argc, char ** argv) {
     cilantro::Visualizer viz2("VIS_WIN2", "disp2");
     viz2.addPointCloud("pcd1", cloud, cilantro::RenderingProperties().setPointColor(1,0,0).setOpacity(0.5));
     viz2.addPointCloud("pcd2", cloud2, cilantro::RenderingProperties().setPointColor(0,0,1).setOpacity(0.4));
-    viz2.addPointCorrespondences("corr", cloud, cloud2, cilantro::RenderingProperties().setLineDensityFraction(0.01).setOpacity(0.4));
+    viz2.addPointCorrespondences("correspondences", cloud, cloud2, cilantro::RenderingProperties().setLineDensityFraction(0.01).setOpacity(0.4));
     viz2.addCoordinateFrame("axis", 0.4f, Eigen::Matrix4f::Identity(), cilantro::RenderingProperties().setLineWidth(10.0f));
 
-    std::string name2 = "corr";
-    viz2.registerKeyboardCallback(std::vector<int>(1,'c'), callback_test, &name2);
+    std::string name = "correspondences";
+    viz2.registerKeyboardCallback(std::vector<int>(1,'c'), callback_test, &name);
 
     clock_t t0 = clock();
 
