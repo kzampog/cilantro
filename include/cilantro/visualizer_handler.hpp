@@ -9,7 +9,7 @@ namespace cilantro {
     {
         friend class Visualizer;
 
-        VisualizerHandler(cilantro::Visualizer * visualizer, pangolin::AxisDirection enforce_up = pangolin::AxisNone, float trans_scale=0.01f, float zoom_fraction = PANGO_DFLT_HANDLER3D_ZF);
+        VisualizerHandler(cilantro::Visualizer * visualizer);
 
         virtual bool ValidWinDepth(pangolin::GLprecision depth);
         virtual void PixelUnproject(pangolin::View& view, pangolin::GLprecision winx, pangolin::GLprecision winy, pangolin::GLprecision winz, pangolin::GLprecision Pc[3]);
@@ -42,8 +42,7 @@ namespace cilantro {
         float minLineWidth;
 
     protected:
-        cilantro::Visualizer * vis;
-        pangolin::OpenGlMatrix default_model_view;
+        cilantro::Visualizer * visualizer;
         bool ortho;
         float ortho_left;
         float ortho_right;
@@ -52,6 +51,8 @@ namespace cilantro {
         float ortho_near;
         float ortho_far;
         pangolin::OpenGlMatrix perspective_projection;
+        pangolin::OpenGlMatrix default_model_view;
+        std::map<unsigned char, std::function<void(void)> > key_callback_map;
 
         pangolin::OpenGlRenderState* cam_state;
         const static int hwin = 8;

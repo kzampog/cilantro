@@ -5,7 +5,7 @@
 
 bool re_estimate = false;
 
-void callback(cilantro::Visualizer &viz, int key, void *cookie) {
+void callback(cilantro::Visualizer &viz, unsigned char key, void *cookie) {
     if (key == 'a') {
         re_estimate = true;
     }
@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
     readPointCloudFromPLYFile(argv[1], cloud);
 
     cilantro::Visualizer viz("win", "disp");
-    viz.registerKeyboardCallback(std::vector<int>(1,'a'), callback, NULL);
+    viz.registerKeyboardCallback('a', callback, NULL);
 
     std::cout << "Press 'a' for a new estimate" << std::endl;
 

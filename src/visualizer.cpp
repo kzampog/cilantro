@@ -449,12 +449,8 @@ namespace cilantro {
         return *this;
     }
 
-    Visualizer& Visualizer::registerKeyboardCallback(const std::vector<int> &keys, std::function<void(Visualizer&,int,void*)> func, void *cookie) {
-        gl_context_->MakeCurrent();
-        for (size_t i = 0; i < keys.size(); i++) {
-            auto fun = std::bind(func, std::ref(*this), keys[i], cookie);
-            pangolin::RegisterKeyPressCallback(keys[i], fun);
-        }
+    Visualizer& Visualizer::registerKeyboardCallback(unsigned char key, std::function<void(Visualizer &, unsigned char, void *)> func, void *cookie) {
+        input_handler_->key_callback_map[key] = std::bind(func, std::ref(*this), key, cookie);
 
         return *this;
     }

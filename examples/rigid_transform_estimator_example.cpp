@@ -9,7 +9,7 @@
 bool re_estimate = false;
 bool randomize = true;
 
-void callback(cilantro::Visualizer &viz, int key, void *cookie) {
+void callback(cilantro::Visualizer &viz, unsigned char key, void *cookie) {
     if (key == 'a') {
         re_estimate = true;
     }
@@ -26,10 +26,8 @@ int main(int argc, char **argv) {
     cilantro::PointCloud src(dst);
 
     cilantro::Visualizer viz("win", "disp");
-    std::vector<int> keys;
-    keys.push_back('a');
-    keys.push_back('d');
-    viz.registerKeyboardCallback(keys, callback, NULL);
+    viz.registerKeyboardCallback('a', callback, NULL);
+    viz.registerKeyboardCallback('d', callback, NULL);
 
     std::vector<size_t> dst_ind(100);
     std::vector<size_t> src_ind(100);

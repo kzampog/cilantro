@@ -2,7 +2,7 @@
 #include <cilantro/io.hpp>
 #include <cilantro/voxel_grid.hpp>
 
-void callback_test(cilantro::Visualizer &viz, int key, void *cookie) {
+void callback_test(cilantro::Visualizer &viz, unsigned char key, void *cookie) {
     std::string name = *((std::string *)cookie);
     std::cout << "Toggling visibility for " << name << std::endl;
     viz.toggleVisibilityStatus(name);
@@ -45,7 +45,7 @@ int main(int argc, char ** argv) {
     viz2.addCoordinateFrame("axis", 0.4f, Eigen::Matrix4f::Identity(), cilantro::RenderingProperties().setLineWidth(10.0f));
 
     std::string name = "correspondences";
-    viz2.registerKeyboardCallback(std::vector<int>(1,'c'), callback_test, &name);
+    viz2.registerKeyboardCallback('c', callback_test, &name);
 
     clock_t t0 = clock();
 

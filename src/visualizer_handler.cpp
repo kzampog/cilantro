@@ -2,15 +2,14 @@
 #include <cilantro/visualizer.hpp>
 
 namespace cilantro {
-    VisualizerHandler::VisualizerHandler(cilantro::Visualizer * visualizer, pangolin::AxisDirection enforce_up, float trans_scale, float zoom_fraction)
-            : translationFactor(trans_scale),
-              zoomFraction(zoom_fraction),
+    VisualizerHandler::VisualizerHandler(cilantro::Visualizer * visualizer)
+            : translationFactor(0.01f),
+              zoomFraction(PANGO_DFLT_HANDLER3D_ZF),
               pointSizeStep(1.0f),
               minPointSize(1.0f),
               lineWidthStep(1.0f),
               minLineWidth(1.0f),
-              vis(visualizer),
-              default_model_view(visualizer->gl_render_state_->GetModelViewMatrix()),
+              visualizer(visualizer),
               ortho(false),
               ortho_left(-(float)std::abs(visualizer->display_->aspect)),
               ortho_right((float)std::abs(visualizer->display_->aspect)),
@@ -19,8 +18,9 @@ namespace cilantro {
               ortho_near(0.2f),
               ortho_far(100.0f),
               perspective_projection(visualizer->gl_render_state_->GetProjectionMatrix()),
+              default_model_view(visualizer->gl_render_state_->GetModelViewMatrix()),
               cam_state(visualizer->gl_render_state_.get()),
-              enforce_up(enforce_up),
+              enforce_up(pangolin::AxisNone),
               cameraspec(pangolin::CameraSpecOpenGl),
               last_z(0.8)
     {
@@ -37,16 +37,16 @@ namespace cilantro {
                 cam_state->SetModelViewMatrix(default_model_view);
                 break;
             case '+':
-                vis->gl_context_->MakeCurrent();
-                for (auto it = vis->renderables_.begin(); it != vis->renderables_.end(); ++it) {
+                visualizer->gl_context_->MakeCurrent();
+                for (auto it = visualizer->renderables_.begin(); it != visualizer->renderables_.end(); ++it) {
                     it->second->renderingProperties.pointSize += pointSizeStep;
                     it->second->renderingProperties.lineWidth += lineWidthStep;
                     it->second->applyRenderingProperties();
                 }
                 break;
             case '-':
-                vis->gl_context_->MakeCurrent();
-                for (auto it = vis->renderables_.begin(); it != vis->renderables_.end(); ++it) {
+                visualizer->gl_context_->MakeCurrent();
+                for (auto it = visualizer->renderables_.begin(); it != visualizer->renderables_.end(); ++it) {
                     it->second->renderingProperties.pointSize = std::max(it->second->renderingProperties.pointSize - pointSizeStep, minPointSize);
                     it->second->renderingProperties.lineWidth = std::max(it->second->renderingProperties.lineWidth - lineWidthStep, minLineWidth);
                     it->second->applyRenderingProperties();
@@ -54,8 +54,8 @@ namespace cilantro {
                 break;
             case 'w':
             case 'W':
-                vis->gl_context_->MakeCurrent();
-                for (auto it = vis->renderables_.begin(); it != vis->renderables_.end(); ++it) {
+                visualizer->gl_context_->MakeCurrent();
+                for (auto it = visualizer->renderables_.begin(); it != visualizer->renderables_.end(); ++it) {
                     it->second->renderingProperties.drawWireframe = !it->second->renderingProperties.drawWireframe;
                     it->second->applyRenderingProperties();
                 }
@@ -76,6 +76,11 @@ namespace cilantro {
                 break;
             default:
                 break;
+        }
+
+        auto it = key_callback_map.find(key);
+        if (it != key_callback_map.end()) {
+            it->second();
         }
     }
 

@@ -5,7 +5,7 @@
 
 bool proceed = false;
 
-void callback(cilantro::Visualizer &viz, int key, void *cookie) {
+void callback(cilantro::Visualizer &viz, unsigned char key, void *cookie) {
     if (key == 'a') proceed = true;
 }
 
@@ -50,7 +50,7 @@ int main(int argc, char ** argv) {
 //    std::random_shuffle(ind.begin(), ind.end());
 
     cilantro::Visualizer viz("win", "disp");
-    viz.registerKeyboardCallback(std::vector<int>(1,'a'), callback, NULL);
+    viz.registerKeyboardCallback('a', callback, NULL);
 
     viz.addPointCloud("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
     viz.addPointCloud("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
