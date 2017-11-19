@@ -78,6 +78,14 @@ namespace cilantro {
                     cam_state->SetProjectionMatrix(pangolin::ProjectionMatrixOrthographic(ortho_left, ortho_right, ortho_bottom, ortho_top, ortho_near, ortho_far));
                 }
                 break;
+            case 'l':
+            case 'L':
+                visualizer->gl_context_->MakeCurrent();
+                for (auto it = visualizer->renderables_.begin(); it != visualizer->renderables_.end(); ++it) {
+                    it->second->renderingProperties.useLighting = !it->second->renderingProperties.useLighting;
+                    it->second->applyRenderingProperties();
+                }
+                break;
             case 'q':
             case 'Q':
                 pangolin::Quit();
