@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
     cilantro::PointCloud cloud;
     readPointCloudFromPLYFile(argv[1], cloud);
 
-    cilantro::Visualizer viz("win", "disp");
+    cilantro::Visualizer viz("PlaneEstimator example", "disp");
     viz.registerKeyboardCallback('a', callback, NULL);
 
     std::cout << "Press 'a' for a new estimate" << std::endl;

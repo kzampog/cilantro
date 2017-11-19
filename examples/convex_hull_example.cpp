@@ -75,7 +75,7 @@ int main(int argc, char ** argv) {
     }
 
 
-    cilantro::Visualizer viz1("win1", "disp");
+    cilantro::Visualizer viz1("3D convex hull", "disp");
 
     viz1.addPointCloud("cloud", cloud, cilantro::RenderingProperties().setOpacity(1.0));
     viz1.addTriangleMesh("mesh", ch.getVertices(), ch.getFacetVertexIndices());
@@ -95,10 +95,11 @@ int main(int argc, char ** argv) {
 
     std::vector<Eigen::Vector2f> pts = proj.project<2>(cloud.points);
     cloud.points = proj.reconstruct<2>(pts);
+    cloud.normals.clear();
 
     cilantro::PointCloudHullFlat ch2d(cloud);
 
-    cilantro::Visualizer viz2("win2", "disp");
+    cilantro::Visualizer viz2("2D convex hull in 3D space", "disp");
 
     std::vector<std::vector<size_t> > face_v_ind = ch2d.getFacetVertexIndices();
     std::vector<Eigen::Vector3f> p_src(face_v_ind.size()), p_dst(face_v_ind.size());

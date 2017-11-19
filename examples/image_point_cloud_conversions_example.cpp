@@ -4,75 +4,47 @@
 
 
 int main(int argc, char ** argv) {
+    // Intrinsics
+    Eigen::Matrix3f K;
+    K << 528, 0, 320, 0, 528, 240, 0, 0, 1;
+
 //    std::string uri = "files://[/home/kzampog/Desktop/rgbd_sequences/dok_demo/rgb_*.png,/home/kzampog/Desktop/rgbd_sequences/dok_demo/depth_*.png]";
     std::string uri = "openni2:[img1=rgb,img2=depth_reg,coloursync=true,closerange=true,holefilter=true]//";
 
     std::unique_ptr<pangolin::VideoInterface> dok = pangolin::OpenVideo(uri);
-
-    cilantro::Visualizer pcdv("CLOUD", "disp");
-    cilantro::ImageViewer rgbv("RGB", "disp");
-    cilantro::ImageViewer depthv("DEPTH", "disp");
-
-    Eigen::Matrix3f K;
-    K << 528, 0, 320, 0, 528, 240, 0, 0, 1;
-
     size_t w = 640, h = 480;
-    cilantro::PointCloud cloud;
     unsigned char* img = new unsigned char[dok->SizeBytes()];
-    while (dok->GrabNext(img, true)) {
-        pangolin::Image<Eigen::Matrix<unsigned char,3,1> > rgb_img((Eigen::Matrix<unsigned char,3,1> *)img, w, h, w*sizeof(Eigen::Matrix<unsigned char,3,1>));
-        pangolin::Image<unsigned short> depth_img((unsigned short *)(img+3*w*h), w, h, w*sizeof(unsigned short));
 
-        pangolin::ManagedImage<Eigen::Matrix<unsigned char,3,1> > rgb_img2(w,h);
-        pangolin::ManagedImage<unsigned short> depth_img2(w,h);
+    pangolin::Image<Eigen::Matrix<unsigned char,3,1> > rgb_img((Eigen::Matrix<unsigned char,3,1> *)img, w, h, w*sizeof(Eigen::Matrix<unsigned char,3,1>));
+    pangolin::Image<unsigned short> depth_img((unsigned short *)(img+3*w*h), w, h, w*sizeof(unsigned short));
 
+    cilantro::PointCloud cloud;
+
+    std::string win_name = "Image/point cloud conversions demo";
+    pangolin::CreateWindowAndBind(win_name, 1280, 960);
+    pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual)
+            .AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2")).AddDisplay(pangolin::Display("disp3"));
+
+    cilantro::ImageViewer rgbv(win_name, "disp1");
+    cilantro::ImageViewer depthv(win_name, "disp2");
+    cilantro::Visualizer pcdv(win_name, "disp3");
+
+    while (!pcdv.wasStopped() && !rgbv.wasStopped() && !depthv.wasStopped()) {
+        dok->GrabNext(img, true);
         RGBDImagesToPointCloud(rgb_img, depth_img, K, cloud, false);
-//        depthImageToPointCloud(depth_img, K, cloud, false);
 
-//        Eigen::Matrix3f R;
-//        R.setIdentity();
-//        R(0,0) = -1.0f;
-//        R(1,1) = -1.0f;
-//        Eigen::Vector3f t(0,0,0);
+        pcdv.addPointCloud("cloud", cloud);
+        rgbv.setImage(rgb_img.ptr, w, h, "RGB24");
+        depthv.setImage(depth_img.ptr, w, h, "GRAY16LE");
 
-//        pointCloudToRGBDImages(cloud, K, R, t, rgb_img2, depth_img2);
-        pointCloudToRGBDImages(cloud, K, rgb_img2, depth_img2);
-//        pointCloudToDepthImage(cloud, K, depth_img2);
-
-
-        pcdv.addPointCloud("cloud", cloud).spinOnce();
-        rgbv.setImage(rgb_img2.ptr, w, h, "RGB24").spinOnce();
-        depthv.setImage(depth_img2.ptr, w, h, "GRAY16LE").spinOnce();
+        pcdv.clearRenderArea();
+        pcdv.render();
+        rgbv.render();
+        depthv.render();
+        pangolin::FinishFrame();
     }
 
     delete[] img;
-
-//    Eigen::Matrix3f K;
-//    K << 528, 0, 320, 0, 528, 240, 0, 0, 1;
-//    size_t w = 640, h = 480;
-//
-//    PointCloud cloud;
-//    readPointCloudFromPLYFile(argv[1], cloud);
-//
-//    pangolin::ManagedImage<size_t> idx_map(w, h);
-//    pointCloudToIndexMap(cloud, K, Eigen::Matrix3f::Identity(), Eigen::Vector3f(0,0,0), idx_map);
-//
-//    std::vector<size_t> indices;
-//    for (size_t y = 0; y < h; y++) {
-//        for (size_t x = 0; x < w; x++) {
-//            if (idx_map(x,y) != std::numeric_limits<std::size_t>::max()) indices.push_back(idx_map(x,y));
-//        }
-//    }
-//
-//    std::cout << indices.size() << std::endl;
-//
-//    PointCloud cloud2(cloud, indices);
-//    Visualizer viz("CLOUD", "disp");
-//    viz.addPointCloud("cloud2", cloud2);
-//
-//    while (!viz.wasStopped()) {
-//        viz.spinOnce();
-//    }
 
     return 0;
 }

@@ -25,30 +25,22 @@ int main(int argc, char ** argv) {
 
 
     auto start = std::chrono::high_resolution_clock::now();
-
 //    kmc.cluster(k, 1000);
     kmc.cluster(k, max_iter, tol, use_kd_tree);
-
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> elapsed = end - start;
-
     std::cout << "Clustering time: " << elapsed.count() << "ms" << std::endl;
-
-
     std::cout << "Performed iterations: " << kmc.getPerformedIterationsCount() << std::endl;
 
     const std::vector<std::vector<size_t> >& cpi(kmc.getClusterPointIndices());
-
     size_t mins = cloud.size(), maxs = 0;
     for (size_t i = 0; i < cpi.size(); i++) {
         if (cpi[i].size() < mins) mins = cpi[i].size();
         if (cpi[i].size() > maxs) maxs = cpi[i].size();
     }
-
     std::cout << "Cluster size range is: [" << mins << "," << maxs << "]" << std::endl;
 
-    cilantro::Visualizer viz("win", "disp");
-
+    // Create a color map
     std::vector<Eigen::Vector3f> color_map(k);
     for (size_t i = 0; i < k; i++) {
         color_map[i] = Eigen::Vector3f::Random().array().abs();
@@ -61,14 +53,25 @@ int main(int argc, char ** argv) {
         cols[i] = color_map[idx_map[i]];
     }
 
-    viz.addPointCloud("cloud", cloud);
-    viz.addPointCloudColors("cloud", cols);
+    // Create a new colored cloud
+    cilantro::PointCloud cloud_seg(cloud.points, cloud.normals, cols);
 
-    viz.addPointCloud("centroids", kmc.getClusterCentroids(), cilantro::RenderingProperties().setPointSize(5.0f));
-    viz.addPointCloudColors("centroids", std::vector<Eigen::Vector3f>(kmc.getClusterCentroids().size(), Eigen::Vector3f(1,1,1)));
+    // Visualize result
+    pangolin::CreateWindowAndBind("KMeans demo",1280,480);
+    pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual).AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2"));
 
-    while (!viz.wasStopped()) {
-        viz.spinOnce();
+    cilantro::Visualizer viz1("KMeans demo", "disp1");
+    viz1.addPointCloud("cloud", cloud);
+
+    cilantro::Visualizer viz2("KMeans demo", "disp2");
+    viz2.addPointCloud("cloud_seg", cloud_seg);
+    viz2.addPointCloud("centroids", kmc.getClusterCentroids(), cilantro::RenderingProperties().setPointSize(5.0f).setPointColor(1.0f,1.0f,1.0f));
+
+    while (!viz1.wasStopped() && !viz2.wasStopped()) {
+        viz1.clearRenderArea();
+        viz1.render();
+        viz2.render();
+        pangolin::FinishFrame();
     }
 
     return 0;

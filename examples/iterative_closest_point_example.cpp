@@ -49,7 +49,7 @@ int main(int argc, char ** argv) {
 //    }
 //    std::random_shuffle(ind.begin(), ind.end());
 
-    cilantro::Visualizer viz("win", "disp");
+    cilantro::Visualizer viz("IterativeClosestPoint example", "disp");
     viz.registerKeyboardCallback('a', callback, NULL);
 
     viz.addPointCloud("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));

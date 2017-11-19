@@ -29,10 +29,11 @@ int main(int argc, char ** argv) {
     std::cout << "kd-tree time: " << kd_tree_time.count() << "ms" << std::endl;
     std::cout << "Estimation time: " << estimation_time.count() << "ms" << std::endl;
 
-    cilantro::Visualizer viz("win", "disp");
+    cilantro::Visualizer viz("NormalEstimation example", "disp");
 
     viz.addPointCloud("cloud_d", cloud, cilantro::RenderingProperties().setDrawNormals(true));
 
+    std::cout << "Press 'n' to toggle rendering of normals" << std::endl;
     while (!viz.wasStopped()){
         viz.spinOnce();
     }

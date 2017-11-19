@@ -316,19 +316,19 @@ namespace cilantro {
         // find object point (x,y,z)' in pixel coords
         GLdouble projection[16];
         GLdouble modelview[16];
-        GLint    view[4];
+        GLint view[4];
         GLdouble scrn[3];
 
 #ifdef HAVE_GLES_2
         std::copy(glEngine().projection.top().m, glEngine().projection.top().m+16, projection);
-    std::copy(glEngine().modelview.top().m, glEngine().modelview.top().m+16, modelview);
+        std::copy(glEngine().modelview.top().m, glEngine().modelview.top().m+16, modelview);
 #else
-        glGetDoublev(GL_PROJECTION_MATRIX, projection );
-        glGetDoublev(GL_MODELVIEW_MATRIX, modelview );
+        glGetDoublev(GL_PROJECTION_MATRIX, projection);
+        glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
 #endif
-        glGetIntegerv(GL_VIEWPORT, view );
+        glGetIntegerv(GL_VIEWPORT, view);
 
-        pangolin::glProject(centroid[0], centroid[1], centroid[2], modelview, projection, view, scrn, scrn + 1, scrn + 2);
+        pangolin::glProject(centroid[0], centroid[1], centroid[2], modelview, projection, view, scrn, scrn+1, scrn+2);
 
         pangolin::DisplayBase().Activate();
         glMatrixMode(GL_PROJECTION);
@@ -340,7 +340,7 @@ namespace cilantro {
         glLoadIdentity();
 
         const Eigen::Vector2f& anchor = renderingProperties.textAnchorPoint;
-        glTranslatef((GLfloat)scrn[0] - anchor[0]*glText.Width(), (GLfloat)scrn[1] - anchor[1]*glText.Height(), (GLfloat)scrn[2]);
+        glTranslatef((GLfloat)scrn[0]-anchor[0]*glText.Width(), (GLfloat)scrn[1]-anchor[1]*glText.Height(), (GLfloat)scrn[2]);
         glText.Draw();
 
         // Restore viewport

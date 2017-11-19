@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
 
     cilantro::PointCloud src(dst);
 
-    cilantro::Visualizer viz("win", "disp");
+    cilantro::Visualizer viz("RigidTransformEstimator example", "disp");
     viz.registerKeyboardCallback('a', callback, NULL);
     viz.registerKeyboardCallback('d', callback, NULL);
 

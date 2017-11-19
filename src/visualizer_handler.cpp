@@ -15,7 +15,7 @@ namespace cilantro {
               ortho_right((float)std::abs(visualizer->display_->aspect)),
               ortho_bottom(-1.0f),
               ortho_top(1.0f),
-              ortho_near(0.2f),
+              ortho_near(-100.0f),
               ortho_far(100.0f),
               perspective_projection(visualizer->gl_render_state_->GetProjectionMatrix()),
               default_model_view(visualizer->gl_render_state_->GetModelViewMatrix()),
@@ -49,6 +49,14 @@ namespace cilantro {
                 for (auto it = visualizer->renderables_.begin(); it != visualizer->renderables_.end(); ++it) {
                     it->second->renderingProperties.pointSize = std::max(it->second->renderingProperties.pointSize - pointSizeStep, minPointSize);
                     it->second->renderingProperties.lineWidth = std::max(it->second->renderingProperties.lineWidth - lineWidthStep, minLineWidth);
+                    it->second->applyRenderingProperties();
+                }
+                break;
+            case 'n':
+            case 'N':
+                visualizer->gl_context_->MakeCurrent();
+                for (auto it = visualizer->renderables_.begin(); it != visualizer->renderables_.end(); ++it) {
+                    it->second->renderingProperties.drawNormals = !it->second->renderingProperties.drawNormals;
                     it->second->applyRenderingProperties();
                 }
                 break;
