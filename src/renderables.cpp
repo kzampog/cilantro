@@ -113,7 +113,6 @@ namespace cilantro {
     }
 
     void CorrespondencesRenderable::render() {
-        glPointSize(renderingProperties.pointSize);
         if (renderingProperties.lineColor == RenderingProperties::noColor)
             glColor4f(RenderingProperties::defaultColor(0), RenderingProperties::defaultColor(1), RenderingProperties::defaultColor(2), renderingProperties.opacity);
         else
@@ -127,6 +126,17 @@ namespace cilantro {
     void CoordinateFrameRenderable::render() {
         glLineWidth(renderingProperties.lineWidth);
         pangolin::glDrawAxis<Eigen::Matrix4f,float>(transform, scale);
+    }
+
+    void CameraFrustumRenderable::applyRenderingProperties() {}
+
+    void CameraFrustumRenderable::render() {
+        if (renderingProperties.lineColor == RenderingProperties::noColor)
+            glColor4f(RenderingProperties::defaultColor(0), RenderingProperties::defaultColor(1), RenderingProperties::defaultColor(2), renderingProperties.opacity);
+        else
+            glColor4f(renderingProperties.lineColor(0), renderingProperties.lineColor(1), renderingProperties.lineColor(2), renderingProperties.opacity);
+        glLineWidth(renderingProperties.lineWidth);
+        pangolin::glDrawFrustrum(inverseIntrinsics, (int)width, (int)height, pose, scale);
     }
 
     void TriangleMeshRenderable::applyRenderingProperties() {

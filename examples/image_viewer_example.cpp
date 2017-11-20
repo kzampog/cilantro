@@ -7,14 +7,18 @@ int main( int argc, char* argv[] )
 
     std::unique_ptr<pangolin::VideoInterface> dok = pangolin::OpenVideo(uri);
 
-    cilantro::ImageViewer rgbv("RGB", "disp1");
-    cilantro::ImageViewer depthv("DEPTH", "disp2");
+    pangolin::CreateWindowAndBind("ImageViewer demo",1280,480);
+    pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual).AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2"));
+
+    cilantro::ImageViewer rgbv("ImageViewer demo", "disp1");
+    cilantro::ImageViewer depthv("ImageViewer demo", "disp2");
 
     size_t w = 640, h = 480;
     unsigned char* img = new unsigned char[dok->SizeBytes()];
     while (dok->GrabNext(img, true) && !rgbv.wasStopped() && !depthv.wasStopped()) {
-        rgbv.setImage(img, w, h, "RGB24").spinOnce();
-        depthv.setImage(img + 3*w*h, w, h, "GRAY16LE").spinOnce();
+        rgbv.clearRenderArea().setImage(img, w, h, "RGB24").render();
+        depthv.setImage(img + 3*w*h, w, h, "GRAY16LE").render();
+        pangolin::FinishFrame();
     }
 
     delete[] img;

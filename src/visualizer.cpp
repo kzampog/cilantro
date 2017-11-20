@@ -106,7 +106,7 @@ namespace cilantro {
         return addPointCorrespondences(name, cloud_src.points, cloud_dst.points, rp);
     }
 
-    Visualizer& Visualizer::addCoordinateFrame(const std::string &name, float scale, const Eigen::Matrix4f &tf, const RenderingProperties &rp) {
+    Visualizer& Visualizer::addCoordinateFrame(const std::string &name, const Eigen::Matrix4f &tf, float scale, const RenderingProperties &rp) {
         gl_context_->MakeCurrent();
         renderables_[name] = std::shared_ptr<CoordinateFrameRenderable>(new CoordinateFrameRenderable);
         CoordinateFrameRenderable *obj_ptr = (CoordinateFrameRenderable *)renderables_[name].get();
@@ -114,6 +114,23 @@ namespace cilantro {
         obj_ptr->scale = scale;
         obj_ptr->transform = tf;
         obj_ptr->centroid = tf.topRightCorner(3,1);
+        // Update buffers
+        ((Renderable *)obj_ptr)->applyRenderingProperties(rp);
+
+        return *this;
+    }
+
+    Visualizer& Visualizer::addCameraFrustum(const std::string &name, size_t width, size_t height, const Eigen::Matrix3f &intrinsics, const Eigen::Matrix4f &pose, float scale, const RenderingProperties &rp) {
+        gl_context_->MakeCurrent();
+        renderables_[name] = std::shared_ptr<CameraFrustumRenderable>(new CameraFrustumRenderable);
+        CameraFrustumRenderable *obj_ptr = (CameraFrustumRenderable *)renderables_[name].get();
+        // Copy fields
+        obj_ptr->width = width;
+        obj_ptr->height = height;
+        obj_ptr->inverseIntrinsics = intrinsics.inverse();
+        obj_ptr->pose = pose;
+        obj_ptr->scale = scale;
+        obj_ptr->centroid = pose.topRightCorner(3,1);
         // Update buffers
         ((Renderable *)obj_ptr)->applyRenderingProperties(rp);
 
@@ -336,16 +353,16 @@ namespace cilantro {
         return res;
     }
 
-    Visualizer& Visualizer::setPerspectiveProjectionMatrix(int w, int h, pangolin::GLprecision fu, pangolin::GLprecision fv, pangolin::GLprecision u0, pangolin::GLprecision v0, pangolin::GLprecision zNear, pangolin::GLprecision zFar) {
+    Visualizer& Visualizer::setPerspectiveProjectionMatrix(size_t w, size_t h, pangolin::GLprecision fu, pangolin::GLprecision fv, pangolin::GLprecision u0, pangolin::GLprecision v0, pangolin::GLprecision zNear, pangolin::GLprecision zFar) {
         display_->SetAspect(-(double)w/((double)h));
-        input_handler_->SetPerspectiveProjectionMatrix(pangolin::ProjectionMatrix(w, h, fu, fv, u0, v0, zNear, zFar));
+        input_handler_->SetPerspectiveProjectionMatrix(pangolin::ProjectionMatrix((int)w, (int)h, fu, fv, u0, v0, zNear, zFar));
 
         return *this;
     }
 
-    Visualizer& Visualizer::setPerspectiveProjectionMatrix(int w, int h, const Eigen::Matrix3f &intrinsics, pangolin::GLprecision zNear, pangolin::GLprecision zFar) {
+    Visualizer& Visualizer::setPerspectiveProjectionMatrix(size_t w, size_t h, const Eigen::Matrix3f &intrinsics, pangolin::GLprecision zNear, pangolin::GLprecision zFar) {
         display_->SetAspect(-(double)w/((double)h));
-        input_handler_->SetPerspectiveProjectionMatrix(pangolin::ProjectionMatrix(w, h, intrinsics(0,0), intrinsics(1,1), intrinsics(0,2), intrinsics(1,2), zNear, zFar));
+        input_handler_->SetPerspectiveProjectionMatrix(pangolin::ProjectionMatrix((int)w, (int)h, intrinsics(0,0), intrinsics(1,1), intrinsics(0,2), intrinsics(1,2), zNear, zFar));
 
         return *this;
     }

@@ -116,8 +116,21 @@ namespace cilantro {
         void applyRenderingProperties();
         void render();
 
-        float scale;
         Eigen::Matrix4f transform;
+        float scale;
+    };
+
+    struct CameraFrustumRenderable : public Renderable {
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        void applyRenderingProperties();
+        void render();
+
+        size_t width;
+        size_t height;
+        Eigen::Matrix3f inverseIntrinsics;
+        Eigen::Matrix4f pose;
+        float scale;
     };
 
     struct TriangleMeshRenderable : public Renderable {

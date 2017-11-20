@@ -17,12 +17,7 @@ namespace cilantro {
 
         ImageViewer& clear();
 
-        inline ImageViewer& clearRenderArea() {
-            gl_context_->MakeCurrent();
-            display_->Activate();
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            return *this;
-        }
+        ImageViewer& clearRenderArea();
         ImageViewer& render();
         inline ImageViewer& finishFrame() { gl_context_->MakeCurrent(); pangolin::FinishFrame(); return *this; }
         inline ImageViewer& spinOnce() { clearRenderArea(); render(); finishFrame(); return *this; }
