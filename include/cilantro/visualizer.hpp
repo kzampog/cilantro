@@ -85,7 +85,7 @@ namespace cilantro {
         Visualizer& setDefaultCameraPose(float pos_x, float pos_y, float pos_z, float look_at_x, float look_at_y, float look_at_z, float up_dir_x, float up_dir_y, float up_dir_z);
         Visualizer& setDefaultCameraPose(const Eigen::Matrix4f &pose);
 
-        Visualizer& registerKeyboardCallback(unsigned char key, std::function<void(Visualizer&,unsigned char,void*)> func, void *cookie);
+        Visualizer& registerKeyboardCallback(unsigned char key, std::function<void(void)> func);
 
         pangolin::TypedImage getRenderImage(float scale = 1.0f, bool rgba = false);
         Visualizer& saveRenderAsImage(const std::string &file_name, float scale, float quality, bool rgba = false);

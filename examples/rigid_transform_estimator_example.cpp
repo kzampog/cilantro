@@ -6,10 +6,7 @@
 
 #include <iostream>
 
-bool re_estimate = false;
-bool randomize = true;
-
-void callback(cilantro::Visualizer &viz, unsigned char key, void *cookie) {
+void callback(unsigned char key, bool &re_estimate, bool &randomize) {
     if (key == 'a') {
         re_estimate = true;
     }
@@ -26,8 +23,10 @@ int main(int argc, char **argv) {
     cilantro::PointCloud src(dst);
 
     cilantro::Visualizer viz("RigidTransformEstimator example", "disp");
-    viz.registerKeyboardCallback('a', callback, NULL);
-    viz.registerKeyboardCallback('d', callback, NULL);
+    bool re_estimate = false;
+    bool randomize = true;
+    viz.registerKeyboardCallback('a', std::bind(callback, 'a', std::ref(re_estimate), std::ref(randomize)));
+    viz.registerKeyboardCallback('d', std::bind(callback, 'd', std::ref(re_estimate), std::ref(randomize)));
 
     std::vector<size_t> dst_ind(100);
     std::vector<size_t> src_ind(100);

@@ -3,10 +3,8 @@
 #include <cilantro/voxel_grid.hpp>
 #include <cilantro/visualizer.hpp>
 
-bool proceed = false;
-
-void callback(cilantro::Visualizer &viz, unsigned char key, void *cookie) {
-    if (key == 'a') proceed = true;
+void callback(bool &proceed) {
+    proceed = true;
 }
 
 int main(int argc, char ** argv) {
@@ -50,7 +48,8 @@ int main(int argc, char ** argv) {
 //    std::random_shuffle(ind.begin(), ind.end());
 
     cilantro::Visualizer viz("IterativeClosestPoint example", "disp");
-    viz.registerKeyboardCallback('a', callback, NULL);
+    bool proceed = false;
+    viz.registerKeyboardCallback('a', std::bind(callback, std::ref(proceed)));
 
     viz.addPointCloud("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
     viz.addPointCloud("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));

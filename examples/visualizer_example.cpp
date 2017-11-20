@@ -2,8 +2,7 @@
 #include <cilantro/io.hpp>
 #include <cilantro/voxel_grid.hpp>
 
-void callback_test(cilantro::Visualizer &viz, unsigned char key, void *cookie) {
-    std::string name = *((std::string *)cookie);
+void callback(cilantro::Visualizer &viz, const std::string &name) {
     std::cout << "Toggling visibility for " << name << std::endl;
     viz.toggleVisibilityStatus(name);
 }
@@ -46,8 +45,7 @@ int main(int argc, char ** argv) {
     viz2.addPointCorrespondences("correspondences", cloud, cloud2, cilantro::RenderingProperties().setLineDensityFraction(0.005).setOpacity(0.3f));
     viz2.addCoordinateFrame("axis", Eigen::Matrix4f::Identity(), 0.4f, cilantro::RenderingProperties().setLineWidth(5.0f));
 
-    std::string name = "correspondences";
-    viz2.registerKeyboardCallback('c', callback_test, &name);
+    viz2.registerKeyboardCallback('c', std::bind(callback, std::ref(viz2), "correspondences"));
 
     std::cout << "Press 'n' to toggle rendering of normals" << std::endl;
 //    clock_t t0 = clock();

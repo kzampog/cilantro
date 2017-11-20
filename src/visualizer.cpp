@@ -466,8 +466,8 @@ namespace cilantro {
         return *this;
     }
 
-    Visualizer& Visualizer::registerKeyboardCallback(unsigned char key, std::function<void(Visualizer &, unsigned char, void *)> func, void *cookie) {
-        input_handler_->key_callback_map[key] = std::bind(func, std::ref(*this), key, cookie);
+    Visualizer& Visualizer::registerKeyboardCallback(unsigned char key, std::function<void(void)> func) {
+        input_handler_->key_callback_map[key] = std::move(func);
 
         return *this;
     }

@@ -3,12 +3,8 @@
 #include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
 
-bool re_estimate = false;
-
-void callback(cilantro::Visualizer &viz, unsigned char key, void *cookie) {
-    if (key == 'a') {
-        re_estimate = true;
-    }
+void callback(bool &re_estimate) {
+    re_estimate = true;
 }
 
 int main(int argc, char **argv) {
@@ -17,7 +13,8 @@ int main(int argc, char **argv) {
     readPointCloudFromPLYFile(argv[1], cloud);
 
     cilantro::Visualizer viz("PlaneEstimator example", "disp");
-    viz.registerKeyboardCallback('a', callback, NULL);
+    bool re_estimate = false;
+    viz.registerKeyboardCallback('a', std::bind(callback, std::ref(re_estimate)));
 
     std::cout << "Press 'a' for a new estimate" << std::endl;
 
