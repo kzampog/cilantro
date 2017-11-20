@@ -84,3 +84,58 @@ namespace cilantro {
         out.close();
     }
 }
+
+//    void readPointCloudFromPLYFile(const std::string &filename, PointCloud &cloud) {
+//        std::ifstream ss(filename, std::ios::binary);
+//        tinyply::PlyFile file;
+//        file.parse_header(ss);
+//
+//        // Initialize PLY data holders
+//        std::shared_ptr<tinyply::PlyData> vertex_data = file.request_properties_from_element("vertex", {"x", "y", "z"});
+//        std::shared_ptr<tinyply::PlyData> normal_data = file.request_properties_from_element("vertex", {"nx", "ny", "nz"});
+//        std::shared_ptr<tinyply::PlyData> color_data = file.request_properties_from_element("vertex", {"red", "green", "blue"});
+//
+//        // Read PLY data
+//        file.read(ss);
+//
+//        // Populate cloud
+//        cloud.points.resize(vertex_data->count);
+//        std::memcpy(cloud.points.data(), vertex_data->buffer.get(), vertex_data->buffer.size_bytes());
+//
+//        cloud.normals.resize(normal_data->count);
+//        std::memcpy(cloud.normals.data(), normal_data->buffer.get(), normal_data->buffer.size_bytes());
+//
+//        cloud.colors.resize(color_data->count);
+//        uint8_t * cdata = (uint8_t *)color_data->buffer.get();
+//        for (int i = 0; i < color_data->count; i++) {
+//            cloud.colors[i] = Eigen::Vector3f(cdata[3*i]/255.0f, cdata[3*i+1]/255.0f, cdata[3*i+2]/255.0f);
+//        }
+//    }
+//
+//    void writePointCloudToPLYFile(const std::string &filename, const PointCloud &cloud, bool binary) {
+//        tinyply::PlyFile file;
+//
+//        file.add_properties_to_element("vertex", {"x", "y", "z"}, tinyply::Type::FLOAT32, cloud.points.size(), (uint8_t *)(cloud.points.data()), tinyply::Type::INVALID, 0);
+//
+//        if (cloud.hasNormals()) {
+//            file.add_properties_to_element("vertex", {"nx", "ny", "nz"}, tinyply::Type::FLOAT32, cloud.normals.size(), (uint8_t *)(cloud.normals.data()), tinyply::Type::INVALID, 0);
+//        }
+//
+//        std::vector<uint8_t> color_data;
+//        if (cloud.hasColors()) {
+//            color_data.resize(3*cloud.colors.size());
+//            for (int i = 0; i < cloud.colors.size(); i++) {
+//                color_data[3*i+0] = (uint8_t)(cloud.colors[i](0)*255.0f);
+//                color_data[3*i+1] = (uint8_t)(cloud.colors[i](1)*255.0f);
+//                color_data[3*i+2] = (uint8_t)(cloud.colors[i](2)*255.0f);
+//            }
+//            file.add_properties_to_element("vertex", {"red", "green", "blue"}, tinyply::Type::UINT8, cloud.colors.size(), (uint8_t *)(color_data.data()), tinyply::Type::INVALID, 0);
+//        }
+//
+//        // Write to file
+//        std::filebuf fb;
+//        fb.open(filename, std::ios::out | std::ios::binary);
+//        std::ostream output_stream(&fb);
+//        file.write(output_stream, binary);
+//        fb.close();
+//    }
