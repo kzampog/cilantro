@@ -23,9 +23,8 @@
 - [Pangolin](https://github.com/stevenlovegrove/Pangolin)
 
 ## Building
-`cilantro` is developed and has been tested on Ubuntu 14.04 and 16.04 variants using [CMake](https://cmake.org/).
-Please note that you may have to manually set up a recent version of Eigen on Ubuntu 14.04, as the one provided in the official repo is outdated.
-
+`cilantro` is developed and tested on Ubuntu 14.04 and 16.04 variants using [CMake](https://cmake.org/).
+Please note that you may have to manually set up a recent version of Eigen on Ubuntu 14.04, as the one provided in the official repos is outdated.
 To clone and build the library (with bundled examples), execute the following in a terminal:
 
 ```
@@ -39,4 +38,4 @@ make -j
 
 ## Usage examples
 Documentation is sparse at the moment, but the short provided examples cover a significant part of the library's functionality.
-Most of them expect a single command-line argument (path to a point cloud PLY file); one is bundled in `examples/test_clouds` for quick testing.
+Most of them expect a single command-line argument (path to a point cloud file in PLY format). One such input is bundled in `examples/test_clouds` for quick testing.
