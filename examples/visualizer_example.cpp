@@ -28,7 +28,7 @@ int main(int argc, char ** argv) {
         scalars[i] = cloud.points[i].norm();
     }
 
-    viz1.addPointCloud("pcd", cloud, cilantro::RenderingProperties().setColormapType(cilantro::ColormapType::JET).setLineDensityFraction(0.2f).setDrawNormals(false));
+    viz1.addPointCloud("pcd", cloud, cilantro::RenderingProperties().setColormapType(cilantro::ColormapType::JET).setLineDensityFraction(0.2f).setUseLighting(false));
     viz1.addPointCloudValues("pcd", scalars);
     viz1.addCoordinateFrame("axis", Eigen::Matrix4f::Identity(), 0.4f, cilantro::RenderingProperties().setLineWidth(5.0f));
     viz1.addText("text", "Coordinate Frame", 0, 0, 0, cilantro::RenderingProperties().setFontSize(20.0f).setPointColor(1.0f,1.0f,0.0f).setTextAnchorPoint(0.5f,-1.0f));

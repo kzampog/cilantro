@@ -19,6 +19,7 @@ namespace cilantro {
                                        drawWireframe(false),
                                        useFaceNormals(true),
                                        useFaceColors(false),
+                                       useScalarValueMappedColors(true),
                                        minScalarValue(std::numeric_limits<float>::quiet_NaN()),
                                        maxScalarValue(std::numeric_limits<float>::quiet_NaN()),
                                        colormapType(ColormapType::JET),
@@ -42,6 +43,7 @@ namespace cilantro {
         bool drawWireframe;
         bool useFaceNormals;
         bool useFaceColors;
+        bool useScalarValueMappedColors;
         float minScalarValue;
         float maxScalarValue;
         ColormapType colormapType;
@@ -62,6 +64,7 @@ namespace cilantro {
         inline RenderingProperties& setDrawWireframe(bool dw) { drawWireframe = dw; return *this; }
         inline RenderingProperties& setUseFaceNormals(bool fn) { useFaceNormals = fn; return *this; }
         inline RenderingProperties& setUseFaceColors(bool fc) { useFaceColors = fc; return *this; }
+        inline RenderingProperties& setUseScalarValueMappedColors(bool cm) { useScalarValueMappedColors = cm; return *this; }
         inline RenderingProperties& setScalarValuesRange(float min, float max) { minScalarValue = min; maxScalarValue = max; return *this; }
         inline RenderingProperties& setColormapType(const ColormapType ct) { colormapType = ct; return *this; }
         inline RenderingProperties& setFontSize(float fs) { fontSize = fs; return *this; }

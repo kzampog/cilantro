@@ -1,62 +1,59 @@
 #include <cilantro/colormap.hpp>
 
 namespace cilantro {
-    std::vector<Eigen::Vector3f> colormap (const std::vector<float> &scalars, float scalar_min, float scalar_max, ColormapType colormapType) {
-        float scalarMinUsed = scalar_min;
-        float scalarMaxUsed = scalar_max;
-        if (scalarMinUsed != scalarMinUsed || scalarMaxUsed != scalarMaxUsed) {
-            scalarMinUsed = *std::min_element(scalars.begin(), scalars.end());
-            scalarMaxUsed = *std::max_element(scalars.begin(), scalars.end());
+    std::vector<Eigen::Vector3f> colormap(const std::vector<float> &scalars, float scalar_min, float scalar_max, const ColormapType &colormap_type) {
+        float scalar_min_used = scalar_min;
+        float scalar_max_used = scalar_max;
+        if (!std::isfinite(scalar_min_used)) scalar_min_used = *std::min_element(scalars.begin(), scalars.end());
+        if (!std::isfinite(scalar_max_used)) scalar_max_used = *std::max_element(scalars.begin(), scalars.end());
+        if (!std::isfinite(scalar_min_used) || !std::isfinite(scalar_max_used)) {
+            return std::vector<Eigen::Vector3f>(scalars.size(), Eigen::Vector3f::Zero());
         }
 
+        float scalar_range = scalar_max_used - scalar_min_used;
+        float scalar_normalized;
+
         std::vector<Eigen::Vector3f> colors(scalars.size());
-        for (size_t i = 0; i < scalars.size(); i++) {
-            Eigen::Vector3f color;
-            float scalarNormalized = (scalars[i] - scalarMinUsed) / (scalarMaxUsed - scalarMinUsed);
-
-            switch (colormapType) {
-                case ColormapType::GREY:
-                    color[0] = scalarNormalized;
-                    color[1] = scalarNormalized;
-                    color[2] = scalarNormalized;
-                    break;
-
-                case ColormapType::JET:
-                    if (scalarNormalized < 0.7)
-                        color[0] = 4.0f * scalarNormalized - 1.5f;
+        switch (colormap_type) {
+            case ColormapType::JET:
+                for (size_t i = 0; i < scalars.size(); i++) {
+                    scalar_normalized = (scalars[i] - scalar_min_used)/scalar_range;
+                    if (scalar_normalized < 0.7f)
+                        colors[i][0] = std::max(std::min(4.0f*scalar_normalized - 1.5f, 1.0f), 0.0f);
                     else
-                        color[0] = -4.0f * scalarNormalized + 4.5f;
-
-                    if (scalarNormalized < 0.5)
-                        color[1] =  4.0f * scalarNormalized - 0.5f;
+                        colors[i][0] = std::max(std::min(-4.0f*scalar_normalized + 4.5f, 1.0f), 0.0f);
+                    if (scalar_normalized < 0.5f)
+                        colors[i][1] = std::max(std::min(4.0f*scalar_normalized - 0.5f, 1.0f), 0.0f);
                     else
-                        color[1] =  -4.0f * scalarNormalized + 3.5f;
-
-                    if (scalarNormalized < 0.3)
-                        color[2] =  4.0f * scalarNormalized + 0.5f;
+                        colors[i][1] = std::max(std::min(-4.0f*scalar_normalized + 3.5f, 1.0f), 0.0f);
+                    if (scalar_normalized < 0.3f)
+                        colors[i][2] = std::max(std::min(4.0f*scalar_normalized + 0.5f, 1.0f), 0.0f);
                     else
-                        color[2] =  -4.0f * scalarNormalized + 2.5f;
-
-                    break;
-
-                case ColormapType::BLUE2RED:
-
-                    Eigen::Vector3f red(1, 0, 0);
-                    Eigen::Vector3f white(1, 1, 1);
-                    Eigen::Vector3f blue(0, 0, 1);
-
-                    if (scalarNormalized < 0.5) {
-                        color.head(3) = white * scalarNormalized*2 + blue * (1 - scalarNormalized*2);
+                        colors[i][2] = std::max(std::min(-4.0f*scalar_normalized + 2.5f, 1.0f), 0.0f);
+                }
+                break;
+            case ColormapType::GRAY:
+                for (size_t i = 0; i < scalars.size(); i++) {
+                    scalar_normalized = (scalars[i] - scalar_min_used)/scalar_range;
+                    colors[i][0] = std::max(std::min(scalar_normalized, 1.0f), 0.0f);
+                    colors[i][1] = std::max(std::min(scalar_normalized, 1.0f), 0.0f);
+                    colors[i][2] = std::max(std::min(scalar_normalized, 1.0f), 0.0f);
+                }
+                break;
+            case ColormapType::BLUE2RED:
+                for (size_t i = 0; i < scalars.size(); i++) {
+                    scalar_normalized = (scalars[i] - scalar_min_used)/scalar_range;
+                    if (scalar_normalized < 0.5f) {
+                        colors[i][0] = std::max(std::min(2.0f*scalar_normalized, 1.0f), 0.0f);
+                        colors[i][1] = std::max(std::min(2.0f*scalar_normalized, 1.0f), 0.0f);
+                        colors[i][2] = 1.0f;
                     } else {
-                        color.head(3) = red * (scalarNormalized-0.5)*2 + white * (1 - scalarNormalized)*2;
+                        colors[i][0] = 1.0f;
+                        colors[i][1] = std::max(std::min(2.0f*(1.0f - scalar_normalized), 1.0f), 0.0f);
+                        colors[i][2] = std::max(std::min(2.0f*(1.0f - scalar_normalized), 1.0f), 0.0f);
                     }
-            }
-
-            color[0] = std::max(std::min(color[0], 1.0f), 0.0f);
-            color[1] = std::max(std::min(color[1], 1.0f), 0.0f);
-            color[2] = std::max(std::min(color[2], 1.0f), 0.0f);
-
-            colors[i] = color;
+                }
+                break;
         }
 
         return colors;
