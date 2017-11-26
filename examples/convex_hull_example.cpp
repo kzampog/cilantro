@@ -76,7 +76,6 @@ int main(int argc, char ** argv) {
 
 
     cilantro::Visualizer viz1("3D convex hull", "disp");
-
     viz1.addPointCloud("cloud", cloud, cilantro::RenderingProperties().setOpacity(1.0));
     viz1.addTriangleMesh("mesh", ch.getVertices(), ch.getFacetVertexIndices());
     viz1.addTriangleMeshVertexNormals("mesh", hc.normals);
@@ -87,19 +86,14 @@ int main(int argc, char ** argv) {
 
     cilantro::RenderingProperties rp = viz1.getRenderingProperties("mesh");
     rp.setUseFaceNormals(true).setUseFaceColors(false).setOpacity(0.8).setColormapType(cilantro::ColormapType::BLUE2RED);
-//    rp.setDrawNormals(true);
     viz1.setRenderingProperties("mesh", rp);
 
+    if (cloud.points.size() < 3) return 0;
 
-    cilantro::PrincipalComponentAnalysis3D proj(cloud.points);
-
-    std::vector<Eigen::Vector2f> pts = proj.project<2>(cloud.points);
-    cloud.points = proj.reconstruct<2>(pts);
+    // PointCloudHullFlat also inherits from PrincipalComponentAnalysis
+    cilantro::PointCloudHullFlat ch2d(cloud.points);
+    cloud.points = ch2d.reconstruct<2>(ch2d.project<2>(cloud.points));
     cloud.normals.clear();
-
-    cilantro::PointCloudHullFlat ch2d(cloud);
-
-    cilantro::Visualizer viz2("2D convex hull in 3D space", "disp");
 
     std::vector<std::vector<size_t> > face_v_ind = ch2d.getFacetVertexIndices();
     std::vector<Eigen::Vector3f> p_src(face_v_ind.size()), p_dst(face_v_ind.size());
@@ -108,6 +102,7 @@ int main(int argc, char ** argv) {
         p_dst[i] = ch2d.getVertices3D()[face_v_ind[i][1]];
     }
 
+    cilantro::Visualizer viz2("2D convex hull in 3D space", "disp");
     viz2.addPointCloud("cloud", cloud, cilantro::RenderingProperties().setOpacity(0.5));
     viz2.addPointCloud("hull_cloud", ch2d.getVertices3D(), cilantro::RenderingProperties().setPointColor(1,0,0).setPointSize(10.0));
     viz2.addPointCorrespondences("hull_lines", p_src, p_dst, cilantro::RenderingProperties().setLineColor(0,0,1).setLineWidth(5.0).setLineDensityFraction(1.0));
