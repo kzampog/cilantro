@@ -52,7 +52,7 @@ namespace cilantro {
                             const Eigen::Matrix3f &intr,
                             pangolin::Image<unsigned short> &depth_img)
     {
-        if (points.empty() || !depth_img.ptr) return;
+        if (!depth_img.ptr) return;
 
         depth_img.Memset(0);
         for (size_t i = 0; i < points.size(); i++) {
@@ -71,7 +71,6 @@ namespace cilantro {
                             const Eigen::Vector3f &t_vec,
                             pangolin::Image<unsigned short> &depth_img)
     {
-        if (points.empty() || !depth_img.ptr) return;
         std::vector<Eigen::Vector3f> points_t(points.size());
         Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)points_t.data(), 3, points_t.size()) = (rot_mat*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)points.data(), 3, points.size())).colwise() + t_vec;
         pointsToDepthImage(points_t, intr, depth_img);
@@ -83,7 +82,7 @@ namespace cilantro {
                                   pangolin::Image<Eigen::Matrix<unsigned char,3,1> > &rgb_img,
                                   pangolin::Image<unsigned short> &depth_img)
     {
-        if (!rgb_img.ptr || !depth_img.ptr || points.empty() || points.size() != colors.size() || rgb_img.w != depth_img.w || rgb_img.h != depth_img.h) return;
+        if (!rgb_img.ptr || !depth_img.ptr || points.size() != colors.size() || rgb_img.w != depth_img.w || rgb_img.h != depth_img.h) return;
 
         rgb_img.Memset(0);
         depth_img.Memset(0);
@@ -106,7 +105,6 @@ namespace cilantro {
                                   pangolin::Image<Eigen::Matrix<unsigned char,3,1> > &rgb_img,
                                   pangolin::Image<unsigned short> &depth_img)
     {
-        if (!rgb_img.ptr || !depth_img.ptr || points.empty() || points.size() != colors.size() || rgb_img.w != depth_img.w || rgb_img.h != depth_img.h) return;
         std::vector<Eigen::Vector3f> points_t(points.size());
         Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)points_t.data(), 3, points_t.size()) = (rot_mat*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)points.data(), 3, points.size())).colwise() + t_vec;
         pointsColorsToRGBDImages(points_t, colors, intr, rgb_img, depth_img);
@@ -116,7 +114,7 @@ namespace cilantro {
                           const Eigen::Matrix3f &intr,
                           pangolin::Image<size_t> &index_map)
     {
-        if (points.empty() || !index_map.ptr) return;
+        if (!index_map.ptr) return;
 
         size_t empty = std::numeric_limits<std::size_t>::max();
         index_map.Fill(empty);
@@ -137,7 +135,6 @@ namespace cilantro {
                           const Eigen::Vector3f &t_vec,
                           pangolin::Image<size_t> &index_map)
     {
-        if (points.empty() || !index_map.ptr) return;
         std::vector<Eigen::Vector3f> points_t(points.size());
         Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)points_t.data(), 3, points_t.size()) = (rot_mat*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)points.data(), 3, points.size())).colwise() + t_vec;
         pointsToIndexMap(points_t, intr, index_map);
