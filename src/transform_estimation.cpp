@@ -79,8 +79,6 @@ namespace cilantro {
         Eigen::Matrix<float,Eigen::Dynamic,6> A(dst_p.cols(),6);
         Eigen::Matrix<float,Eigen::Dynamic,1> b(dst_p.cols(),1);
 
-        Eigen::Vector3f v_pi(M_PI, M_PI, M_PI);
-
         size_t iter = 0;
         while (iter < max_iter) {
             if (iter > 0) {

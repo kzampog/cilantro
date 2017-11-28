@@ -2,7 +2,6 @@
 #include <cilantro/visualizer.hpp>
 #include <cilantro/image_viewer.hpp>
 
-
 int main(int argc, char ** argv) {
     // Intrinsics
     Eigen::Matrix3f K;
