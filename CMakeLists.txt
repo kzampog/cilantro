@@ -60,7 +60,7 @@ configure_file(${CMAKE_SOURCE_DIR}/${PROJECT_NAME}Config.cmake.in ${CMAKE_BINARY
 set(EXPORT_INCLUDE_DIR "\${PROJECT_CMAKE_DIR}/${REL_INCLUDE_DIR}")
 configure_file(${CMAKE_SOURCE_DIR}/${PROJECT_NAME}Config.cmake.in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake @ONLY)
 
-# Add package to CMake package registery for use from the build tree
+# Add package to CMake package registry for use from the build tree
 option(EXPORT_${PROJECT_NAME} "Export ${PROJECT_NAME} package for use by other software" ON)
 if(EXPORT_${PROJECT_NAME})
     export(PACKAGE ${PROJECT_NAME})

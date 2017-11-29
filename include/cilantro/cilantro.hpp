@@ -3,6 +3,7 @@
 #include <cilantro/colormap.hpp>
 #include <cilantro/connected_component_segmentation.hpp>
 #include <cilantro/convex_hull.hpp>
+#include <cilantro/convex_hull_utilities.hpp>
 #include <cilantro/convex_polytope.hpp>
 #include <cilantro/image_point_cloud_conversions.hpp>
 #include <cilantro/image_viewer.hpp>
@@ -18,7 +19,7 @@
 #include <cilantro/renderables.hpp>
 #include <cilantro/rigid_transform_estimator.hpp>
 #include <cilantro/space_region.hpp>
-#include <cilantro/transform_estimation.hpp>
+#include <cilantro/transform_estimation_utilities.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/visualizer_handler.hpp>
 #include <cilantro/voxel_grid.hpp>

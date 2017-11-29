@@ -5,18 +5,18 @@
 
 ## Supported functionality
 - Voxel grid based point cloud resampling
-- kd-trees (using packaged [nanoflann](https://github.com/jlblancoc/nanoflann))
+- General dimension kd-trees (using packaged [nanoflann](https://github.com/jlblancoc/nanoflann))
 - Surface normal estimation from point clouds
-- Convex hull computation (using packaged [Qhull](http://www.qhull.org/)) that allows easy switching between vertex and half-space representations for the resulting polytope
-- A representation of space regions as unions of convex polytopes that implements set operations
-- An Iterative Closest Point implementation for point-to-point and point-to-plane metrics that supports multiple correspondence types
-- A generic RANSAC implementation and instantiations of it for robust plane estimation and rigid 6DOF point cloud registration
+- General dimension convex hull computation (using packaged [Qhull](http://www.qhull.org/)) that allows easy switching between vertex and half-space intersection representations for the defined polytope
+- A representation of general dimension space regions as unions of convex polytopes that implements set operations
+- A 3D Iterative Closest Point implementation for point-to-point and point-to-plane metrics that supports multiple correspondence types (based on any combination of point location, normal, and color)
+- A generic RANSAC estimator (and instantiations of it for robust plane estimation and rigid 6DOF point cloud registration)
 - Connected component based point cloud segmentation, with pairwise similarities capturing any combination of spatial proximity, normal smoothness, and color similarity
-- k-means clustering
-- Principal Component Analysis
+- General dimension k-means clustering that supports all distance metrics supported by [nanoflann](https://github.com/jlblancoc/nanoflann)
+- General dimension Principal Component Analysis
 - A fast, flexible and easy to use 3D visualizer
+- Basic I/O utilities for point clouds (in PLY format, using packaged [tinyply](https://github.com/ddiakopoulos/tinyply)) and Eigen matrices
 - RGBD images to/from point cloud utility functions
-- Basic point cloud I/O to and from PLY files (using packaged [tinyply](https://github.com/ddiakopoulos/tinyply))
 
 ## Dependencies
 - [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) (3.3 or newer)

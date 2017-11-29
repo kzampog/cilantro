@@ -1,5 +1,5 @@
 #include <cilantro/iterative_closest_point.hpp>
-#include <cilantro/transform_estimation.hpp>
+#include <cilantro/transform_estimation_utilities.hpp>
 
 namespace cilantro {
     IterativeClosestPoint::IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &src_p)
