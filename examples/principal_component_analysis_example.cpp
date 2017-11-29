@@ -4,7 +4,6 @@
 #include <iostream>
 
 int main(int argc, char ** argv) {
-
     cilantro::PointCloud cloud;
     cloud.points.emplace_back(0, 0, 0);
     cloud.points.emplace_back(1, 0, 0);

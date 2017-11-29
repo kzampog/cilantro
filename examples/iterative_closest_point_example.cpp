@@ -8,7 +8,6 @@ void callback(bool &proceed) {
 }
 
 int main(int argc, char ** argv) {
-
     cilantro::PointCloud dst, src;
     cilantro::readPointCloudFromPLYFile(argv[1], dst);
 

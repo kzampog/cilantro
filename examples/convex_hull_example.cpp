@@ -3,7 +3,6 @@
 #include <cilantro/visualizer.hpp>
 
 int main(int argc, char ** argv) {
-
 //    std::vector<Eigen::Vector3f> points;
 //    points.push_back(Eigen::Vector3f(0,0,0));
 //    points.push_back(Eigen::Vector3f(1,0,0));
@@ -51,7 +50,6 @@ int main(int argc, char ** argv) {
     cilantro::readPointCloudFromPLYFile(argv[1], cloud);
 
     cilantro::PointCloudHull ch(cloud);
-
     cilantro::PointCloud hc(cloud, ch.getVertexPointIndices());
 
     std::vector<Eigen::Vector3f> v_colors(ch.getVertices().size());
@@ -73,7 +71,6 @@ int main(int argc, char ** argv) {
                      ch.getVertices()[ch.getFacetVertexIndices()[i][1]] +
                      ch.getVertices()[ch.getFacetVertexIndices()[i][2]]).norm();
     }
-
 
     cilantro::Visualizer viz1("3D convex hull", "disp");
     viz1.addPointCloud("cloud", cloud, cilantro::RenderingProperties().setOpacity(1.0));

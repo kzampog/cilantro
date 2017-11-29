@@ -1,10 +1,7 @@
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/rigid_transform_estimator.hpp>
-
 #include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
-
-#include <iostream>
 
 void callback(unsigned char key, bool &re_estimate, bool &randomize) {
     if (key == 'a') {
@@ -36,6 +33,7 @@ int main(int argc, char **argv) {
         if (randomize) {
             randomize = false;
 
+            // Randomly transform src
             Eigen::Matrix3f R_ref(Eigen::Matrix3f::Random());
             Eigen::JacobiSVD<Eigen::Matrix3f> svd(R_ref, Eigen::ComputeFullU | Eigen::ComputeFullV);
             Eigen::Matrix3f U(svd.matrixU());
@@ -50,24 +48,28 @@ int main(int argc, char **argv) {
             }
             Eigen::Vector3f t_ref(Eigen::Vector3f::Random());
 
+            // Build noisy correspondences
             for (size_t i = 0; i < dst_ind.size(); i++) {
-                float p = 0 + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(1-0)));
+                float p = 0 + static_cast<float>(rand())/(static_cast<float>(RAND_MAX/(1-0)));
                 src_ind[i] = std::rand() % src.size();
-                if (p > 0.4) {
+                if (p > 0.4f) {
                     dst_ind[i] = src_ind[i];
                 } else {
                     dst_ind[i] = std::rand() % dst.size();
                 }
             }
 
-            src.pointsMatrixMap() = (R_ref*src.pointsMatrixMap()).colwise() + t_ref;
+            src.transform(R_ref, t_ref);
             viz.addPointCloud("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
+            viz.addPointCorrespondences("corr", cilantro::PointCloud(src, src_ind), cilantro::PointCloud(dst, dst_ind), cilantro::RenderingProperties().setOpacity(0.5f));
 
             std::cout << "Press 'a' for a transform estimate" << std::endl;
         }
 
         if (re_estimate) {
             re_estimate = false;
+
+            viz.remove("corr");
 
             cilantro::RigidTransformEstimator te(dst,src,dst_ind,src_ind);
             te.setMaxInlierResidual(0.01).setTargetInlierCount((size_t)(0.50*dst_ind.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);

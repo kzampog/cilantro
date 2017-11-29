@@ -4,12 +4,10 @@
 #include <cilantro/voxel_grid.hpp>
 
 int main(int argc, char ** argv) {
-
     cilantro::PointCloud cloud;
     cilantro::readPointCloudFromPLYFile(argv[1], cloud);
 
-    cilantro::VoxelGrid vg(cloud, 0.005);
-    cloud = vg.getDownsampledCloud().removeInvalidData();
+    cloud = cilantro::VoxelGrid(cloud, 0.005).getDownsampledCloud().removeInvalidData();
 
     // Perform segmentation
     cilantro::ConnectedComponentSegmentation ccs(cloud);

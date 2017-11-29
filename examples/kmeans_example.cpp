@@ -4,7 +4,6 @@
 #include <cilantro/voxel_grid.hpp>
 
 int main(int argc, char ** argv) {
-
     cilantro::PointCloud cloud;
     cilantro::readPointCloudFromPLYFile(argv[1], cloud);
 
@@ -25,7 +24,6 @@ int main(int argc, char ** argv) {
 
 
     auto start = std::chrono::high_resolution_clock::now();
-//    kmc.cluster(k, 1000);
     kmc.cluster(k, max_iter, tol, use_kd_tree);
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> elapsed = end - start;

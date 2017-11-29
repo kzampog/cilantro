@@ -8,7 +8,6 @@ void callback(bool &re_estimate) {
 }
 
 int main(int argc, char **argv) {
-
     cilantro::PointCloud cloud;
     readPointCloudFromPLYFile(argv[1], cloud);
 

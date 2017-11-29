@@ -2,9 +2,9 @@ sudo: required
 dist: trusty
 
 before_install:
+  - sudo apt -qq update && sudo apt install g++ libglew-dev
   - wget https://github.com/RLovelett/eigen/archive/master.zip -O eigen.zip && unzip eigen.zip
   - mkdir -p eigen-master/build && cd eigen-master/build && cmake .. && make -j && sudo make install && cd ../..
-  - sudo apt -qq update && sudo apt install g++ libglew-dev
   - wget https://github.com/stevenlovegrove/Pangolin/archive/master.zip -O Pangolin.zip && unzip Pangolin.zip
   - mkdir -p Pangolin-master/build && cd Pangolin-master/build && cmake .. && make -j && sudo make install && cd ../..
 
@@ -18,7 +18,6 @@ os:
 
 env:
   - BUILD_TYPE=Release
-#  - BUILD_TYPE=Debug
 
 script:
   - mkdir build

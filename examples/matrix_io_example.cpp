@@ -2,7 +2,6 @@
 #include <iostream>
 
 int main(int argc, char ** argv) {
-
     Eigen::MatrixXf dok(3,4);
     dok << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
 

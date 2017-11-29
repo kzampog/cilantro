@@ -2,7 +2,6 @@
 #include <cilantro/image_viewer.hpp>
 
 int main(int argc, char ** argv) {
-
     std::vector<Eigen::Vector2f> vertices;
     vertices.emplace_back(100, 100);
     vertices.emplace_back(100, 200);
