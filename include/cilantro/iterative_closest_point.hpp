@@ -74,6 +74,13 @@ namespace cilantro {
             return *this;
         }
 
+        inline float getCorrespondencesFraction() const { return corr_fraction_; }
+        inline IterativeClosestPoint& setCorrespondencesFraction(float corr_fraction) {
+            iteration_count_ = 0;
+            corr_fraction_ = corr_fraction;
+            return *this;
+        }
+
         inline size_t getMaxNumberOfIterations() const { return max_iter_; }
         inline IterativeClosestPoint& setMaxNumberOfIterations(size_t max_iter) {
             iteration_count_ = 0;
@@ -159,6 +166,7 @@ namespace cilantro {
         float color_dist_weight_;
 
         float corr_dist_thres_;
+        float corr_fraction_;
         float convergence_tol_;
         size_t max_iter_;
         size_t point_to_plane_max_iter_;
@@ -177,13 +185,26 @@ namespace cilantro {
         std::vector<Eigen::Matrix<float,6,1> > dst_data_points_6d_;
         std::vector<Eigen::Matrix<float,9,1> > dst_data_points_9d_;
 
+        std::vector<size_t> dst_ind_;
+        std::vector<size_t> src_ind_;
+        std::vector<size_t> dst_ind_all_;
+        std::vector<size_t> src_ind_all_;
+        std::vector<float> distances_all_;
+        std::vector<size_t> ind_all_;
+
         void build_kd_trees_();
         void delete_kd_trees_();
         Eigen::Matrix3f orthonormalize_rotation_(const Eigen::Matrix3f &rot_mat) const;
         CorrespondencesType correct_correspondences_type_(const CorrespondencesType &corr_type) const;
 
+        struct CorrespondenceComparator_ {
+            CorrespondenceComparator_(const std::vector<float> &dist) : distances(dist) {}
+            inline bool operator()(size_t i, size_t j) { return distances[i] < distances[j]; }
+            const std::vector<float>& distances;
+        };
+
         void init_params_();
-        void find_correspondences_(std::vector<size_t> &dst_ind, std::vector<size_t> &src_ind);
+        void find_correspondences_(std::vector<size_t>* &dst_ind, std::vector<size_t>* &src_ind);
         void estimate_transform_();
         void compute_residuals_(const CorrespondencesType &corr_type, const Metric &metric, std::vector<float> &residuals);
     };

@@ -64,37 +64,60 @@ namespace cilantro {
     }
 
     void IterativeClosestPoint::build_kd_trees_() {
-        if (corr_type_ == CorrespondencesType::POINTS && !kd_tree_3d_) {
-            kd_tree_3d_ = new KDTree<float,3,KDTreeDistanceAdaptors::L2>(*dst_points_);
-        } else if (corr_type_ == CorrespondencesType::NORMALS && !kd_tree_3d_) {
-            kd_tree_3d_ = new KDTree<float,3,KDTreeDistanceAdaptors::L2>(*dst_normals_);
-        } else if (corr_type_ == CorrespondencesType::COLORS && !kd_tree_3d_) {
-            kd_tree_3d_ = new KDTree<float,3,KDTreeDistanceAdaptors::L2>(*dst_colors_);
-        } else if (corr_type_ == CorrespondencesType::POINTS_NORMALS && !kd_tree_6d_) {
-            dst_data_points_6d_.resize(dst_points_->size());
-            Eigen::Map<Eigen::Matrix<float,6,Eigen::Dynamic> > data_map((float *)dst_data_points_6d_.data(), 6, dst_data_points_6d_.size());
-            data_map.topRows(3) = point_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_points_->data(), 3, dst_points_->size());
-            data_map.bottomRows(3) = normal_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_normals_->data(), 3, dst_normals_->size());
-            kd_tree_6d_ = new KDTree<float,6,KDTreeDistanceAdaptors::L2>(dst_data_points_6d_);
-        } else if (corr_type_ == CorrespondencesType::POINTS_COLORS && !kd_tree_6d_) {
-            dst_data_points_6d_.resize(dst_points_->size());
-            Eigen::Map<Eigen::Matrix<float,6,Eigen::Dynamic> > data_map((float *)dst_data_points_6d_.data(), 6, dst_data_points_6d_.size());
-            data_map.topRows(3) = point_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_points_->data(), 3, dst_points_->size());
-            data_map.bottomRows(3) = color_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_colors_->data(), 3, dst_colors_->size());
-            kd_tree_6d_ = new KDTree<float,6,KDTreeDistanceAdaptors::L2>(dst_data_points_6d_);
-        } else if (corr_type_ == CorrespondencesType::NORMALS_COLORS && !kd_tree_6d_) {
-            dst_data_points_6d_.resize(dst_points_->size());
-            Eigen::Map<Eigen::Matrix<float,6,Eigen::Dynamic> > data_map((float *)dst_data_points_6d_.data(), 6, dst_data_points_6d_.size());
-            data_map.topRows(3) = normal_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_normals_->data(), 3, dst_normals_->size());
-            data_map.bottomRows(3) = color_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_colors_->data(), 3, dst_colors_->size());
-            kd_tree_6d_ = new KDTree<float,6,KDTreeDistanceAdaptors::L2>(dst_data_points_6d_);
-        } else if (corr_type_ == CorrespondencesType::POINTS_NORMALS_COLORS && !kd_tree_9d_) {
-            dst_data_points_9d_.resize(dst_points_->size());
-            Eigen::Map<Eigen::Matrix<float,9,Eigen::Dynamic> > data_map((float *)dst_data_points_9d_.data(), 9, dst_data_points_9d_.size());
-            data_map.topRows(3) = point_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_points_->data(), 3, dst_points_->size());
-            data_map.block(3,0,3,dst_data_points_9d_.size()) = normal_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_normals_->data(), 3, dst_normals_->size());
-            data_map.bottomRows(3) = color_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_colors_->data(), 3, dst_colors_->size());
-            kd_tree_9d_ = new KDTree<float,9,KDTreeDistanceAdaptors::L2>(dst_data_points_9d_);
+        switch (corr_type_) {
+            case CorrespondencesType::POINTS: {
+                if (!kd_tree_3d_) kd_tree_3d_ = new KDTree<float,3,KDTreeDistanceAdaptors::L2>(*dst_points_);
+                break;
+            }
+            case CorrespondencesType::NORMALS: {
+                if (!kd_tree_3d_) kd_tree_3d_ = new KDTree<float,3,KDTreeDistanceAdaptors::L2>(*dst_normals_);
+                break;
+            }
+            case CorrespondencesType::COLORS: {
+                if (!kd_tree_3d_) kd_tree_3d_ = new KDTree<float,3,KDTreeDistanceAdaptors::L2>(*dst_colors_);
+                break;
+            }
+            case CorrespondencesType::POINTS_NORMALS: {
+                if (!kd_tree_6d_) {
+                    dst_data_points_6d_.resize(dst_points_->size());
+                    Eigen::Map<Eigen::Matrix<float,6,Eigen::Dynamic> > data_map((float *)dst_data_points_6d_.data(), 6, dst_data_points_6d_.size());
+                    data_map.topRows(3) = point_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_points_->data(), 3, dst_points_->size());
+                    data_map.bottomRows(3) = normal_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_normals_->data(), 3, dst_normals_->size());
+                    kd_tree_6d_ = new KDTree<float,6,KDTreeDistanceAdaptors::L2>(dst_data_points_6d_);
+                }
+                break;
+            }
+            case CorrespondencesType::POINTS_COLORS: {
+                if (!kd_tree_6d_) {
+                    dst_data_points_6d_.resize(dst_points_->size());
+                    Eigen::Map<Eigen::Matrix<float,6,Eigen::Dynamic> > data_map((float *)dst_data_points_6d_.data(), 6, dst_data_points_6d_.size());
+                    data_map.topRows(3) = point_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_points_->data(), 3, dst_points_->size());
+                    data_map.bottomRows(3) = color_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_colors_->data(), 3, dst_colors_->size());
+                    kd_tree_6d_ = new KDTree<float,6,KDTreeDistanceAdaptors::L2>(dst_data_points_6d_);
+                }
+                break;
+            }
+            case CorrespondencesType::NORMALS_COLORS: {
+                if (!kd_tree_6d_) {
+                    dst_data_points_6d_.resize(dst_points_->size());
+                    Eigen::Map<Eigen::Matrix<float,6,Eigen::Dynamic> > data_map((float *)dst_data_points_6d_.data(), 6, dst_data_points_6d_.size());
+                    data_map.topRows(3) = normal_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_normals_->data(), 3, dst_normals_->size());
+                    data_map.bottomRows(3) = color_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_colors_->data(), 3, dst_colors_->size());
+                    kd_tree_6d_ = new KDTree<float,6,KDTreeDistanceAdaptors::L2>(dst_data_points_6d_);
+                }
+                break;
+            }
+            case CorrespondencesType::POINTS_NORMALS_COLORS: {
+                if (!kd_tree_9d_) {
+                    dst_data_points_9d_.resize(dst_points_->size());
+                    Eigen::Map<Eigen::Matrix<float,9,Eigen::Dynamic> > data_map((float *)dst_data_points_9d_.data(), 9, dst_data_points_9d_.size());
+                    data_map.topRows(3) = point_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_points_->data(), 3, dst_points_->size());
+                    data_map.block(3,0,3,dst_data_points_9d_.size()) = normal_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_normals_->data(), 3, dst_normals_->size());
+                    data_map.bottomRows(3) = color_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_colors_->data(), 3, dst_colors_->size());
+                    kd_tree_9d_ = new KDTree<float,9,KDTreeDistanceAdaptors::L2>(dst_data_points_9d_);
+                }
+                break;
+            }
         }
     }
 
@@ -121,20 +144,27 @@ namespace cilantro {
     }
 
     IterativeClosestPoint::CorrespondencesType IterativeClosestPoint::correct_correspondences_type_(const CorrespondencesType &corr_type) const {
-        if (corr_type == CorrespondencesType::POINTS) {
-            return CorrespondencesType::POINTS;
-        } else if (corr_type == CorrespondencesType::NORMALS && dst_normals_ && src_normals_) {
-            return CorrespondencesType::NORMALS;
-        } else if (corr_type == CorrespondencesType::COLORS && dst_colors_ && src_colors_) {
-            return CorrespondencesType::COLORS;
-        } else if (corr_type == CorrespondencesType::POINTS_NORMALS && dst_normals_ && src_normals_) {
-            return CorrespondencesType::POINTS_NORMALS;
-        } else if (corr_type == CorrespondencesType::POINTS_COLORS && dst_colors_ && src_colors_) {
-            return CorrespondencesType::POINTS_COLORS;
-        } else if (corr_type == CorrespondencesType::NORMALS_COLORS && dst_normals_ && src_normals_ && dst_colors_ && src_colors_) {
-            return CorrespondencesType::NORMALS_COLORS;
-        } else if (corr_type == CorrespondencesType::POINTS_NORMALS_COLORS && dst_normals_ && src_normals_ && dst_colors_ && src_colors_) {
-            return CorrespondencesType::POINTS_NORMALS_COLORS;
+        switch (corr_type) {
+            case CorrespondencesType::POINTS:
+                return CorrespondencesType::POINTS;
+            case CorrespondencesType::NORMALS:
+                if (dst_normals_ && src_normals_) return CorrespondencesType::NORMALS;
+                break;
+            case CorrespondencesType::COLORS:
+                if (dst_colors_ && src_colors_) return CorrespondencesType::COLORS;
+                break;
+            case CorrespondencesType::POINTS_NORMALS:
+                if (dst_normals_ && src_normals_) return CorrespondencesType::POINTS_NORMALS;
+                break;
+            case CorrespondencesType::POINTS_COLORS:
+                if (dst_colors_ && src_colors_) return CorrespondencesType::POINTS_COLORS;
+                break;
+            case CorrespondencesType::NORMALS_COLORS:
+                if (dst_normals_ && src_normals_ && dst_colors_ && src_colors_) return CorrespondencesType::NORMALS_COLORS;
+                break;
+            case CorrespondencesType::POINTS_NORMALS_COLORS:
+                if (dst_normals_ && src_normals_ && dst_colors_ && src_colors_) return CorrespondencesType::POINTS_NORMALS_COLORS;
+                break;
         }
         return CorrespondencesType::POINTS;
     }
@@ -145,113 +175,168 @@ namespace cilantro {
         color_dist_weight_ = 1.0f;
 
         corr_dist_thres_ = 0.05f;
+        corr_fraction_ = 1.0f;
         convergence_tol_ = 1e-3f;
         max_iter_ = 15;
         point_to_plane_max_iter_ = 1;
 
         rot_mat_init_.setIdentity();
         t_vec_init_.setZero();
+
+        dst_ind_.reserve(src_points_->size());
+        src_ind_.reserve(src_points_->size());
+        dst_ind_all_.reserve(src_points_->size());
+        src_ind_all_.reserve(src_points_->size());
+        distances_all_.reserve(src_points_->size());
+        ind_all_.reserve(src_points_->size());
     }
 
-    void IterativeClosestPoint::find_correspondences_(std::vector<size_t> &dst_ind, std::vector<size_t> &src_ind) {
-        dst_ind.clear();
-        src_ind.clear();
-
+    void IterativeClosestPoint::find_correspondences_(std::vector<size_t>* &dst_ind, std::vector<size_t>* &src_ind) {
+        float corr_thresh_squared = corr_dist_thres_*corr_dist_thres_;
         size_t neighbor;
         float distance;
 
-        float corr_thresh_squared = corr_dist_thres_*corr_dist_thres_;
+        dst_ind_all_.clear();
+        src_ind_all_.clear();
+        distances_all_.clear();
+        switch (corr_type_) {
+            case CorrespondencesType::POINTS: {
+#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
+                for (size_t i = 0; i < src_points_trans_.size(); i++) {
+                    kd_tree_3d_->nearestNeighborSearch(src_points_trans_[i], neighbor, distance);
+                    if (distance >= corr_thresh_squared) continue;
+#pragma omp critical
+                    if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
+                        dst_ind_all_.emplace_back(neighbor);
+                        src_ind_all_.emplace_back(i);
+                        distances_all_.emplace_back(distance);
+                    }
+                }
+                break;
+            }
+            case CorrespondencesType::NORMALS: {
+#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
+                for (size_t i = 0; i < src_points_trans_.size(); i++) {
+                    kd_tree_3d_->nearestNeighborSearch(rot_mat_*(*src_normals_)[i], neighbor, distance);
+                    if (distance >= corr_thresh_squared) continue;
+#pragma omp critical
+                    if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
+                        dst_ind_all_.emplace_back(neighbor);
+                        src_ind_all_.emplace_back(i);
+                        distances_all_.emplace_back(distance);
+                    }
+                }
+                break;
+            }
+            case CorrespondencesType::COLORS: {
+#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
+                for (size_t i = 0; i < src_points_trans_.size(); i++) {
+                    kd_tree_3d_->nearestNeighborSearch((*src_colors_)[i], neighbor, distance);
+                    if (distance >= corr_thresh_squared) continue;
+#pragma omp critical
+                    if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
+                        dst_ind_all_.emplace_back(neighbor);
+                        src_ind_all_.emplace_back(i);
+                        distances_all_.emplace_back(distance);
+                    }
+                }
+                break;
+            }
+            case CorrespondencesType::POINTS_NORMALS: {
+#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
+                for (size_t i = 0; i < src_points_trans_.size(); i++) {
+                    Eigen::Matrix<float,6,1> query_pt;
+                    query_pt.head(3) = point_dist_weight_*src_points_trans_[i];
+                    query_pt.tail(3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
+                    kd_tree_6d_->nearestNeighborSearch(query_pt, neighbor, distance);
+                    if (distance >= corr_thresh_squared) continue;
+#pragma omp critical
+                    if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
+                        dst_ind_all_.emplace_back(neighbor);
+                        src_ind_all_.emplace_back(i);
+                        distances_all_.emplace_back(distance);
+                    }
+                }
+                break;
+            }
+            case CorrespondencesType::POINTS_COLORS: {
+#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
+                for (size_t i = 0; i < src_points_trans_.size(); i++) {
+                    Eigen::Matrix<float,6,1> query_pt;
+                    query_pt.head(3) = point_dist_weight_*src_points_trans_[i];
+                    query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
+                    kd_tree_6d_->nearestNeighborSearch(query_pt, neighbor, distance);
+                    if (distance >= corr_thresh_squared) continue;
+#pragma omp critical
+                    if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
+                        dst_ind_all_.emplace_back(neighbor);
+                        src_ind_all_.emplace_back(i);
+                        distances_all_.emplace_back(distance);
+                    }
+                }
+                break;
+            }
+            case CorrespondencesType::NORMALS_COLORS: {
+#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
+                for (size_t i = 0; i < src_points_trans_.size(); i++) {
+                    Eigen::Matrix<float,6,1> query_pt;
+                    query_pt.head(3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
+                    query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
+                    kd_tree_6d_->nearestNeighborSearch(query_pt, neighbor, distance);
+                    if (distance >= corr_thresh_squared) continue;
+#pragma omp critical
+                    if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
+                        dst_ind_all_.emplace_back(neighbor);
+                        src_ind_all_.emplace_back(i);
+                        distances_all_.emplace_back(distance);
+                    }
+                }
+                break;
+            }
+            case CorrespondencesType::POINTS_NORMALS_COLORS: {
+#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
+                for (size_t i = 0; i < src_points_trans_.size(); i++) {
+                    Eigen::Matrix<float,9,1> query_pt;
+                    query_pt.head(3) = point_dist_weight_*src_points_trans_[i];
+                    query_pt.segment(3,3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
+                    query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
+                    kd_tree_9d_->nearestNeighborSearch(query_pt, neighbor, distance);
+                    if (distance >= corr_thresh_squared) continue;
+#pragma omp critical
+                    if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
+                        dst_ind_all_.emplace_back(neighbor);
+                        src_ind_all_.emplace_back(i);
+                        distances_all_.emplace_back(distance);
+                    }
+                }
+                break;
+            }
+        }
 
-        if (corr_type_ == CorrespondencesType::POINTS) {
-#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
-            for (size_t i = 0; i < src_points_trans_.size(); i++) {
-                kd_tree_3d_->nearestNeighborSearch(src_points_trans_[i], neighbor, distance);
-                if (distance >= corr_thresh_squared) continue;
-#pragma omp critical
-                if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
-                    dst_ind.emplace_back(neighbor);
-                    src_ind.emplace_back(i);
-                }
+        if (corr_fraction_ > 0.0f && corr_fraction_ < 1.0f) {
+            size_t num_corr = (size_t)std::llround(corr_fraction_*dst_ind_all_.size());
+            num_corr = (metric_ == Metric::POINT_TO_PLANE) ? std::max(num_corr, (size_t)6) : std::max(num_corr, (size_t)3);
+            num_corr = std::min(num_corr, dst_ind_all_.size());
+
+            ind_all_.resize(dst_ind_all_.size());
+            for (size_t i = 0; i < ind_all_.size(); i++) ind_all_[i] = i;
+//            std::partial_sort(ind_all_.begin(), ind_all_.begin()+num_corr, ind_all_.end(), CorrespondenceComparator_(distances_all_));
+            std::sort(ind_all_.begin(), ind_all_.end(), CorrespondenceComparator_(distances_all_));
+
+            dst_ind_.resize(num_corr);
+            src_ind_.resize(num_corr);
+            for (size_t i = 0; i < num_corr; i++) {
+                dst_ind_[i] = dst_ind_all_[ind_all_[i]];
+                src_ind_[i] = src_ind_all_[ind_all_[i]];
             }
-        } else if (corr_type_ == CorrespondencesType::NORMALS) {
-#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
-            for (size_t i = 0; i < src_points_trans_.size(); i++) {
-                kd_tree_3d_->nearestNeighborSearch(rot_mat_*(*src_normals_)[i], neighbor, distance);
-                if (distance >= corr_thresh_squared) continue;
-#pragma omp critical
-                if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
-                    dst_ind.emplace_back(neighbor);
-                    src_ind.emplace_back(i);
-                }
-            }
-        } else if (corr_type_ == CorrespondencesType::COLORS) {
-#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
-            for (size_t i = 0; i < src_points_trans_.size(); i++) {
-                kd_tree_3d_->nearestNeighborSearch((*src_colors_)[i], neighbor, distance);
-                if (distance >= corr_thresh_squared) continue;
-#pragma omp critical
-                if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
-                    dst_ind.emplace_back(neighbor);
-                    src_ind.emplace_back(i);
-                }
-            }
-        } else if (corr_type_ == CorrespondencesType::POINTS_NORMALS) {
-#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
-            for (size_t i = 0; i < src_points_trans_.size(); i++) {
-                Eigen::Matrix<float,6,1> query_pt;
-                query_pt.head(3) = point_dist_weight_*src_points_trans_[i];
-                query_pt.tail(3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
-                kd_tree_6d_->nearestNeighborSearch(query_pt, neighbor, distance);
-                if (distance >= corr_thresh_squared) continue;
-#pragma omp critical
-                if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
-                    dst_ind.emplace_back(neighbor);
-                    src_ind.emplace_back(i);
-                }
-            }
-        } else if (corr_type_ == CorrespondencesType::POINTS_COLORS) {
-#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
-            for (size_t i = 0; i < src_points_trans_.size(); i++) {
-                Eigen::Matrix<float,6,1> query_pt;
-                query_pt.head(3) = point_dist_weight_*src_points_trans_[i];
-                query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
-                kd_tree_6d_->nearestNeighborSearch(query_pt, neighbor, distance);
-                if (distance >= corr_thresh_squared) continue;
-#pragma omp critical
-                if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
-                    dst_ind.emplace_back(neighbor);
-                    src_ind.emplace_back(i);
-                }
-            }
-        } else if (corr_type_ == CorrespondencesType::NORMALS_COLORS) {
-#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
-            for (size_t i = 0; i < src_points_trans_.size(); i++) {
-                Eigen::Matrix<float,6,1> query_pt;
-                query_pt.head(3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
-                query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
-                kd_tree_6d_->nearestNeighborSearch(query_pt, neighbor, distance);
-                if (distance >= corr_thresh_squared) continue;
-#pragma omp critical
-                if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
-                    dst_ind.emplace_back(neighbor);
-                    src_ind.emplace_back(i);
-                }
-            }
-        } else if (corr_type_ == CorrespondencesType::POINTS_NORMALS_COLORS) {
-#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
-            for (size_t i = 0; i < src_points_trans_.size(); i++) {
-                Eigen::Matrix<float,9,1> query_pt;
-                query_pt.head(3) = point_dist_weight_*src_points_trans_[i];
-                query_pt.segment(3,3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
-                query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
-                kd_tree_9d_->nearestNeighborSearch(query_pt, neighbor, distance);
-                if (distance >= corr_thresh_squared) continue;
-#pragma omp critical
-                if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
-                    dst_ind.emplace_back(neighbor);
-                    src_ind.emplace_back(i);
-                }
-            }
+
+            dst_ind = &dst_ind_;
+            src_ind = &src_ind_;
+
+        } else {
+            // Use all correspondences
+            dst_ind = &dst_ind_all_;
+            src_ind = &src_ind_all_;
         }
     }
 
@@ -272,9 +357,8 @@ namespace cilantro {
 
         Eigen::Vector3f v_pi(M_PI, M_PI, M_PI);
 
-        std::vector<size_t> dst_ind, src_ind;
-        dst_ind.reserve(src_points_trans_.size());
-        src_ind.reserve(src_points_trans_.size());
+        std::vector<size_t>* dst_ind;
+        std::vector<size_t>* src_ind;
 
         iteration_count_ = 0;
         while (iteration_count_ < max_iter_) {
@@ -286,18 +370,16 @@ namespace cilantro {
 
             iteration_count_++;
 
-            if (dst_ind.empty()) {
+            if ((metric_ == Metric::POINT_TO_PLANE && dst_ind->size() < 6) || (metric_ == Metric::POINT_TO_POINT && dst_ind->size() < 3)) {
                 has_converged_ = false;
                 break;
             }
 
             // Update estimated transformation
             if (metric_ == Metric::POINT_TO_PLANE) {
-                estimateRigidTransformPointToPlane(*dst_points_, *dst_normals_, src_points_trans_, dst_ind, src_ind, rot_mat_iter, t_vec_iter, point_to_plane_max_iter_, convergence_tol_);
-            } else if (metric_ == Metric::POINT_TO_POINT) {
-                estimateRigidTransformPointToPoint(*dst_points_, src_points_trans_, dst_ind, src_ind, rot_mat_iter, t_vec_iter);
+                estimateRigidTransformPointToPlane(*dst_points_, *dst_normals_, src_points_trans_, *dst_ind, *src_ind, rot_mat_iter, t_vec_iter, point_to_plane_max_iter_, convergence_tol_);
             } else {
-                break;
+                estimateRigidTransformPointToPoint(*dst_points_, src_points_trans_, *dst_ind, *src_ind, rot_mat_iter, t_vec_iter);
             }
 
             rot_mat_ = rot_mat_iter*rot_mat_;
@@ -328,193 +410,208 @@ namespace cilantro {
         float distance;
 
         residuals.resize(src_points_->size());
-        if (req_corr_type == CorrespondencesType::POINTS) {
-            KDTree<float,3,KDTreeDistanceAdaptors::L2> *kd_tree;
-            if (req_corr_type == corr_type_) {
-                kd_tree = kd_tree_3d_;
-            } else {
-                kd_tree = new KDTree<float,3,KDTreeDistanceAdaptors::L2>(*dst_points_);
-            }
-#pragma omp parallel for shared (residuals) private (neighbor, distance)
-            for (size_t i = 0; i < src_points_trans_.size(); i++) {
-                Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
-                kd_tree->nearestNeighborSearch(pt_trans, neighbor, distance);
-                if (metric == Metric::POINT_TO_PLANE) {
-                    const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
-                    const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
-                    residuals[i] = std::abs(dn.dot(pt_trans - dp));
-                } else if (metric == Metric::POINT_TO_POINT) {
-                    residuals[i] = std::sqrt(distance);
+        switch (req_corr_type) {
+            case CorrespondencesType::POINTS: {
+                KDTree<float,3,KDTreeDistanceAdaptors::L2> *kd_tree;
+                if (req_corr_type == corr_type_) {
+                    kd_tree = kd_tree_3d_;
+                } else {
+                    kd_tree = new KDTree<float,3,KDTreeDistanceAdaptors::L2>(*dst_points_);
                 }
-            }
-            if (req_corr_type != corr_type_) {
-                delete kd_tree;
-            }
-        } else if (req_corr_type == CorrespondencesType::NORMALS) {
-            KDTree<float,3,KDTreeDistanceAdaptors::L2> *kd_tree;
-            if (req_corr_type == corr_type_) {
-                kd_tree = kd_tree_3d_;
-            } else {
-                kd_tree = new KDTree<float,3,KDTreeDistanceAdaptors::L2>(*dst_normals_);
-            }
 #pragma omp parallel for shared (residuals) private (neighbor, distance)
-            for (size_t i = 0; i < src_points_trans_.size(); i++) {
-                Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
-                kd_tree->nearestNeighborSearch(rot_mat_*(*src_normals_)[i], neighbor, distance);
-                if (metric == Metric::POINT_TO_PLANE) {
-                    const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
-                    const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
-                    residuals[i] = std::abs(dn.dot(pt_trans - dp));
-                } else if (metric == Metric::POINT_TO_POINT) {
-                    residuals[i] = std::sqrt(distance);
+                for (size_t i = 0; i < src_points_trans_.size(); i++) {
+                    Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
+                    kd_tree->nearestNeighborSearch(pt_trans, neighbor, distance);
+                    if (metric == Metric::POINT_TO_PLANE) {
+                        const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
+                        const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
+                        residuals[i] = std::abs(dn.dot(pt_trans - dp));
+                    } else {
+                        residuals[i] = std::sqrt(distance);
+                    }
                 }
+                if (req_corr_type != corr_type_) {
+                    delete kd_tree;
+                }
+                break;
             }
-            if (req_corr_type != corr_type_) {
-                delete kd_tree;
-            }
-        } else if (req_corr_type == CorrespondencesType::COLORS) {
-            KDTree<float,3,KDTreeDistanceAdaptors::L2> *kd_tree;
-            if (req_corr_type == corr_type_) {
-                kd_tree = kd_tree_3d_;
-            } else {
-                kd_tree = new KDTree<float,3,KDTreeDistanceAdaptors::L2>(*dst_colors_);
-            }
+            case CorrespondencesType::NORMALS: {
+                KDTree<float,3,KDTreeDistanceAdaptors::L2> *kd_tree;
+                if (req_corr_type == corr_type_) {
+                    kd_tree = kd_tree_3d_;
+                } else {
+                    kd_tree = new KDTree<float,3,KDTreeDistanceAdaptors::L2>(*dst_normals_);
+                }
 #pragma omp parallel for shared (residuals) private (neighbor, distance)
-            for (size_t i = 0; i < src_points_trans_.size(); i++) {
-                Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
-                kd_tree->nearestNeighborSearch((*src_colors_)[i], neighbor, distance);
-                if (metric == Metric::POINT_TO_PLANE) {
-                    const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
-                    const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
-                    residuals[i] = std::abs(dn.dot(pt_trans - dp));
-                } else if (metric == Metric::POINT_TO_POINT) {
-                    residuals[i] = std::sqrt(distance);
+                for (size_t i = 0; i < src_points_trans_.size(); i++) {
+                    Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
+                    kd_tree->nearestNeighborSearch(rot_mat_*(*src_normals_)[i], neighbor, distance);
+                    if (metric == Metric::POINT_TO_PLANE) {
+                        const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
+                        const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
+                        residuals[i] = std::abs(dn.dot(pt_trans - dp));
+                    } else {
+                        residuals[i] = std::sqrt(distance);
+                    }
                 }
+                if (req_corr_type != corr_type_) {
+                    delete kd_tree;
+                }
+                break;
             }
-            if (req_corr_type != corr_type_) {
-                delete kd_tree;
-            }
-        } else if (req_corr_type == CorrespondencesType::POINTS_NORMALS) {
-            KDTree<float,6,KDTreeDistanceAdaptors::L2> *kd_tree;
-            std::vector<Eigen::Matrix<float,6,1> > data_holder;
-            if (req_corr_type == corr_type_) {
-                kd_tree = kd_tree_6d_;
-            } else {
-                data_holder.resize(dst_points_->size());
-                Eigen::Map<Eigen::Matrix<float,6,Eigen::Dynamic> > data_map((float *)data_holder.data(), 6, data_holder.size());
-                data_map.topRows(3) = point_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_points_->data(), 3, dst_points_->size());
-                data_map.bottomRows(3) = normal_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_normals_->data(), 3, dst_normals_->size());
-                kd_tree = new KDTree<float,6,KDTreeDistanceAdaptors::L2>(data_holder);
-            }
+            case CorrespondencesType::COLORS: {
+                KDTree<float,3,KDTreeDistanceAdaptors::L2> *kd_tree;
+                if (req_corr_type == corr_type_) {
+                    kd_tree = kd_tree_3d_;
+                } else {
+                    kd_tree = new KDTree<float,3,KDTreeDistanceAdaptors::L2>(*dst_colors_);
+                }
 #pragma omp parallel for shared (residuals) private (neighbor, distance)
-            for (size_t i = 0; i < src_points_trans_.size(); i++) {
-                Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
-                Eigen::Matrix<float,6,1> query_pt;
-                query_pt.head(3) = point_dist_weight_*pt_trans;
-                query_pt.tail(3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
-                kd_tree->nearestNeighborSearch(query_pt, neighbor, distance);
-                if (metric == Metric::POINT_TO_PLANE) {
-                    const Eigen::Vector3f& dp = (*dst_points_)[neighbor];
-                    const Eigen::Vector3f& dn = (*dst_normals_)[neighbor];
-                    residuals[i] = std::abs(dn.dot(pt_trans - dp));
-                } else if (metric == Metric::POINT_TO_POINT) {
-                    residuals[i] = std::sqrt(distance);
+                for (size_t i = 0; i < src_points_trans_.size(); i++) {
+                    Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
+                    kd_tree->nearestNeighborSearch((*src_colors_)[i], neighbor, distance);
+                    if (metric == Metric::POINT_TO_PLANE) {
+                        const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
+                        const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
+                        residuals[i] = std::abs(dn.dot(pt_trans - dp));
+                    } else {
+                        residuals[i] = std::sqrt(distance);
+                    }
                 }
+                if (req_corr_type != corr_type_) {
+                    delete kd_tree;
+                }
+                break;
             }
-            if (req_corr_type != corr_type_) {
-                delete kd_tree;
-            }
-        } else if (req_corr_type == CorrespondencesType::POINTS_COLORS) {
-            KDTree<float,6,KDTreeDistanceAdaptors::L2> *kd_tree;
-            std::vector<Eigen::Matrix<float,6,1> > data_holder;
-            if (req_corr_type == corr_type_) {
-                kd_tree = kd_tree_6d_;
-            } else {
-                data_holder.resize(dst_points_->size());
-                Eigen::Map<Eigen::Matrix<float,6,Eigen::Dynamic> > data_map((float *)data_holder.data(), 6, data_holder.size());
-                data_map.topRows(3) = point_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_points_->data(), 3, dst_points_->size());
-                data_map.bottomRows(3) = color_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_colors_->data(), 3, dst_colors_->size());
-                kd_tree = new KDTree<float,6,KDTreeDistanceAdaptors::L2>(data_holder);
-            }
+            case CorrespondencesType::POINTS_NORMALS: {
+                KDTree<float,6,KDTreeDistanceAdaptors::L2> *kd_tree;
+                std::vector<Eigen::Matrix<float,6,1> > data_holder;
+                if (req_corr_type == corr_type_) {
+                    kd_tree = kd_tree_6d_;
+                } else {
+                    data_holder.resize(dst_points_->size());
+                    Eigen::Map<Eigen::Matrix<float,6,Eigen::Dynamic> > data_map((float *)data_holder.data(), 6, data_holder.size());
+                    data_map.topRows(3) = point_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_points_->data(), 3, dst_points_->size());
+                    data_map.bottomRows(3) = normal_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_normals_->data(), 3, dst_normals_->size());
+                    kd_tree = new KDTree<float,6,KDTreeDistanceAdaptors::L2>(data_holder);
+                }
 #pragma omp parallel for shared (residuals) private (neighbor, distance)
-            for (size_t i = 0; i < src_points_trans_.size(); i++) {
-                Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
-                Eigen::Matrix<float,6,1> query_pt;
-                query_pt.head(3) = point_dist_weight_*pt_trans;
-                query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
-                kd_tree->nearestNeighborSearch(query_pt, neighbor, distance);
-                if (metric == Metric::POINT_TO_PLANE) {
-                    const Eigen::Vector3f& dp = (*dst_points_)[neighbor];
-                    const Eigen::Vector3f& dn = (*dst_normals_)[neighbor];
-                    residuals[i] = std::abs(dn.dot(pt_trans - dp));
-                } else if (metric == Metric::POINT_TO_POINT) {
-                    residuals[i] = std::sqrt(distance);
+                for (size_t i = 0; i < src_points_trans_.size(); i++) {
+                    Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
+                    Eigen::Matrix<float,6,1> query_pt;
+                    query_pt.head(3) = point_dist_weight_*pt_trans;
+                    query_pt.tail(3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
+                    kd_tree->nearestNeighborSearch(query_pt, neighbor, distance);
+                    if (metric == Metric::POINT_TO_PLANE) {
+                        const Eigen::Vector3f& dp = (*dst_points_)[neighbor];
+                        const Eigen::Vector3f& dn = (*dst_normals_)[neighbor];
+                        residuals[i] = std::abs(dn.dot(pt_trans - dp));
+                    } else {
+                        residuals[i] = std::sqrt(distance);
+                    }
                 }
+                if (req_corr_type != corr_type_) {
+                    delete kd_tree;
+                }
+                break;
             }
-            if (req_corr_type != corr_type_) {
-                delete kd_tree;
-            }
-        } else if (req_corr_type == CorrespondencesType::NORMALS_COLORS) {
-            KDTree<float,6,KDTreeDistanceAdaptors::L2> *kd_tree;
-            std::vector<Eigen::Matrix<float,6,1> > data_holder;
-            if (req_corr_type == corr_type_) {
-                kd_tree = kd_tree_6d_;
-            } else {
-                data_holder.resize(dst_points_->size());
-                Eigen::Map<Eigen::Matrix<float,6,Eigen::Dynamic> > data_map((float *)data_holder.data(), 6, data_holder.size());
-                data_map.topRows(3) = normal_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_normals_->data(), 3, dst_normals_->size());
-                data_map.bottomRows(3) = color_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_colors_->data(), 3, dst_colors_->size());
-                kd_tree = new KDTree<float,6,KDTreeDistanceAdaptors::L2>(data_holder);
-            }
+            case CorrespondencesType::POINTS_COLORS: {
+                KDTree<float,6,KDTreeDistanceAdaptors::L2> *kd_tree;
+                std::vector<Eigen::Matrix<float,6,1> > data_holder;
+                if (req_corr_type == corr_type_) {
+                    kd_tree = kd_tree_6d_;
+                } else {
+                    data_holder.resize(dst_points_->size());
+                    Eigen::Map<Eigen::Matrix<float,6,Eigen::Dynamic> > data_map((float *)data_holder.data(), 6, data_holder.size());
+                    data_map.topRows(3) = point_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_points_->data(), 3, dst_points_->size());
+                    data_map.bottomRows(3) = color_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_colors_->data(), 3, dst_colors_->size());
+                    kd_tree = new KDTree<float,6,KDTreeDistanceAdaptors::L2>(data_holder);
+                }
 #pragma omp parallel for shared (residuals) private (neighbor, distance)
-            for (size_t i = 0; i < src_points_trans_.size(); i++) {
-                Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
-                Eigen::Matrix<float,6,1> query_pt;
-                query_pt.head(3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
-                query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
-                kd_tree->nearestNeighborSearch(query_pt, neighbor, distance);
-                if (metric == Metric::POINT_TO_PLANE) {
-                    const Eigen::Vector3f& dp = (*dst_points_)[neighbor];
-                    const Eigen::Vector3f& dn = (*dst_normals_)[neighbor];
-                    residuals[i] = std::abs(dn.dot(pt_trans - dp));
-                } else if (metric == Metric::POINT_TO_POINT) {
-                    residuals[i] = std::sqrt(distance);
+                for (size_t i = 0; i < src_points_trans_.size(); i++) {
+                    Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
+                    Eigen::Matrix<float,6,1> query_pt;
+                    query_pt.head(3) = point_dist_weight_*pt_trans;
+                    query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
+                    kd_tree->nearestNeighborSearch(query_pt, neighbor, distance);
+                    if (metric == Metric::POINT_TO_PLANE) {
+                        const Eigen::Vector3f& dp = (*dst_points_)[neighbor];
+                        const Eigen::Vector3f& dn = (*dst_normals_)[neighbor];
+                        residuals[i] = std::abs(dn.dot(pt_trans - dp));
+                    } else {
+                        residuals[i] = std::sqrt(distance);
+                    }
                 }
+                if (req_corr_type != corr_type_) {
+                    delete kd_tree;
+                }
+                break;
             }
-            if (req_corr_type != corr_type_) {
-                delete kd_tree;
-            }
-        } else if (req_corr_type == CorrespondencesType::POINTS_NORMALS_COLORS) {
-            KDTree<float,9,KDTreeDistanceAdaptors::L2> *kd_tree;
-            std::vector<Eigen::Matrix<float,9,1> > data_holder;
-            if (req_corr_type == corr_type_) {
-                kd_tree = kd_tree_9d_;
-            } else {
-                data_holder.resize(dst_points_->size());
-                Eigen::Map<Eigen::Matrix<float,9,Eigen::Dynamic> > data_map((float *)data_holder.data(), 9, data_holder.size());
-                data_map.topRows(3) = point_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_points_->data(), 3, dst_points_->size());
-                data_map.block(3,0,3,dst_data_points_9d_.size()) = normal_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_normals_->data(), 3, dst_normals_->size());
-                data_map.bottomRows(3) = color_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_colors_->data(), 3, dst_colors_->size());
-                kd_tree = new KDTree<float,9,KDTreeDistanceAdaptors::L2>(data_holder);
-            }
+            case CorrespondencesType::NORMALS_COLORS: {
+                KDTree<float,6,KDTreeDistanceAdaptors::L2> *kd_tree;
+                std::vector<Eigen::Matrix<float,6,1> > data_holder;
+                if (req_corr_type == corr_type_) {
+                    kd_tree = kd_tree_6d_;
+                } else {
+                    data_holder.resize(dst_points_->size());
+                    Eigen::Map<Eigen::Matrix<float,6,Eigen::Dynamic> > data_map((float *)data_holder.data(), 6, data_holder.size());
+                    data_map.topRows(3) = normal_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_normals_->data(), 3, dst_normals_->size());
+                    data_map.bottomRows(3) = color_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_colors_->data(), 3, dst_colors_->size());
+                    kd_tree = new KDTree<float,6,KDTreeDistanceAdaptors::L2>(data_holder);
+                }
 #pragma omp parallel for shared (residuals) private (neighbor, distance)
-            for (size_t i = 0; i < src_points_trans_.size(); i++) {
-                Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
-                Eigen::Matrix<float,9,1> query_pt;
-                query_pt.head(3) = point_dist_weight_*pt_trans;
-                query_pt.segment(3,3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
-                query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
-                kd_tree->nearestNeighborSearch(query_pt, neighbor, distance);
-                if (metric == Metric::POINT_TO_PLANE) {
-                    const Eigen::Vector3f& dp = (*dst_points_)[neighbor];
-                    const Eigen::Vector3f& dn = (*dst_normals_)[neighbor];
-                    residuals[i] = std::abs(dn.dot(pt_trans - dp));
-                } else if (metric == Metric::POINT_TO_POINT) {
-                    residuals[i] = std::sqrt(distance);
+                for (size_t i = 0; i < src_points_trans_.size(); i++) {
+                    Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
+                    Eigen::Matrix<float,6,1> query_pt;
+                    query_pt.head(3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
+                    query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
+                    kd_tree->nearestNeighborSearch(query_pt, neighbor, distance);
+                    if (metric == Metric::POINT_TO_PLANE) {
+                        const Eigen::Vector3f& dp = (*dst_points_)[neighbor];
+                        const Eigen::Vector3f& dn = (*dst_normals_)[neighbor];
+                        residuals[i] = std::abs(dn.dot(pt_trans - dp));
+                    } else {
+                        residuals[i] = std::sqrt(distance);
+                    }
                 }
+                if (req_corr_type != corr_type_) {
+                    delete kd_tree;
+                }
+                break;
             }
-            if (req_corr_type != corr_type_) {
-                delete kd_tree;
+            case CorrespondencesType::POINTS_NORMALS_COLORS: {
+                KDTree<float,9,KDTreeDistanceAdaptors::L2> *kd_tree;
+                std::vector<Eigen::Matrix<float,9,1> > data_holder;
+                if (req_corr_type == corr_type_) {
+                    kd_tree = kd_tree_9d_;
+                } else {
+                    data_holder.resize(dst_points_->size());
+                    Eigen::Map<Eigen::Matrix<float,9,Eigen::Dynamic> > data_map((float *)data_holder.data(), 9, data_holder.size());
+                    data_map.topRows(3) = point_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_points_->data(), 3, dst_points_->size());
+                    data_map.block(3,0,3,dst_data_points_9d_.size()) = normal_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_normals_->data(), 3, dst_normals_->size());
+                    data_map.bottomRows(3) = color_dist_weight_*Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> >((float *)dst_colors_->data(), 3, dst_colors_->size());
+                    kd_tree = new KDTree<float,9,KDTreeDistanceAdaptors::L2>(data_holder);
+                }
+#pragma omp parallel for shared (residuals) private (neighbor, distance)
+                for (size_t i = 0; i < src_points_trans_.size(); i++) {
+                    Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
+                    Eigen::Matrix<float,9,1> query_pt;
+                    query_pt.head(3) = point_dist_weight_*pt_trans;
+                    query_pt.segment(3,3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
+                    query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
+                    kd_tree->nearestNeighborSearch(query_pt, neighbor, distance);
+                    if (metric == Metric::POINT_TO_PLANE) {
+                        const Eigen::Vector3f& dp = (*dst_points_)[neighbor];
+                        const Eigen::Vector3f& dn = (*dst_normals_)[neighbor];
+                        residuals[i] = std::abs(dn.dot(pt_trans - dp));
+                    } else {
+                        residuals[i] = std::sqrt(distance);
+                    }
+                }
+                if (req_corr_type != corr_type_) {
+                    delete kd_tree;
+                }
+                break;
             }
         }
     }
