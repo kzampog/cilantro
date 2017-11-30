@@ -3,6 +3,15 @@
 #include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
 
+template <class T>
+std::vector<T> selectByIndices(const std::vector<T> &elements, const std::vector<size_t> &indices) {
+    std::vector<T> res(indices.size());
+    for (size_t i = 0; i < indices.size(); i++) {
+        res[i] = elements[indices[i]];
+    }
+    return res;
+}
+
 void callback(unsigned char key, bool &re_estimate, bool &randomize) {
     if (key == 'a') {
         re_estimate = true;
@@ -61,7 +70,7 @@ int main(int argc, char **argv) {
 
             src.transform(R_ref, t_ref);
             viz.addPointCloud("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
-            viz.addPointCorrespondences("corr", cilantro::PointCloud(src, src_ind), cilantro::PointCloud(dst, dst_ind), cilantro::RenderingProperties().setOpacity(0.5f));
+            viz.addPointCorrespondences("corr", selectByIndices(src.points, src_ind), selectByIndices(dst.points, dst_ind), cilantro::RenderingProperties().setOpacity(0.5f));
 
             std::cout << "Press 'a' for a transform estimate" << std::endl;
         }
