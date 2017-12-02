@@ -1,4 +1,4 @@
-#include <cilantro/transform_estimation_utilities.hpp>
+#include <cilantro/registration.hpp>
 
 namespace cilantro {
     bool estimateRigidTransformPointToPoint(const Eigen::Ref<const Eigen::Matrix<float,3,Eigen::Dynamic> > &dst,

@@ -1,5 +1,5 @@
 #include <cilantro/rigid_transform_estimator.hpp>
-#include <cilantro/transform_estimation_utilities.hpp>
+#include <cilantro/registration.hpp>
 
 namespace cilantro {
     RigidTransformEstimator::RigidTransformEstimator(const std::vector<Eigen::Vector3f> &dst_points,
