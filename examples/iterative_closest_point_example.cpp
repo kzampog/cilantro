@@ -64,16 +64,19 @@ int main(int argc, char ** argv) {
 
     Eigen::Matrix3f R_est;
     Eigen::Vector3f t_est;
-//    estimateRigidTransformPointToPoint(dst.points, src.points, ind, ind, R_est, t_est);
-//    estimateRigidTransformPointToPlane(dst, src, ind, ind, R_est, t_est, 10, 1e-4f);
-//    IterativeClosestPoint icp(dst, src, IterativeClosestPoint::Metric::POINT_TO_POINT);
+
+//    cilantro::IterativeClosestPoint icp(dst, src, cilantro::IterativeClosestPoint::Metric::POINT_TO_POINT);
     cilantro::IterativeClosestPoint icp(dst, src, cilantro::IterativeClosestPoint::Metric::POINT_TO_PLANE);
-//    icp.setMaxCorrespondenceDistance(0.05f).setConvergenceTolerance(1e-3f).setMaxNumberOfIterations(200).setMaxNumberOfPointToPlaneIterations(1);
-    icp.setMaxCorrespondenceDistance(0.5f).setConvergenceTolerance(1e-3f).setMaxNumberOfIterations(200).setMaxNumberOfPointToPlaneIterations(1);
+//    cilantro::IterativeClosestPoint icp(dst, src, cilantro::IterativeClosestPoint::Metric::COMBINED);
+//    icp.setPointToPointMetricWeight(0.01f);
+//    icp.setPointToPlaneMetricWeight(1.0f);
+
     icp.setCorrespondencesType(cilantro::IterativeClosestPoint::CorrespondencesType::POINTS_NORMALS_COLORS);
     icp.setCorrespondencePointWeight(1.0);
     icp.setCorrespondenceNormalWeight(50.0);
     icp.setCorrespondenceColorWeight(50.0);
+
+    icp.setMaxCorrespondenceDistance(0.5f).setConvergenceTolerance(1e-3f).setMaxNumberOfIterations(200).setMaxNumberOfOptimizationStepIterations(1);
 
 //    icp.setInitialTransformation(R_ref.transpose(), (-R_ref.transpose()*t_ref));
     icp.getTransformation(R_est, t_est);

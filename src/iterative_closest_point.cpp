@@ -174,11 +174,14 @@ namespace cilantro {
         normal_dist_weight_ = 1.0f;
         color_dist_weight_ = 1.0f;
 
+        point_to_point_weight_ = 0.01f;
+        point_to_plane_weight_ = 1.0f;
+
         corr_dist_thres_ = 0.05f;
         corr_fraction_ = 1.0f;
         convergence_tol_ = 1e-3f;
         max_iter_ = 15;
-        point_to_plane_max_iter_ = 1;
+        max_estimation_iter_ = 1;
 
         rot_mat_init_.setIdentity();
         t_vec_init_.setZero();
@@ -204,12 +207,13 @@ namespace cilantro {
 #pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
                 for (size_t i = 0; i < src_points_trans_.size(); i++) {
                     kd_tree_3d_->nearestNeighborSearch(src_points_trans_[i], neighbor, distance);
-                    if (distance >= corr_thresh_squared) continue;
+                    if (distance < corr_thresh_squared) {
 #pragma omp critical
-                    if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
-                        dst_ind_all_.emplace_back(neighbor);
-                        src_ind_all_.emplace_back(i);
-                        distances_all_.emplace_back(distance);
+                        {
+                            dst_ind_all_.emplace_back(neighbor);
+                            src_ind_all_.emplace_back(i);
+                            distances_all_.emplace_back(distance);
+                        }
                     }
                 }
                 break;
@@ -218,12 +222,13 @@ namespace cilantro {
 #pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
                 for (size_t i = 0; i < src_points_trans_.size(); i++) {
                     kd_tree_3d_->nearestNeighborSearch(rot_mat_*(*src_normals_)[i], neighbor, distance);
-                    if (distance >= corr_thresh_squared) continue;
+                    if (distance < corr_thresh_squared) {
 #pragma omp critical
-                    if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
-                        dst_ind_all_.emplace_back(neighbor);
-                        src_ind_all_.emplace_back(i);
-                        distances_all_.emplace_back(distance);
+                        {
+                            dst_ind_all_.emplace_back(neighbor);
+                            src_ind_all_.emplace_back(i);
+                            distances_all_.emplace_back(distance);
+                        }
                     }
                 }
                 break;
@@ -232,12 +237,13 @@ namespace cilantro {
 #pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
                 for (size_t i = 0; i < src_points_trans_.size(); i++) {
                     kd_tree_3d_->nearestNeighborSearch((*src_colors_)[i], neighbor, distance);
-                    if (distance >= corr_thresh_squared) continue;
+                    if (distance < corr_thresh_squared) {
 #pragma omp critical
-                    if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
-                        dst_ind_all_.emplace_back(neighbor);
-                        src_ind_all_.emplace_back(i);
-                        distances_all_.emplace_back(distance);
+                        {
+                            dst_ind_all_.emplace_back(neighbor);
+                            src_ind_all_.emplace_back(i);
+                            distances_all_.emplace_back(distance);
+                        }
                     }
                 }
                 break;
@@ -249,12 +255,13 @@ namespace cilantro {
                     query_pt.head(3) = point_dist_weight_*src_points_trans_[i];
                     query_pt.tail(3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
                     kd_tree_6d_->nearestNeighborSearch(query_pt, neighbor, distance);
-                    if (distance >= corr_thresh_squared) continue;
+                    if (distance < corr_thresh_squared) {
 #pragma omp critical
-                    if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
-                        dst_ind_all_.emplace_back(neighbor);
-                        src_ind_all_.emplace_back(i);
-                        distances_all_.emplace_back(distance);
+                        {
+                            dst_ind_all_.emplace_back(neighbor);
+                            src_ind_all_.emplace_back(i);
+                            distances_all_.emplace_back(distance);
+                        }
                     }
                 }
                 break;
@@ -266,12 +273,13 @@ namespace cilantro {
                     query_pt.head(3) = point_dist_weight_*src_points_trans_[i];
                     query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
                     kd_tree_6d_->nearestNeighborSearch(query_pt, neighbor, distance);
-                    if (distance >= corr_thresh_squared) continue;
+                    if (distance < corr_thresh_squared) {
 #pragma omp critical
-                    if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
-                        dst_ind_all_.emplace_back(neighbor);
-                        src_ind_all_.emplace_back(i);
-                        distances_all_.emplace_back(distance);
+                        {
+                            dst_ind_all_.emplace_back(neighbor);
+                            src_ind_all_.emplace_back(i);
+                            distances_all_.emplace_back(distance);
+                        }
                     }
                 }
                 break;
@@ -283,12 +291,13 @@ namespace cilantro {
                     query_pt.head(3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
                     query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
                     kd_tree_6d_->nearestNeighborSearch(query_pt, neighbor, distance);
-                    if (distance >= corr_thresh_squared) continue;
+                    if (distance < corr_thresh_squared) {
 #pragma omp critical
-                    if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
-                        dst_ind_all_.emplace_back(neighbor);
-                        src_ind_all_.emplace_back(i);
-                        distances_all_.emplace_back(distance);
+                        {
+                            dst_ind_all_.emplace_back(neighbor);
+                            src_ind_all_.emplace_back(i);
+                            distances_all_.emplace_back(distance);
+                        }
                     }
                 }
                 break;
@@ -301,12 +310,13 @@ namespace cilantro {
                     query_pt.segment(3,3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
                     query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
                     kd_tree_9d_->nearestNeighborSearch(query_pt, neighbor, distance);
-                    if (distance >= corr_thresh_squared) continue;
+                    if (distance < corr_thresh_squared) {
 #pragma omp critical
-                    if (metric_ != Metric::POINT_TO_PLANE || (*dst_normals_)[neighbor].allFinite()) {
-                        dst_ind_all_.emplace_back(neighbor);
-                        src_ind_all_.emplace_back(i);
-                        distances_all_.emplace_back(distance);
+                        {
+                            dst_ind_all_.emplace_back(neighbor);
+                            src_ind_all_.emplace_back(i);
+                            distances_all_.emplace_back(distance);
+                        }
                     }
                 }
                 break;
@@ -315,8 +325,7 @@ namespace cilantro {
 
         if (corr_fraction_ > 0.0f && corr_fraction_ < 1.0f) {
             size_t num_corr = (size_t)std::llround(corr_fraction_*dst_ind_all_.size());
-            num_corr = (metric_ == Metric::POINT_TO_PLANE) ? std::max(num_corr, (size_t)6) : std::max(num_corr, (size_t)3);
-            num_corr = std::min(num_corr, dst_ind_all_.size());
+            num_corr = std::min(std::max(num_corr, (size_t)6), dst_ind_all_.size());
 
             ind_all_.resize(dst_ind_all_.size());
             for (size_t i = 0; i < ind_all_.size(); i++) ind_all_[i] = i;
@@ -370,16 +379,22 @@ namespace cilantro {
 
             iteration_count_++;
 
-            if ((metric_ == Metric::POINT_TO_PLANE && dst_ind->size() < 6) || (metric_ == Metric::POINT_TO_POINT && dst_ind->size() < 3)) {
+            if (dst_ind->size() < 3 || (metric_ != Metric::POINT_TO_POINT && dst_ind->size() < 6)) {
                 has_converged_ = false;
                 break;
             }
 
             // Update estimated transformation
-            if (metric_ == Metric::POINT_TO_PLANE) {
-                estimateRigidTransformPointToPlane(*dst_points_, *dst_normals_, src_points_trans_, *dst_ind, *src_ind, rot_mat_iter, t_vec_iter, point_to_plane_max_iter_, convergence_tol_);
-            } else {
-                estimateRigidTransformPointToPoint(*dst_points_, src_points_trans_, *dst_ind, *src_ind, rot_mat_iter, t_vec_iter);
+            switch (metric_) {
+                case Metric::POINT_TO_POINT:
+                    estimateRigidTransformPointToPointClosedForm(*dst_points_, src_points_trans_, *dst_ind, *src_ind, rot_mat_iter, t_vec_iter);
+                    break;
+                case Metric::POINT_TO_PLANE:
+                    estimateRigidTransformPointToPlane(*dst_points_, *dst_normals_, src_points_trans_, *dst_ind, *src_ind, rot_mat_iter, t_vec_iter, max_estimation_iter_, convergence_tol_);
+                    break;
+                case Metric::COMBINED:
+                    estimateRigidTransformCombinedMetric(*dst_points_, *dst_normals_, src_points_trans_, *dst_ind, *src_ind, point_to_point_weight_, point_to_plane_weight_, rot_mat_iter, t_vec_iter, max_estimation_iter_, convergence_tol_);
+                    break;
             }
 
             rot_mat_ = rot_mat_iter*rot_mat_;
@@ -405,6 +420,7 @@ namespace cilantro {
         if (iteration_count_ == 0) estimate_transform_();
 
         CorrespondencesType req_corr_type = correct_correspondences_type_(corr_type);
+        Metric req_metric = (dst_normals_ != NULL) ? metric : Metric::POINT_TO_POINT;
 
         size_t neighbor;
         float distance;
@@ -422,12 +438,23 @@ namespace cilantro {
                 for (size_t i = 0; i < src_points_trans_.size(); i++) {
                     Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
                     kd_tree->nearestNeighborSearch(pt_trans, neighbor, distance);
-                    if (metric == Metric::POINT_TO_PLANE) {
-                        const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
-                        const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
-                        residuals[i] = std::abs(dn.dot(pt_trans - dp));
-                    } else {
-                        residuals[i] = std::sqrt(distance);
+                    switch (req_metric) {
+                        case Metric::POINT_TO_POINT: {
+                            residuals[i] = std::sqrt(distance);
+                            break;
+                        }
+                        case Metric::POINT_TO_PLANE: {
+                            const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
+                            const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
+                            residuals[i] = std::abs(dn.dot(pt_trans - dp));
+                            break;
+                        }
+                        case Metric::COMBINED: {
+                            const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
+                            const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
+                            residuals[i] = point_to_point_weight_*std::sqrt(distance) + point_to_plane_weight_*std::abs(dn.dot(pt_trans - dp));
+                            break;
+                        }
                     }
                 }
                 if (req_corr_type != corr_type_) {
@@ -446,12 +473,23 @@ namespace cilantro {
                 for (size_t i = 0; i < src_points_trans_.size(); i++) {
                     Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
                     kd_tree->nearestNeighborSearch(rot_mat_*(*src_normals_)[i], neighbor, distance);
-                    if (metric == Metric::POINT_TO_PLANE) {
-                        const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
-                        const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
-                        residuals[i] = std::abs(dn.dot(pt_trans - dp));
-                    } else {
-                        residuals[i] = std::sqrt(distance);
+                    switch (req_metric) {
+                        case Metric::POINT_TO_POINT: {
+                            residuals[i] = std::sqrt(distance);
+                            break;
+                        }
+                        case Metric::POINT_TO_PLANE: {
+                            const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
+                            const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
+                            residuals[i] = std::abs(dn.dot(pt_trans - dp));
+                            break;
+                        }
+                        case Metric::COMBINED: {
+                            const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
+                            const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
+                            residuals[i] = point_to_point_weight_*std::sqrt(distance) + point_to_plane_weight_*std::abs(dn.dot(pt_trans - dp));
+                            break;
+                        }
                     }
                 }
                 if (req_corr_type != corr_type_) {
@@ -470,12 +508,23 @@ namespace cilantro {
                 for (size_t i = 0; i < src_points_trans_.size(); i++) {
                     Eigen::Vector3f pt_trans = rot_mat_*(*src_points_)[i] + t_vec_;
                     kd_tree->nearestNeighborSearch((*src_colors_)[i], neighbor, distance);
-                    if (metric == Metric::POINT_TO_PLANE) {
-                        const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
-                        const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
-                        residuals[i] = std::abs(dn.dot(pt_trans - dp));
-                    } else {
-                        residuals[i] = std::sqrt(distance);
+                    switch (req_metric) {
+                        case Metric::POINT_TO_POINT: {
+                            residuals[i] = std::sqrt(distance);
+                            break;
+                        }
+                        case Metric::POINT_TO_PLANE: {
+                            const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
+                            const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
+                            residuals[i] = std::abs(dn.dot(pt_trans - dp));
+                            break;
+                        }
+                        case Metric::COMBINED: {
+                            const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
+                            const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
+                            residuals[i] = point_to_point_weight_*std::sqrt(distance) + point_to_plane_weight_*std::abs(dn.dot(pt_trans - dp));
+                            break;
+                        }
                     }
                 }
                 if (req_corr_type != corr_type_) {
@@ -502,12 +551,23 @@ namespace cilantro {
                     query_pt.head(3) = point_dist_weight_*pt_trans;
                     query_pt.tail(3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
                     kd_tree->nearestNeighborSearch(query_pt, neighbor, distance);
-                    if (metric == Metric::POINT_TO_PLANE) {
-                        const Eigen::Vector3f& dp = (*dst_points_)[neighbor];
-                        const Eigen::Vector3f& dn = (*dst_normals_)[neighbor];
-                        residuals[i] = std::abs(dn.dot(pt_trans - dp));
-                    } else {
-                        residuals[i] = std::sqrt(distance);
+                    switch (req_metric) {
+                        case Metric::POINT_TO_POINT: {
+                            residuals[i] = std::sqrt(distance);
+                            break;
+                        }
+                        case Metric::POINT_TO_PLANE: {
+                            const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
+                            const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
+                            residuals[i] = std::abs(dn.dot(pt_trans - dp));
+                            break;
+                        }
+                        case Metric::COMBINED: {
+                            const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
+                            const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
+                            residuals[i] = point_to_point_weight_*std::sqrt(distance) + point_to_plane_weight_*std::abs(dn.dot(pt_trans - dp));
+                            break;
+                        }
                     }
                 }
                 if (req_corr_type != corr_type_) {
@@ -534,12 +594,23 @@ namespace cilantro {
                     query_pt.head(3) = point_dist_weight_*pt_trans;
                     query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
                     kd_tree->nearestNeighborSearch(query_pt, neighbor, distance);
-                    if (metric == Metric::POINT_TO_PLANE) {
-                        const Eigen::Vector3f& dp = (*dst_points_)[neighbor];
-                        const Eigen::Vector3f& dn = (*dst_normals_)[neighbor];
-                        residuals[i] = std::abs(dn.dot(pt_trans - dp));
-                    } else {
-                        residuals[i] = std::sqrt(distance);
+                    switch (req_metric) {
+                        case Metric::POINT_TO_POINT: {
+                            residuals[i] = std::sqrt(distance);
+                            break;
+                        }
+                        case Metric::POINT_TO_PLANE: {
+                            const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
+                            const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
+                            residuals[i] = std::abs(dn.dot(pt_trans - dp));
+                            break;
+                        }
+                        case Metric::COMBINED: {
+                            const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
+                            const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
+                            residuals[i] = point_to_point_weight_*std::sqrt(distance) + point_to_plane_weight_*std::abs(dn.dot(pt_trans - dp));
+                            break;
+                        }
                     }
                 }
                 if (req_corr_type != corr_type_) {
@@ -566,12 +637,23 @@ namespace cilantro {
                     query_pt.head(3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
                     query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
                     kd_tree->nearestNeighborSearch(query_pt, neighbor, distance);
-                    if (metric == Metric::POINT_TO_PLANE) {
-                        const Eigen::Vector3f& dp = (*dst_points_)[neighbor];
-                        const Eigen::Vector3f& dn = (*dst_normals_)[neighbor];
-                        residuals[i] = std::abs(dn.dot(pt_trans - dp));
-                    } else {
-                        residuals[i] = std::sqrt(distance);
+                    switch (req_metric) {
+                        case Metric::POINT_TO_POINT: {
+                            residuals[i] = std::sqrt(distance);
+                            break;
+                        }
+                        case Metric::POINT_TO_PLANE: {
+                            const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
+                            const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
+                            residuals[i] = std::abs(dn.dot(pt_trans - dp));
+                            break;
+                        }
+                        case Metric::COMBINED: {
+                            const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
+                            const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
+                            residuals[i] = point_to_point_weight_*std::sqrt(distance) + point_to_plane_weight_*std::abs(dn.dot(pt_trans - dp));
+                            break;
+                        }
                     }
                 }
                 if (req_corr_type != corr_type_) {
@@ -600,12 +682,23 @@ namespace cilantro {
                     query_pt.segment(3,3) = normal_dist_weight_*rot_mat_*(*src_normals_)[i];
                     query_pt.tail(3) = color_dist_weight_*(*src_colors_)[i];
                     kd_tree->nearestNeighborSearch(query_pt, neighbor, distance);
-                    if (metric == Metric::POINT_TO_PLANE) {
-                        const Eigen::Vector3f& dp = (*dst_points_)[neighbor];
-                        const Eigen::Vector3f& dn = (*dst_normals_)[neighbor];
-                        residuals[i] = std::abs(dn.dot(pt_trans - dp));
-                    } else {
-                        residuals[i] = std::sqrt(distance);
+                    switch (req_metric) {
+                        case Metric::POINT_TO_POINT: {
+                            residuals[i] = std::sqrt(distance);
+                            break;
+                        }
+                        case Metric::POINT_TO_PLANE: {
+                            const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
+                            const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
+                            residuals[i] = std::abs(dn.dot(pt_trans - dp));
+                            break;
+                        }
+                        case Metric::COMBINED: {
+                            const Eigen::Vector3f &dp = (*dst_points_)[neighbor];
+                            const Eigen::Vector3f &dn = (*dst_normals_)[neighbor];
+                            residuals[i] = point_to_point_weight_*std::sqrt(distance) + point_to_plane_weight_*std::abs(dn.dot(pt_trans - dp));
+                            break;
+                        }
                     }
                 }
                 if (req_corr_type != corr_type_) {

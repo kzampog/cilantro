@@ -19,7 +19,7 @@
 #include <cilantro/renderables.hpp>
 #include <cilantro/rigid_transform_estimator.hpp>
 #include <cilantro/space_region.hpp>
-#include <cilantro/transform_estimation_utilities.hpp>
+#include <cilantro/registration.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/visualizer_handler.hpp>
 #include <cilantro/voxel_grid.hpp>

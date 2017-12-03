@@ -8,7 +8,7 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        enum struct Metric {POINT_TO_POINT, POINT_TO_PLANE};
+        enum struct Metric {POINT_TO_POINT, POINT_TO_PLANE, COMBINED};
         enum struct CorrespondencesType {POINTS, NORMALS, COLORS, POINTS_NORMALS, POINTS_COLORS, NORMALS_COLORS, POINTS_NORMALS_COLORS};
 
         IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &src_p);
@@ -23,6 +23,20 @@ namespace cilantro {
                 iteration_count_ = 0;
                 metric_ = metric;
             }
+            return *this;
+        }
+
+        inline float getPointToPointMetricWeight() const { return point_to_point_weight_; }
+        inline IterativeClosestPoint& setPointToPointMetricWeight(float point_weight) {
+            if (metric_ == Metric::COMBINED) iteration_count_ = 0;
+            point_to_point_weight_ = point_weight;
+            return *this;
+        }
+
+        inline float getPointToPlaneMetricWeight() const { return point_to_plane_weight_; }
+        inline IterativeClosestPoint& setPointToPlaneMetricWeight(float plane_weight) {
+            if (metric_ == Metric::COMBINED) iteration_count_ = 0;
+            point_to_plane_weight_ = plane_weight;
             return *this;
         }
 
@@ -88,10 +102,10 @@ namespace cilantro {
             return *this;
         }
 
-        inline size_t getMaxNumberOfPointToPlaneIterations() const { return point_to_plane_max_iter_; }
-        inline IterativeClosestPoint& setMaxNumberOfPointToPlaneIterations(size_t max_iter) {
+        inline size_t getMaxNumberOfOptimizationStepIterations() const { return max_estimation_iter_; }
+        inline IterativeClosestPoint& setMaxNumberOfOptimizationStepIterations(size_t max_iter) {
             iteration_count_ = 0;
-            point_to_plane_max_iter_ = max_iter;
+            max_estimation_iter_ = max_iter;
             return *this;
         }
 
@@ -159,17 +173,19 @@ namespace cilantro {
         KDTree<float,9,KDTreeDistanceAdaptors::L2> *kd_tree_9d_;
 
         CorrespondencesType corr_type_;
-        Metric metric_;
-
         float point_dist_weight_;
         float normal_dist_weight_;
         float color_dist_weight_;
+
+        Metric metric_;
+        float point_to_point_weight_;
+        float point_to_plane_weight_;
 
         float corr_dist_thres_;
         float corr_fraction_;
         float convergence_tol_;
         size_t max_iter_;
-        size_t point_to_plane_max_iter_;
+        size_t max_estimation_iter_;
 
         Eigen::Matrix3f rot_mat_init_;
         Eigen::Vector3f t_vec_init_;
