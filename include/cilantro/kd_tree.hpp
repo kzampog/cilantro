@@ -86,6 +86,15 @@ namespace cilantro {
             kd_tree_.buildIndex();
         }
 
+        KDTree(ScalarT * data, size_t num_points, size_t max_leaf_size = 10)
+                : data_map_(data, EigenDim, num_points),
+                  mat_to_kd_(data_map_),
+                  kd_tree_(EigenDim, mat_to_kd_, nanoflann::KDTreeSingleIndexAdaptorParams(max_leaf_size))
+        {
+            params_.sorted = true;
+            kd_tree_.buildIndex();
+        }
+
         ~KDTree() {}
 
         void nearestNeighborSearch(const Eigen::Matrix<ScalarT,EigenDim,1> &query_pt, size_t &neighbor, ScalarT &distance) const {
@@ -118,11 +127,11 @@ namespace cilantro {
             while (ind >= 0 && distances[ind] >= radius) ind--;
             neighbors.resize(ind+1);
             distances.resize(ind+1);
-//    KDTree::radiusSearch(query_pt, radius, neighbors, distances);
-//    if (neighbors.size() > k) {
-//        neighbors.resize(k);
-//        distances.resize(k);
-//    }
+//            KDTree::radiusSearch(query_pt, radius, neighbors, distances);
+//            if (neighbors.size() > k) {
+//                neighbors.resize(k);
+//                distances.resize(k);
+//            }
         }
 
         inline void search(const Eigen::Matrix<ScalarT,EigenDim,1> &query_pt, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances, const Neighborhood &nh) const {

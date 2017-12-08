@@ -19,6 +19,13 @@ namespace cilantro {
                   iteration_count_(0)
         {}
 
+        KMeans(ScalarT * data, size_t num_points)
+                : data_map_(data, EigenDim, num_points),
+                  iteration_count_(0)
+        {}
+
+        ~KMeans() {}
+
         KMeans& cluster(const std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > &centroids, size_t max_iter = 100, ScalarT tol = std::numeric_limits<ScalarT>::epsilon(), bool use_kd_tree = false) {
             cluster_centroids_ = centroids;
             cluster_(max_iter, tol, use_kd_tree);

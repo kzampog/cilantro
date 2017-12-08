@@ -10,23 +10,23 @@ namespace cilantro {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         PrincipalComponentAnalysis(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > &points)
-                : num_points_(points.cols()),
-                  data_((ScalarT *)points.data())
+                : data_map_(points.data(), EigenDim, points.cols())
         {
             compute_();
         }
+
         PrincipalComponentAnalysis(const std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > &points)
-                : num_points_(points.size()),
-                  data_((ScalarT *)points.data())
+                : data_map_((const ScalarT *)points.data(), EigenDim, points.size())
         {
             compute_();
         }
+
         PrincipalComponentAnalysis(ScalarT * data, size_t num_points)
-                : num_points_(num_points),
-                  data_(data)
+                : data_map_(data, EigenDim, num_points)
         {
             compute_();
         }
+
         ~PrincipalComponentAnalysis() {}
 
         inline const Eigen::Matrix<ScalarT,EigenDim,1>& getDataMean() const { return mean_; }
@@ -79,18 +79,15 @@ namespace cilantro {
         }
 
     protected:
-        size_t num_points_;
-        ScalarT * data_;
+        Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > data_map_;
 
         Eigen::Matrix<ScalarT,EigenDim,1> mean_;
         Eigen::Matrix<ScalarT,EigenDim,1> eigenvalues_;
         Eigen::Matrix<ScalarT,EigenDim,EigenDim> eigenvectors_;
 
         inline void compute_() {
-            Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > data_mat(data_, EigenDim, num_points_);
-
-            mean_ = data_mat.rowwise().mean();
-            Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> centered = data_mat.colwise() - mean_;
+            mean_ = data_map_.rowwise().mean();
+            Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> centered = data_map_.colwise() - mean_;
 
             Eigen::JacobiSVD<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > svd(centered, Eigen::ComputeFullU | Eigen::ComputeThinV);
             eigenvectors_ = svd.matrixU();
