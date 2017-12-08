@@ -19,7 +19,7 @@ int main(int argc, char ** argv) {
     std::chrono::duration<double, std::milli> kd_tree_time = end - start;
 
     start = std::chrono::high_resolution_clock::now();
-//    ne.estimateNormalsInPlace(KDTree3D::Neighborhood(KDTree3D::NeighborhoodType::KNN_IN_RADIUS, 7, 0.01));
+//    ne.estimateNormalsInPlace(cilantro::KDTree3D::Neighborhood(cilantro::KDTree3D::NeighborhoodType::KNN_IN_RADIUS, 7, 0.01));
 //    ne.estimateNormalsInPlaceKNNInRadius(7, 0.01);
 //    ne.estimateNormalsInPlaceRadius(0.01);
     ne.estimateNormalsInPlaceKNN(7);

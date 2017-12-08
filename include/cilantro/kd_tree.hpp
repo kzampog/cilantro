@@ -135,12 +135,16 @@ namespace cilantro {
         }
 
         inline void search(const Eigen::Matrix<ScalarT,EigenDim,1> &query_pt, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances, const Neighborhood &nh) const {
-            if (nh.type == NeighborhoodType::KNN) {
-                kNNSearch(query_pt, nh.maxNumberOfNeighbors, neighbors, distances);
-            } else if (nh.type == NeighborhoodType::RADIUS) {
-                radiusSearch(query_pt, nh.radius, neighbors, distances);
-            } else {
-                kNNInRadiusSearch(query_pt, nh.maxNumberOfNeighbors, nh.radius, neighbors, distances);
+            switch (nh.type) {
+                case NeighborhoodType::KNN:
+                    kNNSearch(query_pt, nh.maxNumberOfNeighbors, neighbors, distances);
+                    break;
+                case NeighborhoodType::RADIUS:
+                    radiusSearch(query_pt, nh.radius, neighbors, distances);
+                    break;
+                case NeighborhoodType::KNN_IN_RADIUS:
+                    kNNInRadiusSearch(query_pt, nh.maxNumberOfNeighbors, nh.radius, neighbors, distances);
+                    break;
             }
         }
 

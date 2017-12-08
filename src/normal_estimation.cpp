@@ -161,12 +161,13 @@ namespace cilantro {
     }
 
     std::vector<Eigen::Vector3f> NormalEstimation::estimateNormals(const KDTree3D::Neighborhood &nh) const {
-        if (nh.type == KDTree3D::NeighborhoodType::KNN) {
-            return estimateNormalsKNN(nh.maxNumberOfNeighbors);
-        } else if (nh.type == KDTree3D::NeighborhoodType::RADIUS) {
-            return estimateNormalsRadius(nh.radius);
-        } else {
-            return estimateNormalsKNNInRadius(nh.maxNumberOfNeighbors, nh.radius);
+        switch (nh.type) {
+            case KDTree3D::NeighborhoodType::KNN:
+                return estimateNormalsKNN(nh.maxNumberOfNeighbors);
+            case KDTree3D::NeighborhoodType::RADIUS:
+                return estimateNormalsRadius(nh.radius);
+            case KDTree3D::NeighborhoodType::KNN_IN_RADIUS:
+                return estimateNormalsKNNInRadius(nh.maxNumberOfNeighbors, nh.radius);
         }
     }
 
