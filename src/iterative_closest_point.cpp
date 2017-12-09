@@ -387,13 +387,14 @@ namespace cilantro {
             // Update estimated transformation
             switch (metric_) {
                 case Metric::POINT_TO_POINT:
-                    estimateRigidTransformPointToPointClosedForm(*dst_points_, src_points_trans_, *dst_ind, *src_ind, rot_mat_iter, t_vec_iter);
+                    estimateRigidTransformPointToPointClosedForm<float>(*dst_points_, src_points_trans_, *dst_ind, *src_ind, rot_mat_iter, t_vec_iter);
+//                    estimateRigidTransformPointToPointIterative<float>(*dst_points_, src_points_trans_, *dst_ind, *src_ind, rot_mat_iter, t_vec_iter, max_estimation_iter_, convergence_tol_);
                     break;
                 case Metric::POINT_TO_PLANE:
-                    estimateRigidTransformPointToPlane(*dst_points_, *dst_normals_, src_points_trans_, *dst_ind, *src_ind, rot_mat_iter, t_vec_iter, max_estimation_iter_, convergence_tol_);
+                    estimateRigidTransformPointToPlane<float>(*dst_points_, *dst_normals_, src_points_trans_, *dst_ind, *src_ind, rot_mat_iter, t_vec_iter, max_estimation_iter_, convergence_tol_);
                     break;
                 case Metric::COMBINED:
-                    estimateRigidTransformCombinedMetric(*dst_points_, *dst_normals_, src_points_trans_, *dst_ind, *src_ind, point_to_point_weight_, point_to_plane_weight_, rot_mat_iter, t_vec_iter, max_estimation_iter_, convergence_tol_);
+                    estimateRigidTransformCombinedMetric<float>(*dst_points_, *dst_normals_, src_points_trans_, *dst_ind, *src_ind, point_to_point_weight_, point_to_plane_weight_, rot_mat_iter, t_vec_iter, max_estimation_iter_, convergence_tol_);
                     break;
             }
 

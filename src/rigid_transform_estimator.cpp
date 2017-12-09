@@ -49,7 +49,7 @@ namespace cilantro {
     }
 
     RigidTransformEstimator& RigidTransformEstimator::estimateModelParameters(RigidTransformParameters &model_params) {
-        estimateRigidTransformPointToPointClosedForm(*dst_points_, *src_points_, model_params.rotation, model_params.translation);
+        estimateRigidTransformPointToPointClosedForm<float>(*dst_points_, *src_points_, model_params.rotation, model_params.translation);
         return *this;
     }
 
@@ -66,7 +66,7 @@ namespace cilantro {
             dst_p[i] = (*dst_points_)[sample_ind[i]];
             src_p[i] = (*src_points_)[sample_ind[i]];
         }
-        estimateRigidTransformPointToPointClosedForm(dst_p, src_p, model_params.rotation, model_params.translation);
+        estimateRigidTransformPointToPointClosedForm<float>(dst_p, src_p, model_params.rotation, model_params.translation);
         return *this;
     }
 
