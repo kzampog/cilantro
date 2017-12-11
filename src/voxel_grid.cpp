@@ -240,11 +240,11 @@ namespace cilantro {
             grid_coords[1] = (int)(((*input_points_)[i][1] - min_pt_[1])/bin_size_);
             grid_coords[2] = (int)(((*input_points_)[i][2] - min_pt_[2])/bin_size_);
 
-            auto it = grid_lookup_table_.find(grid_coords);
-            if (it == grid_lookup_table_.end()) {
-                map_iterators_.emplace_back(grid_lookup_table_.insert(std::make_pair(grid_coords, std::vector<size_t>(1, i))).first);
+            auto lb = grid_lookup_table_.lower_bound(grid_coords);
+            if(lb != grid_lookup_table_.end() && !(grid_lookup_table_.key_comp()(grid_coords, lb->first))) {
+                lb->second.emplace_back(i);
             } else {
-                it->second.emplace_back(i);
+                map_iterators_.emplace_back(grid_lookup_table_.emplace_hint(lb, grid_coords, std::vector<size_t>(1, i)));
             }
         }
     }
