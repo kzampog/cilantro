@@ -20,19 +20,12 @@ namespace cilantro {
             halfspaces_[1](EigenDim) = 1.0;
         }
 
-        template <class Derived, class = typename std::enable_if<std::is_same<typename Derived::Scalar,InputScalarT>::value && Derived::RowsAtCompileTime == EigenDim && Derived::IsRowMajor == 0>::type>
-        ConvexPolytope(const Eigen::MatrixBase<Derived> &points, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0) {
+        ConvexPolytope(const ConstDataMatrixMap<InputScalarT,EigenDim> &points, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0) {
             init_points_(points, compute_topology, simplicial_facets, merge_tol);
         }
-        ConvexPolytope(const std::vector<Eigen::Matrix<InputScalarT,EigenDim,1> > &points, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0) {
-            init_points_(Eigen::Map<Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> >((InputScalarT *)points.data(),EigenDim,points.size()), compute_topology, simplicial_facets, merge_tol);
-        }
-        template <class Derived, class = typename std::enable_if<std::is_same<typename Derived::Scalar,InputScalarT>::value && Derived::RowsAtCompileTime == EigenDim+1 && Derived::IsRowMajor == 0>::type>
-        ConvexPolytope(const Eigen::MatrixBase<Derived> &halfspaces, bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) {
+
+        ConvexPolytope(const ConstDataMatrixMap<InputScalarT,EigenDim+1> &halfspaces, bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) {
             init_halfspaces_(halfspaces, compute_topology, simplicial_facets, dist_tol, merge_tol);
-        }
-        ConvexPolytope(const std::vector<Eigen::Matrix<InputScalarT,EigenDim+1,1> > &halfspaces, bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) {
-            init_halfspaces_(Eigen::Map<Eigen::Matrix<InputScalarT,EigenDim+1,Eigen::Dynamic> >((InputScalarT *)halfspaces.data(),EigenDim+1,halfspaces.size()), compute_topology, simplicial_facets, dist_tol, merge_tol);
         }
 
         ~ConvexPolytope() {}
@@ -61,32 +54,31 @@ namespace cilantro {
             return Eigen::Map<const Eigen::Matrix<OutputScalarT,EigenDim+1,Eigen::Dynamic> >((const OutputScalarT *)halfspaces_.data(), EigenDim+1, halfspaces_.size());
         }
 
-        inline bool containsPoint(const Eigen::Matrix<OutputScalarT,EigenDim,1> &point, OutputScalarT offset = 0.0) const {
+        inline bool containsPoint(const Eigen::Ref<const Eigen::Matrix<OutputScalarT,EigenDim,1> > &point, OutputScalarT offset = 0.0) const {
             for (size_t i = 0; i < halfspaces_.size(); i++) {
                 if (point.dot(halfspaces_[i].head(EigenDim)) + halfspaces_[i](EigenDim) > -offset) return false;
             }
             return true;
         }
 
-        inline Eigen::Matrix<OutputScalarT,Eigen::Dynamic,Eigen::Dynamic> getPointSignedDistancesFromFacets(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points) const {
-            Eigen::Map<Eigen::Matrix<OutputScalarT,EigenDim,Eigen::Dynamic> > pts_map((OutputScalarT *)points.data(), EigenDim, points.size());
-            Eigen::Map<const Eigen::Matrix<OutputScalarT,EigenDim+1,Eigen::Dynamic> > hs_map(getFacetHyperplanesMatrixMap());
-            return (hs_map.topRows(EigenDim).transpose()*pts_map).colwise() + hs_map.row(EigenDim).transpose();
+        inline Eigen::Matrix<OutputScalarT,Eigen::Dynamic,Eigen::Dynamic> getPointSignedDistancesFromFacets(const ConstDataMatrixMap<OutputScalarT,EigenDim> &points) const {
+            Eigen::Map<Eigen::Matrix<OutputScalarT,EigenDim+1,Eigen::Dynamic> > hs_map((OutputScalarT *)halfspaces_.data(), EigenDim+1, halfspaces_.size());
+            return (hs_map.topRows(EigenDim).transpose()*points).colwise() + hs_map.row(EigenDim).transpose();
         }
 
-        Eigen::Matrix<bool,1,Eigen::Dynamic> getInteriorPointsIndexMask(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points, OutputScalarT offset = 0.0) const {
-            Eigen::Matrix<bool,1,Eigen::Dynamic> mask(1,points.size());
-            for (size_t i = 0; i < points.size(); i++) {
-                mask(i) = containsPoint(points[i], offset);
+        Eigen::Matrix<bool,1,Eigen::Dynamic> getInteriorPointsIndexMask(const ConstDataMatrixMap<OutputScalarT,EigenDim> &points, OutputScalarT offset = 0.0) const {
+            Eigen::Matrix<bool,1,Eigen::Dynamic> mask(1,points.cols());
+            for (size_t i = 0; i < points.cols(); i++) {
+                mask(i) = containsPoint(points.col(i), offset);
             }
             return mask;
         }
 
-        std::vector<size_t> getInteriorPointIndices(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points, OutputScalarT offset = 0.0) const {
+        std::vector<size_t> getInteriorPointIndices(const ConstDataMatrixMap<OutputScalarT,EigenDim> &points, OutputScalarT offset = 0.0) const {
             std::vector<size_t> indices;
-            indices.reserve(points.size());
-            for (size_t i = 0; i < points.size(); i++) {
-                if (containsPoint(points[i], offset)) indices.emplace_back(i);
+            indices.reserve(points.cols());
+            for (size_t i = 0; i < points.cols(); i++) {
+                if (containsPoint(points.col(i), offset)) indices.emplace_back(i);
             }
             return indices;
         }
@@ -115,6 +107,7 @@ namespace cilantro {
 
             return *this;
         }
+
         ConvexPolytope& transform(const Eigen::Ref<const Eigen::Matrix<OutputScalarT,EigenDim+1,EigenDim+1> > &rigid_transform) {
             return transform(rigid_transform.topLeftCorner(EigenDim,EigenDim), rigid_transform.topRightCorner(EigenDim,1));
         }
@@ -136,7 +129,7 @@ namespace cilantro {
         std::vector<std::vector<size_t> > face_neighbor_faces_;
         std::vector<size_t> vertex_point_indices_;
 
-        inline void init_points_(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> > &points, bool compute_topology, bool simplicial_facets, double merge_tol) {
+        inline void init_points_(const ConstDataMatrixMap<InputScalarT,EigenDim> &points, bool compute_topology, bool simplicial_facets, double merge_tol) {
             is_empty_ = (compute_topology) ? !convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(points, vertices_, halfspaces_, faces_, vertex_neighbor_faces_, face_neighbor_faces_, vertex_point_indices_, area_, volume_, simplicial_facets, merge_tol)
                                            : !halfspaceIntersectionFromVertices<InputScalarT,OutputScalarT,EigenDim>(points, vertices_, halfspaces_, area_, volume_, true, merge_tol);
             is_bounded_ = true;
@@ -147,7 +140,7 @@ namespace cilantro {
             }
         }
 
-        inline void init_halfspaces_(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim+1,Eigen::Dynamic> > &halfspaces, bool compute_topology, bool simplicial_facets, double dist_tol, double merge_tol) {
+        inline void init_halfspaces_(const ConstDataMatrixMap<InputScalarT,EigenDim+1> &halfspaces, bool compute_topology, bool simplicial_facets, double dist_tol, double merge_tol) {
             is_empty_ = !evaluateHalfspaceIntersection<InputScalarT,OutputScalarT,EigenDim>(halfspaces, halfspaces_, vertices_, interior_point_, is_bounded_, dist_tol, merge_tol);
             if (is_empty_) {
                 area_ = 0.0;
@@ -168,7 +161,6 @@ namespace cilantro {
                 volume_ = std::numeric_limits<double>::infinity();
             }
         }
-
     };
 
     typedef ConvexPolytope<float,float,2> ConvexPolytope2D;

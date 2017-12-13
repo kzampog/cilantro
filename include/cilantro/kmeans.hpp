@@ -9,18 +9,8 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        KMeans(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > &points)
-                : data_map_(points.data(), EigenDim, points.cols()),
-                  iteration_count_(0)
-        {}
-
-        KMeans(const std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > &points)
-                : data_map_((const ScalarT *)points.data(), EigenDim, points.size()),
-                  iteration_count_(0)
-        {}
-
-        KMeans(ScalarT * data, size_t num_points)
-                : data_map_(data, EigenDim, num_points),
+        KMeans(const ConstDataMatrixMap<ScalarT,EigenDim> &data)
+                : data_map_(data.data(), EigenDim, data.cols()),
                   iteration_count_(0)
         {}
 

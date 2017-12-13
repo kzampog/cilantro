@@ -9,21 +9,16 @@ namespace cilantro {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         SpaceRegion() {}
+
         SpaceRegion(const std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> > &polytopes) : polytopes_(polytopes) {}
+
         SpaceRegion(const ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> &polytope) : polytopes_(std::vector<ConvexPolytope<InputScalarT,OutputScalarT,EigenDim> >(1,polytope)) {}
 
-        template <class Derived, class = typename std::enable_if<std::is_same<typename Derived::Scalar,InputScalarT>::value && Derived::RowsAtCompileTime == EigenDim && Derived::IsRowMajor == 0>::type>
-        SpaceRegion(const Eigen::MatrixBase<Derived> &points, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0) {
+        SpaceRegion(const ConstDataMatrixMap<InputScalarT,EigenDim> &points, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0) {
             polytopes_.emplace_back(points, compute_topology, simplicial_facets, merge_tol);
         }
-        SpaceRegion(const std::vector<Eigen::Matrix<InputScalarT,EigenDim,1> > &points, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0) {
-            polytopes_.emplace_back(points, compute_topology, simplicial_facets, merge_tol);
-        }
-        template <class Derived, class = typename std::enable_if<std::is_same<typename Derived::Scalar,InputScalarT>::value && Derived::RowsAtCompileTime == EigenDim+1 && Derived::IsRowMajor == 0>::type>
-        SpaceRegion(const Eigen::MatrixBase<Derived> &halfspaces, bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) {
-            polytopes_.emplace_back(halfspaces, compute_topology, simplicial_facets, dist_tol, merge_tol);
-        }
-        SpaceRegion(const std::vector<Eigen::Matrix<InputScalarT,EigenDim+1,1> > &halfspaces, bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) {
+
+        SpaceRegion(const ConstDataMatrixMap<InputScalarT,EigenDim+1> &halfspaces, bool compute_topology = false, bool simplicial_facets = false, double dist_tol = std::numeric_limits<InputScalarT>::epsilon(), double merge_tol = 0.0) {
             polytopes_.emplace_back(halfspaces, compute_topology, simplicial_facets, dist_tol, merge_tol);
         }
 
@@ -136,26 +131,26 @@ namespace cilantro {
             return nan_point_;
         }
 
-        inline bool containsPoint(const Eigen::Matrix<OutputScalarT,EigenDim,1> &point, OutputScalarT offset = 0.0) const {
+        inline bool containsPoint(const Eigen::Ref<const Eigen::Matrix<OutputScalarT,EigenDim,1> > &point, OutputScalarT offset = 0.0) const {
             for (size_t i = 0; i < polytopes_.size(); i++) {
                 if (polytopes_[i].containsPoint(point, offset)) return true;
             }
             return false;
         }
 
-        Eigen::Matrix<bool,1,Eigen::Dynamic> getInteriorPointsIndexMask(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points, OutputScalarT offset = 0.0) const {
-            Eigen::Matrix<bool,1,Eigen::Dynamic> mask(1,points.size());
-            for (size_t i = 0; i < points.size(); i++) {
-                mask(i) = containsPoint(points[i], offset);
+        Eigen::Matrix<bool,1,Eigen::Dynamic> getInteriorPointsIndexMask(const ConstDataMatrixMap<OutputScalarT,EigenDim> &points, OutputScalarT offset = 0.0) const {
+            Eigen::Matrix<bool,1,Eigen::Dynamic> mask(1,points.cols());
+            for (size_t i = 0; i < points.cols(); i++) {
+                mask(i) = containsPoint(points.col(i), offset);
             }
             return mask;
         }
 
-        std::vector<size_t> getInteriorPointIndices(const std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &points, OutputScalarT offset = 0.0) const {
+        std::vector<size_t> getInteriorPointIndices(const ConstDataMatrixMap<OutputScalarT,EigenDim> &points, OutputScalarT offset = 0.0) const {
             std::vector<size_t> indices;
-            indices.reserve(points.size());
-            for (size_t i = 0; i < points.size(); i++) {
-                if (containsPoint(points[i], offset)) indices.emplace_back(i);
+            indices.reserve(points.cols());
+            for (size_t i = 0; i < points.cols(); i++) {
+                if (containsPoint(points.col(i), offset)) indices.emplace_back(i);
             }
             return indices;
         }

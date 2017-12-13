@@ -1,12 +1,12 @@
 #pragma once
 
-#include <Eigen/Dense>
+#include <cilantro/data_matrix_map.hpp>
 
 namespace cilantro {
     // Point-to-point (closed form, SVD)
     template <typename ScalarT>
-    bool estimateRigidTransformPointToPointClosedForm(const Eigen::Ref<const Eigen::Matrix<ScalarT,3,Eigen::Dynamic> > &dst,
-                                                      const Eigen::Ref<const Eigen::Matrix<ScalarT,3,Eigen::Dynamic> > &src,
+    bool estimateRigidTransformPointToPointClosedForm(const ConstDataMatrixMap<ScalarT,3> &dst,
+                                                      const ConstDataMatrixMap<ScalarT,3> &src,
                                                       Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
                                                       Eigen::Ref<Eigen::Matrix<ScalarT,3,1> > t_vec)
     {
@@ -38,8 +38,8 @@ namespace cilantro {
     }
 
     template <typename ScalarT>
-    bool estimateRigidTransformPointToPointClosedForm(const Eigen::Ref<const Eigen::Matrix<ScalarT,3,Eigen::Dynamic> > &dst,
-                                                      const Eigen::Ref<const Eigen::Matrix<ScalarT,3,Eigen::Dynamic> > &src,
+    bool estimateRigidTransformPointToPointClosedForm(const ConstDataMatrixMap<ScalarT,3> &dst,
+                                                      const ConstDataMatrixMap<ScalarT,3> &src,
                                                       const std::vector<size_t> &dst_ind,
                                                       const std::vector<size_t> &src_ind,
                                                       Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
@@ -61,35 +61,10 @@ namespace cilantro {
         return estimateRigidTransformPointToPointClosedForm<ScalarT>(dst_corr, src_corr, rot_mat, t_vec);
     }
 
-    template <typename ScalarT>
-    inline bool estimateRigidTransformPointToPointClosedForm(const std::vector<Eigen::Matrix<ScalarT,3,1> > &dst,
-                                                             const std::vector<Eigen::Matrix<ScalarT,3,1> > &src,
-                                                             Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
-                                                             Eigen::Ref<Eigen::Matrix<ScalarT,3,1> > t_vec)
-    {
-        return estimateRigidTransformPointToPointClosedForm<ScalarT>(Eigen::Map<Eigen::Matrix<ScalarT,3,Eigen::Dynamic> >((ScalarT *)dst.data(),3,dst.size()),
-                                                                     Eigen::Map<Eigen::Matrix<ScalarT,3,Eigen::Dynamic> >((ScalarT *)src.data(),3,src.size()),
-                                                                     rot_mat, t_vec);
-    }
-
-    template <typename ScalarT>
-    inline bool estimateRigidTransformPointToPointClosedForm(const std::vector<Eigen::Matrix<ScalarT,3,1> > &dst,
-                                                             const std::vector<Eigen::Matrix<ScalarT,3,1> > &src,
-                                                             const std::vector<size_t> &dst_ind,
-                                                             const std::vector<size_t> &src_ind,
-                                                             Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
-                                                             Eigen::Ref<Eigen::Matrix<ScalarT,3,1> > t_vec)
-    {
-        return estimateRigidTransformPointToPointClosedForm<ScalarT>(Eigen::Map<Eigen::Matrix<ScalarT,3,Eigen::Dynamic> >((ScalarT *)dst.data(),3,dst.size()),
-                                                                     Eigen::Map<Eigen::Matrix<ScalarT,3,Eigen::Dynamic> >((ScalarT *)src.data(),3,src.size()),
-                                                                     dst_ind, src_ind,
-                                                                     rot_mat, t_vec);
-    }
-
     // Point-to-point (iterative)
     template <typename ScalarT>
-    bool estimateRigidTransformPointToPointIterative(const Eigen::Ref<const Eigen::Matrix<ScalarT,3,Eigen::Dynamic> > &dst_p,
-                                                     const Eigen::Ref<const Eigen::Matrix<ScalarT,3,Eigen::Dynamic> > &src_p,
+    bool estimateRigidTransformPointToPointIterative(const ConstDataMatrixMap<ScalarT,3> &dst_p,
+                                                     const ConstDataMatrixMap<ScalarT,3> &src_p,
                                                      Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
                                                      Eigen::Ref<Eigen::Matrix<ScalarT,3,1> > t_vec,
                                                      size_t max_iter = 1,
@@ -206,8 +181,8 @@ namespace cilantro {
     }
 
     template <typename ScalarT>
-    bool estimateRigidTransformPointToPointIterative(const Eigen::Ref<const Eigen::Matrix<ScalarT,3,Eigen::Dynamic> > &dst_p,
-                                                     const Eigen::Ref<const Eigen::Matrix<ScalarT,3,Eigen::Dynamic> > &src_p,
+    bool estimateRigidTransformPointToPointIterative(const ConstDataMatrixMap<ScalarT,3> &dst_p,
+                                                     const ConstDataMatrixMap<ScalarT,3> &src_p,
                                                      const std::vector<size_t> &dst_ind,
                                                      const std::vector<size_t> &src_ind,
                                                      Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
@@ -231,42 +206,11 @@ namespace cilantro {
         return estimateRigidTransformPointToPointIterative<ScalarT>(dst_p_corr, src_p_corr, rot_mat, t_vec, max_iter, convergence_tol);
     }
 
-    template <typename ScalarT>
-    inline bool estimateRigidTransformPointToPointIterative(const std::vector<Eigen::Matrix<ScalarT,3,1> > &dst_p,
-                                                            const std::vector<Eigen::Matrix<ScalarT,3,1> > &src_p,
-                                                            Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
-                                                            Eigen::Ref<Eigen::Matrix<ScalarT,3,1> > t_vec,
-                                                            size_t max_iter = 1,
-                                                            ScalarT convergence_tol = 1e-5)
-    {
-        return estimateRigidTransformPointToPointIterative<ScalarT>(Eigen::Map<Eigen::Matrix<ScalarT,3,Eigen::Dynamic> >((ScalarT *)dst_p.data(),3,dst_p.size()),
-                                                                    Eigen::Map<Eigen::Matrix<ScalarT,3,Eigen::Dynamic> >((ScalarT *)src_p.data(),3,src_p.size()),
-                                                                    rot_mat, t_vec,
-                                                                    max_iter, convergence_tol);
-    }
-
-    template <typename ScalarT>
-    inline bool estimateRigidTransformPointToPointIterative(const std::vector<Eigen::Matrix<ScalarT,3,1> > &dst_p,
-                                                            const std::vector<Eigen::Matrix<ScalarT,3,1> > &src_p,
-                                                            const std::vector<size_t> &dst_ind,
-                                                            const std::vector<size_t> &src_ind,
-                                                            Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
-                                                            Eigen::Ref<Eigen::Matrix<ScalarT,3,1> > t_vec,
-                                                            size_t max_iter = 1,
-                                                            ScalarT convergence_tol = 1e-5)
-    {
-        return estimateRigidTransformPointToPointIterative<ScalarT>(Eigen::Map<Eigen::Matrix<ScalarT,3,Eigen::Dynamic> >((ScalarT *)dst_p.data(),3,dst_p.size()),
-                                                                    Eigen::Map<Eigen::Matrix<ScalarT,3,Eigen::Dynamic> >((ScalarT *)src_p.data(),3,src_p.size()),
-                                                                    dst_ind, src_ind,
-                                                                    rot_mat, t_vec,
-                                                                    max_iter, convergence_tol);
-    }
-
     // Point-to-plane
     template <typename ScalarT>
-    bool estimateRigidTransformPointToPlane(const Eigen::Ref<const Eigen::Matrix<ScalarT,3,Eigen::Dynamic> > &dst_p,
-                                            const Eigen::Ref<const Eigen::Matrix<ScalarT,3,Eigen::Dynamic> > &dst_n,
-                                            const Eigen::Ref<const Eigen::Matrix<ScalarT,3,Eigen::Dynamic> > &src_p,
+    bool estimateRigidTransformPointToPlane(const ConstDataMatrixMap<ScalarT,3> &dst_p,
+                                            const ConstDataMatrixMap<ScalarT,3> &dst_n,
+                                            const ConstDataMatrixMap<ScalarT,3> &src_p,
                                             Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
                                             Eigen::Ref<Eigen::Matrix<ScalarT,3,1> > t_vec,
                                             size_t max_iter = 1,
@@ -348,9 +292,9 @@ namespace cilantro {
     }
 
     template <typename ScalarT>
-    bool estimateRigidTransformPointToPlane(const Eigen::Ref<const Eigen::Matrix<ScalarT,3,Eigen::Dynamic> > &dst_p,
-                                            const Eigen::Ref<const Eigen::Matrix<ScalarT,3,Eigen::Dynamic> > &dst_n,
-                                            const Eigen::Ref<const Eigen::Matrix<ScalarT,3,Eigen::Dynamic> > &src_p,
+    bool estimateRigidTransformPointToPlane(const ConstDataMatrixMap<ScalarT,3> &dst_p,
+                                            const ConstDataMatrixMap<ScalarT,3> &dst_n,
+                                            const ConstDataMatrixMap<ScalarT,3> &src_p,
                                             const std::vector<size_t> &dst_ind,
                                             const std::vector<size_t> &src_ind,
                                             Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
@@ -376,46 +320,11 @@ namespace cilantro {
         return estimateRigidTransformPointToPlane<ScalarT>(dst_p_corr, dst_n_corr, src_p_corr, rot_mat, t_vec, max_iter, convergence_tol);
     }
 
-    template <typename ScalarT>
-    inline bool estimateRigidTransformPointToPlane(const std::vector<Eigen::Matrix<ScalarT,3,1> > &dst_p,
-                                                   const std::vector<Eigen::Matrix<ScalarT,3,1> > &dst_n,
-                                                   const std::vector<Eigen::Matrix<ScalarT,3,1> > &src_p,
-                                                   Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
-                                                   Eigen::Ref<Eigen::Matrix<ScalarT,3,1> > t_vec,
-                                                   size_t max_iter = 1,
-                                                   ScalarT convergence_tol = 1e-5)
-    {
-        return estimateRigidTransformPointToPlane<ScalarT>(Eigen::Map<Eigen::Matrix<ScalarT,3,Eigen::Dynamic> >((ScalarT *)dst_p.data(),3,dst_p.size()),
-                                                           Eigen::Map<Eigen::Matrix<ScalarT,3,Eigen::Dynamic> >((ScalarT *)dst_n.data(),3,dst_n.size()),
-                                                           Eigen::Map<Eigen::Matrix<ScalarT,3,Eigen::Dynamic> >((ScalarT *)src_p.data(),3,src_p.size()),
-                                                           rot_mat, t_vec,
-                                                           max_iter, convergence_tol);
-    }
-
-    template <typename ScalarT>
-    inline bool estimateRigidTransformPointToPlane(const std::vector<Eigen::Matrix<ScalarT,3,1> > &dst_p,
-                                                   const std::vector<Eigen::Matrix<ScalarT,3,1> > &dst_n,
-                                                   const std::vector<Eigen::Matrix<ScalarT,3,1> > &src_p,
-                                                   const std::vector<size_t> &dst_ind,
-                                                   const std::vector<size_t> &src_ind,
-                                                   Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
-                                                   Eigen::Ref<Eigen::Matrix<ScalarT,3,1> > t_vec,
-                                                   size_t max_iter = 1,
-                                                   ScalarT convergence_tol = 1e-5)
-    {
-        return estimateRigidTransformPointToPlane<ScalarT>(Eigen::Map<Eigen::Matrix<ScalarT,3,Eigen::Dynamic> >((ScalarT *)dst_p.data(),3,dst_p.size()),
-                                                           Eigen::Map<Eigen::Matrix<ScalarT,3,Eigen::Dynamic> >((ScalarT *)dst_n.data(),3,dst_n.size()),
-                                                           Eigen::Map<Eigen::Matrix<ScalarT,3,Eigen::Dynamic> >((ScalarT *)src_p.data(),3,src_p.size()),
-                                                           dst_ind, src_ind,
-                                                           rot_mat, t_vec,
-                                                           max_iter, convergence_tol);
-    }
-
     // Point-to-point and point-to-plane combination
     template <typename ScalarT>
-    bool estimateRigidTransformCombinedMetric(const Eigen::Ref<const Eigen::Matrix<ScalarT,3,Eigen::Dynamic> > &dst_p,
-                                              const Eigen::Ref<const Eigen::Matrix<ScalarT,3,Eigen::Dynamic> > &dst_n,
-                                              const Eigen::Ref<const Eigen::Matrix<ScalarT,3,Eigen::Dynamic> > &src_p,
+    bool estimateRigidTransformCombinedMetric(const ConstDataMatrixMap<ScalarT,3> &dst_p,
+                                              const ConstDataMatrixMap<ScalarT,3> &dst_n,
+                                              const ConstDataMatrixMap<ScalarT,3> &src_p,
                                               ScalarT point_to_point_weight,
                                               ScalarT point_to_plane_weight,
                                               Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
@@ -564,9 +473,9 @@ namespace cilantro {
     }
 
     template <typename ScalarT>
-    bool estimateRigidTransformCombinedMetric(const Eigen::Ref<const Eigen::Matrix<ScalarT,3,Eigen::Dynamic> > &dst_p,
-                                              const Eigen::Ref<const Eigen::Matrix<ScalarT,3,Eigen::Dynamic> > &dst_n,
-                                              const Eigen::Ref<const Eigen::Matrix<ScalarT,3,Eigen::Dynamic> > &src_p,
+    bool estimateRigidTransformCombinedMetric(const ConstDataMatrixMap<ScalarT,3> &dst_p,
+                                              const ConstDataMatrixMap<ScalarT,3> &dst_n,
+                                              const ConstDataMatrixMap<ScalarT,3> &src_p,
                                               const std::vector<size_t> &dst_ind,
                                               const std::vector<size_t> &src_ind,
                                               ScalarT point_to_point_weight,
@@ -592,46 +501,5 @@ namespace cilantro {
         }
 
         return estimateRigidTransformCombinedMetric<ScalarT>(dst_p_corr, dst_n_corr, src_p_corr, point_to_point_weight, point_to_plane_weight, rot_mat, t_vec, max_iter, convergence_tol);
-    }
-
-    template <typename ScalarT>
-    inline bool estimateRigidTransformCombinedMetric(const std::vector<Eigen::Matrix<ScalarT,3,1> > &dst_p,
-                                                     const std::vector<Eigen::Matrix<ScalarT,3,1> > &dst_n,
-                                                     const std::vector<Eigen::Matrix<ScalarT,3,1> > &src_p,
-                                                     ScalarT point_to_point_weight,
-                                                     ScalarT point_to_plane_weight,
-                                                     Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
-                                                     Eigen::Ref<Eigen::Matrix<ScalarT,3,1> > t_vec,
-                                                     size_t max_iter = 1,
-                                                     ScalarT convergence_tol = 1e-5)
-    {
-        return estimateRigidTransformCombinedMetric<ScalarT>(Eigen::Map<Eigen::Matrix<ScalarT,3,Eigen::Dynamic> >((ScalarT *)dst_p.data(),3,dst_p.size()),
-                                                             Eigen::Map<Eigen::Matrix<ScalarT,3,Eigen::Dynamic> >((ScalarT *)dst_n.data(),3,dst_n.size()),
-                                                             Eigen::Map<Eigen::Matrix<ScalarT,3,Eigen::Dynamic> >((ScalarT *)src_p.data(),3,src_p.size()),
-                                                             point_to_point_weight, point_to_plane_weight,
-                                                             rot_mat, t_vec,
-                                                             max_iter, convergence_tol);
-    }
-
-    template <typename ScalarT>
-    inline bool estimateRigidTransformCombinedMetric(const std::vector<Eigen::Matrix<ScalarT,3,1> > &dst_p,
-                                                     const std::vector<Eigen::Matrix<ScalarT,3,1> > &dst_n,
-                                                     const std::vector<Eigen::Matrix<ScalarT,3,1> > &src_p,
-                                                     const std::vector<size_t> &dst_ind,
-                                                     const std::vector<size_t> &src_ind,
-                                                     ScalarT point_to_point_weight,
-                                                     ScalarT point_to_plane_weight,
-                                                     Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
-                                                     Eigen::Ref<Eigen::Matrix<ScalarT,3,1> > t_vec,
-                                                     size_t max_iter = 1,
-                                                     ScalarT convergence_tol = 1e-5)
-    {
-        return estimateRigidTransformCombinedMetric<ScalarT>(Eigen::Map<Eigen::Matrix<ScalarT,3,Eigen::Dynamic> >((ScalarT *)dst_p.data(),3,dst_p.size()),
-                                                             Eigen::Map<Eigen::Matrix<ScalarT,3,Eigen::Dynamic> >((ScalarT *)dst_n.data(),3,dst_n.size()),
-                                                             Eigen::Map<Eigen::Matrix<ScalarT,3,Eigen::Dynamic> >((ScalarT *)src_p.data(),3,src_p.size()),
-                                                             dst_ind, src_ind,
-                                                             point_to_point_weight, point_to_plane_weight,
-                                                             rot_mat, t_vec,
-                                                             max_iter, convergence_tol);
     }
 }

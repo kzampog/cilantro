@@ -31,7 +31,7 @@ int main(int argc, char ** argv) {
         }
     }
 
-    cilantro::ImageViewer viz("SpaceRegion example", "disp");
+    cilantro::ImageViewer viz("SpaceRegion2D example", "disp");
     viz.setImage(img, "GRAY8");
     while (!viz.wasStopped()) {
         viz.spinOnce();

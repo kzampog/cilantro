@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+#include <cilantro/data_matrix_map.hpp>
+
 int main(int argc, char ** argv) {
     cilantro::PointCloud cloud;
     cloud.points.emplace_back(0, 0, 0);

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cilantro/3rd_party/nanoflann/nanoflann.hpp>
-#include <Eigen/Dense>
+#include <cilantro/data_matrix_map.hpp>
 
 namespace cilantro {
     struct KDTreeDataAdaptors {
@@ -68,26 +68,8 @@ namespace cilantro {
             ScalarT radius;
         };
 
-        KDTree(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > &points, size_t max_leaf_size = 10)
-                : data_map_(points.data(), EigenDim, points.cols()),
-                  mat_to_kd_(data_map_),
-                  kd_tree_(EigenDim, mat_to_kd_, nanoflann::KDTreeSingleIndexAdaptorParams(max_leaf_size))
-        {
-            params_.sorted = true;
-            kd_tree_.buildIndex();
-        }
-
-        KDTree(const std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > &points, size_t max_leaf_size = 10)
-                : data_map_((const ScalarT *)points.data(), EigenDim, points.size()),
-                  mat_to_kd_(data_map_),
-                  kd_tree_(EigenDim, mat_to_kd_, nanoflann::KDTreeSingleIndexAdaptorParams(max_leaf_size))
-        {
-            params_.sorted = true;
-            kd_tree_.buildIndex();
-        }
-
-        KDTree(ScalarT * data, size_t num_points, size_t max_leaf_size = 10)
-                : data_map_(data, EigenDim, num_points),
+        KDTree(const ConstDataMatrixMap<ScalarT,EigenDim> &data, size_t max_leaf_size = 10)
+                : data_map_(data.data(), EigenDim, data.cols()),
                   mat_to_kd_(data_map_),
                   kd_tree_(EigenDim, mat_to_kd_, nanoflann::KDTreeSingleIndexAdaptorParams(max_leaf_size))
         {

@@ -9,9 +9,9 @@
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
-    bool checkLinearInequalityConstraintRedundancy(const Eigen::Matrix<ScalarT,EigenDim+1,1> &ineq_to_test,
-                                                   const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> > &inequalities,
-                                                   const Eigen::Matrix<ScalarT,EigenDim,1> &feasible_point,
+    bool checkLinearInequalityConstraintRedundancy(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim+1,1> > &ineq_to_test,
+                                                   const ConstDataMatrixMap<ScalarT,EigenDim+1> &inequalities,
+                                                   const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1> > &feasible_point,
                                                    double dist_tol = std::numeric_limits<ScalarT>::epsilon())
     {
         size_t num_inequalities = inequalities.cols();
@@ -75,17 +75,8 @@ namespace cilantro {
     }
 
     template <typename ScalarT, ptrdiff_t EigenDim>
-    inline bool checkLinearInequalityConstraintRedundancy(const Eigen::Matrix<ScalarT,EigenDim+1,1> &ineq_to_test,
-                                                          const std::vector<Eigen::Matrix<ScalarT,EigenDim+1,1> > &inequalities,
-                                                          const Eigen::Matrix<ScalarT,EigenDim,1> &feasible_point,
-                                                          double dist_tol = std::numeric_limits<ScalarT>::epsilon())
-    {
-        return checkLinearInequalityConstraintRedundancy<ScalarT,EigenDim>(ineq_to_test, Eigen::Map<Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> >((ScalarT *)inequalities.data(),EigenDim+1,inequalities.size()), feasible_point, dist_tol);
-    }
-
-    template <typename ScalarT, ptrdiff_t EigenDim>
-    bool findFeasiblePointInHalfspaceIntersection(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> > &halfspaces,
-                                                  Eigen::Matrix<ScalarT,EigenDim,1> &feasible_point,
+    bool findFeasiblePointInHalfspaceIntersection(const ConstDataMatrixMap<ScalarT,EigenDim+1> &halfspaces,
+                                                  Eigen::Ref<Eigen::Matrix<ScalarT,EigenDim,1> > feasible_point,
                                                   double dist_tol = std::numeric_limits<ScalarT>::epsilon(),
                                                   bool force_strictly_interior = true)
     {
@@ -198,21 +189,11 @@ namespace cilantro {
         return true;
     }
 
-    template <typename ScalarT, ptrdiff_t EigenDim>
-    inline bool findFeasiblePointInHalfspaceIntersection(const std::vector<Eigen::Matrix<ScalarT,EigenDim+1,1> > &halfspaces,
-                                                         Eigen::Matrix<ScalarT,EigenDim,1> &feasible_point,
-                                                         double dist_tol = std::numeric_limits<ScalarT>::epsilon(),
-                                                         bool force_strictly_interior = true)
-    {
-        return findFeasiblePointInHalfspaceIntersection<ScalarT,EigenDim>(Eigen::Map<Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic> >((ScalarT *)halfspaces.data(),EigenDim+1,halfspaces.size()), feasible_point, dist_tol, force_strictly_interior);
-    }
-
-
     template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
-    bool evaluateHalfspaceIntersection(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim+1,Eigen::Dynamic> > &halfspaces,
+    bool evaluateHalfspaceIntersection(const ConstDataMatrixMap<InputScalarT,EigenDim+1> &halfspaces,
                                        std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > &facet_halfspaces,
                                        std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &polytope_vertices,
-                                       Eigen::Matrix<OutputScalarT,EigenDim,1> &interior_point,
+                                       Eigen::Ref<Eigen::Matrix<OutputScalarT,EigenDim,1> > interior_point,
                                        bool &is_bounded,
                                        double dist_tol = std::numeric_limits<InputScalarT>::epsilon(),
                                        double merge_tol = 0.0)
@@ -251,11 +232,13 @@ namespace cilantro {
         //std::cout << "rank: " << lu.rank() << std::endl;
 
         if (lu.rank() < EigenDim) {
+            Eigen::Map<Eigen::Matrix<double,EigenDim+1,Eigen::Dynamic> > first_cols(hs_coeffs.data(), EigenDim+1, num_halfspaces-1);
+
             facet_halfspaces.resize(num_halfspaces);
             size_t nr = 0;
             for (size_t i = 0; i < num_halfspaces; i++) {
                 hs_coeffs.col(i).swap(hs_coeffs.col(num_halfspaces-1));
-                if (!checkLinearInequalityConstraintRedundancy<double,EigenDim>(hs_coeffs.col(num_halfspaces-1), hs_coeffs.leftCols(num_halfspaces-1), feasible_point, dist_tol)) {
+                if (!checkLinearInequalityConstraintRedundancy<double,EigenDim>(hs_coeffs.col(num_halfspaces-1), first_cols, feasible_point, dist_tol)) {
                     facet_halfspaces[nr++] = hs_coeffs.col(num_halfspaces-1).template cast<OutputScalarT>();
                 }
                 hs_coeffs.col(i).swap(hs_coeffs.col(num_halfspaces-1));
@@ -332,19 +315,7 @@ namespace cilantro {
     }
 
     template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
-    inline bool evaluateHalfspaceIntersection(const std::vector<Eigen::Matrix<InputScalarT,EigenDim+1,1> > &halfspaces,
-                                              std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > &facet_halfspaces,
-                                              std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &polytope_vertices,
-                                              Eigen::Matrix<OutputScalarT,EigenDim,1> &interior_point,
-                                              bool &is_bounded,
-                                              double dist_tol = std::numeric_limits<InputScalarT>::epsilon(),
-                                              double merge_tol = 0.0)
-    {
-        return evaluateHalfspaceIntersection<InputScalarT,OutputScalarT,EigenDim>(Eigen::Map<Eigen::Matrix<InputScalarT,EigenDim+1,Eigen::Dynamic> >((InputScalarT *)halfspaces.data(),EigenDim+1,halfspaces.size()), facet_halfspaces, polytope_vertices, interior_point, is_bounded, dist_tol, merge_tol);
-    }
-
-    template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
-    bool halfspaceIntersectionFromVertices(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> > &vertices,
+    bool halfspaceIntersectionFromVertices(const ConstDataMatrixMap<InputScalarT,EigenDim> &vertices,
                                            std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &polytope_vertices,
                                            std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > &facet_halfspaces,
                                            double &area, double &volume,
@@ -523,19 +494,8 @@ namespace cilantro {
         return true;
     }
 
-    template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
-    inline bool halfspaceIntersectionFromVertices(const std::vector<Eigen::Matrix<InputScalarT,EigenDim,1> > &vertices,
-                                                  std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &polytope_vertices,
-                                                  std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > &facet_halfspaces,
-                                                  double &area, double &volume,
-                                                  bool require_full_dimension = true,
-                                                  double merge_tol = 0.0)
-    {
-        return halfspaceIntersectionFromVertices<InputScalarT,OutputScalarT,EigenDim>(Eigen::Map<Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> >((InputScalarT *)vertices.data(),EigenDim,vertices.size()), polytope_vertices, facet_halfspaces, area, volume, require_full_dimension, merge_tol);
-    }
-
     template <typename ScalarT, ptrdiff_t EigenDim>
-    void computeConvexHullAreaAndVolume(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > &vertices,
+    void computeConvexHullAreaAndVolume(const ConstDataMatrixMap<ScalarT,EigenDim> &vertices,
                                         double &area, double &volume,
                                         double merge_tol = 0.0)
     {
@@ -609,16 +569,8 @@ namespace cilantro {
         volume = qh.volume();
     }
 
-    template <typename ScalarT, ptrdiff_t EigenDim>
-    inline void computeConvexHullAreaAndVolume(const std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > &vertices,
-                                               double &area, double &volume,
-                                               double merge_tol = 0.0)
-    {
-        computeConvexHullAreaAndVolume<ScalarT,EigenDim>(Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> >((ScalarT *)vertices.data(),EigenDim,vertices.size()), area, volume, merge_tol);
-    }
-
     template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
-    bool convexHullFromPoints(const Eigen::Ref<const Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> > &points,
+    bool convexHullFromPoints(const ConstDataMatrixMap<InputScalarT,EigenDim> &points,
                               std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &hull_points,
                               std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > &halfspaces,
                               std::vector<std::vector<size_t> > &facets,
@@ -768,20 +720,5 @@ namespace cilantro {
         volume = qh.volume();
 
         return true;
-    }
-
-    template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
-    inline bool convexHullFromPoints(const std::vector<Eigen::Matrix<InputScalarT,EigenDim,1> > &points,
-                                     std::vector<Eigen::Matrix<OutputScalarT,EigenDim,1> > &hull_points,
-                                     std::vector<Eigen::Matrix<OutputScalarT,EigenDim+1,1> > &halfspaces,
-                                     std::vector<std::vector<size_t> > &facets,
-                                     std::vector<std::vector<size_t> > &point_neighbor_facets,
-                                     std::vector<std::vector<size_t> > &facet_neighbor_facets,
-                                     std::vector<size_t> &hull_point_indices,
-                                     double &area, double &volume,
-                                     bool simplicial_facets = true,
-                                     double merge_tol = 0.0)
-    {
-        return convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(Eigen::Map<Eigen::Matrix<InputScalarT,EigenDim,Eigen::Dynamic> >((InputScalarT *)points.data(),EigenDim,points.size()), hull_points, halfspaces, facets, point_neighbor_facets, facet_neighbor_facets, hull_point_indices, area, volume, simplicial_facets, merge_tol);
     }
 }

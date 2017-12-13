@@ -58,10 +58,10 @@ namespace cilantro {
     {}
 
     Eigen::MatrixXf PointCloudHull::getPointSignedDistancesFromFacets(const PointCloud &cloud) const {
-        return getPointSignedDistancesFromFacets(cloud.points);
+        return ConvexHull3D::getPointSignedDistancesFromFacets(cloud.points);
     }
 
     std::vector<size_t> PointCloudHull::getInteriorPointIndices(const PointCloud &cloud, float offset) const {
-        return getInteriorPointIndices(cloud.points, offset);
+        return ConvexHull3D::getInteriorPointIndices(cloud.points, offset);
     }
 }
