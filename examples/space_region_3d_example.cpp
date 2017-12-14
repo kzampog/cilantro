@@ -50,19 +50,19 @@ int main(int argc, char* argv[]) {
 
     viz.addPointCloud("cloud1", cloud1, cilantro::RenderingProperties().setOpacity(0.3));
     viz.addPointCloud("cloud2", cloud2, cilantro::RenderingProperties().setOpacity(0.3));
-    viz.addPointCloud("interior_cloud", interior_cloud, cilantro::RenderingProperties().setOpacity(1.0).setPointSize(2.5f).setPointColor(1,1,1));
+    viz.addPointCloud("interior_cloud", interior_cloud, cilantro::RenderingProperties().setOpacity(1.0).setPointSize(2.5f).setPointColor(0.8,0.8,0.8));
 
     const cilantro::ConvexPolytope3D& cp1(sr1.getConvexPolytopes()[0]);
     const cilantro::ConvexPolytope3D& cp2(sr2.getConvexPolytopes()[0]);
-    viz.addTriangleMesh("hull1", cp1.getVertices(), cp1.getFacetVertexIndices(), cilantro::RenderingProperties().setOpacity(0.3).setPointColor(1,0,0).setDrawWireframe(true));
-    viz.addTriangleMesh("hull2", cp2.getVertices(), cp2.getFacetVertexIndices(), cilantro::RenderingProperties().setOpacity(0.3).setPointColor(0,0,1).setDrawWireframe(true));
+    viz.addTriangleMesh("hull1", cp1.getVertices(), cp1.getFacetVertexIndices(), cilantro::RenderingProperties().setPointColor(1,0,0).setDrawWireframe(true).setUseFaceNormals(true).setLineWidth(2.0));
+    viz.addTriangleMesh("hull2", cp2.getVertices(), cp2.getFacetVertexIndices(), cilantro::RenderingProperties().setPointColor(0,0,1).setDrawWireframe(true).setUseFaceNormals(true).setLineWidth(2.0));
 
-    viz.setVisibilityStatus("hull1", false);
-    viz.setVisibilityStatus("hull2", false);
+//    viz.setVisibilityStatus("hull1", false);
+//    viz.setVisibilityStatus("hull2", false);
 
     const std::vector<cilantro::ConvexPolytope3D>& polys(sr.getConvexPolytopes());
     for (size_t i = 0; i < polys.size(); i++) {
-        viz.addTriangleMesh("sr_" + std::to_string(i), polys[i].getVertices(), polys[i].getFacetVertexIndices(), cilantro::RenderingProperties().setOpacity(0.9).setUseFaceNormals(true));
+        viz.addTriangleMesh("sr_" + std::to_string(i), polys[i].getVertices(), polys[i].getFacetVertexIndices(), cilantro::RenderingProperties().setOpacity(0.9).setUseFaceNormals(true).setLineWidth(2.0).setPointColor(0.8,0.8,0.8));
     }
 
     std::cout << "Press 'a' or 's' to toggle visibility of original hulls" << std::endl;
