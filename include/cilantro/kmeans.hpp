@@ -10,7 +10,7 @@ namespace cilantro {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         KMeans(const ConstDataMatrixMap<ScalarT,EigenDim> &data)
-                : data_map_(data.data(), EigenDim, data.cols()),
+                : data_map_(data),
                   iteration_count_(0)
         {}
 
@@ -58,7 +58,7 @@ namespace cilantro {
         inline size_t getPerformedIterationsCount() const { return iteration_count_; }
 
     private:
-        Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > data_map_;
+        ConstDataMatrixMap<ScalarT,EigenDim> data_map_;
 
         std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > cluster_centroids_;
         std::vector<std::vector<size_t> > cluster_point_indices_;

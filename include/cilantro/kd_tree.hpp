@@ -69,7 +69,7 @@ namespace cilantro {
         };
 
         KDTree(const ConstDataMatrixMap<ScalarT,EigenDim> &data, size_t max_leaf_size = 10)
-                : data_map_(data.data(), EigenDim, data.cols()),
+                : data_map_(data),
                   mat_to_kd_(data_map_),
                   kd_tree_(EigenDim, mat_to_kd_, nanoflann::KDTreeSingleIndexAdaptorParams(max_leaf_size))
         {
@@ -133,7 +133,7 @@ namespace cilantro {
     private:
         typedef nanoflann::KDTreeSingleIndexAdaptor<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> >, KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>, EigenDim> TreeType_;
 
-        Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > data_map_;
+        ConstDataMatrixMap<ScalarT,EigenDim> data_map_;
         const KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> mat_to_kd_;
         TreeType_ kd_tree_;
         nanoflann::SearchParams params_;
