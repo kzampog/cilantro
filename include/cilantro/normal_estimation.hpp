@@ -32,7 +32,6 @@ namespace cilantro {
 
         std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > estimateNormalsKNN(size_t num_neighbors) const {
             std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > normals(points_.cols());
-
             Eigen::Matrix<ScalarT,EigenDim,1> nan(Eigen::Matrix<ScalarT,EigenDim,1>::Constant(std::numeric_limits<ScalarT>::quiet_NaN()));
             if (points_.cols() < EigenDim) {
                 for (size_t i = 0; i < normals.size(); i++) normals[i] = nan;
@@ -44,17 +43,13 @@ namespace cilantro {
 #pragma omp parallel for shared (normals) private (neighbors, distances)
             for (size_t i = 0; i < points_.cols(); i++) {
                 kd_tree_ptr_->kNNSearch(points_.col(i), num_neighbors, neighbors, distances);
-
                 std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > neighborhood(neighbors.size());
                 for (size_t j = 0; j < neighbors.size(); j++) {
                     neighborhood[j] = points_.col(neighbors[j]);
                 }
-
                 PrincipalComponentAnalysis<ScalarT,EigenDim> pca(neighborhood);
                 normals[i] = pca.getEigenVectorsMatrix().col(EigenDim-1);
-
 //                points_.col(i) = pca.reconstruct<EigenDim-1>(pca.project<EigenDim-1>(points_.col(i)));
-
                 if (normals[i].dot(view_point_ - points_.col(i)) < 0.0) {
                     normals[i] *= -1.0;
                 }
@@ -65,9 +60,7 @@ namespace cilantro {
 
         std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > estimateNormalsRadius(ScalarT radius) const {
             ScalarT radius_sq = radius*radius;
-
             std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > normals(points_.cols());
-
             Eigen::Matrix<ScalarT,EigenDim,1> nan(Eigen::Matrix<ScalarT,EigenDim,1>::Constant(std::numeric_limits<ScalarT>::quiet_NaN()));
 
             std::vector<size_t> neighbors;
@@ -75,22 +68,17 @@ namespace cilantro {
 #pragma omp parallel for shared (normals) private (neighbors, distances)
             for (size_t i = 0; i < points_.cols(); i++) {
                 kd_tree_ptr_->radiusSearch(points_.col(i), radius_sq, neighbors, distances);
-
                 if (neighbors.size() < EigenDim) {
                     normals[i] = nan;
                     continue;
                 }
-
                 std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > neighborhood(neighbors.size());
                 for (size_t j = 0; j < neighbors.size(); j++) {
                     neighborhood[j] = points_.col(neighbors[j]);
                 }
-
                 PrincipalComponentAnalysis<ScalarT,EigenDim> pca(neighborhood);
                 normals[i] = pca.getEigenVectorsMatrix().col(EigenDim-1);
-
 //                points_.col(i) = pca.reconstruct<EigenDim-1>(pca.project<EigenDim-1>(points_.col(i)));
-
                 if (normals[i].dot(view_point_ - points_.col(i)) < 0.0) {
                     normals[i] *= -1.0;
                 }
@@ -101,9 +89,7 @@ namespace cilantro {
 
         std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > estimateNormalsKNNInRadius(size_t k, ScalarT radius) const {
             ScalarT radius_sq = radius*radius;
-
             std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > normals(points_.cols());
-
             Eigen::Matrix<ScalarT,EigenDim,1> nan(Eigen::Matrix<ScalarT,EigenDim,1>::Constant(std::numeric_limits<ScalarT>::quiet_NaN()));
 
             std::vector<size_t> neighbors;
@@ -111,22 +97,17 @@ namespace cilantro {
 #pragma omp parallel for shared (normals) private (neighbors, distances)
             for (size_t i = 0; i < points_.cols(); i++) {
                 kd_tree_ptr_->kNNInRadiusSearch(points_.col(i), k, radius_sq, neighbors, distances);
-
                 if (neighbors.size() < EigenDim) {
                     normals[i] = nan;
                     continue;
                 }
-
                 std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > neighborhood(neighbors.size());
                 for (size_t j = 0; j < neighbors.size(); j++) {
                     neighborhood[j] = points_.col(neighbors[j]);
                 }
-
                 PrincipalComponentAnalysis<ScalarT,EigenDim> pca(neighborhood);
                 normals[i] = pca.getEigenVectorsMatrix().col(EigenDim-1);
-
 //                points_.col(i) = pca.reconstruct<EigenDim-1>(pca.project<EigenDim-1>(points_.col(i)));
-
                 if (normals[i].dot(view_point_ - points_.col(i)) < 0.0) {
                     normals[i] *= -1.0;
                 }
@@ -135,7 +116,7 @@ namespace cilantro {
             return normals;
         }
 
-        std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > estimateNormals(const KDTree3D::Neighborhood &nh) const {
+        std::vector<Eigen::Matrix<ScalarT,EigenDim,1> > estimateNormals(const typename KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2>::Neighborhood &nh) const {
             switch (nh.type) {
                 case KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2>::NeighborhoodType::KNN:
                     return estimateNormalsKNN(nh.maxNumberOfNeighbors);

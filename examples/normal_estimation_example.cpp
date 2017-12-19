@@ -13,8 +13,9 @@ int main(int argc, char ** argv) {
     cloud = vg.getDownsampledCloud();
 
     auto start = std::chrono::high_resolution_clock::now();
-    cilantro::KDTree3D tree(cloud.points);
-    cilantro::NormalEstimation3D ne(cloud.points, tree);
+//    cilantro::KDTree3D tree(cloud.points);
+//    cilantro::NormalEstimation3D ne(cloud.points, tree);
+    cilantro::NormalEstimation3D ne(cloud.points);
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> kd_tree_time = end - start;
 
