@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cilantro/cartesian_grid.hpp>
 #include <cilantro/colormap.hpp>
 #include <cilantro/connected_component_segmentation.hpp>
 #include <cilantro/convex_hull.hpp>
@@ -17,10 +18,10 @@
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/principal_component_analysis.hpp>
 #include <cilantro/random_sample_consensus.hpp>
+#include <cilantro/registration.hpp>
 #include <cilantro/renderables.hpp>
 #include <cilantro/rigid_transform_estimator.hpp>
 #include <cilantro/space_region.hpp>
-#include <cilantro/registration.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/visualizer_handler.hpp>
 #include <cilantro/voxel_grid.hpp>
