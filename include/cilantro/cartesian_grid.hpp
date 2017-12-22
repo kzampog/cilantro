@@ -115,10 +115,10 @@ namespace cilantro {
             Eigen::Matrix<ptrdiff_t,EigenDim,1> grid_coords;
             for (size_t i = 0; i < data_map_.cols(); i++) {
                 for (size_t j = 0; j < EigenDim; j++) {
-//                    ScalarT val = data_map_(j,i)/bin_size_[j];
-//                    grid_coords[j] = data_map_(j,i)/bin_size_[j];
-//                    if (grid_coords[j] > val) grid_coords[j]--;
-                    grid_coords[j] = std::floor(data_map_(j,i)/bin_size_[j]);
+                    ScalarT val = data_map_(j,i)/bin_size_[j];
+                    grid_coords[j] = (ptrdiff_t)val;
+                    if (grid_coords[j] > val) grid_coords[j]--;
+//                    grid_coords[j] = std::floor(data_map_(j,i)/bin_size_[j]);
                 }
                 auto lb = grid_lookup_table_.lower_bound(grid_coords);
                 if (lb != grid_lookup_table_.end() && !(grid_lookup_table_.key_comp()(grid_coords, lb->first))) {
