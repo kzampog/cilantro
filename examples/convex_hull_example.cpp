@@ -89,7 +89,7 @@ int main(int argc, char ** argv) {
 
     // PointCloudHullFlat also inherits from PrincipalComponentAnalysis
     cilantro::PointCloudHullFlat ch2d(cloud.points);
-    cloud.points = ch2d.reconstruct<2>(ch2d.project<2>(cloud.points));
+    cloud.points = ch2d.getReconstructedPoints<2>(ch2d.getProjectedPoints<2>(cloud.points));
     cloud.normals.clear();
 
     std::vector<std::vector<size_t> > face_v_ind = ch2d.getFacetVertexIndices();

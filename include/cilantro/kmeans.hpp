@@ -4,7 +4,7 @@
 #include <cilantro/kd_tree.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor>
+    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
     class KMeans {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW

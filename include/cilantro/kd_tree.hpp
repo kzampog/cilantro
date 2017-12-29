@@ -52,7 +52,7 @@ namespace cilantro {
         using SO3 = nanoflann::SO3_Adaptor<typename DataAdaptor::coord_t, DataAdaptor, typename DataAdaptor::coord_t>;
     };
 
-    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor>
+    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
     class KDTree {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -71,7 +71,7 @@ namespace cilantro {
         KDTree(const ConstDataMatrixMap<ScalarT,EigenDim> &data, size_t max_leaf_size = 10)
                 : data_map_(data),
                   mat_to_kd_(data_map_),
-                  kd_tree_(EigenDim, mat_to_kd_, nanoflann::KDTreeSingleIndexAdaptorParams(max_leaf_size))
+                  kd_tree_(data.rows(), mat_to_kd_, nanoflann::KDTreeSingleIndexAdaptorParams(max_leaf_size))
         {
             params_.sorted = true;
             kd_tree_.buildIndex();

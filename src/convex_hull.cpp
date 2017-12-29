@@ -3,14 +3,14 @@
 namespace cilantro {
     PointCloudHullFlat::PointCloudHullFlat(const std::vector<Eigen::Vector3f> &points, bool compute_topology, bool simplicial_facets, double merge_tol)
             : PrincipalComponentAnalysis3D(points),
-              ConvexHull2D(project<2>(points), compute_topology, simplicial_facets, merge_tol),
-              vertices_3d_(reconstruct<2>(vertices_))
+              ConvexHull2D(getProjectedPoints<2>(points), compute_topology, simplicial_facets, merge_tol),
+              vertices_3d_(getReconstructedPoints<2>(vertices_))
     {}
 
     PointCloudHullFlat::PointCloudHullFlat(const PointCloud &cloud, bool compute_topology, bool simplicial_facets, double merge_tol)
             : PrincipalComponentAnalysis3D(cloud.points),
-              ConvexHull2D(project<2>(cloud.points), compute_topology, simplicial_facets, merge_tol),
-              vertices_3d_(reconstruct<2>(vertices_))
+              ConvexHull2D(getProjectedPoints<2>(cloud.points), compute_topology, simplicial_facets, merge_tol),
+              vertices_3d_(getReconstructedPoints<2>(vertices_))
     {}
 
     PointCloudHullFlat& PointCloudHullFlat::transform(const Eigen::Ref<const Eigen::Matrix3f> &rotation, const Eigen::Ref<const Eigen::Vector3f> &translation) {
