@@ -11,13 +11,13 @@ namespace cilantro {
             typedef ScalarT coord_t;
 
             // A const ref to the data set origin
-            const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> >& obj;
+            const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>& obj;
 
             /// The constructor that sets the data set source
-            EigenMap(const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> > &obj_) : obj(obj_) {}
+            EigenMap(const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>> &obj_) : obj(obj_) {}
 
             /// CRTP helper method
-            inline const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> >& derived() const { return obj; }
+            inline const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>& derived() const { return obj; }
 
             // Must return the number of data points
             inline size_t kdtree_get_point_count() const { return obj.cols(); }
@@ -92,7 +92,7 @@ namespace cilantro {
         }
 
         void radiusSearch(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &query_pt, ScalarT radius, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
-            std::vector<std::pair<size_t,ScalarT> > matches;
+            std::vector<std::pair<size_t,ScalarT>> matches;
             matches.reserve(data_map_.cols());
             size_t num_results = kd_tree_.radiusSearch(query_pt.data(), radius, matches, params_);
             neighbors.resize(num_results);
@@ -131,7 +131,7 @@ namespace cilantro {
         }
 
     private:
-        typedef nanoflann::KDTreeSingleIndexAdaptor<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> >, KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>, EigenDim> TreeType_;
+        typedef nanoflann::KDTreeSingleIndexAdaptor<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>, KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>, EigenDim> TreeType_;
 
         ConstDataMatrixMap<ScalarT,EigenDim> data_map_;
         const KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> mat_to_kd_;

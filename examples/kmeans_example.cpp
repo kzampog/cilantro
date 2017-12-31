@@ -63,7 +63,7 @@ int main(int argc, char ** argv) {
 
     cilantro::Visualizer viz2("KMeans demo", "disp2");
     viz2.addPointCloud("cloud_seg", cloud_seg);
-    viz2.addPointCloud("centroids", kmc.getClusterCentroids(), cilantro::RenderingProperties().setPointSize(5.0f).setPointColor(1.0f,1.0f,1.0f));
+//    viz2.addPointCloud("centroids", kmc.getClusterCentroids(), cilantro::RenderingProperties().setPointSize(5.0f).setPointColor(1.0f,1.0f,1.0f));
 
     while (!viz1.wasStopped() && !viz2.wasStopped()) {
         viz1.clearRenderArea();
