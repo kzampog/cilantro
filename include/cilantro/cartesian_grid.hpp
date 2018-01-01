@@ -45,6 +45,10 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        typedef typename std::conditional<EigenDim != Eigen::Dynamic && sizeof(Eigen::Matrix<ptrdiff_t,EigenDim,1>) % 16 == 0,
+                std::map<Eigen::Matrix<ptrdiff_t,EigenDim,1>,std::vector<size_t>,EigenVectorComparator<ptrdiff_t,EigenDim>,Eigen::aligned_allocator<std::pair<const Eigen::Matrix<ptrdiff_t,EigenDim,1>,std::vector<size_t>>>>,
+                std::map<Eigen::Matrix<ptrdiff_t,EigenDim,1>,std::vector<size_t>,EigenVectorComparator<ptrdiff_t,EigenDim>>>::type GridBinMapType;
+
         CartesianGrid(const ConstDataMatrixMap<ScalarT,EigenDim> &data, const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &bin_size)
                 : data_map_(data),
                   bin_size_(bin_size)
@@ -63,9 +67,9 @@ namespace cilantro {
 
         const Eigen::Matrix<ScalarT,EigenDim,1>& getBinSize() const { return bin_size_; }
 
-        const std::map<Eigen::Matrix<ptrdiff_t,EigenDim,1>,std::vector<size_t>,EigenVectorComparator<ptrdiff_t,EigenDim>,Eigen::aligned_allocator<std::pair<const Eigen::Matrix<ptrdiff_t,EigenDim,1>,std::vector<size_t>>>>& getOccupiedBinMap() const { return grid_lookup_table_; }
+        const GridBinMapType& getOccupiedBinMap() const { return grid_lookup_table_; }
 
-        const std::vector<typename std::map<Eigen::Matrix<ptrdiff_t,EigenDim,1>,std::vector<size_t>,EigenVectorComparator<ptrdiff_t,EigenDim>,Eigen::aligned_allocator<std::pair<const Eigen::Matrix<ptrdiff_t,EigenDim,1>,std::vector<size_t>>>>::iterator>& getOccupiedBinIterators() const { return bin_iterators_; }
+        const std::vector<typename GridBinMapType::iterator>& getOccupiedBinIterators() const { return bin_iterators_; }
 
         const std::vector<size_t>& getPointBinNeighbors(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &point) const {
             Eigen::Matrix<ptrdiff_t,EigenDim,1> grid_coords(data_map_.rows());
@@ -113,11 +117,8 @@ namespace cilantro {
         ConstDataMatrixMap<ScalarT,EigenDim> data_map_;
         Eigen::Matrix<ScalarT,EigenDim,1> bin_size_;
 
-//        std::map<Eigen::Matrix<ptrdiff_t,EigenDim,1>,std::vector<size_t>,EigenVectorComparator<ptrdiff_t,EigenDim> > grid_lookup_table_;
-//        std::vector<typename std::map<Eigen::Matrix<ptrdiff_t,EigenDim,1>,std::vector<size_t>,EigenVectorComparator<ptrdiff_t,EigenDim> >::iterator> bin_iterators_;
-
-        std::map<Eigen::Matrix<ptrdiff_t,EigenDim,1>,std::vector<size_t>,EigenVectorComparator<ptrdiff_t,EigenDim>,Eigen::aligned_allocator<std::pair<const Eigen::Matrix<ptrdiff_t,EigenDim,1>,std::vector<size_t>>>> grid_lookup_table_;
-        std::vector<typename std::map<Eigen::Matrix<ptrdiff_t,EigenDim,1>,std::vector<size_t>,EigenVectorComparator<ptrdiff_t,EigenDim>,Eigen::aligned_allocator<std::pair<const Eigen::Matrix<ptrdiff_t,EigenDim,1>,std::vector<size_t>>>>::iterator> bin_iterators_;
+        GridBinMapType grid_lookup_table_;
+        std::vector<typename GridBinMapType::iterator> bin_iterators_;
 
         void build_index_() {
             if (data_map_.cols() == 0) return;

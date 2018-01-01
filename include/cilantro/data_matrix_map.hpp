@@ -52,6 +52,7 @@ namespace cilantro {
                 : Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>(data.data(), data.rows(), data.cols())
         {}
 
+//        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic && sizeof(Eigen::Matrix<ScalarT,Dim,1>) % 16 != 0>::type>
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
         ConstDataMatrixMap(const std::vector<Eigen::Matrix<ScalarT,EigenDim,1>> &data)
                 : Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>((const ScalarT *)data.data(), EigenDim, data.size())
