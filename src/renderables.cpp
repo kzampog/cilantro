@@ -7,61 +7,57 @@ namespace cilantro {
     Eigen::Vector3f RenderingProperties::noColor = Eigen::Vector3f(-1.0f,-1.0f,-1.0f);
 
     void PointCloudRenderable::applyRenderingProperties() {
-        pointBuffer.Reinitialise(pangolin::GlArrayBuffer, points.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-        pointBuffer.Upload(points.data(), sizeof(float)*points.size()*3);
+        pointBuffer.Reinitialise(pangolin::GlArrayBuffer, points.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+        pointBuffer.Upload(points.data(), sizeof(float)*points.cols()*3);
 
-        normalBuffer.Reinitialise(pangolin::GlArrayBuffer, normals.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-        normalBuffer.Upload(normals.data(), sizeof(float)*normals.size()*3);
+        normalBuffer.Reinitialise(pangolin::GlArrayBuffer, normals.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+        normalBuffer.Upload(normals.data(), sizeof(float)*normals.cols()*3);
 
-        std::vector<Eigen::Vector3f> line_end_points;
-        if (renderingProperties.drawNormals && renderingProperties.lineDensityFraction > 0.0f) {
+        PointMatrix<float,3> line_end_points;
+        if (renderingProperties.drawNormals && normals.cols() > 0 && renderingProperties.lineDensityFraction > 0.0f) {
             if (renderingProperties.lineDensityFraction > 1.0f) renderingProperties.lineDensityFraction = 1.0;
             size_t step = (size_t)std::llround(1.0/renderingProperties.lineDensityFraction);
             step = std::max(step,(size_t)1);
-
-            line_end_points.reserve((size_t)(std::ceil(renderingProperties.lineDensityFraction*normals.size())) + 1);
-            for (size_t i = 0; i < normals.size(); i += step) {
-                line_end_points.emplace_back(points[i]);
-                line_end_points.emplace_back(points[i] + renderingProperties.normalLength*normals[i]);
+            line_end_points.resize(Eigen::NoChange, 2*((normals.cols()-1)/step + 1));
+            size_t k = 0;
+            for (size_t i = 0; i < normals.cols(); i += step) {
+                line_end_points.col(k++) = points.col(i);
+                line_end_points.col(k++) = points.col(i) + renderingProperties.normalLength*normals.col(i);
             }
         }
-        normalEndPointBuffer.Reinitialise(pangolin::GlArrayBuffer, line_end_points.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-        normalEndPointBuffer.Upload(line_end_points.data(), sizeof(float)*line_end_points.size()*3);
+        normalEndPointBuffer.Reinitialise(pangolin::GlArrayBuffer, line_end_points.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+        normalEndPointBuffer.Upload(line_end_points.data(), sizeof(float)*line_end_points.cols()*3);
 
-        std::vector<Eigen::Vector4f> color_alpha;
+        PointMatrix<float,4> color_alpha;
         if (renderingProperties.pointColor != RenderingProperties::noColor) {
             Eigen::Vector4f tmp;
             tmp.head(3) = renderingProperties.pointColor;
             tmp(3) = renderingProperties.opacity;
-            color_alpha = std::vector<Eigen::Vector4f>(points.size(), tmp);
-        } else if (pointValues.size() == points.size() && renderingProperties.useScalarValueMappedColors) {
-            std::vector<Eigen::Vector3f> color_tmp = colormap(pointValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
-            color_alpha.resize(pointValues.size());
-            for(size_t i = 0; i < pointValues.size(); i++) {
-                color_alpha[i].head(3) = color_tmp[i];
-                color_alpha[i](3) = renderingProperties.opacity;
-            }
-        } else if (colors.size() == points.size()) {
-            color_alpha.resize(colors.size());
-            for(size_t i = 0; i < colors.size(); i++) {
-                color_alpha[i].head(3) = colors[i];
-                color_alpha[i](3) = renderingProperties.opacity;
-            }
+            color_alpha = tmp.replicate(1,points.cols());
+        } else if (pointValues.cols() == points.cols() && renderingProperties.useScalarValueMappedColors) {
+            PointMatrix<float,3> color_tmp = colormap(pointValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
+            color_alpha.resize(Eigen::NoChange, pointValues.cols());
+            color_alpha.topRows(3) = color_tmp;
+            color_alpha.row(3).setConstant(renderingProperties.opacity);
+        } else if (colors.cols() == points.cols()) {
+            color_alpha.resize(Eigen::NoChange, colors.cols());
+            color_alpha.topRows(3) = colors;
+            color_alpha.row(3).setConstant(renderingProperties.opacity);
         } else {
             // Fallback to default color
             Eigen::Vector4f tmp;
             tmp.head(3) = RenderingProperties::defaultColor;
             tmp(3) = renderingProperties.opacity;
-            color_alpha = std::vector<Eigen::Vector4f>(points.size(), tmp);
+            color_alpha = tmp.replicate(1,points.cols());
         }
-        colorBuffer.Reinitialise(pangolin::GlArrayBuffer, color_alpha.size(), GL_FLOAT, 4, GL_DYNAMIC_DRAW);
-        colorBuffer.Upload(color_alpha.data(), sizeof(float)*color_alpha.size()*4);
+        colorBuffer.Reinitialise(pangolin::GlArrayBuffer, color_alpha.cols(), GL_FLOAT, 4, GL_DYNAMIC_DRAW);
+        colorBuffer.Upload(color_alpha.data(), sizeof(float)*color_alpha.cols()*4);
     }
 
     void PointCloudRenderable::render() {
         glPointSize(renderingProperties.pointSize);
 
-        bool use_normals = normals.size() == points.size();
+        bool use_normals = normals.cols() == points.cols();
         bool use_lighting = use_normals && renderingProperties.useLighting;
 
         if (use_normals) {
@@ -96,20 +92,20 @@ namespace cilantro {
     }
 
     void CorrespondencesRenderable::applyRenderingProperties() {
-        std::vector<Eigen::Vector3f> line_end_points;
-        if (renderingProperties.lineDensityFraction > 0.0f) {
+        PointMatrix<float,3> line_end_points;
+        if (srcPoints.cols() > 0 && renderingProperties.lineDensityFraction > 0.0f) {
             if (renderingProperties.lineDensityFraction > 1.0f) renderingProperties.lineDensityFraction = 1.0;
             size_t step = (size_t)std::llround(1.0/renderingProperties.lineDensityFraction);
             step = std::max(step,(size_t)1);
-
-            line_end_points.reserve((size_t)(std::ceil(renderingProperties.lineDensityFraction*srcPoints.size())) + 1);
-            for (size_t i = 0; i < srcPoints.size(); i += step) {
-                line_end_points.emplace_back(srcPoints[i]);
-                line_end_points.emplace_back(dstPoints[i]);
+            line_end_points.resize(Eigen::NoChange, 2*((srcPoints.cols()-1)/step + 1));
+            size_t k = 0;
+            for (size_t i = 0; i < srcPoints.cols(); i += step) {
+                line_end_points.col(k++) = srcPoints.col(i);
+                line_end_points.col(k++) = dstPoints.col(i);
             }
         }
-        lineEndPointBuffer.Reinitialise(pangolin::GlArrayBuffer, line_end_points.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-        lineEndPointBuffer.Upload(line_end_points.data(), sizeof(float)*line_end_points.size()*3);
+        lineEndPointBuffer.Reinitialise(pangolin::GlArrayBuffer, line_end_points.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+        lineEndPointBuffer.Upload(line_end_points.data(), sizeof(float)*line_end_points.cols()*3);
     }
 
     void CorrespondencesRenderable::render() {
@@ -142,117 +138,118 @@ namespace cilantro {
     void TriangleMeshRenderable::applyRenderingProperties() {
         // Populate flattened vertices and update centroid
         size_t k = 0;
-        std::vector<Eigen::Vector3f> vertices_flat(faces.size()*3);
+        PointMatrix<float,3> vertices_flat(3, faces.size()*3);
         for (size_t i = 0; i < faces.size(); i++) {
             for (size_t j = 0; j < faces[i].size(); j++) {
-                vertices_flat[k++] = vertices[faces[i][j]];
+                vertices_flat.col(k++) = vertices.col(faces[i][j]);
             }
         }
-        vertexBuffer.Reinitialise(pangolin::GlArrayBuffer, vertices_flat.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-        vertexBuffer.Upload(vertices_flat.data(), sizeof(float)*vertices_flat.size()*3);
+        vertexBuffer.Reinitialise(pangolin::GlArrayBuffer, vertices_flat.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+        vertexBuffer.Upload(vertices_flat.data(), sizeof(float)*vertices_flat.cols()*3);
 
-        centroid = Eigen::Map<Eigen::MatrixXf>((float *)vertices_flat.data(), 3, vertices_flat.size()).rowwise().mean();
+        centroid = vertices_flat.rowwise().mean();
 
         // Populate flattened normals
-        std::vector<Eigen::Vector3f> normals_flat;
-        if (renderingProperties.useFaceNormals && faceNormals.size() == faces.size()) {
-            normals_flat.resize(faces.size()*3);
+        PointMatrix<float,3> normals_flat;
+        if (renderingProperties.useFaceNormals && faceNormals.cols() == faces.size()) {
+            normals_flat.resize(Eigen::NoChange, faces.size()*3);
             k = 0;
             for (size_t i = 0; i < faces.size(); i++) {
                 for (size_t j = 0; j < faces[i].size(); j++) {
-                    normals_flat[k++] = faceNormals[i];
+                    normals_flat.col(k++) = faceNormals.col(i);
                 }
             }
         }
-        if (!renderingProperties.useFaceNormals && vertexNormals.size() == vertices.size()) {
-            normals_flat.resize(faces.size()*3);
+        if (!renderingProperties.useFaceNormals && vertexNormals.cols() == vertices.cols()) {
+            normals_flat.resize(Eigen::NoChange, faces.size()*3);
             k = 0;
             for (size_t i = 0; i < faces.size(); i++) {
                 for (size_t j = 0; j < faces[i].size(); j++) {
-                    normals_flat[k++] = vertexNormals[faces[i][j]];
+                    normals_flat.col(k++) = vertexNormals.col(faces[i][j]);
                 }
             }
         }
-        normalBuffer.Reinitialise(pangolin::GlArrayBuffer, normals_flat.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-        normalBuffer.Upload(normals_flat.data(), sizeof(float)*normals_flat.size()*3);
+        normalBuffer.Reinitialise(pangolin::GlArrayBuffer, normals_flat.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+        normalBuffer.Upload(normals_flat.data(), sizeof(float)*normals_flat.cols()*3);
 
-        std::vector<Eigen::Vector3f> line_end_points;
+        PointMatrix<float,3> line_end_points;
         if (renderingProperties.drawNormals && renderingProperties.lineDensityFraction > 0.0f) {
             if (renderingProperties.lineDensityFraction > 1.0f) renderingProperties.lineDensityFraction = 1.0;
             size_t step = (size_t)std::llround(1.0/renderingProperties.lineDensityFraction);
             step = std::max(step,(size_t)1);
-
-            if (renderingProperties.useFaceNormals && faceNormals.size() == faces.size()) {
-                line_end_points.reserve((size_t)(std::ceil(renderingProperties.lineDensityFraction*faces.size())) + 1);
+            if (renderingProperties.useFaceNormals && !faces.empty() && faceNormals.cols() == faces.size()) {
+                line_end_points.resize(Eigen::NoChange, 2*((faces.size()-1)/step + 1));
+                size_t k = 0;
                 for (size_t i = 0; i < faces.size(); i += step) {
                     Eigen::Vector3f face_center(Eigen::Vector3f::Zero());
                     for (size_t j = 0; j < faces[i].size(); j++) {
-                        face_center += vertices[faces[i][j]];
+                        face_center += vertices.col(faces[i][j]);
                     }
                     float scale = 1.0f/faces[i].size();
                     face_center *= scale;
 
-                    line_end_points.emplace_back(face_center);
-                    line_end_points.emplace_back(face_center + renderingProperties.normalLength*faceNormals[i]);
+                    line_end_points.col(k++) = face_center;
+                    line_end_points.col(k++) = face_center + renderingProperties.normalLength*faceNormals.col(i);
                 }
             }
-            if (!renderingProperties.useFaceNormals && vertexNormals.size() == vertices.size()) {
-                line_end_points.reserve((size_t)(std::ceil(renderingProperties.lineDensityFraction*vertices.size())) + 1);
-                for (size_t i = 0; i < vertices.size(); i += step) {
-                    line_end_points.emplace_back(vertices[i]);
-                    line_end_points.emplace_back(vertices[i] + renderingProperties.normalLength*vertexNormals[i]);
+            if (!renderingProperties.useFaceNormals && vertices.cols() > 0 && vertexNormals.cols() == vertices.cols()) {
+                line_end_points.resize(Eigen::NoChange, 2*((vertices.cols()-1)/step + 1));
+                size_t k = 0;
+                for (size_t i = 0; i < vertices.cols(); i += step) {
+                    line_end_points.col(k++) = vertices.col(i);
+                    line_end_points.col(k++) = vertices.col(i) + renderingProperties.normalLength*vertexNormals.col(i);
                 }
             }
         }
-        normalEndPointBuffer.Reinitialise(pangolin::GlArrayBuffer, line_end_points.size(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-        normalEndPointBuffer.Upload(line_end_points.data(), sizeof(float)*line_end_points.size()*3);
+        normalEndPointBuffer.Reinitialise(pangolin::GlArrayBuffer, line_end_points.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+        normalEndPointBuffer.Upload(line_end_points.data(), sizeof(float)*line_end_points.cols()*3);
 
         // Populate flattened colors
-        std::vector<Eigen::Vector4f> colors_flat;
+        PointMatrix<float,4> colors_flat;
         if (renderingProperties.pointColor != RenderingProperties::noColor) {
             Eigen::Vector4f tmp;
             tmp.head(3) = renderingProperties.pointColor;
             tmp(3) = renderingProperties.opacity;
-            colors_flat = std::vector<Eigen::Vector4f>(faces.size()*3, tmp);
-        } else if (renderingProperties.useFaceColors && (faceValues.size() == faces.size() || faceColors.size() == faces.size())) {
-            if (faceValues.size() == faces.size() && renderingProperties.useScalarValueMappedColors) {
-                colors_flat.resize(faces.size()*3);
-                std::vector<Eigen::Vector3f> colors_tmp = colormap(faceValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
+            colors_flat = tmp.replicate(1,faces.size()*3);
+        } else if (renderingProperties.useFaceColors && (faceValues.cols() == faces.size() || faceColors.cols() == faces.size())) {
+            if (faceValues.cols() == faces.size() && renderingProperties.useScalarValueMappedColors) {
+                colors_flat.resize(Eigen::NoChange, faces.size()*3);
+                PointMatrix<float,3> colors_tmp = colormap(faceValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
                 k = 0;
                 for (size_t i = 0; i < faces.size(); i++) {
                     for (size_t j = 0; j < faces[i].size(); j++) {
-                        colors_flat[k].head(3) = colors_tmp[i];
-                        colors_flat[k++](3) = renderingProperties.opacity;
+                        colors_flat.col(k).head(3) = colors_tmp.col(i);
+                        colors_flat(3,k++) = renderingProperties.opacity;
                     }
                 }
-            } else if (faceColors.size() == faces.size()) {
-                colors_flat.resize(faces.size()*3);
+            } else if (faceColors.cols() == faces.size()) {
+                colors_flat.resize(Eigen::NoChange, faces.size()*3);
                 k = 0;
                 for (size_t i = 0; i < faces.size(); i++) {
                     for (size_t j = 0; j < faces[i].size(); j++) {
-                        colors_flat[k].head(3) = faceColors[i];
-                        colors_flat[k++](3) = renderingProperties.opacity;
+                        colors_flat.col(k).head(3) = faceColors.col(i);
+                        colors_flat(3,k++) = renderingProperties.opacity;
                     }
                 }
             }
-        } else if (!renderingProperties.useFaceColors && (vertexValues.size() == vertices.size() || vertexColors.size() == vertices.size())) {
-            if (vertexValues.size() == vertices.size() && renderingProperties.useScalarValueMappedColors) {
-                colors_flat.resize(faces.size()*3);
-                std::vector<Eigen::Vector3f> colors_tmp = colormap(vertexValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
+        } else if (!renderingProperties.useFaceColors && (vertexValues.cols() == vertices.cols() || vertexColors.cols() == vertices.cols())) {
+            if (vertexValues.cols() == vertices.cols() && renderingProperties.useScalarValueMappedColors) {
+                colors_flat.resize(Eigen::NoChange, faces.size()*3);
+                PointMatrix<float,3> colors_tmp = colormap(vertexValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
                 k = 0;
                 for (size_t i = 0; i < faces.size(); i++) {
                     for (size_t j = 0; j < faces[i].size(); j++) {
-                        colors_flat[k].head(3) = colors_tmp[faces[i][j]];
-                        colors_flat[k++](3) = renderingProperties.opacity;
+                        colors_flat.col(k).head(3) = colors_tmp.col(faces[i][j]);
+                        colors_flat(3,k++) = renderingProperties.opacity;
                     }
                 }
-            } else if (vertexColors.size() == vertices.size()) {
-                colors_flat.resize(faces.size()*3);
+            } else if (vertexColors.cols() == vertices.cols()) {
+                colors_flat.resize(Eigen::NoChange, faces.size()*3);
                 k = 0;
                 for (size_t i = 0; i < faces.size(); i++) {
                     for (size_t j = 0; j < faces[i].size(); j++) {
-                        colors_flat[k].head(3) = vertexColors[faces[i][j]];
-                        colors_flat[k++](3) = renderingProperties.opacity;
+                        colors_flat.col(k).head(3) = vertexColors.col(faces[i][j]);
+                        colors_flat(3,k++) = renderingProperties.opacity;
                     }
                 }
             }
@@ -261,18 +258,18 @@ namespace cilantro {
             Eigen::Vector4f tmp;
             tmp.head(3) = RenderingProperties::defaultColor;
             tmp(3) = renderingProperties.opacity;
-            colors_flat = std::vector<Eigen::Vector4f>(faces.size()*3, tmp);
+            colors_flat = tmp.replicate(1,faces.size()*3);
         }
-        colorBuffer.Reinitialise(pangolin::GlArrayBuffer, colors_flat.size(), GL_FLOAT, 4, GL_DYNAMIC_DRAW);
-        colorBuffer.Upload(colors_flat.data(), sizeof(float)*colors_flat.size()*4);
+        colorBuffer.Reinitialise(pangolin::GlArrayBuffer, colors_flat.cols(), GL_FLOAT, 4, GL_DYNAMIC_DRAW);
+        colorBuffer.Upload(colors_flat.data(), sizeof(float)*colors_flat.cols()*4);
     }
 
     void TriangleMeshRenderable::render() {
         glPointSize(renderingProperties.pointSize);
         glLineWidth(renderingProperties.lineWidth);
 
-        bool use_normals = (renderingProperties.useFaceNormals && faceNormals.size() == faces.size()) ||
-                           (!renderingProperties.useFaceNormals && vertexNormals.size() == vertices.size());
+        bool use_normals = (renderingProperties.useFaceNormals && faceNormals.cols() == faces.size()) ||
+                           (!renderingProperties.useFaceNormals && vertexNormals.cols() == vertices.cols());
         bool use_lighting = use_normals && renderingProperties.useLighting;
 
         if (use_normals) {

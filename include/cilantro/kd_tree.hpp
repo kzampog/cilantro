@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cilantro/3rd_party/nanoflann/nanoflann.hpp>
-#include <cilantro/data_matrix_map.hpp>
+#include <cilantro/data_containers.hpp>
 
 namespace cilantro {
     struct KDTreeDataAdaptors {

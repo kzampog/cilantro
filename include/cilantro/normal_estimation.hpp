@@ -51,7 +51,7 @@ namespace cilantro {
                     neighborhood.col(j) = points_.col(neighbors[j]);
                 }
                 PrincipalComponentAnalysis<ScalarT,EigenDim> pca(neighborhood);
-                normals.col(i) = pca.getEigenVectorsMatrix().col(dim-1);
+                normals.col(i) = pca.getEigenVectors().col(dim-1);
                 if (normals.col(i).dot(view_point_ - points_.col(i)) < 0.0) {
                     normals.col(i) *= -1.0;
                 }
@@ -82,7 +82,7 @@ namespace cilantro {
                     neighborhood.col(j) = points_.col(neighbors[j]);
                 }
                 PrincipalComponentAnalysis<ScalarT,EigenDim> pca(neighborhood);
-                normals.col(i) = pca.getEigenVectorsMatrix().col(dim-1);
+                normals.col(i) = pca.getEigenVectors().col(dim-1);
                 if (normals.col(i).dot(view_point_ - points_.col(i)) < 0.0) {
                     normals.col(i) *= -1.0;
                 }
@@ -113,7 +113,7 @@ namespace cilantro {
                     neighborhood.col(j) = points_.col(neighbors[j]);
                 }
                 PrincipalComponentAnalysis<ScalarT,EigenDim> pca(neighborhood);
-                normals.col(i) = pca.getEigenVectorsMatrix().col(dim-1);
+                normals.col(i) = pca.getEigenVectors().col(dim-1);
                 if (normals.col(i).dot(view_point_ - points_.col(i)) < 0.0) {
                     normals.col(i) *= -1.0;
                 }

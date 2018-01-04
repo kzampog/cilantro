@@ -27,7 +27,8 @@ int main(int argc, char ** argv) {
         scalars[i] = cloud.points[i].norm();
     }
 
-    viz1.addPointCloud("pcd", cloud, cilantro::RenderingProperties().setColormapType(cilantro::ColormapType::JET).setLineDensityFraction(0.2f).setUseLighting(false));
+    viz1.addPointCloud("pcd", cloud.points, cilantro::RenderingProperties().setColormapType(cilantro::ColormapType::JET).setLineDensityFraction(0.2f).setUseLighting(false));
+    viz1.addPointCloudNormals("pcd", cloud.normals);
     viz1.addPointCloudValues("pcd", scalars);
     viz1.addCoordinateFrame("axis", Eigen::Matrix4f::Identity(), 0.4f, cilantro::RenderingProperties().setLineWidth(5.0f));
     viz1.addText("text", "Coordinate Frame", 0, 0, 0, cilantro::RenderingProperties().setFontSize(20.0f).setPointColor(1.0f,1.0f,0.0f).setTextAnchorPoint(0.5f,-1.0f));
@@ -39,9 +40,11 @@ int main(int argc, char ** argv) {
     }
 
     cilantro::Visualizer viz2("Visualizer demo (window 2)", "disp");
-    viz2.addPointCloud("pcd1", cloud, cilantro::RenderingProperties().setPointColor(1.0f,0.0f,0.0f).setOpacity(0.4f));
-    viz2.addPointCloud("pcd2", cloud2, cilantro::RenderingProperties().setPointColor(0.0f,0.0f,1.0f).setOpacity(0.4f));
-    viz2.addPointCorrespondences("correspondences", cloud, cloud2, cilantro::RenderingProperties().setLineDensityFraction(0.005).setOpacity(0.3f));
+    viz2.addPointCloud("pcd1", cloud.points, cilantro::RenderingProperties().setPointColor(1.0f,0.0f,0.0f).setOpacity(0.4f));
+    viz2.addPointCloudNormals("pcd1", cloud.normals);
+    viz2.addPointCloud("pcd2", cloud2.points, cilantro::RenderingProperties().setPointColor(0.0f,0.0f,1.0f).setOpacity(0.4f));
+    viz2.addPointCloudNormals("pcd2", cloud2.normals);
+    viz2.addPointCorrespondences("correspondences", cloud.points, cloud2.points, cilantro::RenderingProperties().setLineDensityFraction(0.005).setOpacity(0.3f));
     viz2.addCoordinateFrame("axis", Eigen::Matrix4f::Identity(), 0.4f, cilantro::RenderingProperties().setLineWidth(5.0f));
 
     viz2.registerKeyboardCallback('c', std::bind(callback, std::ref(viz2), "correspondences"));

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <map>
-#include <cilantro/data_matrix_map.hpp>
+#include <cilantro/data_containers.hpp>
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim, ptrdiff_t EigenCoeff>

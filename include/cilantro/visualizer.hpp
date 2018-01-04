@@ -2,7 +2,7 @@
 
 #include <cilantro/renderables.hpp>
 #include <cilantro/visualizer_handler.hpp>
-#include <cilantro/point_cloud.hpp>
+//#include <cilantro/point_cloud.hpp>
 #include <pangolin/display/display_internal.h>
 
 namespace cilantro {
@@ -15,27 +15,27 @@ namespace cilantro {
         Visualizer(const std::string &window_name, const std::string &display_name);
         ~Visualizer();
 
-        Visualizer& addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp = RenderingProperties());
-        Visualizer& addPointCloud(const std::string &name, const std::vector<Eigen::Vector3f> &points, const RenderingProperties &rp = RenderingProperties());
-        Visualizer& addPointCloudNormals(const std::string &name, const std::vector<Eigen::Vector3f> &normals);
-        Visualizer& addPointCloudColors(const std::string &name, const std::vector<Eigen::Vector3f> &colors);
-        Visualizer& addPointCloudValues(const std::string &name, const std::vector<float> &point_values);
+//        Visualizer& addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp = RenderingProperties());
+        Visualizer& addPointCloud(const std::string &name, const ConstDataMatrixMap<float,3> &points, const RenderingProperties &rp = RenderingProperties());
+        Visualizer& addPointCloudNormals(const std::string &name, const ConstDataMatrixMap<float,3> &normals);
+        Visualizer& addPointCloudColors(const std::string &name, const ConstDataMatrixMap<float,3> &colors);
+        Visualizer& addPointCloudValues(const std::string &name, const ConstDataMatrixMap<float,1> &point_values);
 
-        Visualizer& addPointCorrespondences(const std::string &name, const std::vector<Eigen::Vector3f> &points_src, const std::vector<Eigen::Vector3f> &points_dst, const RenderingProperties &rp = RenderingProperties());
-        Visualizer& addPointCorrespondences(const std::string &name, const PointCloud &cloud_src, const PointCloud &cloud_dst, const RenderingProperties &rp = RenderingProperties());
+        Visualizer& addPointCorrespondences(const std::string &name, const ConstDataMatrixMap<float,3> &points_src, const ConstDataMatrixMap<float,3> &points_dst, const RenderingProperties &rp = RenderingProperties());
+//        Visualizer& addPointCorrespondences(const std::string &name, const PointCloud &cloud_src, const PointCloud &cloud_dst, const RenderingProperties &rp = RenderingProperties());
 
         Visualizer& addCoordinateFrame(const std::string &name, const Eigen::Matrix4f &tf = Eigen::Matrix4f::Identity(), float scale = 1.0f, const RenderingProperties &rp = RenderingProperties());
 
         Visualizer& addCameraFrustum(const std::string &name, size_t width, size_t height, const Eigen::Matrix3f &intrinsics, const Eigen::Matrix4f &pose = Eigen::Matrix4f::Identity(), float scale = 1.0f, const RenderingProperties &rp = RenderingProperties());
 
-        Visualizer& addTriangleMesh(const std::string &name, const PointCloud &cloud, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp = RenderingProperties());
-        Visualizer& addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &vertices, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp = RenderingProperties());
-        Visualizer& addTriangleMeshVertexNormals(const std::string &name, const std::vector<Eigen::Vector3f> &vertex_normals);
-        Visualizer& addTriangleMeshFaceNormals(const std::string &name, const std::vector<Eigen::Vector3f> &face_normals);
-        Visualizer& addTriangleMeshVertexColors(const std::string &name, const std::vector<Eigen::Vector3f> &vertex_colors);
-        Visualizer& addTriangleMeshFaceColors(const std::string &name, const std::vector<Eigen::Vector3f> &face_colors);
-        Visualizer& addTriangleMeshVertexValues(const std::string &name, const std::vector<float> &vertex_values);
-        Visualizer& addTriangleMeshFaceValues(const std::string &name, const std::vector<float> &face_values);
+//        Visualizer& addTriangleMesh(const std::string &name, const PointCloud &cloud, const std::vector<std::vector<size_t>> &faces, const RenderingProperties &rp = RenderingProperties());
+        Visualizer& addTriangleMesh(const std::string &name, const ConstDataMatrixMap<float,3> &vertices, const std::vector<std::vector<size_t>> &faces, const RenderingProperties &rp = RenderingProperties());
+        Visualizer& addTriangleMeshVertexNormals(const std::string &name, const ConstDataMatrixMap<float,3> &vertex_normals);
+        Visualizer& addTriangleMeshFaceNormals(const std::string &name, const ConstDataMatrixMap<float,3> &face_normals);
+        Visualizer& addTriangleMeshVertexColors(const std::string &name, const ConstDataMatrixMap<float,3> &vertex_colors);
+        Visualizer& addTriangleMeshFaceColors(const std::string &name, const ConstDataMatrixMap<float,3> &face_colors);
+        Visualizer& addTriangleMeshVertexValues(const std::string &name, const ConstDataMatrixMap<float,1> &vertex_values);
+        Visualizer& addTriangleMeshFaceValues(const std::string &name, const ConstDataMatrixMap<float,1> &face_values);
 
         Visualizer& addText(const std::string &name, const std::string &text, const Eigen::Vector3f &position, const RenderingProperties &rp = RenderingProperties());
         Visualizer& addText(const std::string &name, const std::string &text, float x, float y, float z, const RenderingProperties &rp = RenderingProperties());
@@ -115,7 +115,7 @@ namespace cilantro {
         Eigen::Vector3f clear_color_;
         Eigen::Matrix4f cam_axes_rot_;
 
-        std::map<std::string, std::shared_ptr<Renderable> > renderables_;
+        std::map<std::string, std::shared_ptr<Renderable>> renderables_;
 
         void init_(const std::string &window_name, const std::string &display_name);
 

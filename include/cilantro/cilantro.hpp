@@ -6,7 +6,7 @@
 #include <cilantro/convex_hull.hpp>
 #include <cilantro/convex_hull_utilities.hpp>
 #include <cilantro/convex_polytope.hpp>
-#include <cilantro/data_matrix_map.hpp>
+#include <cilantro/data_containers.hpp>
 #include <cilantro/image_point_cloud_conversions.hpp>
 #include <cilantro/image_viewer.hpp>
 #include <cilantro/io.hpp>

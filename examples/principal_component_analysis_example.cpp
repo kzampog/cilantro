@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include <cilantro/data_matrix_map.hpp>
+#include <cilantro/data_containers.hpp>
 
 int main(int argc, char ** argv) {
     cilantro::PointCloud cloud;
@@ -23,7 +23,7 @@ int main(int argc, char ** argv) {
 
     std::cout << "Data mean: " << pca.getDataMean().transpose() << std::endl;
     std::cout << "Eigenvalues: " << pca.getEigenValues().transpose() << std::endl;
-    std::cout << "Eigenvectors: " << std::endl << pca.getEigenVectorsMatrix() << std::endl;
+    std::cout << "Eigenvectors: " << std::endl << pca.getEigenVectors() << std::endl;
 
 //    std::cout << "Determinant: " << pca.getEigenVectorsMatrix().determinant() << std::endl;
 

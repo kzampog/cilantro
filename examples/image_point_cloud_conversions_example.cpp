@@ -32,7 +32,8 @@ int main(int argc, char ** argv) {
         dok->GrabNext(img, true);
         RGBDImagesToPointCloud(rgb_img, depth_img, K, cloud, false);
 
-        pcdv.addPointCloud("cloud", cloud);
+        pcdv.addPointCloud("cloud", cloud.points);
+        pcdv.addPointCloudColors("cloud", cloud.colors);
         rgbv.setImage(rgb_img.ptr, w, h, "RGB24");
         depthv.setImage(depth_img.ptr, w, h, "GRAY16LE");
 

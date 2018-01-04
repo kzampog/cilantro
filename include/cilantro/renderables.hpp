@@ -15,7 +15,7 @@ namespace cilantro {
                                        useLighting(true),
                                        drawNormals(false),
                                        normalLength(0.05f),
-                                       lineDensityFraction(1.0),
+                                       lineDensityFraction(1.0f),
                                        drawWireframe(false),
                                        useFaceNormals(true),
                                        useFaceColors(false),
@@ -26,6 +26,7 @@ namespace cilantro {
                                        fontSize(15.0f),
                                        textAnchorPoint(0.5f,0.5f)
         {}
+
         inline ~RenderingProperties() {}
 
         static Eigen::Vector3f defaultColor;
@@ -92,10 +93,10 @@ namespace cilantro {
         void applyRenderingProperties();
         void render();
 
-        std::vector<Eigen::Vector3f> points;
-        std::vector<Eigen::Vector3f> normals;
-        std::vector<Eigen::Vector3f> colors;
-        std::vector<float> pointValues;
+        PointMatrix<float,3> points;
+        PointMatrix<float,3> normals;
+        PointMatrix<float,3> colors;
+        PointMatrix<float,1> pointValues;
         pangolin::GlBuffer pointBuffer;
         pangolin::GlBuffer normalBuffer;
         pangolin::GlBuffer colorBuffer;
@@ -108,8 +109,8 @@ namespace cilantro {
         void applyRenderingProperties();
         void render();
 
-        std::vector<Eigen::Vector3f> srcPoints;
-        std::vector<Eigen::Vector3f> dstPoints;
+        PointMatrix<float,3> srcPoints;
+        PointMatrix<float,3> dstPoints;
         pangolin::GlBuffer lineEndPointBuffer;
     };
 
@@ -142,14 +143,14 @@ namespace cilantro {
         void applyRenderingProperties();
         void render();
 
-        std::vector<Eigen::Vector3f> vertices;
-        std::vector<std::vector<size_t> > faces;
-        std::vector<Eigen::Vector3f> vertexNormals;
-        std::vector<Eigen::Vector3f> faceNormals;
-        std::vector<Eigen::Vector3f> vertexColors;
-        std::vector<Eigen::Vector3f> faceColors;
-        std::vector<float> vertexValues;
-        std::vector<float> faceValues;
+        PointMatrix<float,3> vertices;
+        std::vector<std::vector<size_t>> faces;
+        PointMatrix<float,3> vertexNormals;
+        PointMatrix<float,3> faceNormals;
+        PointMatrix<float,3> vertexColors;
+        PointMatrix<float,3> faceColors;
+        PointMatrix<float,1> vertexValues;
+        PointMatrix<float,1> faceValues;
         pangolin::GlBuffer vertexBuffer;
         pangolin::GlBuffer normalBuffer;
         pangolin::GlBuffer colorBuffer;

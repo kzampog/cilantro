@@ -26,10 +26,14 @@ int main(int argc, char ** argv) {
     pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual).AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2"));
 
     cilantro::Visualizer viz1("VoxelGrid demo", "disp1");
-    viz1.addPointCloud("cloud", cloud, cilantro::RenderingProperties());
+    viz1.addPointCloud("cloud", cloud.points, cilantro::RenderingProperties());
+    viz1.addPointCloudNormals("cloud", cloud.normals);
+    viz1.addPointCloudColors("cloud", cloud.colors);
 
     cilantro::Visualizer viz2("VoxelGrid demo", "disp2");
-    viz2.addPointCloud("cloud_d", cloud_d, cilantro::RenderingProperties());
+    viz2.addPointCloud("cloud_d", cloud_d.points, cilantro::RenderingProperties());
+    viz2.addPointCloudNormals("cloud_d", cloud_d.normals);
+    viz2.addPointCloudColors("cloud_d", cloud_d.colors);
 
     std::cout << "Press 'n' to toggle rendering of normals" << std::endl;
     while (!viz1.wasStopped() && !viz2.wasStopped()) {

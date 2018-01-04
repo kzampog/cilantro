@@ -11,28 +11,28 @@ namespace cilantro {
 
     Visualizer::~Visualizer() {}
 
-    Visualizer& Visualizer::addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp) {
-        gl_context_->MakeCurrent();
-        if (cloud.empty()) {
-            renderables_.erase(name);
-            return *this;
-        }
-        renderables_[name] = std::shared_ptr<PointCloudRenderable>(new PointCloudRenderable);
-        PointCloudRenderable *obj_ptr = (PointCloudRenderable *)renderables_[name].get();
-        // Copy fields
-        obj_ptr->points = cloud.points;
-        if (cloud.hasNormals()) obj_ptr->normals = cloud.normals;
-        if (cloud.hasColors()) obj_ptr->colors = cloud.colors;
-        obj_ptr->centroid = Eigen::Map<Eigen::MatrixXf>((float *)cloud.points.data(), 3, cloud.points.size()).rowwise().mean();
-        // Update buffers
-        ((Renderable *)obj_ptr)->applyRenderingProperties(rp);
+//    Visualizer& Visualizer::addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp) {
+//        gl_context_->MakeCurrent();
+//        if (cloud.empty()) {
+//            renderables_.erase(name);
+//            return *this;
+//        }
+//        renderables_[name] = std::shared_ptr<PointCloudRenderable>(new PointCloudRenderable);
+//        PointCloudRenderable *obj_ptr = (PointCloudRenderable *)renderables_[name].get();
+//        // Copy fields
+//        obj_ptr->points = ConstDataMatrixMap<float,3>(cloud.points);
+//        if (cloud.hasNormals()) obj_ptr->normals = ConstDataMatrixMap<float,3>(cloud.normals);
+//        if (cloud.hasColors()) obj_ptr->colors = ConstDataMatrixMap<float,3>(cloud.colors);
+//        obj_ptr->centroid = ConstDataMatrixMap<float,3>(cloud.points).rowwise().mean();
+//        // Update buffers
+//        ((Renderable *)obj_ptr)->applyRenderingProperties(rp);
+//
+//        return *this;
+//    }
 
-        return *this;
-    }
-
-    Visualizer& Visualizer::addPointCloud(const std::string &name, const std::vector<Eigen::Vector3f> &points, const RenderingProperties &rp) {
+    Visualizer& Visualizer::addPointCloud(const std::string &name, const ConstDataMatrixMap<float,3> &points, const RenderingProperties &rp) {
         gl_context_->MakeCurrent();
-        if (points.empty()) {
+        if (points.cols() == 0) {
             renderables_.erase(name);
             return *this;
         }
@@ -40,52 +40,52 @@ namespace cilantro {
         PointCloudRenderable *obj_ptr = (PointCloudRenderable *)renderables_[name].get();
         // Copy fields
         obj_ptr->points = points;
-        obj_ptr->centroid = Eigen::Map<Eigen::MatrixXf>((float *)points.data(), 3, points.size()).rowwise().mean();
+        obj_ptr->centroid = points.rowwise().mean();
         // Update buffers
         ((Renderable *)obj_ptr)->applyRenderingProperties(rp);
 
         return *this;
     }
 
-    Visualizer& Visualizer::addPointCloudNormals(const std::string &name, const std::vector<Eigen::Vector3f> &normals) {
+    Visualizer& Visualizer::addPointCloudNormals(const std::string &name, const ConstDataMatrixMap<float,3> &normals) {
         gl_context_->MakeCurrent();
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
         PointCloudRenderable *obj_ptr = (PointCloudRenderable *)it->second.get();
-        if (normals.size() != obj_ptr->points.size()) return *this;
+        if (normals.cols() != obj_ptr->points.cols()) return *this;
         obj_ptr->normals = normals;
         obj_ptr->applyRenderingProperties();
 
         return *this;
     }
 
-    Visualizer& Visualizer::addPointCloudColors(const std::string &name, const std::vector<Eigen::Vector3f> &colors) {
+    Visualizer& Visualizer::addPointCloudColors(const std::string &name, const ConstDataMatrixMap<float,3> &colors) {
         gl_context_->MakeCurrent();
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
         PointCloudRenderable *obj_ptr = (PointCloudRenderable *)it->second.get();
-        if (colors.size() != obj_ptr->points.size()) return *this;
+        if (colors.cols() != obj_ptr->points.cols()) return *this;
         obj_ptr->colors = colors;
         obj_ptr->applyRenderingProperties();
 
         return *this;
     }
 
-    Visualizer& Visualizer::addPointCloudValues(const std::string &name, const std::vector<float> &point_values) {
+    Visualizer& Visualizer::addPointCloudValues(const std::string &name, const ConstDataMatrixMap<float,1> &point_values) {
         gl_context_->MakeCurrent();
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
         PointCloudRenderable *obj_ptr = (PointCloudRenderable *)it->second.get();
-        if (point_values.size() != obj_ptr->points.size()) return *this;
+        if (point_values.cols() != obj_ptr->points.cols()) return *this;
         obj_ptr->pointValues = point_values;
         obj_ptr->applyRenderingProperties();
 
         return *this;
     }
 
-    Visualizer& Visualizer::addPointCorrespondences(const std::string &name, const std::vector<Eigen::Vector3f> &points_src, const std::vector<Eigen::Vector3f> &points_dst, const RenderingProperties &rp) {
+    Visualizer& Visualizer::addPointCorrespondences(const std::string &name, const ConstDataMatrixMap<float,3> &points_src, const ConstDataMatrixMap<float,3> &points_dst, const RenderingProperties &rp) {
         gl_context_->MakeCurrent();
-        if (points_src.empty() || points_src.size() != points_dst.size()) {
+        if (points_src.cols() == 0 || points_src.cols() != points_dst.cols()) {
             renderables_.erase(name);
             return *this;
         }
@@ -94,17 +94,16 @@ namespace cilantro {
         // Copy fields
         obj_ptr->srcPoints = points_src;
         obj_ptr->dstPoints = points_dst;
-        obj_ptr->centroid = (Eigen::Map<Eigen::MatrixXf>((float *)points_src.data(), 3, points_src.size()).rowwise().mean() +
-                             Eigen::Map<Eigen::MatrixXf>((float *)points_dst.data(), 3, points_dst.size()).rowwise().mean()) / 2.0f;
+        obj_ptr->centroid = (points_src + points_dst).rowwise().mean()/2.0f;
         // Update buffers
         ((Renderable *)obj_ptr)->applyRenderingProperties(rp);
 
         return *this;
     }
 
-    Visualizer& Visualizer::addPointCorrespondences(const std::string &name, const PointCloud &cloud_src, const PointCloud &cloud_dst, const RenderingProperties &rp) {
-        return addPointCorrespondences(name, cloud_src.points, cloud_dst.points, rp);
-    }
+//    Visualizer& Visualizer::addPointCorrespondences(const std::string &name, const PointCloud &cloud_src, const PointCloud &cloud_dst, const RenderingProperties &rp) {
+//        return addPointCorrespondences(name, ConstDataMatrixMap<float,3>(cloud_src.points), ConstDataMatrixMap<float,3>(cloud_dst.points), rp);
+//    }
 
     Visualizer& Visualizer::addCoordinateFrame(const std::string &name, const Eigen::Matrix4f &tf, float scale, const RenderingProperties &rp) {
         gl_context_->MakeCurrent();
@@ -137,32 +136,32 @@ namespace cilantro {
         return *this;
     }
 
-    Visualizer& Visualizer::addTriangleMesh(const std::string &name, const PointCloud &cloud, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
-        gl_context_->MakeCurrent();
-        if (cloud.empty() || faces.empty()) {
-            renderables_.erase(name);
-            return *this;
-        }
-        renderables_[name] = std::shared_ptr<TriangleMeshRenderable>(new TriangleMeshRenderable);
-        TriangleMeshRenderable *obj_ptr = (TriangleMeshRenderable *)renderables_[name].get();
-        obj_ptr->vertices = cloud.points;
-        obj_ptr->faces = faces;
-        if (cloud.hasNormals()) obj_ptr->vertexNormals = cloud.normals;
-        if (cloud.hasColors()) obj_ptr->vertexColors = cloud.colors;
-        obj_ptr->faceNormals.resize(faces.size());
-        for (size_t i = 0; i < faces.size(); i++) {
-            Eigen::Vector3f pt0(obj_ptr->vertices[faces[i][0]]), pt1(obj_ptr->vertices[faces[i][1]]), pt2(obj_ptr->vertices[faces[i][2]]);
-            Eigen::Vector3f normal = ((pt1-pt0).cross(pt2-pt0)).normalized();
-            obj_ptr->faceNormals[i] = normal;
-        }
-        ((Renderable *)obj_ptr)->applyRenderingProperties(rp);
+//    Visualizer& Visualizer::addTriangleMesh(const std::string &name, const PointCloud &cloud, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
+//        gl_context_->MakeCurrent();
+//        if (cloud.empty() || faces.empty()) {
+//            renderables_.erase(name);
+//            return *this;
+//        }
+//        renderables_[name] = std::shared_ptr<TriangleMeshRenderable>(new TriangleMeshRenderable);
+//        TriangleMeshRenderable *obj_ptr = (TriangleMeshRenderable *)renderables_[name].get();
+//        obj_ptr->vertices = cloud.points;
+//        obj_ptr->faces = faces;
+//        if (cloud.hasNormals()) obj_ptr->vertexNormals = cloud.normals;
+//        if (cloud.hasColors()) obj_ptr->vertexColors = cloud.colors;
+//        obj_ptr->faceNormals.resize(faces.size());
+//        for (size_t i = 0; i < faces.size(); i++) {
+//            Eigen::Vector3f pt0(obj_ptr->vertices[faces[i][0]]), pt1(obj_ptr->vertices[faces[i][1]]), pt2(obj_ptr->vertices[faces[i][2]]);
+//            Eigen::Vector3f normal = ((pt1-pt0).cross(pt2-pt0)).normalized();
+//            obj_ptr->faceNormals[i] = normal;
+//        }
+//        ((Renderable *)obj_ptr)->applyRenderingProperties(rp);
+//
+//        return *this;
+//    }
 
-        return *this;
-    }
-
-    Visualizer& Visualizer::addTriangleMesh(const std::string &name, const std::vector<Eigen::Vector3f> &vertices, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
+    Visualizer& Visualizer::addTriangleMesh(const std::string &name, const ConstDataMatrixMap<float,3> &vertices, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
         gl_context_->MakeCurrent();
-        if (vertices.empty() || faces.empty()) {
+        if (vertices.cols() == 0 || faces.empty()) {
             renderables_.erase(name);
             return *this;
         }
@@ -170,83 +169,84 @@ namespace cilantro {
         TriangleMeshRenderable *obj_ptr = (TriangleMeshRenderable *)renderables_[name].get();
         obj_ptr->vertices = vertices;
         obj_ptr->faces = faces;
-        obj_ptr->faceNormals.resize(faces.size());
+        obj_ptr->faceNormals.resize(Eigen::NoChange, faces.size());
         for (size_t i = 0; i < faces.size(); i++) {
-            Eigen::Vector3f pt0(obj_ptr->vertices[faces[i][0]]), pt1(obj_ptr->vertices[faces[i][1]]), pt2(obj_ptr->vertices[faces[i][2]]);
-            Eigen::Vector3f normal = ((pt1-pt0).cross(pt2-pt0)).normalized();
-            obj_ptr->faceNormals[i] = normal;
+            const Eigen::Vector3f& pt0(obj_ptr->vertices.col(faces[i][0]));
+            const Eigen::Vector3f& pt1(obj_ptr->vertices.col(faces[i][1]));
+            const Eigen::Vector3f& pt2(obj_ptr->vertices.col(faces[i][2]));
+            obj_ptr->faceNormals.col(i) = ((pt1-pt0).cross(pt2-pt0)).normalized();
         }
         ((Renderable *)obj_ptr)->applyRenderingProperties(rp);
 
         return *this;
     }
 
-    Visualizer& Visualizer::addTriangleMeshVertexNormals(const std::string &name, const std::vector<Eigen::Vector3f> &vertex_normals) {
+    Visualizer& Visualizer::addTriangleMeshVertexNormals(const std::string &name, const ConstDataMatrixMap<float,3> &vertex_normals) {
         gl_context_->MakeCurrent();
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
         TriangleMeshRenderable *obj_ptr = (TriangleMeshRenderable *)it->second.get();
-        if (vertex_normals.size() != obj_ptr->vertices.size()) return *this;
+        if (vertex_normals.cols() != obj_ptr->vertices.cols()) return *this;
         obj_ptr->vertexNormals = vertex_normals;
         obj_ptr->applyRenderingProperties();
 
         return *this;
     }
 
-    Visualizer& Visualizer::addTriangleMeshFaceNormals(const std::string &name, const std::vector<Eigen::Vector3f> &face_normals) {
+    Visualizer& Visualizer::addTriangleMeshFaceNormals(const std::string &name, const ConstDataMatrixMap<float,3> &face_normals) {
         gl_context_->MakeCurrent();
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
         TriangleMeshRenderable *obj_ptr = (TriangleMeshRenderable *)it->second.get();
-        if (face_normals.size() != obj_ptr->faces.size()) return *this;
+        if (face_normals.cols() != obj_ptr->faces.size()) return *this;
         obj_ptr->faceNormals = face_normals;
         obj_ptr->applyRenderingProperties();
 
         return *this;
     }
 
-    Visualizer& Visualizer::addTriangleMeshVertexColors(const std::string &name, const std::vector<Eigen::Vector3f> &vertex_colors) {
+    Visualizer& Visualizer::addTriangleMeshVertexColors(const std::string &name, const ConstDataMatrixMap<float,3> &vertex_colors) {
         gl_context_->MakeCurrent();
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
         TriangleMeshRenderable *obj_ptr = (TriangleMeshRenderable *)it->second.get();
-        if (vertex_colors.size() != obj_ptr->vertices.size()) return *this;
+        if (vertex_colors.cols() != obj_ptr->vertices.cols()) return *this;
         obj_ptr->vertexColors = vertex_colors;
         obj_ptr->applyRenderingProperties();
 
         return *this;
     }
 
-    Visualizer& Visualizer::addTriangleMeshFaceColors(const std::string &name, const std::vector<Eigen::Vector3f> &face_colors) {
+    Visualizer& Visualizer::addTriangleMeshFaceColors(const std::string &name, const ConstDataMatrixMap<float,3> &face_colors) {
         gl_context_->MakeCurrent();
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
         TriangleMeshRenderable *obj_ptr = (TriangleMeshRenderable *)it->second.get();
-        if (face_colors.size() != obj_ptr->faces.size()) return *this;
+        if (face_colors.cols() != obj_ptr->faces.size()) return *this;
         obj_ptr->faceColors = face_colors;
         obj_ptr->applyRenderingProperties();
 
         return *this;
     }
 
-    Visualizer& Visualizer::addTriangleMeshVertexValues(const std::string &name, const std::vector<float> &vertex_values) {
+    Visualizer& Visualizer::addTriangleMeshVertexValues(const std::string &name, const ConstDataMatrixMap<float,1> &vertex_values) {
         gl_context_->MakeCurrent();
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
         TriangleMeshRenderable *obj_ptr = (TriangleMeshRenderable *)it->second.get();
-        if (vertex_values.size() != obj_ptr->vertices.size()) return *this;
+        if (vertex_values.cols() != obj_ptr->vertices.cols()) return *this;
         obj_ptr->vertexValues = vertex_values;
         obj_ptr->applyRenderingProperties();
 
         return *this;
     }
 
-    Visualizer& Visualizer::addTriangleMeshFaceValues(const std::string &name, const std::vector<float> &face_values) {
+    Visualizer& Visualizer::addTriangleMeshFaceValues(const std::string &name, const ConstDataMatrixMap<float,1> &face_values) {
         gl_context_->MakeCurrent();
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
         TriangleMeshRenderable *obj_ptr = (TriangleMeshRenderable *)it->second.get();
-        if (face_values.size() != obj_ptr->faces.size()) return *this;
+        if (face_values.cols() != obj_ptr->faces.size()) return *this;
         obj_ptr->faceValues = face_values;
         obj_ptr->applyRenderingProperties();
 

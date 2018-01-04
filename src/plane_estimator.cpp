@@ -55,7 +55,7 @@ namespace cilantro {
 
     void PlaneEstimator::estimate_params_(const std::vector<Eigen::Vector3f> &points, PlaneParameters &model_params) {
         PrincipalComponentAnalysis3D pca(points);
-        const Eigen::Vector3f& normal = pca.getEigenVectorsMatrix().col(2);
+        const Eigen::Vector3f& normal = pca.getEigenVectors().col(2);
         model_params.head(3) = normal;
         model_params[3] = -normal.dot(pca.getDataMean());
     }

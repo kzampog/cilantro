@@ -33,7 +33,9 @@ int main(int argc, char ** argv) {
 
     cilantro::Visualizer viz("NormalEstimation example", "disp");
 
-    viz.addPointCloud("cloud_d", cloud, cilantro::RenderingProperties().setDrawNormals(true));
+    viz.addPointCloud("cloud_d", cloud.points, cilantro::RenderingProperties().setDrawNormals(true));
+    viz.addPointCloudNormals("cloud_d", cloud.normals);
+    viz.addPointCloudColors("cloud_d", cloud.colors);
 
     std::cout << "Press 'n' to toggle rendering of normals" << std::endl;
     while (!viz.wasStopped()){

@@ -1,23 +1,22 @@
 #include <cilantro/convex_hull.hpp>
 
 namespace cilantro {
-    PointCloudHullFlat::PointCloudHullFlat(const std::vector<Eigen::Vector3f> &points, bool compute_topology, bool simplicial_facets, double merge_tol)
+    PointCloudHullFlat::PointCloudHullFlat(const ConstDataMatrixMap<float,3> &points, bool compute_topology, bool simplicial_facets, double merge_tol)
             : PrincipalComponentAnalysis3D(points),
-              ConvexHull2D(getProjectedPoints<2>(points), compute_topology, simplicial_facets, merge_tol),
-              vertices_3d_(getReconstructedPoints<2>(vertices_))
+              ConvexHull2D(project<2>(points), compute_topology, simplicial_facets, merge_tol),
+              vertices_3d_(reconstruct<2>(vertices_))
     {}
 
-    PointCloudHullFlat::PointCloudHullFlat(const PointCloud &cloud, bool compute_topology, bool simplicial_facets, double merge_tol)
-            : PrincipalComponentAnalysis3D(cloud.points),
-              ConvexHull2D(getProjectedPoints<2>(cloud.points), compute_topology, simplicial_facets, merge_tol),
-              vertices_3d_(getReconstructedPoints<2>(vertices_))
-    {}
+//    PointCloudHullFlat::PointCloudHullFlat(const PointCloud &cloud, bool compute_topology, bool simplicial_facets, double merge_tol)
+//            : PrincipalComponentAnalysis3D(cloud.points),
+//              ConvexHull2D(project<2>(cloud.points), compute_topology, simplicial_facets, merge_tol),
+//              vertices_3d_(reconstruct<2>(vertices_))
+//    {}
 
     PointCloudHullFlat& PointCloudHullFlat::transform(const Eigen::Ref<const Eigen::Matrix3f> &rotation, const Eigen::Ref<const Eigen::Vector3f> &translation) {
         if (is_empty_) return *this;
 
-        Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> > v_map((float *)vertices_3d_.data(), 3, vertices_3d_.size());
-        v_map = (rotation*v_map).colwise() + translation;
+        vertices_3d_ = (rotation*vertices_3d_).colwise() + translation;
 
         Eigen::Matrix<float,4,3> rec_mat;
         rec_mat.topLeftCorner(3,2) = eigenvectors_.leftCols(2);
@@ -49,19 +48,19 @@ namespace cilantro {
         return transform(rigid_transform.topLeftCorner(3,3), rigid_transform.topRightCorner(3,1));
     }
 
-    PointCloudHull::PointCloudHull(const std::vector<Eigen::Vector3f> &points, bool compute_topology, bool simplicial_facets, double merge_tol)
-            : ConvexHull3D(points, compute_topology, simplicial_facets, merge_tol)
-    {}
-
-    PointCloudHull::PointCloudHull(const PointCloud &cloud, bool compute_topology, bool simplicial_facets, double merge_tol)
-            : ConvexHull3D(cloud.points, compute_topology, simplicial_facets, merge_tol)
-    {}
-
-    Eigen::MatrixXf PointCloudHull::getPointSignedDistancesFromFacets(const PointCloud &cloud) const {
-        return ConvexHull3D::getPointSignedDistancesFromFacets(cloud.points);
-    }
-
-    std::vector<size_t> PointCloudHull::getInteriorPointIndices(const PointCloud &cloud, float offset) const {
-        return ConvexHull3D::getInteriorPointIndices(cloud.points, offset);
-    }
+//    PointCloudHull::PointCloudHull(const std::vector<Eigen::Vector3f> &points, bool compute_topology, bool simplicial_facets, double merge_tol)
+//            : ConvexHull3D(points, compute_topology, simplicial_facets, merge_tol)
+//    {}
+//
+//    PointCloudHull::PointCloudHull(const PointCloud &cloud, bool compute_topology, bool simplicial_facets, double merge_tol)
+//            : ConvexHull3D(cloud.points, compute_topology, simplicial_facets, merge_tol)
+//    {}
+//
+//    Eigen::MatrixXf PointCloudHull::getPointSignedDistancesFromFacets(const PointCloud &cloud) const {
+//        return ConvexHull3D::getPointSignedDistancesFromFacets(cloud.points);
+//    }
+//
+//    std::vector<size_t> PointCloudHull::getInteriorPointIndices(const PointCloud &cloud, float offset) const {
+//        return ConvexHull3D::getInteriorPointIndices(cloud.points, offset);
+//    }
 }
