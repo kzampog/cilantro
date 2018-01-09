@@ -9,14 +9,14 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        KMeans(const ConstDataMatrixMap<ScalarT,EigenDim> &data)
+        KMeans(const ConstPointSetMatrixMap<ScalarT,EigenDim> &data)
                 : data_map_(data),
                   iteration_count_(0)
         {}
 
         ~KMeans() {}
 
-        KMeans& cluster(const ConstDataMatrixMap<ScalarT,EigenDim> &centroids, size_t max_iter = 100, ScalarT tol = std::numeric_limits<ScalarT>::epsilon(), bool use_kd_tree = false) {
+        KMeans& cluster(const ConstPointSetMatrixMap<ScalarT,EigenDim> &centroids, size_t max_iter = 100, ScalarT tol = std::numeric_limits<ScalarT>::epsilon(), bool use_kd_tree = false) {
             cluster_centroids_ = centroids;
             cluster_(max_iter, tol, use_kd_tree);
             return *this;
@@ -43,7 +43,7 @@ namespace cilantro {
             return *this;
         }
 
-        inline const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>& getClusterCentroids() const { return cluster_centroids_; }
+        inline const PointSet<ScalarT,EigenDim>& getClusterCentroids() const { return cluster_centroids_; }
 
         inline const std::vector<std::vector<size_t>>& getClusterPointIndices() const { return cluster_point_indices_; }
 
@@ -54,9 +54,9 @@ namespace cilantro {
         inline size_t getPerformedIterationsCount() const { return iteration_count_; }
 
     private:
-        ConstDataMatrixMap<ScalarT,EigenDim> data_map_;
+        ConstPointSetMatrixMap<ScalarT,EigenDim> data_map_;
 
-        Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> cluster_centroids_;
+        PointSet<ScalarT,EigenDim> cluster_centroids_;
         std::vector<std::vector<size_t>> cluster_point_indices_;
         std::vector<size_t> cluster_index_map_;
 
@@ -75,7 +75,7 @@ namespace cilantro {
             ScalarT dist;
             ScalarT scale;
 
-            Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> centroids_old;
+            PointSet<ScalarT,EigenDim> centroids_old;
 
             KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> data_adaptor(data_map_);
             DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>> dist_adaptor(data_adaptor);
@@ -141,7 +141,7 @@ namespace cilantro {
 
                     // Find furthest point from (old) centroid of previously found cluster
                     scale = 1.0/point_count[max_ind];
-                    Eigen::Matrix<ScalarT,EigenDim,1> old_centroid(cluster_centroids_.col(max_ind)*scale);
+                    Point<ScalarT,EigenDim> old_centroid(cluster_centroids_.col(max_ind)*scale);
                     extr_dist = -1.0;
 #pragma omp parallel for shared (extr_dist, extr_dist_ind) private (dist)
                     for (size_t j = 0; j < num_points; j++) {

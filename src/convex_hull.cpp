@@ -1,7 +1,7 @@
 #include <cilantro/convex_hull.hpp>
 
 namespace cilantro {
-    PointCloudHullFlat::PointCloudHullFlat(const ConstDataMatrixMap<float,3> &points, bool compute_topology, bool simplicial_facets, double merge_tol)
+    PointCloudHullFlat::PointCloudHullFlat(const ConstPointSetMatrixMap<float,3> &points, bool compute_topology, bool simplicial_facets, double merge_tol)
             : PrincipalComponentAnalysis3D(points),
               ConvexHull2D(project<2>(points), compute_topology, simplicial_facets, merge_tol),
               vertices_3d_(reconstruct<2>(vertices_))

@@ -20,17 +20,17 @@ namespace cilantro {
 //        renderables_[name] = std::shared_ptr<PointCloudRenderable>(new PointCloudRenderable);
 //        PointCloudRenderable *obj_ptr = (PointCloudRenderable *)renderables_[name].get();
 //        // Copy fields
-//        obj_ptr->points = ConstDataMatrixMap<float,3>(cloud.points);
-//        if (cloud.hasNormals()) obj_ptr->normals = ConstDataMatrixMap<float,3>(cloud.normals);
-//        if (cloud.hasColors()) obj_ptr->colors = ConstDataMatrixMap<float,3>(cloud.colors);
-//        obj_ptr->centroid = ConstDataMatrixMap<float,3>(cloud.points).rowwise().mean();
+//        obj_ptr->points = ConstPointSetMatrixMap<float,3>(cloud.points);
+//        if (cloud.hasNormals()) obj_ptr->normals = ConstPointSetMatrixMap<float,3>(cloud.normals);
+//        if (cloud.hasColors()) obj_ptr->colors = ConstPointSetMatrixMap<float,3>(cloud.colors);
+//        obj_ptr->centroid = ConstPointSetMatrixMap<float,3>(cloud.points).rowwise().mean();
 //        // Update buffers
 //        ((Renderable *)obj_ptr)->applyRenderingProperties(rp);
 //
 //        return *this;
 //    }
 
-    Visualizer& Visualizer::addPointCloud(const std::string &name, const ConstDataMatrixMap<float,3> &points, const RenderingProperties &rp) {
+    Visualizer& Visualizer::addPointCloud(const std::string &name, const ConstPointSetMatrixMap<float,3> &points, const RenderingProperties &rp) {
         gl_context_->MakeCurrent();
         if (points.cols() == 0) {
             renderables_.erase(name);
@@ -47,7 +47,7 @@ namespace cilantro {
         return *this;
     }
 
-    Visualizer& Visualizer::addPointCloudNormals(const std::string &name, const ConstDataMatrixMap<float,3> &normals) {
+    Visualizer& Visualizer::addPointCloudNormals(const std::string &name, const ConstPointSetMatrixMap<float,3> &normals) {
         gl_context_->MakeCurrent();
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
@@ -59,7 +59,7 @@ namespace cilantro {
         return *this;
     }
 
-    Visualizer& Visualizer::addPointCloudColors(const std::string &name, const ConstDataMatrixMap<float,3> &colors) {
+    Visualizer& Visualizer::addPointCloudColors(const std::string &name, const ConstPointSetMatrixMap<float,3> &colors) {
         gl_context_->MakeCurrent();
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
@@ -71,7 +71,7 @@ namespace cilantro {
         return *this;
     }
 
-    Visualizer& Visualizer::addPointCloudValues(const std::string &name, const ConstDataMatrixMap<float,1> &point_values) {
+    Visualizer& Visualizer::addPointCloudValues(const std::string &name, const ConstPointSetMatrixMap<float,1> &point_values) {
         gl_context_->MakeCurrent();
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
@@ -83,7 +83,7 @@ namespace cilantro {
         return *this;
     }
 
-    Visualizer& Visualizer::addPointCorrespondences(const std::string &name, const ConstDataMatrixMap<float,3> &points_src, const ConstDataMatrixMap<float,3> &points_dst, const RenderingProperties &rp) {
+    Visualizer& Visualizer::addPointCorrespondences(const std::string &name, const ConstPointSetMatrixMap<float,3> &points_src, const ConstPointSetMatrixMap<float,3> &points_dst, const RenderingProperties &rp) {
         gl_context_->MakeCurrent();
         if (points_src.cols() == 0 || points_src.cols() != points_dst.cols()) {
             renderables_.erase(name);
@@ -102,7 +102,7 @@ namespace cilantro {
     }
 
 //    Visualizer& Visualizer::addPointCorrespondences(const std::string &name, const PointCloud &cloud_src, const PointCloud &cloud_dst, const RenderingProperties &rp) {
-//        return addPointCorrespondences(name, ConstDataMatrixMap<float,3>(cloud_src.points), ConstDataMatrixMap<float,3>(cloud_dst.points), rp);
+//        return addPointCorrespondences(name, ConstPointSetMatrixMap<float,3>(cloud_src.points), ConstPointSetMatrixMap<float,3>(cloud_dst.points), rp);
 //    }
 
     Visualizer& Visualizer::addCoordinateFrame(const std::string &name, const Eigen::Matrix4f &tf, float scale, const RenderingProperties &rp) {
@@ -159,7 +159,7 @@ namespace cilantro {
 //        return *this;
 //    }
 
-    Visualizer& Visualizer::addTriangleMesh(const std::string &name, const ConstDataMatrixMap<float,3> &vertices, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
+    Visualizer& Visualizer::addTriangleMesh(const std::string &name, const ConstPointSetMatrixMap<float,3> &vertices, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
         gl_context_->MakeCurrent();
         if (vertices.cols() == 0 || faces.empty()) {
             renderables_.erase(name);
@@ -181,7 +181,7 @@ namespace cilantro {
         return *this;
     }
 
-    Visualizer& Visualizer::addTriangleMeshVertexNormals(const std::string &name, const ConstDataMatrixMap<float,3> &vertex_normals) {
+    Visualizer& Visualizer::addTriangleMeshVertexNormals(const std::string &name, const ConstPointSetMatrixMap<float,3> &vertex_normals) {
         gl_context_->MakeCurrent();
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
@@ -193,7 +193,7 @@ namespace cilantro {
         return *this;
     }
 
-    Visualizer& Visualizer::addTriangleMeshFaceNormals(const std::string &name, const ConstDataMatrixMap<float,3> &face_normals) {
+    Visualizer& Visualizer::addTriangleMeshFaceNormals(const std::string &name, const ConstPointSetMatrixMap<float,3> &face_normals) {
         gl_context_->MakeCurrent();
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
@@ -205,7 +205,7 @@ namespace cilantro {
         return *this;
     }
 
-    Visualizer& Visualizer::addTriangleMeshVertexColors(const std::string &name, const ConstDataMatrixMap<float,3> &vertex_colors) {
+    Visualizer& Visualizer::addTriangleMeshVertexColors(const std::string &name, const ConstPointSetMatrixMap<float,3> &vertex_colors) {
         gl_context_->MakeCurrent();
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
@@ -217,7 +217,7 @@ namespace cilantro {
         return *this;
     }
 
-    Visualizer& Visualizer::addTriangleMeshFaceColors(const std::string &name, const ConstDataMatrixMap<float,3> &face_colors) {
+    Visualizer& Visualizer::addTriangleMeshFaceColors(const std::string &name, const ConstPointSetMatrixMap<float,3> &face_colors) {
         gl_context_->MakeCurrent();
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
@@ -229,7 +229,7 @@ namespace cilantro {
         return *this;
     }
 
-    Visualizer& Visualizer::addTriangleMeshVertexValues(const std::string &name, const ConstDataMatrixMap<float,1> &vertex_values) {
+    Visualizer& Visualizer::addTriangleMeshVertexValues(const std::string &name, const ConstPointSetMatrixMap<float,1> &vertex_values) {
         gl_context_->MakeCurrent();
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
@@ -241,7 +241,7 @@ namespace cilantro {
         return *this;
     }
 
-    Visualizer& Visualizer::addTriangleMeshFaceValues(const std::string &name, const ConstDataMatrixMap<float,1> &face_values) {
+    Visualizer& Visualizer::addTriangleMeshFaceValues(const std::string &name, const ConstPointSetMatrixMap<float,1> &face_values) {
         gl_context_->MakeCurrent();
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;

@@ -11,18 +11,18 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        PointCloudHullFlat(const ConstDataMatrixMap<float,3> &points, bool compute_topology = true, bool simplicial_facets = true, double merge_tol = 0.0);
+        PointCloudHullFlat(const ConstPointSetMatrixMap<float,3> &points, bool compute_topology = true, bool simplicial_facets = true, double merge_tol = 0.0);
 
 //        PointCloudHullFlat(const PointCloud &cloud, bool compute_topology = true, bool simplicial_facets = true, double merge_tol = 0.0);
 
-        inline const PointMatrix<float,3>& getVertices3D() const { return vertices_3d_; }
+        inline const PointSet<float,3>& getVertices3D() const { return vertices_3d_; }
 
         PointCloudHullFlat& transform(const Eigen::Ref<const Eigen::Matrix3f> &rotation, const Eigen::Ref<const Eigen::Vector3f> &translation);
 
         PointCloudHullFlat& transform(const Eigen::Ref<const Eigen::Matrix4f> &rigid_transform);
 
     protected:
-        PointMatrix<float,3> vertices_3d_;
+        PointSet<float,3> vertices_3d_;
     };
 
 //    class PointCloudHull : public ConvexHull3D {

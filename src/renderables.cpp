@@ -13,7 +13,7 @@ namespace cilantro {
         normalBuffer.Reinitialise(pangolin::GlArrayBuffer, normals.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
         normalBuffer.Upload(normals.data(), sizeof(float)*normals.cols()*3);
 
-        PointMatrix<float,3> line_end_points;
+        PointSet<float,3> line_end_points;
         if (renderingProperties.drawNormals && normals.cols() > 0 && renderingProperties.lineDensityFraction > 0.0f) {
             if (renderingProperties.lineDensityFraction > 1.0f) renderingProperties.lineDensityFraction = 1.0;
             size_t step = (size_t)std::llround(1.0/renderingProperties.lineDensityFraction);
@@ -28,14 +28,14 @@ namespace cilantro {
         normalEndPointBuffer.Reinitialise(pangolin::GlArrayBuffer, line_end_points.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
         normalEndPointBuffer.Upload(line_end_points.data(), sizeof(float)*line_end_points.cols()*3);
 
-        PointMatrix<float,4> color_alpha;
+        PointSet<float,4> color_alpha;
         if (renderingProperties.pointColor != RenderingProperties::noColor) {
             Eigen::Vector4f tmp;
             tmp.head(3) = renderingProperties.pointColor;
             tmp(3) = renderingProperties.opacity;
             color_alpha = tmp.replicate(1,points.cols());
         } else if (pointValues.cols() == points.cols() && renderingProperties.useScalarValueMappedColors) {
-            PointMatrix<float,3> color_tmp = colormap(pointValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
+            PointSet<float,3> color_tmp = colormap(pointValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
             color_alpha.resize(Eigen::NoChange, pointValues.cols());
             color_alpha.topRows(3) = color_tmp;
             color_alpha.row(3).setConstant(renderingProperties.opacity);
@@ -92,7 +92,7 @@ namespace cilantro {
     }
 
     void CorrespondencesRenderable::applyRenderingProperties() {
-        PointMatrix<float,3> line_end_points;
+        PointSet<float,3> line_end_points;
         if (srcPoints.cols() > 0 && renderingProperties.lineDensityFraction > 0.0f) {
             if (renderingProperties.lineDensityFraction > 1.0f) renderingProperties.lineDensityFraction = 1.0;
             size_t step = (size_t)std::llround(1.0/renderingProperties.lineDensityFraction);
@@ -138,7 +138,7 @@ namespace cilantro {
     void TriangleMeshRenderable::applyRenderingProperties() {
         // Populate flattened vertices and update centroid
         size_t k = 0;
-        PointMatrix<float,3> vertices_flat(3, faces.size()*3);
+        PointSet<float,3> vertices_flat(3, faces.size()*3);
         for (size_t i = 0; i < faces.size(); i++) {
             for (size_t j = 0; j < faces[i].size(); j++) {
                 vertices_flat.col(k++) = vertices.col(faces[i][j]);
@@ -150,7 +150,7 @@ namespace cilantro {
         centroid = vertices_flat.rowwise().mean();
 
         // Populate flattened normals
-        PointMatrix<float,3> normals_flat;
+        PointSet<float,3> normals_flat;
         if (renderingProperties.useFaceNormals && faceNormals.cols() == faces.size()) {
             normals_flat.resize(Eigen::NoChange, faces.size()*3);
             k = 0;
@@ -172,7 +172,7 @@ namespace cilantro {
         normalBuffer.Reinitialise(pangolin::GlArrayBuffer, normals_flat.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
         normalBuffer.Upload(normals_flat.data(), sizeof(float)*normals_flat.cols()*3);
 
-        PointMatrix<float,3> line_end_points;
+        PointSet<float,3> line_end_points;
         if (renderingProperties.drawNormals && renderingProperties.lineDensityFraction > 0.0f) {
             if (renderingProperties.lineDensityFraction > 1.0f) renderingProperties.lineDensityFraction = 1.0;
             size_t step = (size_t)std::llround(1.0/renderingProperties.lineDensityFraction);
@@ -205,7 +205,7 @@ namespace cilantro {
         normalEndPointBuffer.Upload(line_end_points.data(), sizeof(float)*line_end_points.cols()*3);
 
         // Populate flattened colors
-        PointMatrix<float,4> colors_flat;
+        PointSet<float,4> colors_flat;
         if (renderingProperties.pointColor != RenderingProperties::noColor) {
             Eigen::Vector4f tmp;
             tmp.head(3) = renderingProperties.pointColor;
@@ -214,7 +214,7 @@ namespace cilantro {
         } else if (renderingProperties.useFaceColors && (faceValues.cols() == faces.size() || faceColors.cols() == faces.size())) {
             if (faceValues.cols() == faces.size() && renderingProperties.useScalarValueMappedColors) {
                 colors_flat.resize(Eigen::NoChange, faces.size()*3);
-                PointMatrix<float,3> colors_tmp = colormap(faceValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
+                PointSet<float,3> colors_tmp = colormap(faceValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
                 k = 0;
                 for (size_t i = 0; i < faces.size(); i++) {
                     for (size_t j = 0; j < faces[i].size(); j++) {
@@ -235,7 +235,7 @@ namespace cilantro {
         } else if (!renderingProperties.useFaceColors && (vertexValues.cols() == vertices.cols() || vertexColors.cols() == vertices.cols())) {
             if (vertexValues.cols() == vertices.cols() && renderingProperties.useScalarValueMappedColors) {
                 colors_flat.resize(Eigen::NoChange, faces.size()*3);
-                PointMatrix<float,3> colors_tmp = colormap(vertexValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
+                PointSet<float,3> colors_tmp = colormap(vertexValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
                 k = 0;
                 for (size_t i = 0; i < faces.size(); i++) {
                     for (size_t j = 0; j < faces[i].size(); j++) {

@@ -16,7 +16,7 @@ namespace cilantro {
 
     template <typename ScalarT, ptrdiff_t EigenDim>
     struct EigenVectorComparatorHelper<ScalarT, EigenDim, 1> {
-        static bool result(const Eigen::Matrix<ScalarT,EigenDim,1> &p1, const Eigen::Matrix<ScalarT, EigenDim, 1> &p2) {
+        static bool result(const Eigen::Matrix<ScalarT,EigenDim,1> &p1, const Eigen::Matrix<ScalarT,EigenDim,1> &p2) {
             enum { coeff = EigenDim - 1 };
             return p1[coeff] < p2[coeff];
         }
@@ -45,34 +45,36 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        typedef typename std::conditional<EigenDim != Eigen::Dynamic && sizeof(Eigen::Matrix<ptrdiff_t,EigenDim,1>) % 16 == 0,
-                std::map<Eigen::Matrix<ptrdiff_t,EigenDim,1>,std::vector<size_t>,EigenVectorComparator<ptrdiff_t,EigenDim>,Eigen::aligned_allocator<std::pair<const Eigen::Matrix<ptrdiff_t,EigenDim,1>,std::vector<size_t>>>>,
-                std::map<Eigen::Matrix<ptrdiff_t,EigenDim,1>,std::vector<size_t>,EigenVectorComparator<ptrdiff_t,EigenDim>>>::type GridBinMapType;
+        typedef Eigen::Matrix<ptrdiff_t,EigenDim,1> GridPoint;
 
-        CartesianGrid(const ConstDataMatrixMap<ScalarT,EigenDim> &data, const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &bin_size)
+        typedef typename std::conditional<EigenDim != Eigen::Dynamic && sizeof(GridPoint) % 16 == 0,
+                std::map<GridPoint,std::vector<size_t>,EigenVectorComparator<ptrdiff_t,EigenDim>,Eigen::aligned_allocator<std::pair<const GridPoint,std::vector<size_t>>>>,
+                std::map<GridPoint,std::vector<size_t>,EigenVectorComparator<ptrdiff_t,EigenDim>>>::type GridBinMap;
+
+        CartesianGrid(const ConstPointSetMatrixMap<ScalarT,EigenDim> &data, const Eigen::Ref<const Point<ScalarT,EigenDim>> &bin_size)
                 : data_map_(data),
                   bin_size_(bin_size)
         {
             build_index_();
         }
 
-        CartesianGrid(const ConstDataMatrixMap<ScalarT,EigenDim> &data, ScalarT bin_size)
+        CartesianGrid(const ConstPointSetMatrixMap<ScalarT,EigenDim> &data, ScalarT bin_size)
                 : data_map_(data),
-                  bin_size_(Eigen::Matrix<ScalarT,EigenDim,1>::Constant(data_map_.rows(), 1, bin_size))
+                  bin_size_(Point<ScalarT,EigenDim>::Constant(data_map_.rows(), 1, bin_size))
         {
             build_index_();
         }
 
         ~CartesianGrid() {}
 
-        const Eigen::Matrix<ScalarT,EigenDim,1>& getBinSize() const { return bin_size_; }
+        const Point<ScalarT,EigenDim>& getBinSize() const { return bin_size_; }
 
-        const GridBinMapType& getOccupiedBinMap() const { return grid_lookup_table_; }
+        const GridBinMap& getOccupiedBinMap() const { return grid_lookup_table_; }
 
-        const std::vector<typename GridBinMapType::iterator>& getOccupiedBinIterators() const { return bin_iterators_; }
+        const std::vector<typename GridBinMap::iterator>& getOccupiedBinIterators() const { return bin_iterators_; }
 
-        const std::vector<size_t>& getPointBinNeighbors(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &point) const {
-            Eigen::Matrix<ptrdiff_t,EigenDim,1> grid_coords(data_map_.rows());
+        const std::vector<size_t>& getPointBinNeighbors(const Eigen::Ref<const Point<ScalarT,EigenDim>> &point) const {
+            GridPoint grid_coords(data_map_.rows());
             for (size_t i = 0; i < data_map_.rows(); i++) {
                 ScalarT val = point[i]/bin_size_[i];
                 grid_coords[i] = (ptrdiff_t)val;
@@ -88,8 +90,8 @@ namespace cilantro {
             return getPointBinNeighbors(data_map_.col(point_ind));
         }
 
-        Eigen::Matrix<ptrdiff_t,EigenDim,1> getPointGridCoordinates(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &point) const {
-            Eigen::Matrix<ptrdiff_t,EigenDim,1> grid_coords(data_map_.rows());
+        GridPoint getPointGridCoordinates(const Eigen::Ref<const Point<ScalarT,EigenDim>> &point) const {
+            GridPoint grid_coords(data_map_.rows());
             for (size_t i = 0; i < data_map_.rows(); i++) {
                 ScalarT val = point[i]/bin_size_[i];
                 grid_coords[i] = (ptrdiff_t)val;
@@ -99,12 +101,12 @@ namespace cilantro {
             return grid_coords;
         }
 
-        Eigen::Matrix<ptrdiff_t,EigenDim,1> getPointGridCoordinates(size_t point_ind) const {
+        GridPoint getPointGridCoordinates(size_t point_ind) const {
             return getGridCoordinates(data_map_.col(point_ind));
         }
 
-        Eigen::Matrix<ScalarT,EigenDim,1> getBinCornerCoordinates(const Eigen::Ref<const Eigen::Matrix<ptrdiff_t,EigenDim,1>> &grid_point) const {
-            Eigen::Matrix<ScalarT,EigenDim,1> point(data_map_.rows());
+        Point<ScalarT,EigenDim> getBinCornerCoordinates(const Eigen::Ref<const GridPoint> &grid_point) const {
+            Point<ScalarT,EigenDim> point(data_map_.rows());
             for (size_t i = 0; i < data_map_.rows(); i++) {
                 point[i] = grid_point[i]*bin_size_[i];
             }
@@ -114,17 +116,17 @@ namespace cilantro {
     protected:
         static std::vector<size_t> empty_set_of_indices_;
 
-        ConstDataMatrixMap<ScalarT,EigenDim> data_map_;
-        Eigen::Matrix<ScalarT,EigenDim,1> bin_size_;
+        ConstPointSetMatrixMap<ScalarT,EigenDim> data_map_;
+        Point<ScalarT,EigenDim> bin_size_;
 
-        GridBinMapType grid_lookup_table_;
-        std::vector<typename GridBinMapType::iterator> bin_iterators_;
+        GridBinMap grid_lookup_table_;
+        std::vector<typename GridBinMap::iterator> bin_iterators_;
 
         void build_index_() {
             if (data_map_.cols() == 0) return;
 
             bin_iterators_.reserve(data_map_.cols());
-            Eigen::Matrix<ptrdiff_t,EigenDim,1> grid_coords(data_map_.rows());
+            GridPoint grid_coords(data_map_.rows());
             for (size_t i = 0; i < data_map_.cols(); i++) {
                 for (size_t j = 0; j < data_map_.rows(); j++) {
                     ScalarT val = data_map_(j,i)/bin_size_[j];

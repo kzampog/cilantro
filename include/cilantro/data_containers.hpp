@@ -50,6 +50,7 @@ namespace cilantro {
         inline Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>& eigenMap() { return (*(Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>> *)this); }
     };
 
+    // Read-only Eigen Map (for inputs)
     template <typename ScalarT, ptrdiff_t EigenDim>
     class ConstDataMatrixMap : public Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>> {
     public:
@@ -101,17 +102,20 @@ namespace cilantro {
     };
 
     template <typename ScalarT, ptrdiff_t EigenDim>
-    using ConstInequalityDataMatrixMap = typename std::conditional<EigenDim == Eigen::Dynamic, ConstDataMatrixMap<ScalarT,EigenDim>, ConstDataMatrixMap<ScalarT,EigenDim+1>>::type;
+    using ConstPointSetMatrixMap = ConstDataMatrixMap<ScalarT,EigenDim>;
 
     template <typename ScalarT, ptrdiff_t EigenDim>
-    using PointVector = Eigen::Matrix<ScalarT,EigenDim,1>;
+    using ConstLinearConstraintSetMatrixMap = typename std::conditional<EigenDim == Eigen::Dynamic, ConstDataMatrixMap<ScalarT,EigenDim>, ConstDataMatrixMap<ScalarT,EigenDim+1>>::type;
 
     template <typename ScalarT, ptrdiff_t EigenDim>
-    using PointMatrix = Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>;
+    using Point = Eigen::Matrix<ScalarT,EigenDim,1>;
 
     template <typename ScalarT, ptrdiff_t EigenDim>
-    using InequalityVector = typename std::conditional<EigenDim == Eigen::Dynamic, Eigen::Matrix<ScalarT,EigenDim,1>, Eigen::Matrix<ScalarT,EigenDim+1,1>>::type;
+    using PointSet = Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>;
 
     template <typename ScalarT, ptrdiff_t EigenDim>
-    using InequalityMatrix = typename std::conditional<EigenDim == Eigen::Dynamic, Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>, Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic>>::type;
+    using LinearConstraint = typename std::conditional<EigenDim == Eigen::Dynamic, Eigen::Matrix<ScalarT,EigenDim,1>, Eigen::Matrix<ScalarT,EigenDim+1,1>>::type;
+
+    template <typename ScalarT, ptrdiff_t EigenDim>
+    using LinearConstraintSet = typename std::conditional<EigenDim == Eigen::Dynamic, Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>, Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic>>::type;
 }

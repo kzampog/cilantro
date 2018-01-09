@@ -5,10 +5,10 @@
 namespace cilantro {
     // Point-to-point (closed form, SVD)
     template <typename ScalarT>
-    bool estimateRigidTransformPointToPointClosedForm(const ConstDataMatrixMap<ScalarT,3> &dst,
-                                                      const ConstDataMatrixMap<ScalarT,3> &src,
-                                                      Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
-                                                      Eigen::Ref<Eigen::Matrix<ScalarT,3,1> > t_vec)
+    bool estimateRigidTransformPointToPointClosedForm(const ConstPointSetMatrixMap<ScalarT,3> &dst,
+                                                      const ConstPointSetMatrixMap<ScalarT,3> &src,
+                                                      Eigen::Ref<Eigen::Matrix<ScalarT,3,3>> rot_mat,
+                                                      Eigen::Ref<Eigen::Matrix<ScalarT,3,1>> t_vec)
     {
         if (src.cols() != dst.cols() || src.cols() < 3) {
             rot_mat.setIdentity();
@@ -16,15 +16,15 @@ namespace cilantro {
             return false;
         }
 
-        Eigen::Matrix<ScalarT,3,1> mu_dst(dst.rowwise().mean());
-        Eigen::Matrix<ScalarT,3,1> mu_src(src.rowwise().mean());
+        Point<ScalarT,3> mu_dst(dst.rowwise().mean());
+        Point<ScalarT,3> mu_src(src.rowwise().mean());
 
-        Eigen::Matrix<ScalarT,3,Eigen::Dynamic> dst_centered(dst.colwise() - mu_dst);
-        Eigen::Matrix<ScalarT,3,Eigen::Dynamic> src_centered(src.colwise() - mu_src);
+        PointSet<ScalarT,3> dst_centered(dst.colwise() - mu_dst);
+        PointSet<ScalarT,3> src_centered(src.colwise() - mu_src);
 
         Eigen::Matrix<ScalarT,3,3> cov = dst_centered*(src_centered.transpose())/src.cols();
 
-        Eigen::JacobiSVD<Eigen::Matrix<ScalarT,3,3> > svd(cov, Eigen::ComputeFullU | Eigen::ComputeFullV);
+        Eigen::JacobiSVD<Eigen::Matrix<ScalarT,3,3>> svd(cov, Eigen::ComputeFullU | Eigen::ComputeFullV);
         if (svd.matrixU().determinant() * svd.matrixV().determinant() < 0.0) {
             Eigen::Matrix<ScalarT,3,3> U(svd.matrixU());
             U.col(2) *= -1.0;
@@ -38,12 +38,12 @@ namespace cilantro {
     }
 
     template <typename ScalarT>
-    bool estimateRigidTransformPointToPointClosedForm(const ConstDataMatrixMap<ScalarT,3> &dst,
-                                                      const ConstDataMatrixMap<ScalarT,3> &src,
+    bool estimateRigidTransformPointToPointClosedForm(const ConstPointSetMatrixMap<ScalarT,3> &dst,
+                                                      const ConstPointSetMatrixMap<ScalarT,3> &src,
                                                       const std::vector<size_t> &dst_ind,
                                                       const std::vector<size_t> &src_ind,
-                                                      Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
-                                                      Eigen::Ref<Eigen::Matrix<ScalarT,3,1> > t_vec)
+                                                      Eigen::Ref<Eigen::Matrix<ScalarT,3,3>> rot_mat,
+                                                      Eigen::Ref<Eigen::Matrix<ScalarT,3,1>> t_vec)
     {
         if (dst_ind.size() != src_ind.size()) {
             rot_mat.setIdentity();
@@ -51,8 +51,8 @@ namespace cilantro {
             return false;
         }
 
-        Eigen::Matrix<ScalarT,3,Eigen::Dynamic> dst_corr(3, dst_ind.size());
-        Eigen::Matrix<ScalarT,3,Eigen::Dynamic> src_corr(3, src_ind.size());
+        PointSet<ScalarT,3> dst_corr(3, dst_ind.size());
+        PointSet<ScalarT,3> src_corr(3, src_ind.size());
         for (size_t i = 0; i < dst_ind.size(); i++) {
             dst_corr.col(i) = dst.col(dst_ind[i]);
             src_corr.col(i) = src.col(src_ind[i]);
@@ -63,10 +63,10 @@ namespace cilantro {
 
     // Point-to-point (iterative)
     template <typename ScalarT>
-    bool estimateRigidTransformPointToPointIterative(const ConstDataMatrixMap<ScalarT,3> &dst_p,
-                                                     const ConstDataMatrixMap<ScalarT,3> &src_p,
-                                                     Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
-                                                     Eigen::Ref<Eigen::Matrix<ScalarT,3,1> > t_vec,
+    bool estimateRigidTransformPointToPointIterative(const ConstPointSetMatrixMap<ScalarT,3> &dst_p,
+                                                     const ConstPointSetMatrixMap<ScalarT,3> &src_p,
+                                                     Eigen::Ref<Eigen::Matrix<ScalarT,3,3>> rot_mat,
+                                                     Eigen::Ref<Eigen::Matrix<ScalarT,3,1>> t_vec,
                                                      size_t max_iter = 1,
                                                      ScalarT convergence_tol = 1e-5)
     {
@@ -82,7 +82,7 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,6,1> d_theta;
         rot_mat.setIdentity();
         t_vec.setZero();
-        Eigen::Matrix<ScalarT,3,Eigen::Dynamic> src_t(src_p);
+        PointSet<ScalarT,3> src_t(src_p);
 
 //        Eigen::Matrix<ScalarT,Eigen::Dynamic,6> A(num_eq, 6);
         Eigen::Matrix<ScalarT,6,Eigen::Dynamic> At(6, num_eq);
@@ -162,7 +162,7 @@ namespace cilantro {
             t_vec = rot_mat_iter*t_vec + d_theta.tail(3);
 
             // Orthonormalize rotation
-            Eigen::JacobiSVD<Eigen::Matrix<ScalarT,3,3> > svd(rot_mat, Eigen::ComputeFullU | Eigen::ComputeFullV);
+            Eigen::JacobiSVD<Eigen::Matrix<ScalarT,3,3>> svd(rot_mat, Eigen::ComputeFullU | Eigen::ComputeFullV);
             if (svd.matrixU().determinant() * svd.matrixV().determinant() < 0.0) {
                 Eigen::Matrix<ScalarT,3,3> U(svd.matrixU());
                 U.col(2) *= -1.0;
@@ -181,12 +181,12 @@ namespace cilantro {
     }
 
     template <typename ScalarT>
-    bool estimateRigidTransformPointToPointIterative(const ConstDataMatrixMap<ScalarT,3> &dst_p,
-                                                     const ConstDataMatrixMap<ScalarT,3> &src_p,
+    bool estimateRigidTransformPointToPointIterative(const ConstPointSetMatrixMap<ScalarT,3> &dst_p,
+                                                     const ConstPointSetMatrixMap<ScalarT,3> &src_p,
                                                      const std::vector<size_t> &dst_ind,
                                                      const std::vector<size_t> &src_ind,
-                                                     Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
-                                                     Eigen::Ref<Eigen::Matrix<ScalarT,3,1> > t_vec,
+                                                     Eigen::Ref<Eigen::Matrix<ScalarT,3,3>> rot_mat,
+                                                     Eigen::Ref<Eigen::Matrix<ScalarT,3,1>> t_vec,
                                                      size_t max_iter = 1,
                                                      ScalarT convergence_tol = 1e-5)
     {
@@ -196,8 +196,8 @@ namespace cilantro {
             return false;
         }
 
-        Eigen::Matrix<ScalarT,3,Eigen::Dynamic> dst_p_corr(3, dst_ind.size());
-        Eigen::Matrix<ScalarT,3,Eigen::Dynamic> src_p_corr(3, src_ind.size());
+        PointSet<ScalarT,3> dst_p_corr(3, dst_ind.size());
+        PointSet<ScalarT,3> src_p_corr(3, src_ind.size());
         for (size_t i = 0; i < dst_ind.size(); i++) {
             dst_p_corr.col(i) = dst_p.col(dst_ind[i]);
             src_p_corr.col(i) = src_p.col(src_ind[i]);
@@ -208,11 +208,11 @@ namespace cilantro {
 
     // Point-to-plane
     template <typename ScalarT>
-    bool estimateRigidTransformPointToPlane(const ConstDataMatrixMap<ScalarT,3> &dst_p,
-                                            const ConstDataMatrixMap<ScalarT,3> &dst_n,
-                                            const ConstDataMatrixMap<ScalarT,3> &src_p,
-                                            Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
-                                            Eigen::Ref<Eigen::Matrix<ScalarT,3,1> > t_vec,
+    bool estimateRigidTransformPointToPlane(const ConstPointSetMatrixMap<ScalarT,3> &dst_p,
+                                            const ConstPointSetMatrixMap<ScalarT,3> &dst_n,
+                                            const ConstPointSetMatrixMap<ScalarT,3> &src_p,
+                                            Eigen::Ref<Eigen::Matrix<ScalarT,3,3>> rot_mat,
+                                            Eigen::Ref<Eigen::Matrix<ScalarT,3,1>> t_vec,
                                             size_t max_iter = 1,
                                             ScalarT convergence_tol = 1e-5)
     {
@@ -226,7 +226,7 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,6,1> d_theta;
         rot_mat.setIdentity();
         t_vec.setZero();
-        Eigen::Matrix<ScalarT,3,Eigen::Dynamic> src_t(src_p);
+        PointSet<ScalarT,3> src_t(src_p);
 
 //        Eigen::Matrix<ScalarT,Eigen::Dynamic,6> A(dst_p.cols(),6);
         Eigen::Matrix<ScalarT,6,Eigen::Dynamic> At(6,dst_p.cols());
@@ -273,7 +273,7 @@ namespace cilantro {
             t_vec = rot_mat_iter*t_vec + d_theta.tail(3);
 
             // Orthonormalize rotation
-            Eigen::JacobiSVD<Eigen::Matrix<ScalarT,3,3> > svd(rot_mat, Eigen::ComputeFullU | Eigen::ComputeFullV);
+            Eigen::JacobiSVD<Eigen::Matrix<ScalarT,3,3>> svd(rot_mat, Eigen::ComputeFullU | Eigen::ComputeFullV);
             if (svd.matrixU().determinant() * svd.matrixV().determinant() < 0.0) {
                 Eigen::Matrix<ScalarT,3,3> U(svd.matrixU());
                 U.col(2) *= -1.0;
@@ -292,13 +292,13 @@ namespace cilantro {
     }
 
     template <typename ScalarT>
-    bool estimateRigidTransformPointToPlane(const ConstDataMatrixMap<ScalarT,3> &dst_p,
-                                            const ConstDataMatrixMap<ScalarT,3> &dst_n,
-                                            const ConstDataMatrixMap<ScalarT,3> &src_p,
+    bool estimateRigidTransformPointToPlane(const ConstPointSetMatrixMap<ScalarT,3> &dst_p,
+                                            const ConstPointSetMatrixMap<ScalarT,3> &dst_n,
+                                            const ConstPointSetMatrixMap<ScalarT,3> &src_p,
                                             const std::vector<size_t> &dst_ind,
                                             const std::vector<size_t> &src_ind,
-                                            Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
-                                            Eigen::Ref<Eigen::Matrix<ScalarT,3,1> > t_vec,
+                                            Eigen::Ref<Eigen::Matrix<ScalarT,3,3>> rot_mat,
+                                            Eigen::Ref<Eigen::Matrix<ScalarT,3,1>> t_vec,
                                             size_t max_iter = 1,
                                             ScalarT convergence_tol = 1e-5)
     {
@@ -308,9 +308,9 @@ namespace cilantro {
             return false;
         }
 
-        Eigen::Matrix<ScalarT,3,Eigen::Dynamic> dst_p_corr(3, dst_ind.size());
-        Eigen::Matrix<ScalarT,3,Eigen::Dynamic> dst_n_corr(3, dst_ind.size());
-        Eigen::Matrix<ScalarT,3,Eigen::Dynamic> src_p_corr(3, src_ind.size());
+        PointSet<ScalarT,3> dst_p_corr(3, dst_ind.size());
+        PointSet<ScalarT,3> dst_n_corr(3, dst_ind.size());
+        PointSet<ScalarT,3> src_p_corr(3, src_ind.size());
         for (size_t i = 0; i < dst_ind.size(); i++) {
             dst_p_corr.col(i) = dst_p.col(dst_ind[i]);
             dst_n_corr.col(i) = dst_n.col(dst_ind[i]);
@@ -322,13 +322,13 @@ namespace cilantro {
 
     // Point-to-point and point-to-plane combination
     template <typename ScalarT>
-    bool estimateRigidTransformCombinedMetric(const ConstDataMatrixMap<ScalarT,3> &dst_p,
-                                              const ConstDataMatrixMap<ScalarT,3> &dst_n,
-                                              const ConstDataMatrixMap<ScalarT,3> &src_p,
+    bool estimateRigidTransformCombinedMetric(const ConstPointSetMatrixMap<ScalarT,3> &dst_p,
+                                              const ConstPointSetMatrixMap<ScalarT,3> &dst_n,
+                                              const ConstPointSetMatrixMap<ScalarT,3> &src_p,
                                               ScalarT point_to_point_weight,
                                               ScalarT point_to_plane_weight,
-                                              Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
-                                              Eigen::Ref<Eigen::Matrix<ScalarT,3,1> > t_vec,
+                                              Eigen::Ref<Eigen::Matrix<ScalarT,3,3>> rot_mat,
+                                              Eigen::Ref<Eigen::Matrix<ScalarT,3,1>> t_vec,
                                               size_t max_iter = 1,
                                               ScalarT convergence_tol = 1e-5)
     {
@@ -355,7 +355,7 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,6,1> d_theta;
         rot_mat.setIdentity();
         t_vec.setZero();
-        Eigen::Matrix<ScalarT,3,Eigen::Dynamic> src_t(src_p);
+        PointSet<ScalarT,3> src_t(src_p);
 
         size_t num_eq = 4*dst_p.cols();
 
@@ -454,7 +454,7 @@ namespace cilantro {
             t_vec = rot_mat_iter*t_vec + d_theta.tail(3);
 
             // Orthonormalize rotation
-            Eigen::JacobiSVD<Eigen::Matrix<ScalarT,3,3> > svd(rot_mat, Eigen::ComputeFullU | Eigen::ComputeFullV);
+            Eigen::JacobiSVD<Eigen::Matrix<ScalarT,3,3>> svd(rot_mat, Eigen::ComputeFullU | Eigen::ComputeFullV);
             if (svd.matrixU().determinant() * svd.matrixV().determinant() < 0.0) {
                 Eigen::Matrix<ScalarT,3,3> U(svd.matrixU());
                 U.col(2) *= -1.0;
@@ -473,15 +473,15 @@ namespace cilantro {
     }
 
     template <typename ScalarT>
-    bool estimateRigidTransformCombinedMetric(const ConstDataMatrixMap<ScalarT,3> &dst_p,
-                                              const ConstDataMatrixMap<ScalarT,3> &dst_n,
-                                              const ConstDataMatrixMap<ScalarT,3> &src_p,
+    bool estimateRigidTransformCombinedMetric(const ConstPointSetMatrixMap<ScalarT,3> &dst_p,
+                                              const ConstPointSetMatrixMap<ScalarT,3> &dst_n,
+                                              const ConstPointSetMatrixMap<ScalarT,3> &src_p,
                                               const std::vector<size_t> &dst_ind,
                                               const std::vector<size_t> &src_ind,
                                               ScalarT point_to_point_weight,
                                               ScalarT point_to_plane_weight,
-                                              Eigen::Ref<Eigen::Matrix<ScalarT,3,3> > rot_mat,
-                                              Eigen::Ref<Eigen::Matrix<ScalarT,3,1> > t_vec,
+                                              Eigen::Ref<Eigen::Matrix<ScalarT,3,3>> rot_mat,
+                                              Eigen::Ref<Eigen::Matrix<ScalarT,3,1>> t_vec,
                                               size_t max_iter = 1,
                                               ScalarT convergence_tol = 1e-5)
     {
@@ -491,9 +491,9 @@ namespace cilantro {
             return false;
         }
 
-        Eigen::Matrix<ScalarT,3,Eigen::Dynamic> dst_p_corr(3, dst_ind.size());
-        Eigen::Matrix<ScalarT,3,Eigen::Dynamic> dst_n_corr(3, dst_ind.size());
-        Eigen::Matrix<ScalarT,3,Eigen::Dynamic> src_p_corr(3, src_ind.size());
+        PointSet<ScalarT,3> dst_p_corr(3, dst_ind.size());
+        PointSet<ScalarT,3> dst_n_corr(3, dst_ind.size());
+        PointSet<ScalarT,3> src_p_corr(3, src_ind.size());
         for (size_t i = 0; i < dst_ind.size(); i++) {
             dst_p_corr.col(i) = dst_p.col(dst_ind[i]);
             dst_n_corr.col(i) = dst_n.col(dst_ind[i]);
