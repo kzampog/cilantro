@@ -7,10 +7,10 @@ int main(int argc, char ** argv) {
     cilantro::PointCloud cloud;
     cilantro::readPointCloudFromPLYFile(argv[1], cloud);
 
-    cloud = cilantro::VoxelGrid(cloud, 0.005).getDownsampledCloud().removeInvalidData();
+    cloud = cilantro::VoxelGrid(cloud,0.005).getDownsampledCloud().removeInvalidData();
 
     // Perform segmentation
-    cilantro::ConnectedComponentSegmentation ccs(cloud);
+    cilantro::ConnectedComponentSegmentation ccs(cloud.points, cloud.normals, cloud.colors);
 
     auto start = std::chrono::high_resolution_clock::now();
     ccs.segment(0.02, (float)(2.0*M_PI/180.0), 5.0, 100, cloud.size());

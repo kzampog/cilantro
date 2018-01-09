@@ -2,54 +2,31 @@
 #include <cilantro/registration.hpp>
 
 namespace cilantro {
-    RigidTransformEstimator::RigidTransformEstimator(const std::vector<Eigen::Vector3f> &dst_points,
-                                                     const std::vector<Eigen::Vector3f> &src_points)
-            : RandomSampleConsensus(3, dst_points.size()/2 + dst_points.size()%2, 100, 0.01, true),
-              dst_points_(&dst_points),
-              src_points_(&src_points)
+    RigidTransformEstimator::RigidTransformEstimator(const ConstPointSetMatrixMap<float,3> &dst_points,
+                                                     const ConstPointSetMatrixMap<float,3> &src_points)
+            : RandomSampleConsensus(3, dst_points.cols()/2 + dst_points.cols()%2, 100, 0.01, true),
+              dst_points_(dst_points),
+              src_points_(src_points)
     {}
 
-    RigidTransformEstimator::RigidTransformEstimator(const std::vector<Eigen::Vector3f> &dst_points,
-                                                     const std::vector<Eigen::Vector3f> &src_points,
+    RigidTransformEstimator::RigidTransformEstimator(const ConstPointSetMatrixMap<float,3> &dst_points,
+                                                     const ConstPointSetMatrixMap<float,3> &src_points,
                                                      const std::vector<size_t> &dst_ind,
                                                      const std::vector<size_t> &src_ind)
             : RandomSampleConsensus(3, dst_ind.size()/2 + dst_ind.size()%2, 100, 0.01, true),
-              dst_points_tmp_(std::vector<Eigen::Vector3f>(dst_ind.size())),
-              src_points_tmp_(std::vector<Eigen::Vector3f>(src_ind.size())),
-              dst_points_(&dst_points_tmp_),
-              src_points_(&src_points_tmp_)
+              dst_points_tmp_(3, dst_ind.size()),
+              src_points_tmp_(3, src_ind.size()),
+              dst_points_(dst_points_tmp_),
+              src_points_(src_points_tmp_)
     {
         for (size_t i = 0; i < dst_ind.size(); i++) {
-            dst_points_tmp_[i] = dst_points[dst_ind[i]];
-            src_points_tmp_[i] = src_points[src_ind[i]];
-        }
-    }
-
-    RigidTransformEstimator::RigidTransformEstimator(const PointCloud &dst,
-                                                     const PointCloud &src)
-            : RandomSampleConsensus(3, dst.size()/2 + dst.size()%2, 100, 0.01, true),
-              dst_points_(&dst.points),
-              src_points_(&src.points)
-    {}
-
-    RigidTransformEstimator::RigidTransformEstimator(const PointCloud &dst,
-                                                     const PointCloud &src,
-                                                     const std::vector<size_t> &dst_ind,
-                                                     const std::vector<size_t> &src_ind)
-            : RandomSampleConsensus(3, dst_ind.size()/2 + dst_ind.size()%2, 100, 0.01, true),
-              dst_points_tmp_(std::vector<Eigen::Vector3f>(dst_ind.size())),
-              src_points_tmp_(std::vector<Eigen::Vector3f>(src_ind.size())),
-              dst_points_(&dst_points_tmp_),
-              src_points_(&src_points_tmp_)
-    {
-        for (size_t i = 0; i < dst_ind.size(); i++) {
-            dst_points_tmp_[i] = dst.points[dst_ind[i]];
-            src_points_tmp_[i] = src.points[src_ind[i]];
+            dst_points_tmp_.col(i) = dst_points.col(dst_ind[i]);
+            src_points_tmp_.col(i) = src_points.col(src_ind[i]);
         }
     }
 
     RigidTransformEstimator& RigidTransformEstimator::estimateModelParameters(RigidTransformParameters &model_params) {
-        estimateRigidTransformPointToPointClosedForm<float>(*dst_points_, *src_points_, model_params.rotation, model_params.translation);
+        estimateRigidTransformPointToPointClosedForm<float>(dst_points_, src_points_, model_params.rotation, model_params.translation);
         return *this;
     }
 
@@ -60,11 +37,11 @@ namespace cilantro {
     }
 
     RigidTransformEstimator& RigidTransformEstimator::estimateModelParameters(const std::vector<size_t> &sample_ind, RigidTransformParameters &model_params) {
-        std::vector<Eigen::Vector3f> dst_p(sample_ind.size());
-        std::vector<Eigen::Vector3f> src_p(sample_ind.size());
+        PointSet<float,3> dst_p(3,sample_ind.size());
+        PointSet<float,3> src_p(3,sample_ind.size());
         for (size_t i = 0; i < sample_ind.size(); i++) {
-            dst_p[i] = (*dst_points_)[sample_ind[i]];
-            src_p[i] = (*src_points_)[sample_ind[i]];
+            dst_p.col(i) = dst_points_.col(sample_ind[i]);
+            src_p.col(i) = src_points_.col(sample_ind[i]);
         }
         estimateRigidTransformPointToPointClosedForm<float>(dst_p, src_p, model_params.rotation, model_params.translation);
         return *this;
@@ -77,10 +54,8 @@ namespace cilantro {
     }
 
     RigidTransformEstimator& RigidTransformEstimator::computeResiduals(const RigidTransformParameters &model_params, std::vector<float> &residuals) {
-        residuals.resize(dst_points_->size());
-        Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> > dst((float *)dst_points_->data(),3,dst_points_->size());
-        Eigen::Map<Eigen::Matrix<float,3,Eigen::Dynamic> > src((float *)src_points_->data(),3,src_points_->size());
-        Eigen::Map<Eigen::Matrix<float,1,Eigen::Dynamic> >(residuals.data(),1,residuals.size()) = (((model_params.rotation*src).colwise() + model_params.translation) - dst).colwise().norm();
+        residuals.resize(dst_points_.cols());
+        Eigen::Map<Eigen::Matrix<float,1,Eigen::Dynamic> >(residuals.data(),1,residuals.size()) = (((model_params.rotation*src_points_).colwise() + model_params.translation) - dst_points_).colwise().norm();
         return *this;
     }
 

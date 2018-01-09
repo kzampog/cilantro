@@ -2,34 +2,23 @@
 #include <set>
 
 namespace cilantro {
-    ConnectedComponentSegmentation::ConnectedComponentSegmentation(const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const std::vector<Eigen::Vector3f> &colors)
-            : points_(&points),
-              normals_((normals.size() == points.size()) ? &normals : NULL),
-              colors_((colors.size() == points.size()) ? &colors : NULL),
+    ConnectedComponentSegmentation::ConnectedComponentSegmentation(const ConstPointSetMatrixMap<float,3> &points,
+                                                                   const ConstPointSetMatrixMap<float,3> &normals,
+                                                                   const ConstPointSetMatrixMap<float,3> &colors)
+            : points_(points),
+              normals_((normals.cols() == points.cols()) ? normals : ConstPointSetMatrixMap<float,3>(NULL,0)),
+              colors_((colors.cols() == points.cols()) ? colors : ConstPointSetMatrixMap<float,3>(NULL,0)),
               kd_tree_(new KDTree3D(points)),
               kd_tree_owned_(true)
     {}
 
-    ConnectedComponentSegmentation::ConnectedComponentSegmentation(const std::vector<Eigen::Vector3f> &points, const std::vector<Eigen::Vector3f> &normals, const std::vector<Eigen::Vector3f> &colors, const KDTree3D &kd_tree)
-            : points_(&points),
-              normals_((normals.size() == points.size()) ? &normals : NULL),
-              colors_((colors.size() == points.size()) ? &colors : NULL),
-              kd_tree_((KDTree3D*)&kd_tree),
-              kd_tree_owned_(false)
-    {}
-
-    ConnectedComponentSegmentation::ConnectedComponentSegmentation(const PointCloud &cloud)
-            : points_(&cloud.points),
-              normals_((cloud.normals.size() == cloud.points.size()) ? &cloud.normals : NULL),
-              colors_((cloud.colors.size() == cloud.points.size()) ? &cloud.colors : NULL),
-              kd_tree_(new KDTree3D(cloud.points)),
-              kd_tree_owned_(true)
-    {}
-
-    ConnectedComponentSegmentation::ConnectedComponentSegmentation(const PointCloud &cloud, const KDTree3D &kd_tree)
-            : points_(&cloud.points),
-              normals_((cloud.normals.size() == cloud.points.size()) ? &cloud.normals : NULL),
-              colors_((cloud.colors.size() == cloud.points.size()) ? &cloud.colors : NULL),
+    ConnectedComponentSegmentation::ConnectedComponentSegmentation(const ConstPointSetMatrixMap<float,3> &points,
+                                                                   const ConstPointSetMatrixMap<float,3> &normals,
+                                                                   const ConstPointSetMatrixMap<float,3> &colors,
+                                                                   const KDTree3D &kd_tree)
+            : points_(points),
+              normals_((normals.cols() == points.cols()) ? normals : ConstPointSetMatrixMap<float,3>(NULL,0)),
+              colors_((colors.cols() == points.cols()) ? colors : ConstPointSetMatrixMap<float,3>(NULL,0)),
               kd_tree_((KDTree3D*)&kd_tree),
               kd_tree_owned_(false)
     {}
@@ -61,12 +50,12 @@ namespace cilantro {
         color_diff_thresh_sq_ = color_diff_thresh*color_diff_thresh;
 
         const size_t unassigned = std::numeric_limits<size_t>::max();
-        std::vector<size_t> current_label(points_->size(), unassigned);
+        std::vector<size_t> current_label(points_.cols(), unassigned);
 
         std::vector<size_t> frontier_set;
-        frontier_set.reserve(points_->size());
+        frontier_set.reserve(points_.cols());
 
-//    std::vector<std::set<size_t> > ind_per_seed(seeds_ind.size());
+//        std::vector<std::set<size_t> > ind_per_seed(seeds_ind.size());
         std::vector<std::vector<size_t> > ind_per_seed(seeds_ind.size());
         std::vector<std::set<size_t> > seeds_to_merge_with(seeds_ind.size());
 
@@ -88,10 +77,10 @@ namespace cilantro {
                 size_t curr_seed = frontier_set[frontier_set.size()-1];
                 frontier_set.resize(frontier_set.size()-1);
 
-//            ind_per_seed[i].insert(curr_seed);
+//                ind_per_seed[i].insert(curr_seed);
                 ind_per_seed[i].emplace_back(curr_seed);
 
-                kd_tree_->radiusSearch((*points_)[curr_seed], radius_sq, neighbors, distances);
+                kd_tree_->radiusSearch(points_.col(curr_seed), radius_sq, neighbors, distances);
                 for (size_t j = 1; j < neighbors.size(); j++) {
                     const size_t& curr_lbl = current_label[neighbors[j]];
                     if (curr_lbl == i || is_similar_(curr_seed, neighbors[j])) {
@@ -135,7 +124,7 @@ namespace cilantro {
 
         std::sort(component_indices_.begin(), component_indices_.end(), vector_size_comparator_);
 
-        label_map_ = std::vector<size_t>(points_->size(), component_indices_.size());
+        label_map_ = std::vector<size_t>(points_.cols(), component_indices_.size());
         for (size_t i = 0; i < component_indices_.size(); i++) {
             for (size_t j = 0; j < component_indices_[i].size(); j++) {
                 label_map_[component_indices_[i][j]] = i;
@@ -151,7 +140,7 @@ namespace cilantro {
                                                                             size_t min_segment_size,
                                                                             size_t max_segment_size)
     {
-        std::vector<size_t> seeds_ind(points_->size());
+        std::vector<size_t> seeds_ind(points_.cols());
         for (size_t i = 0; i < seeds_ind.size(); i++) {
             seeds_ind[i] = i;
         }
