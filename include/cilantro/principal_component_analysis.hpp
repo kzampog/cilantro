@@ -8,7 +8,7 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        PrincipalComponentAnalysis(const ConstPointSetMatrixMap<ScalarT,EigenDim> &data) {
+        PrincipalComponentAnalysis(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data) {
             mean_ = data.rowwise().mean();
             Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> centered = data.colwise() - mean_;
 
@@ -24,33 +24,33 @@ namespace cilantro {
 
         ~PrincipalComponentAnalysis() {}
 
-        inline const Point<ScalarT,EigenDim>& getDataMean() const { return mean_; }
+        inline const Vector<ScalarT,EigenDim>& getDataMean() const { return mean_; }
 
-        inline const Point<ScalarT,EigenDim>& getEigenValues() const { return eigenvalues_; }
+        inline const Vector<ScalarT,EigenDim>& getEigenValues() const { return eigenvalues_; }
 
         inline const Eigen::Matrix<ScalarT,EigenDim,EigenDim>& getEigenVectors() const { return eigenvectors_; }
 
-        Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> project(const ConstPointSetMatrixMap<ScalarT,Eigen::Dynamic> &points, size_t target_dim) const {
+        Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> project(const ConstVectorSetMatrixMap<ScalarT,Eigen::Dynamic> &points, size_t target_dim) const {
             return (eigenvectors_.leftCols(target_dim).transpose()*(points.colwise() - mean_));
         }
 
         template <ptrdiff_t EigenDimOut>
-        typename std::enable_if<EigenDimOut != Eigen::Dynamic, PointSet<ScalarT,EigenDimOut>>::type project(const ConstPointSetMatrixMap<ScalarT,EigenDim> &points) const {
+        typename std::enable_if<EigenDimOut != Eigen::Dynamic, VectorSet<ScalarT,EigenDimOut>>::type project(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points) const {
             return (eigenvectors_.leftCols(EigenDimOut).transpose()*(points.colwise() - mean_));
         }
 
-        Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> reconstruct(const ConstPointSetMatrixMap<ScalarT,Eigen::Dynamic> &points) const {
+        Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> reconstruct(const ConstVectorSetMatrixMap<ScalarT,Eigen::Dynamic> &points) const {
             return (eigenvectors_.leftCols(points.rows())*points).colwise() + mean_;
         }
 
         template <ptrdiff_t EigenDimIn>
-        typename std::enable_if<EigenDimIn != Eigen::Dynamic, PointSet<ScalarT,EigenDim>>::type reconstruct(const ConstPointSetMatrixMap<ScalarT,EigenDimIn> &points) const {
+        typename std::enable_if<EigenDimIn != Eigen::Dynamic, VectorSet<ScalarT,EigenDim>>::type reconstruct(const ConstVectorSetMatrixMap<ScalarT,EigenDimIn> &points) const {
             return (eigenvectors_.leftCols(EigenDimIn)*points).colwise() + mean_;
         }
 
     protected:
-        Point<ScalarT,EigenDim> mean_;
-        Point<ScalarT,EigenDim> eigenvalues_;
+        Vector<ScalarT,EigenDim> mean_;
+        Vector<ScalarT,EigenDim> eigenvalues_;
         Eigen::Matrix<ScalarT,EigenDim,EigenDim> eigenvectors_;
     };
 

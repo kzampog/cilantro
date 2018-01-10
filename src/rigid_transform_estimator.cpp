@@ -2,15 +2,15 @@
 #include <cilantro/registration.hpp>
 
 namespace cilantro {
-    RigidTransformEstimator::RigidTransformEstimator(const ConstPointSetMatrixMap<float,3> &dst_points,
-                                                     const ConstPointSetMatrixMap<float,3> &src_points)
+    RigidTransformEstimator::RigidTransformEstimator(const ConstVectorSetMatrixMap<float,3> &dst_points,
+                                                     const ConstVectorSetMatrixMap<float,3> &src_points)
             : RandomSampleConsensus(3, dst_points.cols()/2 + dst_points.cols()%2, 100, 0.01, true),
               dst_points_(dst_points),
               src_points_(src_points)
     {}
 
-    RigidTransformEstimator::RigidTransformEstimator(const ConstPointSetMatrixMap<float,3> &dst_points,
-                                                     const ConstPointSetMatrixMap<float,3> &src_points,
+    RigidTransformEstimator::RigidTransformEstimator(const ConstVectorSetMatrixMap<float,3> &dst_points,
+                                                     const ConstVectorSetMatrixMap<float,3> &src_points,
                                                      const std::vector<size_t> &dst_ind,
                                                      const std::vector<size_t> &src_ind)
             : RandomSampleConsensus(3, dst_ind.size()/2 + dst_ind.size()%2, 100, 0.01, true),
@@ -37,8 +37,8 @@ namespace cilantro {
     }
 
     RigidTransformEstimator& RigidTransformEstimator::estimateModelParameters(const std::vector<size_t> &sample_ind, RigidTransformParameters &model_params) {
-        PointSet<float,3> dst_p(3,sample_ind.size());
-        PointSet<float,3> src_p(3,sample_ind.size());
+        VectorSet<float,3> dst_p(3,sample_ind.size());
+        VectorSet<float,3> src_p(3,sample_ind.size());
         for (size_t i = 0; i < sample_ind.size(); i++) {
             dst_p.col(i) = dst_points_.col(sample_ind[i]);
             src_p.col(i) = src_points_.col(sample_ind[i]);

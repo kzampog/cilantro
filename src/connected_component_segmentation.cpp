@@ -2,23 +2,23 @@
 #include <set>
 
 namespace cilantro {
-    ConnectedComponentSegmentation::ConnectedComponentSegmentation(const ConstPointSetMatrixMap<float,3> &points,
-                                                                   const ConstPointSetMatrixMap<float,3> &normals,
-                                                                   const ConstPointSetMatrixMap<float,3> &colors)
+    ConnectedComponentSegmentation::ConnectedComponentSegmentation(const ConstVectorSetMatrixMap<float,3> &points,
+                                                                   const ConstVectorSetMatrixMap<float,3> &normals,
+                                                                   const ConstVectorSetMatrixMap<float,3> &colors)
             : points_(points),
-              normals_((normals.cols() == points.cols()) ? normals : ConstPointSetMatrixMap<float,3>(NULL,0)),
-              colors_((colors.cols() == points.cols()) ? colors : ConstPointSetMatrixMap<float,3>(NULL,0)),
+              normals_((normals.cols() == points.cols()) ? normals : ConstVectorSetMatrixMap<float,3>(NULL,0)),
+              colors_((colors.cols() == points.cols()) ? colors : ConstVectorSetMatrixMap<float,3>(NULL,0)),
               kd_tree_(new KDTree3D(points)),
               kd_tree_owned_(true)
     {}
 
-    ConnectedComponentSegmentation::ConnectedComponentSegmentation(const ConstPointSetMatrixMap<float,3> &points,
-                                                                   const ConstPointSetMatrixMap<float,3> &normals,
-                                                                   const ConstPointSetMatrixMap<float,3> &colors,
+    ConnectedComponentSegmentation::ConnectedComponentSegmentation(const ConstVectorSetMatrixMap<float,3> &points,
+                                                                   const ConstVectorSetMatrixMap<float,3> &normals,
+                                                                   const ConstVectorSetMatrixMap<float,3> &colors,
                                                                    const KDTree3D &kd_tree)
             : points_(points),
-              normals_((normals.cols() == points.cols()) ? normals : ConstPointSetMatrixMap<float,3>(NULL,0)),
-              colors_((colors.cols() == points.cols()) ? colors : ConstPointSetMatrixMap<float,3>(NULL,0)),
+              normals_((normals.cols() == points.cols()) ? normals : ConstVectorSetMatrixMap<float,3>(NULL,0)),
+              colors_((colors.cols() == points.cols()) ? colors : ConstVectorSetMatrixMap<float,3>(NULL,0)),
               kd_tree_((KDTree3D*)&kd_tree),
               kd_tree_owned_(false)
     {}

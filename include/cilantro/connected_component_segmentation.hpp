@@ -7,13 +7,13 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        ConnectedComponentSegmentation(const ConstPointSetMatrixMap<float,3> &points,
-                                       const ConstPointSetMatrixMap<float,3> &normals,
-                                       const ConstPointSetMatrixMap<float,3> &colors);
+        ConnectedComponentSegmentation(const ConstVectorSetMatrixMap<float,3> &points,
+                                       const ConstVectorSetMatrixMap<float,3> &normals,
+                                       const ConstVectorSetMatrixMap<float,3> &colors);
 
-        ConnectedComponentSegmentation(const ConstPointSetMatrixMap<float,3> &points,
-                                       const ConstPointSetMatrixMap<float,3> &normals,
-                                       const ConstPointSetMatrixMap<float,3> &colors,
+        ConnectedComponentSegmentation(const ConstVectorSetMatrixMap<float,3> &points,
+                                       const ConstVectorSetMatrixMap<float,3> &normals,
+                                       const ConstVectorSetMatrixMap<float,3> &colors,
                                        const KDTree3D &kd_tree);
 
         ~ConnectedComponentSegmentation();
@@ -40,9 +40,9 @@ namespace cilantro {
         inline size_t getNumberOfSegments() const { return component_indices_.size(); }
 
     private:
-        ConstPointSetMatrixMap<float,3> points_;
-        ConstPointSetMatrixMap<float,3> normals_;
-        ConstPointSetMatrixMap<float,3> colors_;
+        ConstVectorSetMatrixMap<float,3> points_;
+        ConstVectorSetMatrixMap<float,3> normals_;
+        ConstVectorSetMatrixMap<float,3> colors_;
 
         KDTree3D *kd_tree_;
         bool kd_tree_owned_;

@@ -32,7 +32,7 @@ namespace cilantro {
         {}
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
-        SpaceRegion(const ConstPointSetMatrixMap<InputScalarT,EigenDim> &points, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0)
+        SpaceRegion(const ConstVectorSetMatrixMap<InputScalarT,EigenDim> &points, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0)
                 : dim_(EigenDim)
         {
             polytopes_.emplace_back(points, compute_topology, simplicial_facets, merge_tol);
@@ -205,21 +205,21 @@ namespace cilantro {
 
         inline const ConvexPolytopeVector& getConvexPolytopes() const { return polytopes_; }
 
-        inline const Point<OutputScalarT,EigenDim> getInteriorPoint() const {
+        inline const Vector<OutputScalarT,EigenDim> getInteriorPoint() const {
             for (size_t i = 0; i < polytopes_.size(); i++) {
                 if (!polytopes_[i].isEmpty()) return polytopes_[i].getInteriorPoint();
             }
-            return Point<OutputScalarT,EigenDim>::Constant(dim_, 1, std::numeric_limits<OutputScalarT>::quiet_NaN());
+            return Vector<OutputScalarT,EigenDim>::Constant(dim_, 1, std::numeric_limits<OutputScalarT>::quiet_NaN());
         }
 
-        inline bool containsPoint(const Eigen::Ref<const Point<OutputScalarT,EigenDim>> &point, OutputScalarT offset = 0.0) const {
+        inline bool containsPoint(const Eigen::Ref<const Vector<OutputScalarT,EigenDim>> &point, OutputScalarT offset = 0.0) const {
             for (size_t i = 0; i < polytopes_.size(); i++) {
                 if (polytopes_[i].containsPoint(point, offset)) return true;
             }
             return false;
         }
 
-        Eigen::Matrix<bool,1,Eigen::Dynamic> getInteriorPointsIndexMask(const ConstPointSetMatrixMap<OutputScalarT,EigenDim> &points, OutputScalarT offset = 0.0) const {
+        Eigen::Matrix<bool,1,Eigen::Dynamic> getInteriorPointsIndexMask(const ConstVectorSetMatrixMap<OutputScalarT,EigenDim> &points, OutputScalarT offset = 0.0) const {
             Eigen::Matrix<bool,1,Eigen::Dynamic> mask(1,points.cols());
             for (size_t i = 0; i < points.cols(); i++) {
                 mask(i) = containsPoint(points.col(i), offset);
@@ -227,7 +227,7 @@ namespace cilantro {
             return mask;
         }
 
-        std::vector<size_t> getInteriorPointIndices(const ConstPointSetMatrixMap<OutputScalarT,EigenDim> &points, OutputScalarT offset = 0.0) const {
+        std::vector<size_t> getInteriorPointIndices(const ConstVectorSetMatrixMap<OutputScalarT,EigenDim> &points, OutputScalarT offset = 0.0) const {
             std::vector<size_t> indices;
             indices.reserve(points.cols());
             for (size_t i = 0; i < points.cols(); i++) {

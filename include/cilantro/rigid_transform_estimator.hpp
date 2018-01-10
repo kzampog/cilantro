@@ -13,11 +13,11 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        RigidTransformEstimator(const ConstPointSetMatrixMap<float,3> &dst_points,
-                                const ConstPointSetMatrixMap<float,3> &src_points);
+        RigidTransformEstimator(const ConstVectorSetMatrixMap<float,3> &dst_points,
+                                const ConstVectorSetMatrixMap<float,3> &src_points);
 
-        RigidTransformEstimator(const ConstPointSetMatrixMap<float,3> &dst_points,
-                                const ConstPointSetMatrixMap<float,3> &src_points,
+        RigidTransformEstimator(const ConstVectorSetMatrixMap<float,3> &dst_points,
+                                const ConstVectorSetMatrixMap<float,3> &src_points,
                                 const std::vector<size_t> &dst_ind,
                                 const std::vector<size_t> &src_ind);
 
@@ -36,9 +36,9 @@ namespace cilantro {
         inline size_t getDataPointsCount() const { return dst_points_.cols(); }
 
     private:
-        PointSet<float,3> dst_points_tmp_;
-        PointSet<float,3> src_points_tmp_;
-        ConstPointSetMatrixMap<float,3> dst_points_;
-        ConstPointSetMatrixMap<float,3> src_points_;
+        VectorSet<float,3> dst_points_tmp_;
+        VectorSet<float,3> src_points_tmp_;
+        ConstVectorSetMatrixMap<float,3> dst_points_;
+        ConstVectorSetMatrixMap<float,3> src_points_;
     };
 }

@@ -93,10 +93,10 @@ namespace cilantro {
         void applyRenderingProperties();
         void render();
 
-        PointSet<float,3> points;
-        PointSet<float,3> normals;
-        PointSet<float,3> colors;
-        PointSet<float,1> pointValues;
+        VectorSet<float,3> points;
+        VectorSet<float,3> normals;
+        VectorSet<float,3> colors;
+        VectorSet<float,1> pointValues;
         pangolin::GlBuffer pointBuffer;
         pangolin::GlBuffer normalBuffer;
         pangolin::GlBuffer colorBuffer;
@@ -109,8 +109,8 @@ namespace cilantro {
         void applyRenderingProperties();
         void render();
 
-        PointSet<float,3> srcPoints;
-        PointSet<float,3> dstPoints;
+        VectorSet<float,3> srcPoints;
+        VectorSet<float,3> dstPoints;
         pangolin::GlBuffer lineEndPointBuffer;
     };
 
@@ -143,14 +143,14 @@ namespace cilantro {
         void applyRenderingProperties();
         void render();
 
-        PointSet<float,3> vertices;
+        VectorSet<float,3> vertices;
         std::vector<std::vector<size_t>> faces;
-        PointSet<float,3> vertexNormals;
-        PointSet<float,3> faceNormals;
-        PointSet<float,3> vertexColors;
-        PointSet<float,3> faceColors;
-        PointSet<float,1> vertexValues;
-        PointSet<float,1> faceValues;
+        VectorSet<float,3> vertexNormals;
+        VectorSet<float,3> faceNormals;
+        VectorSet<float,3> vertexColors;
+        VectorSet<float,3> faceColors;
+        VectorSet<float,1> vertexValues;
+        VectorSet<float,1> faceValues;
         pangolin::GlBuffer vertexBuffer;
         pangolin::GlBuffer normalBuffer;
         pangolin::GlBuffer colorBuffer;

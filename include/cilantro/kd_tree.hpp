@@ -68,7 +68,7 @@ namespace cilantro {
             ScalarT radius;
         };
 
-        KDTree(const ConstPointSetMatrixMap<ScalarT,EigenDim> &data, size_t max_leaf_size = 10)
+        KDTree(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data, size_t max_leaf_size = 10)
                 : data_map_(data),
                   mat_to_kd_(data_map_),
                   kd_tree_(data.rows(), mat_to_kd_, nanoflann::KDTreeSingleIndexAdaptorParams(max_leaf_size))
@@ -79,11 +79,11 @@ namespace cilantro {
 
         ~KDTree() {}
 
-        void nearestNeighborSearch(const Eigen::Ref<const Point<ScalarT,EigenDim>> &query_pt, size_t &neighbor, ScalarT &distance) const {
+        void nearestNeighborSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, size_t &neighbor, ScalarT &distance) const {
             kd_tree_.knnSearch(query_pt.data(), 1, &neighbor, &distance);
         }
 
-        void kNNSearch(const Eigen::Ref<const Point<ScalarT,EigenDim>> &query_pt, size_t k, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
+        void kNNSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, size_t k, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
             neighbors.resize(k);
             distances.resize(k);
             size_t num_results = kd_tree_.knnSearch(query_pt.data(), k, neighbors.data(), distances.data());
@@ -91,7 +91,7 @@ namespace cilantro {
             distances.resize(num_results);
         }
 
-        void radiusSearch(const Eigen::Ref<const Point<ScalarT,EigenDim>> &query_pt, ScalarT radius, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
+        void radiusSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, ScalarT radius, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
             std::vector<std::pair<size_t,ScalarT>> matches;
             matches.reserve(data_map_.cols());
             size_t num_results = kd_tree_.radiusSearch(query_pt.data(), radius, matches, params_);
@@ -103,7 +103,7 @@ namespace cilantro {
             }
         }
 
-        void kNNInRadiusSearch(const Eigen::Ref<const Point<ScalarT,EigenDim>> &query_pt, size_t k, ScalarT radius, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
+        void kNNInRadiusSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, size_t k, ScalarT radius, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
             KDTree::kNNSearch(query_pt, k, neighbors, distances);
             size_t ind = neighbors.size() - 1;
             while (ind >= 0 && distances[ind] >= radius) ind--;
@@ -116,7 +116,7 @@ namespace cilantro {
 //            }
         }
 
-        inline void search(const Eigen::Ref<const Point<ScalarT,EigenDim>> &query_pt, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances, const Neighborhood &nh) const {
+        inline void search(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances, const Neighborhood &nh) const {
             switch (nh.type) {
                 case NeighborhoodType::KNN:
                     kNNSearch(query_pt, nh.maxNumberOfNeighbors, neighbors, distances);
@@ -133,7 +133,7 @@ namespace cilantro {
     private:
         typedef nanoflann::KDTreeSingleIndexAdaptor<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>, KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>, EigenDim> TreeType_;
 
-        ConstPointSetMatrixMap<ScalarT,EigenDim> data_map_;
+        ConstVectorSetMatrixMap<ScalarT,EigenDim> data_map_;
         const KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> mat_to_kd_;
         TreeType_ kd_tree_;
         nanoflann::SearchParams params_;

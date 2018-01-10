@@ -1,19 +1,19 @@
 #include <cilantro/colormap.hpp>
 
 namespace cilantro {
-    PointSet<float,3> colormap(const ConstPointSetMatrixMap<float,1> &scalars, float scalar_min, float scalar_max, const ColormapType &colormap_type) {
+    VectorSet<float,3> colormap(const ConstVectorSetMatrixMap<float,1> &scalars, float scalar_min, float scalar_max, const ColormapType &colormap_type) {
         float scalar_min_used = scalar_min;
         float scalar_max_used = scalar_max;
         if (!std::isfinite(scalar_min_used)) scalar_min_used = scalars.minCoeff();
         if (!std::isfinite(scalar_max_used)) scalar_max_used = scalars.maxCoeff();
         if (!std::isfinite(scalar_min_used) || !std::isfinite(scalar_max_used)) {
-            return PointSet<float,3>::Zero(3, scalars.cols());
+            return VectorSet<float,3>::Zero(3, scalars.cols());
         }
 
         float scalar_range = scalar_max_used - scalar_min_used;
         float scalar_normalized;
 
-        PointSet<float,3> colors(3, scalars.cols());
+        VectorSet<float,3> colors(3, scalars.cols());
         switch (colormap_type) {
             case ColormapType::JET:
                 for (size_t i = 0; i < scalars.cols(); i++) {

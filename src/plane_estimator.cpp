@@ -2,7 +2,7 @@
 #include <cilantro/principal_component_analysis.hpp>
 
 namespace cilantro {
-    PlaneEstimator::PlaneEstimator(const ConstPointSetMatrixMap<float,3> &points)
+    PlaneEstimator::PlaneEstimator(const ConstVectorSetMatrixMap<float,3> &points)
             : RandomSampleConsensus(3, points.cols()/2 + points.cols()%2, 100, 0.1, true),
               points_(points)
     {}
@@ -19,7 +19,7 @@ namespace cilantro {
     }
 
     PlaneEstimator& PlaneEstimator::estimateModelParameters(const std::vector<size_t> &sample_ind, LinearConstraint<float,3> &model_params) {
-        PointSet<float,3> points(3, sample_ind.size());
+        VectorSet<float,3> points(3, sample_ind.size());
         for (size_t i = 0; i < sample_ind.size(); i++) {
             points.col(i) = points_.col(sample_ind[i]);
         }
@@ -47,7 +47,7 @@ namespace cilantro {
         return residuals;
     }
 
-    void PlaneEstimator::estimate_params_(const ConstPointSetMatrixMap<float,3> &points, LinearConstraint<float,3> &model_params) {
+    void PlaneEstimator::estimate_params_(const ConstVectorSetMatrixMap<float,3> &points, LinearConstraint<float,3> &model_params) {
         PrincipalComponentAnalysis3D pca(points);
         const Eigen::Vector3f& normal = pca.getEigenVectors().col(2);
         model_params.head(3) = normal;

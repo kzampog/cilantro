@@ -11,7 +11,7 @@ namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
     bool checkLinearInequalityConstraintRedundancy(const Eigen::Ref<const LinearConstraint<ScalarT,EigenDim>> &ineq_to_test,
                                                    const ConstLinearConstraintSetMatrixMap<ScalarT,EigenDim> &inequalities,
-                                                   const Eigen::Ref<const Point<ScalarT,EigenDim>> &feasible_point,
+                                                   const Eigen::Ref<const Vector<ScalarT,EigenDim>> &feasible_point,
                                                    double dist_tol = std::numeric_limits<ScalarT>::epsilon())
     {
         size_t dim = inequalities.rows() - 1;
@@ -77,7 +77,7 @@ namespace cilantro {
 
     template <typename ScalarT, ptrdiff_t EigenDim>
     bool findFeasiblePointInHalfspaceIntersection(const ConstLinearConstraintSetMatrixMap<ScalarT,EigenDim> &halfspaces,
-                                                  Point<ScalarT,EigenDim> &feasible_point,
+                                                  Vector<ScalarT,EigenDim> &feasible_point,
                                                   double dist_tol = std::numeric_limits<ScalarT>::epsilon(),
                                                   bool force_strictly_interior = true)
     {
@@ -194,8 +194,8 @@ namespace cilantro {
     template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
     bool evaluateHalfspaceIntersection(const ConstLinearConstraintSetMatrixMap<InputScalarT,EigenDim> &halfspaces,
                                        LinearConstraintSet<OutputScalarT,EigenDim> &facet_halfspaces,
-                                       PointSet<OutputScalarT,EigenDim> &polytope_vertices,
-                                       Point<OutputScalarT,EigenDim> &interior_point,
+                                       VectorSet<OutputScalarT,EigenDim> &polytope_vertices,
+                                       Vector<OutputScalarT,EigenDim> &interior_point,
                                        bool &is_bounded,
                                        double dist_tol = std::numeric_limits<InputScalarT>::epsilon(),
                                        double merge_tol = 0.0)
@@ -280,7 +280,7 @@ namespace cilantro {
         orgQhull::QhullFacetList facets = qh.facetList();
         size_t num_dual_facets = facets.size();
 
-        PointSet<double,EigenDim> vertices(dim, num_dual_facets);
+        VectorSet<double,EigenDim> vertices(dim, num_dual_facets);
         polytope_vertices.resize(dim, num_dual_facets);
 
         size_t ind = 0;
@@ -316,8 +316,8 @@ namespace cilantro {
     }
 
     template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
-    bool halfspaceIntersectionFromVertices(const ConstPointSetMatrixMap<InputScalarT,EigenDim> &vertices,
-                                           PointSet<OutputScalarT,EigenDim> &polytope_vertices,
+    bool halfspaceIntersectionFromVertices(const ConstVectorSetMatrixMap<InputScalarT,EigenDim> &vertices,
+                                           VectorSet<OutputScalarT,EigenDim> &polytope_vertices,
                                            LinearConstraintSet<OutputScalarT,EigenDim> &facet_halfspaces,
                                            double &area, double &volume,
                                            bool require_full_dimension = true,
@@ -494,7 +494,7 @@ namespace cilantro {
     }
 
     template <typename ScalarT, ptrdiff_t EigenDim>
-    void computeConvexHullAreaAndVolume(const ConstPointSetMatrixMap<ScalarT,EigenDim> &vertices,
+    void computeConvexHullAreaAndVolume(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &vertices,
                                         double &area, double &volume,
                                         double merge_tol = 0.0)
     {
@@ -569,8 +569,8 @@ namespace cilantro {
     }
 
     template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
-    bool convexHullFromPoints(const ConstPointSetMatrixMap<InputScalarT,EigenDim> &points,
-                              PointSet<OutputScalarT,EigenDim> &hull_points,
+    bool convexHullFromPoints(const ConstVectorSetMatrixMap<InputScalarT,EigenDim> &points,
+                              VectorSet<OutputScalarT,EigenDim> &hull_points,
                               LinearConstraintSet<OutputScalarT,EigenDim> &halfspaces,
                               std::vector<std::vector<size_t>> &facets,
                               std::vector<std::vector<size_t>> &point_neighbor_facets,

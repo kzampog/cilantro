@@ -8,7 +8,7 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        PlaneEstimator(const ConstPointSetMatrixMap<float,3> &points);
+        PlaneEstimator(const ConstVectorSetMatrixMap<float,3> &points);
 
         PlaneEstimator& estimateModelParameters(LinearConstraint<float,3> &model_params);
 
@@ -25,8 +25,8 @@ namespace cilantro {
         inline size_t getDataPointsCount() const { return points_.cols(); }
 
     private:
-        ConstPointSetMatrixMap<float,3> points_;
+        ConstVectorSetMatrixMap<float,3> points_;
 
-        void estimate_params_(const ConstPointSetMatrixMap<float,3> &points, LinearConstraint<float,3> &model_params);
+        void estimate_params_(const ConstVectorSetMatrixMap<float,3> &points, LinearConstraint<float,3> &model_params);
     };
 }

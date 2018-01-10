@@ -31,7 +31,7 @@ namespace cilantro {
         }
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
-        ConvexPolytope(const ConstPointSetMatrixMap<InputScalarT,EigenDim> &points, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0)
+        ConvexPolytope(const ConstVectorSetMatrixMap<InputScalarT,EigenDim> &points, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0)
                 : dim_(EigenDim)
         {
             init_points_(points, compute_topology, simplicial_facets, merge_tol);
@@ -85,24 +85,24 @@ namespace cilantro {
 
         inline double getVolume() const { return volume_; }
 
-        inline const PointSet<OutputScalarT,EigenDim>& getVertices() const { return vertices_; }
+        inline const VectorSet<OutputScalarT,EigenDim>& getVertices() const { return vertices_; }
 
         inline const LinearConstraintSet<OutputScalarT,EigenDim>& getFacetHyperplanes() const { return halfspaces_; }
 
-        inline const Point<OutputScalarT,EigenDim>& getInteriorPoint() const { return interior_point_; }
+        inline const Vector<OutputScalarT,EigenDim>& getInteriorPoint() const { return interior_point_; }
 
-        inline bool containsPoint(const Eigen::Ref<const Eigen::Matrix<OutputScalarT,EigenDim,1>> &point, OutputScalarT offset = 0.0) const {
+        inline bool containsPoint(const Eigen::Ref<const Vector<OutputScalarT,EigenDim>> &point, OutputScalarT offset = 0.0) const {
             for (size_t i = 0; i < halfspaces_.cols(); i++) {
                 if (point.dot(halfspaces_.col(i).head(dim_)) + halfspaces_(dim_,i) > -offset) return false;
             }
             return true;
         }
 
-        inline Eigen::Matrix<OutputScalarT,Eigen::Dynamic,Eigen::Dynamic> getPointSignedDistancesFromFacets(const ConstPointSetMatrixMap<OutputScalarT,EigenDim> &points) const {
+        inline Eigen::Matrix<OutputScalarT,Eigen::Dynamic,Eigen::Dynamic> getPointSignedDistancesFromFacets(const ConstVectorSetMatrixMap<OutputScalarT,EigenDim> &points) const {
             return (halfspaces_.topRows(dim_).transpose()*points).colwise() + halfspaces_.row(dim_).transpose();
         }
 
-        Eigen::Matrix<bool,1,Eigen::Dynamic> getInteriorPointsIndexMask(const ConstPointSetMatrixMap<OutputScalarT,EigenDim> &points, OutputScalarT offset = 0.0) const {
+        Eigen::Matrix<bool,1,Eigen::Dynamic> getInteriorPointsIndexMask(const ConstVectorSetMatrixMap<OutputScalarT,EigenDim> &points, OutputScalarT offset = 0.0) const {
             Eigen::Matrix<bool,1,Eigen::Dynamic> mask(1,points.cols());
             for (size_t i = 0; i < points.cols(); i++) {
                 mask(i) = containsPoint(points.col(i), offset);
@@ -110,7 +110,7 @@ namespace cilantro {
             return mask;
         }
 
-        std::vector<size_t> getInteriorPointIndices(const ConstPointSetMatrixMap<OutputScalarT,EigenDim> &points, OutputScalarT offset = 0.0) const {
+        std::vector<size_t> getInteriorPointIndices(const ConstVectorSetMatrixMap<OutputScalarT,EigenDim> &points, OutputScalarT offset = 0.0) const {
             std::vector<size_t> indices;
             indices.reserve(points.cols());
             for (size_t i = 0; i < points.cols(); i++) {
@@ -162,9 +162,9 @@ namespace cilantro {
         double area_;
         double volume_;
 
-        PointSet<OutputScalarT,EigenDim> vertices_;
+        VectorSet<OutputScalarT,EigenDim> vertices_;
         LinearConstraintSet<OutputScalarT,EigenDim> halfspaces_;
-        Point<OutputScalarT,EigenDim> interior_point_;
+        Vector<OutputScalarT,EigenDim> interior_point_;
 
         // Topological properties: only available for bounded (full-dimensional) polytopes
         std::vector<std::vector<size_t>> faces_;
@@ -172,7 +172,7 @@ namespace cilantro {
         std::vector<std::vector<size_t>> face_neighbor_faces_;
         std::vector<size_t> vertex_point_indices_;
 
-        inline void init_points_(const ConstPointSetMatrixMap<InputScalarT,EigenDim> &points, bool compute_topology, bool simplicial_facets, double merge_tol) {
+        inline void init_points_(const ConstVectorSetMatrixMap<InputScalarT,EigenDim> &points, bool compute_topology, bool simplicial_facets, double merge_tol) {
             is_empty_ = (compute_topology) ? !convexHullFromPoints<InputScalarT,OutputScalarT,EigenDim>(points, vertices_, halfspaces_, faces_, vertex_neighbor_faces_, face_neighbor_faces_, vertex_point_indices_, area_, volume_, simplicial_facets, merge_tol)
                                            : !halfspaceIntersectionFromVertices<InputScalarT,OutputScalarT,EigenDim>(points, vertices_, halfspaces_, area_, volume_, true, merge_tol);
             is_bounded_ = true;
