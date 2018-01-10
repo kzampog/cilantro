@@ -105,7 +105,7 @@ namespace cilantro {
     using ConstVectorSetMatrixMap = ConstDataMatrixMap<ScalarT,EigenDim>;
 
     template <typename ScalarT, ptrdiff_t EigenDim>
-    using ConstLinearConstraintSetMatrixMap = typename std::conditional<EigenDim == Eigen::Dynamic, ConstDataMatrixMap<ScalarT,EigenDim>, ConstDataMatrixMap<ScalarT,EigenDim+1>>::type;
+    using ConstHomogeneousVectorSetMatrixMap = typename std::conditional<EigenDim == Eigen::Dynamic, ConstDataMatrixMap<ScalarT,EigenDim>, ConstDataMatrixMap<ScalarT,EigenDim+1>>::type;
 
     template <typename ScalarT, ptrdiff_t EigenDim>
     using Vector = Eigen::Matrix<ScalarT,EigenDim,1>;
@@ -114,8 +114,8 @@ namespace cilantro {
     using VectorSet = Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>;
 
     template <typename ScalarT, ptrdiff_t EigenDim>
-    using LinearConstraint = typename std::conditional<EigenDim == Eigen::Dynamic, Eigen::Matrix<ScalarT,EigenDim,1>, Eigen::Matrix<ScalarT,EigenDim+1,1>>::type;
+    using HomogeneousVector = typename std::conditional<EigenDim == Eigen::Dynamic, Eigen::Matrix<ScalarT,EigenDim,1>, Eigen::Matrix<ScalarT,EigenDim+1,1>>::type;
 
     template <typename ScalarT, ptrdiff_t EigenDim>
-    using LinearConstraintSet = typename std::conditional<EigenDim == Eigen::Dynamic, Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>, Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic>>::type;
+    using HomogeneousVectorSet = typename std::conditional<EigenDim == Eigen::Dynamic, Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>, Eigen::Matrix<ScalarT,EigenDim+1,Eigen::Dynamic>>::type;
 }

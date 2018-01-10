@@ -38,7 +38,7 @@ namespace cilantro {
         }
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
-        ConvexPolytope(const ConstLinearConstraintSetMatrixMap<InputScalarT,EigenDim> &halfspaces, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0, double dist_tol = std::numeric_limits<InputScalarT>::epsilon())
+        ConvexPolytope(const ConstHomogeneousVectorSetMatrixMap<InputScalarT,EigenDim> &halfspaces, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0, double dist_tol = std::numeric_limits<InputScalarT>::epsilon())
                 : dim_(EigenDim)
         {
             init_halfspaces_(halfspaces, compute_topology, simplicial_facets, merge_tol, dist_tol);
@@ -61,7 +61,7 @@ namespace cilantro {
 
         template <ptrdiff_t Dim = EigenDim>
         typename std::enable_if<Dim != Eigen::Dynamic, ConvexPolytope>::type intersectionWith(const ConvexPolytope &poly, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0, double dist_tol = std::numeric_limits<InputScalarT>::epsilon()) const {
-            LinearConstraintSet<OutputScalarT,EigenDim> hs_intersection(EigenDim+1, halfspaces_.cols() + poly.halfspaces_.cols());
+            HomogeneousVectorSet<OutputScalarT,EigenDim> hs_intersection(EigenDim+1, halfspaces_.cols() + poly.halfspaces_.cols());
             hs_intersection.leftCols(halfspaces_.cols()) = halfspaces_;
             hs_intersection.rightCols(poly.halfspaces_.cols()) = poly.halfspaces_;
             return ConvexPolytope(hs_intersection, compute_topology, simplicial_facets, merge_tol, dist_tol);
@@ -69,7 +69,7 @@ namespace cilantro {
 
         template <ptrdiff_t Dim = EigenDim>
         typename std::enable_if<Dim == Eigen::Dynamic, ConvexPolytope>::type intersectionWith(const ConvexPolytope &poly, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0, double dist_tol = std::numeric_limits<InputScalarT>::epsilon()) const {
-            LinearConstraintSet<OutputScalarT,EigenDim> hs_intersection(dim_+1, halfspaces_.cols() + poly.halfspaces_.cols());
+            HomogeneousVectorSet<OutputScalarT,EigenDim> hs_intersection(dim_+1, halfspaces_.cols() + poly.halfspaces_.cols());
             hs_intersection.leftCols(halfspaces_.cols()) = halfspaces_;
             hs_intersection.rightCols(poly.halfspaces_.cols()) = poly.halfspaces_;
             return ConvexPolytope(hs_intersection, dim_, compute_topology, simplicial_facets, merge_tol, dist_tol);
@@ -87,7 +87,7 @@ namespace cilantro {
 
         inline const VectorSet<OutputScalarT,EigenDim>& getVertices() const { return vertices_; }
 
-        inline const LinearConstraintSet<OutputScalarT,EigenDim>& getFacetHyperplanes() const { return halfspaces_; }
+        inline const HomogeneousVectorSet<OutputScalarT,EigenDim>& getFacetHyperplanes() const { return halfspaces_; }
 
         inline const Vector<OutputScalarT,EigenDim>& getInteriorPoint() const { return interior_point_; }
 
@@ -163,7 +163,7 @@ namespace cilantro {
         double volume_;
 
         VectorSet<OutputScalarT,EigenDim> vertices_;
-        LinearConstraintSet<OutputScalarT,EigenDim> halfspaces_;
+        HomogeneousVectorSet<OutputScalarT,EigenDim> halfspaces_;
         Vector<OutputScalarT,EigenDim> interior_point_;
 
         // Topological properties: only available for bounded (full-dimensional) polytopes
@@ -183,7 +183,7 @@ namespace cilantro {
             }
         }
 
-        inline void init_halfspaces_(const ConstLinearConstraintSetMatrixMap<InputScalarT,EigenDim> &halfspaces, bool compute_topology, bool simplicial_facets, double merge_tol, double dist_tol) {
+        inline void init_halfspaces_(const ConstHomogeneousVectorSetMatrixMap<InputScalarT,EigenDim> &halfspaces, bool compute_topology, bool simplicial_facets, double merge_tol, double dist_tol) {
             is_empty_ = !evaluateHalfspaceIntersection<InputScalarT,OutputScalarT,EigenDim>(halfspaces, halfspaces_, vertices_, interior_point_, is_bounded_, dist_tol, merge_tol);
             if (is_empty_) {
                 area_ = 0.0;

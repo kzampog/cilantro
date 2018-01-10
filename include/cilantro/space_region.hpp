@@ -39,7 +39,7 @@ namespace cilantro {
         }
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
-        SpaceRegion(const ConstLinearConstraintSetMatrixMap<InputScalarT,EigenDim> &halfspaces, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0, double dist_tol = std::numeric_limits<InputScalarT>::epsilon())
+        SpaceRegion(const ConstHomogeneousVectorSetMatrixMap<InputScalarT,EigenDim> &halfspaces, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0, double dist_tol = std::numeric_limits<InputScalarT>::epsilon())
                 : dim_(EigenDim)
         {
             polytopes_.emplace_back(halfspaces, compute_topology, simplicial_facets, merge_tol, dist_tol);
@@ -76,13 +76,13 @@ namespace cilantro {
         // Inefficient
         template <ptrdiff_t Dim = EigenDim>
         typename std::enable_if<Dim != Eigen::Dynamic, SpaceRegion>::type complement(bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0, double dist_tol = std::numeric_limits<InputScalarT>::epsilon()) const {
-            std::vector<LinearConstraintSet<OutputScalarT,EigenDim>> tuples;
+            std::vector<HomogeneousVectorSet<OutputScalarT,EigenDim>> tuples;
             tuples.emplace_back(EigenDim+1,0);
             for (size_t p = 0; p < polytopes_.size(); p++) {
-                const LinearConstraintSet<OutputScalarT,EigenDim>& hs(polytopes_[p].getFacetHyperplanes());
-                std::vector<LinearConstraintSet<OutputScalarT,EigenDim>> tuples_new;
+                const HomogeneousVectorSet<OutputScalarT,EigenDim>& hs(polytopes_[p].getFacetHyperplanes());
+                std::vector<HomogeneousVectorSet<OutputScalarT,EigenDim>> tuples_new;
                 for (size_t t = 0; t < tuples.size(); t++) {
-                    LinearConstraintSet<OutputScalarT,EigenDim> tup_curr(EigenDim+1, tuples[t].cols()+1);
+                    HomogeneousVectorSet<OutputScalarT,EigenDim> tup_curr(EigenDim+1, tuples[t].cols()+1);
                     tup_curr.leftCols(tuples[t].cols()) = tuples[t];
                     for (size_t h = 0; h < hs.cols(); h++) {
                         tup_curr.col(tup_curr.cols()-1) = -hs.col(h);
@@ -105,13 +105,13 @@ namespace cilantro {
         // Inefficient
         template <ptrdiff_t Dim = EigenDim>
         typename std::enable_if<Dim == Eigen::Dynamic, SpaceRegion>::type complement(bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0, double dist_tol = std::numeric_limits<InputScalarT>::epsilon()) const {
-            std::vector<LinearConstraintSet<OutputScalarT,EigenDim>> tuples;
+            std::vector<HomogeneousVectorSet<OutputScalarT,EigenDim>> tuples;
             tuples.emplace_back(dim_+1,0);
             for (size_t p = 0; p < polytopes_.size(); p++) {
-                const LinearConstraintSet<OutputScalarT,EigenDim>& hs(polytopes_[p].getFacetHyperplanes());
-                std::vector<LinearConstraintSet<OutputScalarT,EigenDim>> tuples_new;
+                const HomogeneousVectorSet<OutputScalarT,EigenDim>& hs(polytopes_[p].getFacetHyperplanes());
+                std::vector<HomogeneousVectorSet<OutputScalarT,EigenDim>> tuples_new;
                 for (size_t t = 0; t < tuples.size(); t++) {
-                    LinearConstraintSet<OutputScalarT,EigenDim> tup_curr(dim_+1, tuples[t].cols()+1);
+                    HomogeneousVectorSet<OutputScalarT,EigenDim> tup_curr(dim_+1, tuples[t].cols()+1);
                     tup_curr.leftCols(tuples[t].cols()) = tuples[t];
                     for (size_t h = 0; h < hs.cols(); h++) {
                         tup_curr.col(tup_curr.cols()-1) = -hs.col(h);
@@ -157,7 +157,7 @@ namespace cilantro {
             if (!isBounded()) return std::numeric_limits<double>::infinity();
 
             ConvexPolytopeVector subsets;
-            subsets.emplace_back(LinearConstraintSet<InputScalarT,EigenDim>(EigenDim+1, 0));
+            subsets.emplace_back(HomogeneousVectorSet<InputScalarT,EigenDim>(EigenDim+1, 0));
 
             std::vector<size_t> subset_sizes;
             subset_sizes.emplace_back(0);
@@ -183,7 +183,7 @@ namespace cilantro {
             if (!isBounded()) return std::numeric_limits<double>::infinity();
 
             ConvexPolytopeVector subsets;
-            subsets.emplace_back(LinearConstraintSet<InputScalarT,EigenDim>(dim_+1, 0), dim_);
+            subsets.emplace_back(HomogeneousVectorSet<InputScalarT,EigenDim>(dim_+1, 0), dim_);
 
             std::vector<size_t> subset_sizes;
             subset_sizes.emplace_back(0);

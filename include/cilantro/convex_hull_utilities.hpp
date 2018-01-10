@@ -9,8 +9,8 @@
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
-    bool checkLinearInequalityConstraintRedundancy(const Eigen::Ref<const LinearConstraint<ScalarT,EigenDim>> &ineq_to_test,
-                                                   const ConstLinearConstraintSetMatrixMap<ScalarT,EigenDim> &inequalities,
+    bool checkLinearInequalityConstraintRedundancy(const Eigen::Ref<const HomogeneousVector<ScalarT,EigenDim>> &ineq_to_test,
+                                                   const ConstHomogeneousVectorSetMatrixMap<ScalarT,EigenDim> &inequalities,
                                                    const Eigen::Ref<const Vector<ScalarT,EigenDim>> &feasible_point,
                                                    double dist_tol = std::numeric_limits<ScalarT>::epsilon())
     {
@@ -76,7 +76,7 @@ namespace cilantro {
     }
 
     template <typename ScalarT, ptrdiff_t EigenDim>
-    bool findFeasiblePointInHalfspaceIntersection(const ConstLinearConstraintSetMatrixMap<ScalarT,EigenDim> &halfspaces,
+    bool findFeasiblePointInHalfspaceIntersection(const ConstHomogeneousVectorSetMatrixMap<ScalarT,EigenDim> &halfspaces,
                                                   Vector<ScalarT,EigenDim> &feasible_point,
                                                   double dist_tol = std::numeric_limits<ScalarT>::epsilon(),
                                                   bool force_strictly_interior = true)
@@ -162,7 +162,7 @@ namespace cilantro {
 
             if (num_additional > 0) {
                 double offset = (double)(num_halfspaces - 1);
-                LinearConstraintSet<double,EigenDim> halfspaces_tight(dim+1,num_halfspaces+num_additional);
+                HomogeneousVectorSet<double,EigenDim> halfspaces_tight(dim+1,num_halfspaces+num_additional);
                 halfspaces_tight.leftCols(num_halfspaces) = ineq_data;
                 num_additional = num_halfspaces;
                 for (size_t i = 0; i < tight_ind.size(); i++) {
@@ -192,8 +192,8 @@ namespace cilantro {
     }
 
     template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
-    bool evaluateHalfspaceIntersection(const ConstLinearConstraintSetMatrixMap<InputScalarT,EigenDim> &halfspaces,
-                                       LinearConstraintSet<OutputScalarT,EigenDim> &facet_halfspaces,
+    bool evaluateHalfspaceIntersection(const ConstHomogeneousVectorSetMatrixMap<InputScalarT,EigenDim> &halfspaces,
+                                       HomogeneousVectorSet<OutputScalarT,EigenDim> &facet_halfspaces,
                                        VectorSet<OutputScalarT,EigenDim> &polytope_vertices,
                                        Vector<OutputScalarT,EigenDim> &interior_point,
                                        bool &is_bounded,
@@ -204,7 +204,7 @@ namespace cilantro {
         size_t num_halfspaces = halfspaces.cols();
 
         // Set up variables
-        LinearConstraintSet<double,EigenDim> hs_coeffs(halfspaces.template cast<double>());
+        HomogeneousVectorSet<double,EigenDim> hs_coeffs(halfspaces.template cast<double>());
         Eigen::Matrix<double,EigenDim,1> feasible_point(dim);
 
         // Force unit length normals
@@ -235,7 +235,7 @@ namespace cilantro {
         //std::cout << "rank: " << lu.rank() << std::endl;
 
         if (lu.rank() < dim) {
-            Eigen::Map<LinearConstraintSet<double,EigenDim>> first_cols(hs_coeffs.data(), dim+1, num_halfspaces-1);
+            Eigen::Map<HomogeneousVectorSet<double,EigenDim>> first_cols(hs_coeffs.data(), dim+1, num_halfspaces-1);
 
             facet_halfspaces.resize(dim+1,num_halfspaces);
             size_t nr = 0;
@@ -305,7 +305,7 @@ namespace cilantro {
         facet_halfspaces.resize(dim+1, qh.vertexList().size());
         ind = 0;
         for (auto vi = qh.vertexList().begin(); vi != qh.vertexList().end(); ++vi) {
-            const LinearConstraint<double,EigenDim>& hs(hs_coeffs.col(vi->point().id()));
+            const HomogeneousVector<double,EigenDim>& hs(hs_coeffs.col(vi->point().id()));
             if (((hs.head(dim).transpose()*vertices).array() + hs(dim)).cwiseAbs().minCoeff() < dist_tol) {
                 facet_halfspaces.col(ind++) = hs.template cast<OutputScalarT>();
             }
@@ -318,7 +318,7 @@ namespace cilantro {
     template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
     bool halfspaceIntersectionFromVertices(const ConstVectorSetMatrixMap<InputScalarT,EigenDim> &vertices,
                                            VectorSet<OutputScalarT,EigenDim> &polytope_vertices,
-                                           LinearConstraintSet<OutputScalarT,EigenDim> &facet_halfspaces,
+                                           HomogeneousVectorSet<OutputScalarT,EigenDim> &facet_halfspaces,
                                            double &area, double &volume,
                                            bool require_full_dimension = true,
                                            double merge_tol = 0.0)
@@ -374,7 +374,7 @@ namespace cilantro {
 
             Eigen::MatrixXd proj_vert((rot_mat.transpose()*(vert_data.colwise() - t_vec)).topRows(true_dim));
 
-            LinearConstraintSet<double,EigenDim> facet_halfspaces_d(dim+1,0);
+            HomogeneousVectorSet<double,EigenDim> facet_halfspaces_d(dim+1,0);
             size_t hs_ind = 0;
 
             // Populate polytope vertices amd add constraints for first true_dim dimensions
@@ -479,7 +479,7 @@ namespace cilantro {
         facet_halfspaces.resize(dim+1, qh.facetCount());
         for (auto fi = qh_facets.begin(); fi != qh_facets.end(); ++fi) {
             size_t i = 0;
-            LinearConstraint<double,EigenDim> hp(dim+1);
+            HomogeneousVector<double,EigenDim> hp(dim+1);
             for (auto hpi = fi->hyperplane().begin(); hpi != fi->hyperplane().end(); ++hpi) {
                 hp(i++) = *hpi;
             }
@@ -571,7 +571,7 @@ namespace cilantro {
     template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
     bool convexHullFromPoints(const ConstVectorSetMatrixMap<InputScalarT,EigenDim> &points,
                               VectorSet<OutputScalarT,EigenDim> &hull_points,
-                              LinearConstraintSet<OutputScalarT,EigenDim> &halfspaces,
+                              HomogeneousVectorSet<OutputScalarT,EigenDim> &halfspaces,
                               std::vector<std::vector<size_t>> &facets,
                               std::vector<std::vector<size_t>> &point_neighbor_facets,
                               std::vector<std::vector<size_t>> &facet_neighbor_facets,
@@ -684,7 +684,7 @@ namespace cilantro {
         facet_neighbor_facets.resize(qh_facets.size());
         for (auto fi = qh_facets.begin(); fi != qh_facets.end(); ++fi) {
             size_t i = 0;
-            LinearConstraint<double,EigenDim> hp(dim+1);
+            HomogeneousVector<double,EigenDim> hp(dim+1);
             for (auto hpi = fi->hyperplane().begin(); hpi != fi->hyperplane().end(); ++hpi) {
                 hp(i++) = *hpi;
             }
