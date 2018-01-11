@@ -12,14 +12,15 @@ namespace cilantro {
             mean_ = data.rowwise().mean();
             Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> centered = data.colwise() - mean_;
 
-            Eigen::JacobiSVD<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>> svd(centered, Eigen::ComputeFullU | Eigen::ComputeThinV);
-            eigenvectors_ = svd.matrixU();
+            Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig((centered*centered.transpose())/(data.cols()-1));
+
+            eigenvectors_ = eig.eigenvectors().rowwise().reverse();
             if (eigenvectors_.determinant() < 0.0) {
                 ptrdiff_t last_col_ind = data.rows() - 1;
                 eigenvectors_.col(last_col_ind) = -eigenvectors_.col(last_col_ind);
             }
 
-            eigenvalues_ = svd.singularValues().array().square();
+            eigenvalues_ = eig.eigenvalues().reverse();
         }
 
         ~PrincipalComponentAnalysis() {}

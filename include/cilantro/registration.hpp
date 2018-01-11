@@ -22,9 +22,7 @@ namespace cilantro {
         VectorSet<ScalarT,3> dst_centered(dst.colwise() - mu_dst);
         VectorSet<ScalarT,3> src_centered(src.colwise() - mu_src);
 
-        Eigen::Matrix<ScalarT,3,3> cov = dst_centered*(src_centered.transpose())/src.cols();
-
-        Eigen::JacobiSVD<Eigen::Matrix<ScalarT,3,3>> svd(cov, Eigen::ComputeFullU | Eigen::ComputeFullV);
+        Eigen::JacobiSVD<Eigen::Matrix<ScalarT,3,3>> svd(dst_centered*src_centered.transpose(), Eigen::ComputeFullU | Eigen::ComputeFullV);
         if (svd.matrixU().determinant() * svd.matrixV().determinant() < 0.0) {
             Eigen::Matrix<ScalarT,3,3> U(svd.matrixU());
             U.col(2) *= -1.0;
