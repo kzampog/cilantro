@@ -76,14 +76,14 @@ namespace cilantro {
     struct Renderable {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        Renderable() : visible(true), centroid(Eigen::Vector3f::Zero()) {}
+        Renderable() : centroid(Eigen::Vector3f::Zero()), renderable(true) {}
 
         virtual void applyRenderingProperties() = 0;    // Updates GPU buffers
         inline void applyRenderingProperties(const RenderingProperties &rp) { renderingProperties = rp; applyRenderingProperties(); }
         virtual void render() = 0;
 
-        bool visible;
         Eigen::Vector3f centroid;                       // For render priority...
+        bool visible;
         RenderingProperties renderingProperties;
     };
 
