@@ -86,14 +86,14 @@ namespace cilantro {
 
                 // Update assignments
                 if (use_kd_tree) {
-                    std::vector<size_t> neighbors;
-                    std::vector<ScalarT> distances;
+                    size_t neighbor;
+                    ScalarT distance;
                     KDTree<ScalarT,EigenDim,DistAdaptor> tree(cluster_centroids_);
-#pragma omp parallel for shared (assignments_unchanged) private (neighbors, distances)
+#pragma omp parallel for shared (assignments_unchanged) private (neighbor, distance)
                     for (size_t i = 0; i < num_points; i++) {
-                        tree.kNNSearch(data_map_.col(i), 1, neighbors, distances);
-                        if (cluster_index_map_[i] != neighbors[0]) assignments_unchanged = false;
-                        cluster_index_map_[i] = neighbors[0];
+                        tree.nearestNeighborSearch(data_map_.col(i), neighbor, distance);
+                        if (cluster_index_map_[i] != neighbor) assignments_unchanged = false;
+                        cluster_index_map_[i] = neighbor;
                     }
                 } else {
 #pragma omp parallel for shared (assignments_unchanged) private (extr_dist, extr_dist_ind, dist)
@@ -118,7 +118,7 @@ namespace cilantro {
                     }
                 }
 
-                if (assignments_unchanged) break;
+                if (assignments_unchanged && iteration_count_ > 0) break;
                 if (tol > 0.0) centroids_old = cluster_centroids_;
 
                 // Update centroids
