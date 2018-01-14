@@ -40,7 +40,8 @@ Eigen::MatrixXf build_dense_radius_affinity_graph(const cilantro::ConstVectorSet
     for (size_t i = 0; i < points.cols(); i++) {
         tree.radiusSearch(points.col(i).head(3), radius_sq, neighbors, distances);
         for (size_t j = 0; j < neighbors.size(); j++) {
-            float val = std::exp(-1.0f*(points.col(i) - points.col(neighbors[j])).squaredNorm());
+//            float val = std::exp(-1.0f*(points.col(i) - points.col(neighbors[j])).squaredNorm());
+            float val = 1.0f;
             graph(i,neighbors[j]) = val;
             graph(neighbors[j],i) = val;
         }
@@ -82,7 +83,7 @@ int main(int argc, char ** argv) {
 //    Eigen::MatrixXf data = build_dense_radius_affinity_graph<6>(cloud_data, 0.10);
 //    Eigen::MatrixXf data = build_dense_knn_affinity_graph<6>(cloud_data, 500);
 
-    Eigen::MatrixXf data = build_dense_radius_affinity_graph<3>(cloud.points, 0.5f);
+    Eigen::MatrixXf data = build_dense_radius_affinity_graph<3>(cloud.points, 0.6);
 //    Eigen::MatrixXf data = build_dense_knn_affinity_graph<3>(cloud.points, 10);
 
     std::cout << "Number of points: " << cloud.size() << std::endl;
@@ -102,7 +103,7 @@ int main(int argc, char ** argv) {
     std::cout << "Number of clusters: " << sc.getNumberOfClusters() << std::endl;
     std::cout << "Performed k-means iterations: " << sc.getClusterer().getPerformedIterationsCount() << std::endl;
 
-    cilantro::writeEigenMatrixToFile("/home/kzampog/Desktop/ddd.txt", sc.getUsedEigenValues(), false);
+//    cilantro::writeEigenMatrixToFile("/home/kzampog/Desktop/ddd.txt", sc.getUsedEigenValues(), false);
 
     const std::vector<std::vector<size_t> >& cpi(sc.getClusterPointIndices());
     size_t mins = cloud.size(), maxs = 0;
