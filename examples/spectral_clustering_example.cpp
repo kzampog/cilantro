@@ -3,8 +3,7 @@
 #include <cilantro/visualizer.hpp>
 #include <cilantro/voxel_grid.hpp>
 
-template <ptrdiff_t EigenDim>
-Eigen::MatrixXf build_dense_knn_affinity_graph(const cilantro::ConstVectorSetMatrixMap<float,EigenDim> &points, size_t k) {
+Eigen::MatrixXf build_dense_knn_affinity_graph(const cilantro::ConstVectorSetMatrixMap<float,3> &points, size_t k) {
     Eigen::MatrixXf graph(Eigen::MatrixXf::Zero(points.cols(), points.cols()));
 
     cilantro::VectorSet<float,3> tree_data = points.topRows(3);
@@ -15,7 +14,8 @@ Eigen::MatrixXf build_dense_knn_affinity_graph(const cilantro::ConstVectorSetMat
     for (size_t i = 0; i < points.cols(); i++) {
         tree.kNNSearch(points.col(i).head(3), k+1, neighbors, distances);
         for (size_t j = 0; j < neighbors.size(); j++) {
-            float val = std::exp(-1.0f*(points.col(i) - points.col(neighbors[j])).squaredNorm());
+//            float val = std::exp(-1.0f*(points.col(i) - points.col(neighbors[j])).squaredNorm());
+            float val = 1.0f;
             graph(i,neighbors[j]) = val;
             graph(neighbors[j],i) = val;
         }
@@ -26,8 +26,7 @@ Eigen::MatrixXf build_dense_knn_affinity_graph(const cilantro::ConstVectorSetMat
     return graph;
 }
 
-template <ptrdiff_t EigenDim>
-Eigen::MatrixXf build_dense_radius_affinity_graph(const cilantro::ConstVectorSetMatrixMap<float,EigenDim> &points, float radius) {
+Eigen::MatrixXf build_dense_radius_affinity_graph(const cilantro::ConstVectorSetMatrixMap<float,3> &points, float radius) {
     Eigen::MatrixXf graph(Eigen::MatrixXf::Zero(points.cols(), points.cols()));
 
     float radius_sq = radius*radius;
@@ -64,27 +63,8 @@ int main(int argc, char ** argv) {
     cloud.pointsMatrixMap().row(2).array() += 4.0f;
 
 
-//    cilantro::PointCloud cloud;
-//    cilantro::readPointCloudFromPLYFile(argv[1], cloud);
-//    cloud = cilantro::VoxelGrid(cloud, 0.025).getDownsampledCloud().removeInvalidData();
-
-//    cilantro::VectorSet<float,9> cloud_data(9, cloud.size());
-//    cloud_data.topRows(3) = 5.0*cloud.pointsMatrixMap();
-//    cloud_data.block(3,0,3,cloud.size()) = cloud.normalsMatrixMap();
-//    cloud_data.bottomRows(3) = 0.1*cloud.colorsMatrixMap();
-
-//    Eigen::MatrixXf data = build_dense_radius_affinity_graph<9>(cloud_data, 0.4);
-//    Eigen::MatrixXf data = build_dense_knn_affinity_graph<9>(cloud_data, 500);
-
-//    cilantro::VectorSet<float,6> cloud_data(6, cloud.size());
-//    cloud_data.topRows(3) = cloud.pointsMatrixMap();
-//    cloud_data.bottomRows(3) = cloud.normalsMatrixMap();
-
-//    Eigen::MatrixXf data = build_dense_radius_affinity_graph<6>(cloud_data, 0.10);
-//    Eigen::MatrixXf data = build_dense_knn_affinity_graph<6>(cloud_data, 500);
-
-    Eigen::MatrixXf data = build_dense_radius_affinity_graph<3>(cloud.points, 0.6);
-//    Eigen::MatrixXf data = build_dense_knn_affinity_graph<3>(cloud.points, 10);
+    Eigen::MatrixXf data = build_dense_radius_affinity_graph(cloud.points, 0.6);
+//    Eigen::MatrixXf data = build_dense_knn_affinity_graph(cloud.points, 30);
 
     std::cout << "Number of points: " << cloud.size() << std::endl;
 

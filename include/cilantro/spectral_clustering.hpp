@@ -66,6 +66,7 @@ namespace cilantro {
                             size_t kmeans_max_iter, ScalarT kmeans_conv_tol, bool kmeans_use_kd_tree)
         {
             size_t num_clusters = max_num_clusters;
+            size_t num_eigenvalues = (estimate_num_clusters) ? std::min(max_num_clusters+1, (size_t)affinities.rows()) : max_num_clusters;
 
             switch (laplacian_type) {
                 case GraphLaplacianType::UNNORMALIZED: {
@@ -73,12 +74,12 @@ namespace cilantro {
                     Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> L = D - affinities;
 
                     Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> eig(L);
-                    eigenvalues_ = eig.eigenvalues().head(std::min(max_num_clusters+1,(size_t)affinities.rows()));
+                    eigenvalues_ = eig.eigenvalues().head(num_eigenvalues);
                     for (size_t i = 0; i < eigenvalues_.rows(); i++) {
                         if (eigenvalues_[i] < 0.0) eigenvalues_[i] = 0.0;
                     }
                     if (estimate_num_clusters) {
-                        num_clusters = estimate_number_of_clusters_(eigenvalues_);
+                        num_clusters = estimate_number_of_clusters_(eigenvalues_, max_num_clusters);
                     }
                     embedded_points_ = eig.eigenvectors().leftCols(num_clusters).transpose();
 
@@ -92,18 +93,18 @@ namespace cilantro {
                     Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> L = Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>::Identity(affinities.rows(),affinities.cols()) - Dtm12*affinities*Dtm12;
 
                     Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> eig(L);
-                    eigenvalues_ = eig.eigenvalues().head(std::min(max_num_clusters+1,(size_t)affinities.rows()));
+                    eigenvalues_ = eig.eigenvalues().head(num_eigenvalues);
                     for (size_t i = 0; i < eigenvalues_.rows(); i++) {
                         if (eigenvalues_[i] < 0.0) eigenvalues_[i] = 0.0;
                     }
                     if (estimate_num_clusters) {
-                        num_clusters = estimate_number_of_clusters_(eigenvalues_);
+                        num_clusters = estimate_number_of_clusters_(eigenvalues_, max_num_clusters);
                     }
                     embedded_points_ = eig.eigenvectors().leftCols(num_clusters).transpose();
 
                     for (size_t i = 0; i < embedded_points_.cols(); i++) {
                         ScalarT scale = 1.0/embedded_points_.col(i).norm();
-                        embedded_points_.col(i) *= scale;
+                        if (std::isfinite(scale)) embedded_points_.col(i) *= scale;
                     }
 
                     clusterer_.reset(new KMeans<ScalarT,EigenDim>(embedded_points_));
@@ -116,12 +117,12 @@ namespace cilantro {
                     Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> L = D - affinities;
 
                     Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> geig(L,D);
-                    eigenvalues_ = geig.eigenvalues().head(std::min(max_num_clusters+1,(size_t)affinities.rows()));
+                    eigenvalues_ = geig.eigenvalues().head(num_eigenvalues);
                     for (size_t i = 0; i < eigenvalues_.rows(); i++) {
                         if (eigenvalues_[i] < 0.0) eigenvalues_[i] = 0.0;
                     }
                     if (estimate_num_clusters) {
-                        num_clusters = estimate_number_of_clusters_(eigenvalues_);
+                        num_clusters = estimate_number_of_clusters_(eigenvalues_, max_num_clusters);
                     }
                     embedded_points_ = geig.eigenvectors().leftCols(num_clusters).transpose();
 
@@ -133,7 +134,11 @@ namespace cilantro {
             }
         }
 
-        size_t estimate_number_of_clusters_(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &eigenvalues) {
+        size_t estimate_number_of_clusters_(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &eigenvalues,
+                                            size_t max_num_clusters)
+        {
+            ScalarT min_val = std::numeric_limits<ScalarT>::infinity();
+            ScalarT max_val = -std::numeric_limits<ScalarT>::infinity();
             ScalarT max_diff = eigenvalues[0];
             size_t max_ind = 0;
             for (size_t i = 0; i < eigenvalues.rows() - 1; i++) {
@@ -142,7 +147,13 @@ namespace cilantro {
                     max_diff = diff;
                     max_ind = i;
                 }
+                if (eigenvalues[i] < min_val) min_val = eigenvalues[i];
+                if (eigenvalues[i] > max_val) max_val = eigenvalues[i];
             }
+            if (eigenvalues[eigenvalues.rows()-1] < min_val) min_val = eigenvalues[eigenvalues.rows()-1];
+            if (eigenvalues[eigenvalues.rows()-1] > max_val) max_val = eigenvalues[eigenvalues.rows()-1];
+
+            if (max_val - min_val < std::numeric_limits<ScalarT>::epsilon()) return max_num_clusters;
             return max_ind + 1;
         }
 
