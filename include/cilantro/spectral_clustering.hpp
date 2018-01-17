@@ -3,6 +3,9 @@
 #include <memory>
 #include <cilantro/kmeans.hpp>
 
+//#include <cilantro/3rd_party/spectra/SymEigsSolver.h>
+//#include <iostream>
+
 namespace cilantro {
 
     enum struct GraphLaplacianType {UNNORMALIZED, NORMALIZED_SYMMETRIC, NORMALIZED_RANDOM_WALK};
@@ -72,6 +75,21 @@ namespace cilantro {
                 case GraphLaplacianType::UNNORMALIZED: {
                     Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> D = affinities.rowwise().sum().asDiagonal();
                     Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> L = D - affinities;
+
+//                    Spectra::DenseSymMatProd<ScalarT> op(L);
+//                    Spectra::SymEigsSolver<ScalarT, Spectra::SMALLEST_MAGN, Spectra::DenseSymMatProd<ScalarT>> eig(&op, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
+//                    // Initialize and compute
+//                    eig.init();
+//                    eig.compute(1000, 1e-10, Spectra::SMALLEST_MAGN);
+//
+//                    eigenvalues_ = eig.eigenvalues();
+//                    for (size_t i = 0; i < eigenvalues_.rows(); i++) {
+//                        if (eigenvalues_[i] < 0.0) eigenvalues_[i] = 0.0;
+//                    }
+//                    if (estimate_num_clusters) {
+//                        num_clusters = estimate_number_of_clusters_(eigenvalues_, max_num_clusters);
+//                    }
+//                    embedded_points_ = eig.eigenvectors().leftCols(num_clusters).transpose();
 
                     Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> eig(L);
                     eigenvalues_ = eig.eigenvalues().head(num_eigenvalues);
