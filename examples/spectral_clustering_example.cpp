@@ -63,8 +63,10 @@ int main(int argc, char ** argv) {
     cloud.pointsMatrixMap().row(2).array() += 4.0f;
 
 
-    Eigen::MatrixXf data = build_dense_radius_affinity_graph(cloud.points, 0.6);
-//    Eigen::MatrixXf data = build_dense_knn_affinity_graph(cloud.points, 30);
+//    Eigen::MatrixXf data0 = build_dense_radius_affinity_graph(cloud.points, 0.6);
+    Eigen::MatrixXf data0 = build_dense_knn_affinity_graph(cloud.points, 30);
+
+    Eigen::SparseMatrix<float> data = data0.sparseView();
 
     std::cout << "Number of points: " << cloud.size() << std::endl;
 

@@ -5,8 +5,6 @@
 #include <cilantro/3rd_party/spectra/SymEigsSolver.h>
 #include <cilantro/3rd_party/spectra/SymGEigsSolver.h>
 
-//#include <iostream>
-
 namespace cilantro {
 
     template <typename ScalarT>
@@ -17,6 +15,12 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,Eigen::Dynamic,1> diag_vals_inv_;
     public:
         SpectraDiagonalInverseBop(const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>& D)
+                : dim_(D.rows()),
+                  diag_vals_(D.diagonal()),
+                  diag_vals_inv_(diag_vals_.cwiseInverse())
+        {}
+
+        SpectraDiagonalInverseBop(const Eigen::SparseMatrix<ScalarT>& D)
                 : dim_(D.rows()),
                   diag_vals_(D.diagonal()),
                   diag_vals_inv_(diag_vals_.cwiseInverse())
@@ -48,6 +52,7 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        // Dense input
         // Number of clusters (embedding dimension) set at compile time
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
         SpectralClustering(const Eigen::Ref<const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> &affinities,
@@ -59,6 +64,7 @@ namespace cilantro {
             compute_dense_(affinities, EigenDim, false, laplacian_type, kmeans_max_iter, kmeans_conv_tol, kmeans_use_kd_tree);
         }
 
+        // Dense input
         // Number of clusters (embedding dimension) set at runtime
         // If estimate_num_clusters == true, figures out number of clusters in [1,max_num_clusters] based on eigenvalue
         // distribution. Otherwise, returns max_num_clusters clusters.
@@ -75,6 +81,38 @@ namespace cilantro {
                 compute_dense_(affinities, max_num_clusters, estimate_num_clusters, laplacian_type, kmeans_max_iter, kmeans_conv_tol, kmeans_use_kd_tree);
             } else {
                 compute_dense_(affinities, 2, false, laplacian_type, kmeans_max_iter, kmeans_conv_tol, kmeans_use_kd_tree);
+            }
+        }
+
+        // Sparse input
+        // Number of clusters (embedding dimension) set at compile time
+        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
+        SpectralClustering(const Eigen::SparseMatrix<ScalarT> &affinities,
+                           const GraphLaplacianType &laplacian_type = GraphLaplacianType::NORMALIZED_RANDOM_WALK,
+                           size_t kmeans_max_iter = 100,
+                           ScalarT kmeans_conv_tol = std::numeric_limits<ScalarT>::epsilon(),
+                           bool kmeans_use_kd_tree = false)
+        {
+            compute_sparse_(affinities, EigenDim, false, laplacian_type, kmeans_max_iter, kmeans_conv_tol, kmeans_use_kd_tree);
+        }
+
+        // Sparse input
+        // Number of clusters (embedding dimension) set at runtime
+        // If estimate_num_clusters == true, figures out number of clusters in [1,max_num_clusters] based on eigenvalue
+        // distribution. Otherwise, returns max_num_clusters clusters.
+        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == Eigen::Dynamic>::type>
+        SpectralClustering(const Eigen::SparseMatrix<ScalarT> &affinities,
+                           size_t max_num_clusters,
+                           bool estimate_num_clusters = false,
+                           const GraphLaplacianType &laplacian_type = GraphLaplacianType::NORMALIZED_RANDOM_WALK,
+                           size_t kmeans_max_iter = 100,
+                           ScalarT kmeans_conv_tol = std::numeric_limits<ScalarT>::epsilon(),
+                           bool kmeans_use_kd_tree = false)
+        {
+            if (max_num_clusters > 0 && max_num_clusters < affinities.rows()) {
+                compute_sparse_(affinities, max_num_clusters, estimate_num_clusters, laplacian_type, kmeans_max_iter, kmeans_conv_tol, kmeans_use_kd_tree);
+            } else {
+                compute_sparse_(affinities, 2, false, laplacian_type, kmeans_max_iter, kmeans_conv_tol, kmeans_use_kd_tree);
             }
         }
 
@@ -104,12 +142,10 @@ namespace cilantro {
             size_t num_clusters = max_num_clusters;
             size_t num_eigenvalues = (estimate_num_clusters) ? std::min(max_num_clusters+1, (size_t)(affinities.rows()-1)) : max_num_clusters;
 
-            Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> L;
-            bool normalize = false;
             switch (laplacian_type) {
                 case GraphLaplacianType::UNNORMALIZED: {
-                    Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> D = affinities.rowwise().sum().asDiagonal();
-                    L = D - affinities;
+                    Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> L = affinities.colwise().sum().asDiagonal();
+                    L -= affinities;
 
                     Spectra::DenseSymMatProd<ScalarT> op(L);
                     Spectra::SymEigsSolver<ScalarT, Spectra::SMALLEST_MAGN, Spectra::DenseSymMatProd<ScalarT>> eig(&op, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
@@ -130,8 +166,8 @@ namespace cilantro {
                     break;
                 }
                 case GraphLaplacianType::NORMALIZED_SYMMETRIC: {
-                    Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> Dtm12 = affinities.rowwise().sum().array().rsqrt().matrix().asDiagonal();
-                    L = Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>::Identity(affinities.rows(),affinities.cols()) - Dtm12*affinities*Dtm12;
+                    Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> Dtm12 = affinities.colwise().sum().array().rsqrt().matrix().asDiagonal();
+                    Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> L = Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>::Identity(affinities.rows(),affinities.cols()) - Dtm12*affinities*Dtm12;
 
                     Spectra::DenseSymMatProd<ScalarT> op(L);
                     Spectra::SymEigsSolver<ScalarT, Spectra::SMALLEST_MAGN, Spectra::DenseSymMatProd<ScalarT>> eig(&op, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
@@ -157,12 +193,113 @@ namespace cilantro {
                     break;
                 }
                 case GraphLaplacianType::NORMALIZED_RANDOM_WALK: {
-                    Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> D = affinities.rowwise().sum().asDiagonal();
-                    L = D - affinities;
+                    Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> D = affinities.colwise().sum().asDiagonal();
+                    Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> L = D - affinities;
 
                     Spectra::DenseSymMatProd<ScalarT> op(L);
                     SpectraDiagonalInverseBop<ScalarT> Bop(D);
                     Spectra::SymGEigsSolver<ScalarT, Spectra::SMALLEST_MAGN, Spectra::DenseSymMatProd<ScalarT>, SpectraDiagonalInverseBop<ScalarT>, Spectra::GEIGS_REGULAR_INVERSE> eig(&op, &Bop, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
+
+                    eig.init();
+                    eig.compute(1000, 1e-10, Spectra::SMALLEST_MAGN);
+
+                    eigenvalues_ = eig.eigenvalues();
+                    for (size_t i = 0; i < eigenvalues_.rows(); i++) {
+                        if (eigenvalues_[i] < 0.0) eigenvalues_[i] = 0.0;
+                    }
+
+                    if (estimate_num_clusters) {
+                        num_clusters = estimate_number_of_clusters_(eigenvalues_, max_num_clusters);
+                    }
+
+                    embedded_points_ = eig.eigenvectors(num_clusters).transpose();
+
+                    break;
+                }
+            }
+
+            clusterer_.reset(new KMeans<ScalarT,EigenDim>(embedded_points_));
+            clusterer_->cluster(num_clusters, kmeans_max_iter, kmeans_conv_tol, kmeans_use_kd_tree);
+        }
+
+        void compute_sparse_(const Eigen::SparseMatrix<ScalarT> &affinities,
+                             size_t max_num_clusters, bool estimate_num_clusters, const GraphLaplacianType &laplacian_type,
+                             size_t kmeans_max_iter, ScalarT kmeans_conv_tol, bool kmeans_use_kd_tree)
+        {
+            size_t num_clusters = max_num_clusters;
+            size_t num_eigenvalues = (estimate_num_clusters) ? std::min(max_num_clusters+1, (size_t)(affinities.rows()-1)) : max_num_clusters;
+
+            switch (laplacian_type) {
+                case GraphLaplacianType::UNNORMALIZED: {
+                    Eigen::SparseMatrix<ScalarT> D(affinities.rows(),affinities.cols());
+                    D.reserve(Eigen::VectorXi::Ones(affinities.rows()));
+                    for (size_t i = 0; i < affinities.cols(); i++) {
+                        D.insert(i,i) = affinities.col(i).sum();
+                    }
+                    Eigen::SparseMatrix<ScalarT> L = D - affinities;
+
+                    Spectra::SparseSymMatProd<ScalarT> op(L);
+                    Spectra::SymEigsSolver<ScalarT, Spectra::SMALLEST_MAGN, Spectra::SparseSymMatProd<ScalarT>> eig(&op, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
+                    eig.init();
+                    eig.compute(1000, 1e-10, Spectra::SMALLEST_MAGN);
+
+                    eigenvalues_ = eig.eigenvalues();
+                    for (size_t i = 0; i < eigenvalues_.rows(); i++) {
+                        if (eigenvalues_[i] < 0.0) eigenvalues_[i] = 0.0;
+                    }
+
+                    if (estimate_num_clusters) {
+                        num_clusters = estimate_number_of_clusters_(eigenvalues_, max_num_clusters);
+                    }
+
+                    embedded_points_ = eig.eigenvectors(num_clusters).transpose();
+
+                    break;
+                }
+                case GraphLaplacianType::NORMALIZED_SYMMETRIC: {
+                    Eigen::SparseMatrix<ScalarT> Dtm12(affinities.rows(),affinities.cols());
+                    Dtm12.reserve(Eigen::VectorXi::Ones(affinities.rows()));
+                    for (size_t i = 0; i < affinities.cols(); i++) {
+                        Dtm12.insert(i,i) = 1.0/std::sqrt(affinities.col(i).sum());
+                    }
+                    Eigen::SparseMatrix<ScalarT> L(affinities.rows(),affinities.cols());
+                    L.setIdentity();
+                    L -= Dtm12*affinities*Dtm12;
+
+                    Spectra::SparseSymMatProd<ScalarT> op(L);
+                    Spectra::SymEigsSolver<ScalarT, Spectra::SMALLEST_MAGN, Spectra::SparseSymMatProd<ScalarT>> eig(&op, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
+                    eig.init();
+                    eig.compute(1000, 1e-10, Spectra::SMALLEST_MAGN);
+
+                    eigenvalues_ = eig.eigenvalues();
+                    for (size_t i = 0; i < eigenvalues_.rows(); i++) {
+                        if (eigenvalues_[i] < 0.0) eigenvalues_[i] = 0.0;
+                    }
+
+                    if (estimate_num_clusters) {
+                        num_clusters = estimate_number_of_clusters_(eigenvalues_, max_num_clusters);
+                    }
+
+                    embedded_points_ = eig.eigenvectors(num_clusters).transpose();
+
+                    for (size_t i = 0; i < embedded_points_.cols(); i++) {
+                        ScalarT scale = 1.0/embedded_points_.col(i).norm();
+                        if (std::isfinite(scale)) embedded_points_.col(i) *= scale;
+                    }
+
+                    break;
+                }
+                case GraphLaplacianType::NORMALIZED_RANDOM_WALK: {
+                    Eigen::SparseMatrix<ScalarT> D(affinities.rows(),affinities.cols());
+                    D.reserve(Eigen::VectorXi::Ones(affinities.rows()));
+                    for (size_t i = 0; i < affinities.cols(); i++) {
+                        D.insert(i,i) = affinities.col(i).sum();
+                    }
+                    Eigen::SparseMatrix<ScalarT> L = D - affinities;
+
+                    Spectra::SparseSymMatProd<ScalarT> op(L);
+                    SpectraDiagonalInverseBop<ScalarT> Bop(D);
+                    Spectra::SymGEigsSolver<ScalarT, Spectra::SMALLEST_MAGN, Spectra::SparseSymMatProd<ScalarT>, SpectraDiagonalInverseBop<ScalarT>, Spectra::GEIGS_REGULAR_INVERSE> eig(&op, &Bop, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
 
                     eig.init();
                     eig.compute(1000, 1e-10, Spectra::SMALLEST_MAGN);
