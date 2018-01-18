@@ -22,6 +22,7 @@
 #include <cilantro/renderables.hpp>
 #include <cilantro/rigid_transform_estimator.hpp>
 #include <cilantro/space_region.hpp>
+#include <cilantro/spectral_clustering.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/visualizer_handler.hpp>
 #include <cilantro/voxel_grid.hpp>
