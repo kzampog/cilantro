@@ -142,6 +142,10 @@ namespace cilantro {
             size_t num_clusters = max_num_clusters;
             size_t num_eigenvalues = (estimate_num_clusters) ? std::min(max_num_clusters+1, (size_t)(affinities.rows()-1)) : max_num_clusters;
 
+            ScalarT conv_tol = (std::is_same<ScalarT,float>::value) ? 1e-7 : 1e-10;
+            size_t n_conv = 0;
+            size_t max_iter = 1000;
+
             switch (laplacian_type) {
                 case GraphLaplacianType::UNNORMALIZED: {
                     Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> L = affinities.colwise().sum().asDiagonal();
@@ -150,7 +154,10 @@ namespace cilantro {
                     Spectra::DenseSymMatProd<ScalarT> op(L);
                     Spectra::SymEigsSolver<ScalarT, Spectra::SMALLEST_MAGN, Spectra::DenseSymMatProd<ScalarT>> eig(&op, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
                     eig.init();
-                    eig.compute(1000, 1e-10, Spectra::SMALLEST_MAGN);
+                    do {
+                        n_conv = eig.compute(max_iter, conv_tol, Spectra::SMALLEST_MAGN);
+                        max_iter *= 2;
+                    } while (n_conv != num_eigenvalues);
 
                     eigenvalues_ = eig.eigenvalues();
                     for (size_t i = 0; i < eigenvalues_.rows(); i++) {
@@ -172,7 +179,10 @@ namespace cilantro {
                     Spectra::DenseSymMatProd<ScalarT> op(L);
                     Spectra::SymEigsSolver<ScalarT, Spectra::SMALLEST_MAGN, Spectra::DenseSymMatProd<ScalarT>> eig(&op, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
                     eig.init();
-                    eig.compute(1000, 1e-10, Spectra::SMALLEST_MAGN);
+                    do {
+                        n_conv = eig.compute(max_iter, conv_tol, Spectra::SMALLEST_MAGN);
+                        max_iter *= 2;
+                    } while (n_conv != num_eigenvalues);
 
                     eigenvalues_ = eig.eigenvalues();
                     for (size_t i = 0; i < eigenvalues_.rows(); i++) {
@@ -201,7 +211,10 @@ namespace cilantro {
                     Spectra::SymGEigsSolver<ScalarT, Spectra::SMALLEST_MAGN, Spectra::DenseSymMatProd<ScalarT>, SpectraDiagonalInverseBop<ScalarT>, Spectra::GEIGS_REGULAR_INVERSE> eig(&op, &Bop, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
 
                     eig.init();
-                    eig.compute(1000, 1e-10, Spectra::SMALLEST_MAGN);
+                    do {
+                        n_conv = eig.compute(max_iter, conv_tol, Spectra::SMALLEST_MAGN);
+                        max_iter *= 2;
+                    } while (n_conv != num_eigenvalues);
 
                     eigenvalues_ = eig.eigenvalues();
                     for (size_t i = 0; i < eigenvalues_.rows(); i++) {
@@ -229,6 +242,10 @@ namespace cilantro {
             size_t num_clusters = max_num_clusters;
             size_t num_eigenvalues = (estimate_num_clusters) ? std::min(max_num_clusters+1, (size_t)(affinities.rows()-1)) : max_num_clusters;
 
+            ScalarT conv_tol = (std::is_same<ScalarT,float>::value) ? 1e-7 : 1e-10;
+            size_t n_conv = 0;
+            size_t max_iter = 1000;
+
             switch (laplacian_type) {
                 case GraphLaplacianType::UNNORMALIZED: {
                     Eigen::SparseMatrix<ScalarT> D(affinities.rows(),affinities.cols());
@@ -241,7 +258,10 @@ namespace cilantro {
                     Spectra::SparseSymMatProd<ScalarT> op(L);
                     Spectra::SymEigsSolver<ScalarT, Spectra::SMALLEST_MAGN, Spectra::SparseSymMatProd<ScalarT>> eig(&op, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
                     eig.init();
-                    eig.compute(1000, 1e-10, Spectra::SMALLEST_MAGN);
+                    do {
+                        n_conv = eig.compute(max_iter, conv_tol, Spectra::SMALLEST_MAGN);
+                        max_iter *= 2;
+                    } while (n_conv != num_eigenvalues);
 
                     eigenvalues_ = eig.eigenvalues();
                     for (size_t i = 0; i < eigenvalues_.rows(); i++) {
@@ -269,7 +289,10 @@ namespace cilantro {
                     Spectra::SparseSymMatProd<ScalarT> op(L);
                     Spectra::SymEigsSolver<ScalarT, Spectra::SMALLEST_MAGN, Spectra::SparseSymMatProd<ScalarT>> eig(&op, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
                     eig.init();
-                    eig.compute(1000, 1e-10, Spectra::SMALLEST_MAGN);
+                    do {
+                        n_conv = eig.compute(max_iter, conv_tol, Spectra::SMALLEST_MAGN);
+                        max_iter *= 2;
+                    } while (n_conv != num_eigenvalues);
 
                     eigenvalues_ = eig.eigenvalues();
                     for (size_t i = 0; i < eigenvalues_.rows(); i++) {
@@ -302,7 +325,10 @@ namespace cilantro {
                     Spectra::SymGEigsSolver<ScalarT, Spectra::SMALLEST_MAGN, Spectra::SparseSymMatProd<ScalarT>, SpectraDiagonalInverseBop<ScalarT>, Spectra::GEIGS_REGULAR_INVERSE> eig(&op, &Bop, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
 
                     eig.init();
-                    eig.compute(1000, 1e-10, Spectra::SMALLEST_MAGN);
+                    do {
+                        n_conv = eig.compute(max_iter, conv_tol, Spectra::SMALLEST_MAGN);
+                        max_iter *= 2;
+                    } while (n_conv != num_eigenvalues);
 
                     eigenvalues_ = eig.eigenvalues();
                     for (size_t i = 0; i < eigenvalues_.rows(); i++) {
