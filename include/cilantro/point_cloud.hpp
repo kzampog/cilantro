@@ -197,7 +197,7 @@ namespace cilantro {
         PointCloud transformed(const Eigen::Ref<const Eigen::Matrix3f> &rotation, const Eigen::Ref<const Eigen::Vector3f> &translation) const {
             PointCloud cloud;
             cloud.points = (rotation*points).colwise() + translation;
-            if (cloud.hasNormals()) cloud.normals = rotation*normals;
+            if (hasNormals()) cloud.normals = rotation*normals;
             cloud.colors = colors;
             return cloud;
         }
@@ -207,5 +207,6 @@ namespace cilantro {
         }
     };
 
+    typedef PointCloud<float,2> PointCloud2D;
     typedef PointCloud<float,3> PointCloud3D;
 }

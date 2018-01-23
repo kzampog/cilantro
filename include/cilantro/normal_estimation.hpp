@@ -72,7 +72,7 @@ namespace cilantro {
             std::vector<size_t> neighbors;
             std::vector<ScalarT> distances;
 #pragma omp parallel for shared (normals) private (neighbors, distances)
-            for (size_t i = 0; i < points_.cols(); i++) {
+            for (size_t i = 0; i < num_points; i++) {
                 kd_tree_ptr_->radiusSearch(points_.col(i), radius_sq, neighbors, distances);
                 if (neighbors.size() < EigenDim) {
                     normals.col(i) = nan;
@@ -103,7 +103,7 @@ namespace cilantro {
             std::vector<size_t> neighbors;
             std::vector<ScalarT> distances;
 #pragma omp parallel for shared (normals) private (neighbors, distances)
-            for (size_t i = 0; i < points_.cols(); i++) {
+            for (size_t i = 0; i < num_points; i++) {
                 kd_tree_ptr_->kNNInRadiusSearch(points_.col(i), k, radius_sq, neighbors, distances);
                 if (neighbors.size() < EigenDim) {
                     normals.col(i) = nan;

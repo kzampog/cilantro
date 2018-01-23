@@ -12,9 +12,9 @@ namespace cilantro {
         tinyply::PlyFile file(ss);
 
         // Initialize PLY data holders
-        size_t vertex_count = file.request_properties_from_element("vertex", {"x", "y", "z"}, vertex_data);
-        size_t normal_count = file.request_properties_from_element("vertex", {"nx", "ny", "nz"}, normal_data);
-        size_t color_count = file.request_properties_from_element("vertex", {"red", "green", "blue"}, color_data);
+        file.request_properties_from_element("vertex", {"x", "y", "z"}, vertex_data);
+        file.request_properties_from_element("vertex", {"nx", "ny", "nz"}, normal_data);
+        file.request_properties_from_element("vertex", {"red", "green", "blue"}, color_data);
 
         // Read PLY data
         file.read(ss);
@@ -35,18 +35,14 @@ namespace cilantro {
         std::vector<float> normal_data;
         if (cloud.hasNormals()) {
             normal_data.resize(3*cloud.normals.cols());
-            std::memcpy(normal_data.data(), cloud.normals.data(), 3*cloud.normals.cols()*sizeof(float));
+            DataMatrixMap<float,3>(normal_data).eigenMap() = cloud.normals;
             file.add_properties_to_element("vertex", {"nx", "ny", "nz"}, normal_data);
         }
 
         std::vector<uint8_t> color_data;
         if (cloud.hasColors()) {
             color_data.resize(3*cloud.colors.cols());
-            for (size_t i = 0; i < cloud.colors.cols(); i++) {
-                color_data[3*i + 0] = (uint8_t)(cloud.colors(0,i)*255.0f);
-                color_data[3*i + 1] = (uint8_t)(cloud.colors(1,i)*255.0f);
-                color_data[3*i + 2] = (uint8_t)(cloud.colors(2,i)*255.0f);
-            }
+            DataMatrixMap<uint8_t,3>(color_data).eigenMap() = (255.0f*cloud.colors).cast<uint8_t>();
             file.add_properties_to_element("vertex", {"red", "green", "blue"}, color_data);
         }
 
