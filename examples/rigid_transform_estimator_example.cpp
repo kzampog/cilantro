@@ -3,11 +3,10 @@
 #include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
 
-template <class T>
-std::vector<T> selectByIndices(const std::vector<T> &elements, const std::vector<size_t> &indices) {
-    std::vector<T> res(indices.size());
+cilantro::VectorSet<float,3> selectByIndices(const cilantro::VectorSet<float,3> &elements, const std::vector<size_t> &indices) {
+    cilantro::VectorSet<float,3> res(3,indices.size());
     for (size_t i = 0; i < indices.size(); i++) {
-        res[i] = elements[indices[i]];
+        res.col(i) = elements.col(indices[i]);
     }
     return res;
 }
@@ -23,10 +22,10 @@ void callback(unsigned char key, bool &re_estimate, bool &randomize) {
 
 int main(int argc, char **argv) {
 
-    cilantro::PointCloud dst;
+    cilantro::PointCloud3D dst;
     readPointCloudFromPLYFile(argv[1], dst);
 
-    cilantro::PointCloud src(dst);
+    cilantro::PointCloud3D src(dst);
 
     cilantro::Visualizer viz("RigidTransformEstimator example", "disp");
     bool re_estimate = false;
@@ -89,7 +88,7 @@ int main(int argc, char **argv) {
 
             std::cout << "RANSAC iterations: " << te.getPerformedIterationsCount() << ", inlier count: " << te.getNumberOfInliers() << std::endl;
 
-            src.pointsMatrixMap() = (tform.rotation*src.pointsMatrixMap()).colwise() + tform.translation;
+            src.points = (tform.rotation*src.points).colwise() + tform.translation;
 
             viz.addPointCloud("src", src.points, cilantro::RenderingProperties().setPointColor(1,0,0));
             viz.addPointCloudNormals("src", src.normals);

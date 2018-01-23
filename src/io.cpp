@@ -2,7 +2,7 @@
 #include <cilantro/3rd_party/tinyply/tinyply.h>
 
 namespace cilantro {
-    void readPointCloudFromPLYFile(const std::string &filename, PointCloud &cloud) {
+    void readPointCloudFromPLYFile(const std::string &filename, PointCloud<float,3> &cloud) {
         // Data holders
         std::vector<float> vertex_data;
         std::vector<float> normal_data;
@@ -20,39 +20,32 @@ namespace cilantro {
         file.read(ss);
 
         // Populate cloud
-        cloud.points.resize(vertex_count);
-        std::memcpy(cloud.points.data(), vertex_data.data(), 3*vertex_count*sizeof(float));
-
-        cloud.normals.resize(normal_count);
-        std::memcpy(cloud.normals.data(), normal_data.data(), 3*normal_count*sizeof(float));
-
-        cloud.colors.resize(color_count);
-        for (int i = 0; i < color_count; i++) {
-            cloud.colors[i] = Eigen::Vector3f(color_data[3*i], color_data[3*i+1], color_data[3*i+2])/255.0f;
-        }
+        cloud.points = ConstDataMatrixMap<float,3>(vertex_data);
+        cloud.normals = ConstDataMatrixMap<float,3>(normal_data);
+        cloud.colors = ConstDataMatrixMap<uint8_t,3>(color_data).cast<float>()/255.0f;
     }
 
-    void writePointCloudToPLYFile(const std::string &filename, const PointCloud &cloud, bool binary) {
+    void writePointCloudToPLYFile(const std::string &filename, const PointCloud<float,3> &cloud, bool binary) {
         tinyply::PlyFile file;
 
-        std::vector<float> vertex_data(3*cloud.size());
-        std::memcpy(vertex_data.data(), cloud.points.data(), 3*cloud.size()*sizeof(float));
+        std::vector<float> vertex_data(3*cloud.points.cols());
+        std::memcpy(vertex_data.data(), cloud.points.data(), 3*cloud.points.cols()*sizeof(float));
         file.add_properties_to_element("vertex", {"x", "y", "z"}, vertex_data);
 
         std::vector<float> normal_data;
         if (cloud.hasNormals()) {
-            normal_data.resize(3*cloud.normals.size());
-            std::memcpy(normal_data.data(), cloud.normals.data(), 3*cloud.normals.size()*sizeof(float));
+            normal_data.resize(3*cloud.normals.cols());
+            std::memcpy(normal_data.data(), cloud.normals.data(), 3*cloud.normals.cols()*sizeof(float));
             file.add_properties_to_element("vertex", {"nx", "ny", "nz"}, normal_data);
         }
 
         std::vector<uint8_t> color_data;
         if (cloud.hasColors()) {
-            color_data.resize(3*cloud.colors.size());
-            for (int i = 0; i < cloud.colors.size(); i++) {
-                color_data[3 * i + 0] = (uint8_t)(cloud.colors[i](0)*255.0f);
-                color_data[3 * i + 1] = (uint8_t)(cloud.colors[i](1)*255.0f);
-                color_data[3 * i + 2] = (uint8_t)(cloud.colors[i](2)*255.0f);
+            color_data.resize(3*cloud.colors.cols());
+            for (size_t i = 0; i < cloud.colors.cols(); i++) {
+                color_data[3*i + 0] = (uint8_t)(cloud.colors(0,i)*255.0f);
+                color_data[3*i + 1] = (uint8_t)(cloud.colors(1,i)*255.0f);
+                color_data[3*i + 2] = (uint8_t)(cloud.colors(2,i)*255.0f);
             }
             file.add_properties_to_element("vertex", {"red", "green", "blue"}, color_data);
         }

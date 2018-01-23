@@ -8,17 +8,17 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        VoxelGrid(const PointCloud &cloud, float bin_size);
+        VoxelGrid(const PointCloud<float,3> &cloud, float bin_size);
 
-        std::vector<Eigen::Vector3f> getDownsampledPoints(size_t min_points_in_bin = 1) const;
+        VectorSet<float,3> getDownsampledPoints(size_t min_points_in_bin = 1) const;
 
-        std::vector<Eigen::Vector3f> getDownsampledNormals(size_t min_points_in_bin = 1) const;
+        VectorSet<float,3> getDownsampledNormals(size_t min_points_in_bin = 1) const;
 
-        std::vector<Eigen::Vector3f> getDownsampledColors(size_t min_points_in_bin = 1) const;
+        VectorSet<float,3> getDownsampledColors(size_t min_points_in_bin = 1) const;
 
-        PointCloud getDownsampledCloud(size_t min_points_in_bin = 1) const;
+        PointCloud<float,3> getDownsampledCloud(size_t min_points_in_bin = 1) const;
 
     private:
-        const PointCloud& input_cloud_;
+        const PointCloud<float,3>& input_cloud_;
     };
 }

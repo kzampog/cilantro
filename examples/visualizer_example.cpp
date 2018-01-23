@@ -8,7 +8,7 @@ void callback(cilantro::Visualizer &viz, const std::string &name) {
 }
 
 int main(int argc, char ** argv) {
-    cilantro::PointCloud cloud;
+    cilantro::PointCloud3D cloud;
     readPointCloudFromPLYFile(argv[1], cloud);
 
 //    cilantro::VoxelGrid vg(cloud, 0.01);
@@ -24,7 +24,7 @@ int main(int argc, char ** argv) {
 
     std::vector<float> scalars(cloud.size());
     for (size_t i = 0; i < cloud.size(); i++) {
-        scalars[i] = cloud.points[i].norm();
+        scalars[i] = cloud.points.col(i).norm();
     }
 
     viz1.addPointCloud("pcd", cloud.points, cilantro::RenderingProperties().setColormapType(cilantro::ColormapType::JET).setLineDensityFraction(0.2f).setUseLighting(false));
@@ -34,9 +34,9 @@ int main(int argc, char ** argv) {
     viz1.addText("text", "Coordinate Frame", 0, 0, 0, cilantro::RenderingProperties().setFontSize(20.0f).setPointColor(1.0f,1.0f,0.0f).setTextAnchorPoint(0.5f,-1.0f));
 
     // Second
-    cilantro::PointCloud cloud2(cloud);
+    cilantro::PointCloud3D cloud2(cloud);
     for (size_t i = 0; i < cloud2.size(); i++) {
-        cloud2.points[i] += Eigen::Vector3f(1.0, 0.0, 1.0);
+        cloud2.points.col(i) += Eigen::Vector3f(1.0, 0.0, 1.0);
     }
 
     cilantro::Visualizer viz2("Visualizer demo (window 2)", "disp");

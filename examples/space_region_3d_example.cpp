@@ -14,12 +14,12 @@ void callback(cilantro::Visualizer &viz, int key) {
 }
 
 int main(int argc, char* argv[]) {
-    cilantro::PointCloud cloud1;
+    cilantro::PointCloud3D cloud1;
     cilantro::readPointCloudFromPLYFile(argv[1], cloud1);
 
     // Shift to the right
-    cilantro::PointCloud cloud2(cloud1);
-    cloud2.pointsMatrixMap().colwise() += Eigen::Vector3f(1,0,0);
+    cilantro::PointCloud3D cloud2(cloud1);
+    cloud2.points.colwise() += Eigen::Vector3f(1,0,0);
 
     // Compute convex hulls as SpaceRegion objects
     // bool flags enable topology computation (for visualization)
@@ -39,9 +39,9 @@ int main(int argc, char* argv[]) {
     std::cout << "Number of polytopes in union: " << sr.getConvexPolytopes().size() << std::endl;
 
     // Find the points of the concatenation of the clouds that satisfy the spatial expression
-    cilantro::PointCloud interior_cloud(cloud1);
+    cilantro::PointCloud3D interior_cloud(cloud1);
     interior_cloud.append(cloud2);
-    interior_cloud = cilantro::PointCloud(interior_cloud, sr.getInteriorPointIndices(interior_cloud.points, 0.005f));
+    interior_cloud = cilantro::PointCloud3D(interior_cloud, sr.getInteriorPointIndices(interior_cloud.points, 0.005f));
 
     // Visualize results
     cilantro::Visualizer viz("SpaceRegion3D example", "disp");

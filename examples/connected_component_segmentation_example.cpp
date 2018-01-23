@@ -4,7 +4,7 @@
 #include <cilantro/voxel_grid.hpp>
 
 int main(int argc, char ** argv) {
-    cilantro::PointCloud cloud;
+    cilantro::PointCloud3D cloud;
     cilantro::readPointCloudFromPLYFile(argv[1], cloud);
 
     cloud = cilantro::VoxelGrid(cloud,0.005).getDownsampledCloud().removeInvalidData();
@@ -29,13 +29,13 @@ int main(int argc, char ** argv) {
     }
     color_map[num_labels] = Eigen::Vector3f(0, 0, 0);   // No label
 
-    std::vector<Eigen::Vector3f> cols(labels.size());
-    for (size_t i = 0; i < cols.size(); i++) {
-        cols[i] = color_map[labels[i]];
+    cilantro::VectorSet<float,3> cols(3,labels.size());
+    for (size_t i = 0; i < cols.cols(); i++) {
+        cols.col(i) = color_map[labels[i]];
     }
 
     // Create a new colored cloud
-    cilantro::PointCloud cloud_seg(cloud.points, cloud.normals, cols);
+    cilantro::PointCloud3D cloud_seg(cloud.points, cloud.normals, cols);
 
     // Visualize result
     pangolin::CreateWindowAndBind("ConnectedComponentSegmentation demo",1280,480);

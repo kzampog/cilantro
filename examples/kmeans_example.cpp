@@ -4,7 +4,7 @@
 #include <cilantro/voxel_grid.hpp>
 
 int main(int argc, char ** argv) {
-    cilantro::PointCloud cloud;
+    cilantro::PointCloud3D cloud;
     cilantro::readPointCloudFromPLYFile(argv[1], cloud);
 
     cloud = cilantro::VoxelGrid(cloud, 0.005).getDownsampledCloud().removeInvalidData();
@@ -46,13 +46,13 @@ int main(int argc, char ** argv) {
 
     const std::vector<size_t>& idx_map(kmc.getClusterIndexMap());
 
-    std::vector<Eigen::Vector3f> cols(idx_map.size());
-    for (size_t i = 0; i < cols.size(); i++) {
-        cols[i] = color_map[idx_map[i]];
+    cilantro::VectorSet<float,3> cols(3,idx_map.size());
+    for (size_t i = 0; i < cols.cols(); i++) {
+        cols.col(i) = color_map[idx_map[i]];
     }
 
     // Create a new colored cloud
-    cilantro::PointCloud cloud_seg(cloud.points, cloud.normals, cols);
+    cilantro::PointCloud3D cloud_seg(cloud.points, cloud.normals, cols);
 
     // Visualize result
     pangolin::CreateWindowAndBind("KMeans demo",1280,480);

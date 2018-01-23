@@ -46,11 +46,11 @@ int main(int argc, char ** argv) {
 //    }
 
 
-    cilantro::PointCloud cloud;
+    cilantro::PointCloud3D cloud;
     cilantro::readPointCloudFromPLYFile(argv[1], cloud);
 
     cilantro::ConvexHull3D ch(cloud.points, true, true);
-    cilantro::PointCloud hc(cloud, ch.getVertexPointIndices());
+    cilantro::PointCloud3D hc(cloud, ch.getVertexPointIndices());
 
     std::vector<Eigen::Vector3f> v_colors(ch.getVertices().cols());
     std::vector<float> v_vals(ch.getVertices().cols());
@@ -93,8 +93,8 @@ int main(int argc, char ** argv) {
 
     // PointCloudHullFlat also inherits from PrincipalComponentAnalysis
     cilantro::PointCloudHullFlat ch2d(cloud.points);
-    cloud.pointsMatrixMap() = ch2d.reconstruct<2>(ch2d.project<2>(cloud.points));
-    cloud.normals.clear();
+    cloud.points = ch2d.reconstruct<2>(ch2d.project<2>(cloud.points));
+    cloud.normals.resize(Eigen::NoChange, 0);
 
     std::vector<std::vector<size_t> > face_v_ind = ch2d.getFacetVertexIndices();
     std::vector<Eigen::Vector3f> p_src(face_v_ind.size()), p_dst(face_v_ind.size());

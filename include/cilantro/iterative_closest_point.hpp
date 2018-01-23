@@ -11,15 +11,15 @@ namespace cilantro {
         enum struct Metric {POINT_TO_POINT, POINT_TO_PLANE, COMBINED};
         enum struct CorrespondencesType {POINTS, NORMALS, COLORS, POINTS_NORMALS, POINTS_COLORS, NORMALS_COLORS, POINTS_NORMALS_COLORS};
 
-        IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &src_p);
-        IterativeClosestPoint(const std::vector<Eigen::Vector3f> &dst_p, const std::vector<Eigen::Vector3f> &dst_n, const std::vector<Eigen::Vector3f> &src_p);
-        IterativeClosestPoint(const PointCloud &dst, const PointCloud &src, const Metric &metric = Metric::POINT_TO_PLANE, const CorrespondencesType &corr_type = CorrespondencesType::POINTS);
+        IterativeClosestPoint(const ConstVectorSetMatrixMap<float,3> &dst_p, const ConstVectorSetMatrixMap<float,3> &src_p);
+        IterativeClosestPoint(const ConstVectorSetMatrixMap<float,3> &dst_p, const ConstVectorSetMatrixMap<float,3> &dst_n, const ConstVectorSetMatrixMap<float,3> &src_p);
+        IterativeClosestPoint(const PointCloud<float,3> &dst, const PointCloud<float,3> &src, const Metric &metric = Metric::POINT_TO_PLANE, const CorrespondencesType &corr_type = CorrespondencesType::POINTS);
 
         ~IterativeClosestPoint();
 
         inline Metric getMetric() const { return metric_; }
         inline IterativeClosestPoint& setMetric(const Metric &metric) {
-            if (dst_normals_ != NULL && metric != metric_) {
+            if (dst_normals_.cols() > 0 && metric != metric_) {
                 iteration_count_ = 0;
                 metric_ = metric;
             }
@@ -161,12 +161,12 @@ namespace cilantro {
 
     private:
         // Data pointers and parameters
-        const std::vector<Eigen::Vector3f> *dst_points_;
-        const std::vector<Eigen::Vector3f> *dst_normals_;
-        const std::vector<Eigen::Vector3f> *dst_colors_;
-        const std::vector<Eigen::Vector3f> *src_points_;
-        const std::vector<Eigen::Vector3f> *src_normals_;
-        const std::vector<Eigen::Vector3f> *src_colors_;
+        ConstVectorSetMatrixMap<float,3> dst_points_;
+        ConstVectorSetMatrixMap<float,3> dst_normals_;
+        ConstVectorSetMatrixMap<float,3> dst_colors_;
+        ConstVectorSetMatrixMap<float,3> src_points_;
+        ConstVectorSetMatrixMap<float,3> src_normals_;
+        ConstVectorSetMatrixMap<float,3> src_colors_;
 
         KDTree<float,3,KDTreeDistanceAdaptors::L2> *kd_tree_3d_;
         KDTree<float,6,KDTreeDistanceAdaptors::L2> *kd_tree_6d_;
@@ -196,10 +196,10 @@ namespace cilantro {
 
         Eigen::Matrix3f rot_mat_;
         Eigen::Vector3f t_vec_;
-        std::vector<Eigen::Vector3f> src_points_trans_;
+        VectorSet<float,3> src_points_trans_;
 
-        std::vector<Eigen::Matrix<float,6,1> > dst_data_points_6d_;
-        std::vector<Eigen::Matrix<float,9,1> > dst_data_points_9d_;
+        VectorSet<float,6> dst_data_points_6d_;
+        VectorSet<float,9> dst_data_points_9d_;
 
         std::vector<size_t> dst_ind_;
         std::vector<size_t> src_ind_;

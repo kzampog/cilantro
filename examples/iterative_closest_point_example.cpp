@@ -8,27 +8,36 @@ void callback(bool &proceed) {
 }
 
 int main(int argc, char ** argv) {
-    cilantro::PointCloud dst, src;
+    cilantro::PointCloud3D dst, src;
     cilantro::readPointCloudFromPLYFile(argv[1], dst);
 
     dst = cilantro::VoxelGrid(dst, 0.005).getDownsampledCloud();
 
     src = dst;
     for (size_t i = 0; i < src.size(); i++) {
-        src.points[i] += 0.005f*Eigen::Vector3f::Random();
-        src.normals[i] += 0.005f*Eigen::Vector3f::Random();
-        src.normals[i].normalize();
-        src.colors[i] += 0.010f*Eigen::Vector3f::Random();
+        src.points.col(i) += 0.005f*Eigen::Vector3f::Random();
+        src.normals.col(i) += 0.005f*Eigen::Vector3f::Random();
+        src.normals.col(i).normalize();
+        src.colors.col(i) += 0.010f*Eigen::Vector3f::Random();
     }
 
-    cilantro::PointCloud dst2;
+    cilantro::PointCloud3D dst2;
+    dst2.points.resize(Eigen::NoChange,dst.size());
+    dst2.normals.resize(Eigen::NoChange,dst.size());
+    dst2.colors.resize(Eigen::NoChange,dst.size());
+    size_t k = 0;
     for (size_t i = 0; i < dst.size(); i++) {
-        if (dst.points[i][0] > -0.4) {
-            dst2.points.push_back(dst.points[i]);
-            dst2.normals.push_back(dst.normals[i]);
-            dst2.colors.push_back(dst.colors[i]);
+        if (dst.points(0,i) > -0.4) {
+            dst2.points.col(k) = dst.points.col(i);
+            dst2.normals.col(k) = dst.normals.col(i);
+            dst2.colors.col(k) = dst.colors.col(i);
+            k++;
         }
     }
+    dst2.points.conservativeResize(Eigen::NoChange,k);
+    dst2.normals.conservativeResize(Eigen::NoChange,k);
+    dst2.colors.conservativeResize(Eigen::NoChange,k);
+
     dst = dst2;
 
     Eigen::Matrix3f R_ref;
@@ -37,8 +46,8 @@ int main(int argc, char ** argv) {
             Eigen::AngleAxisf(-0.07, Eigen::Vector3f::UnitX());
     Eigen::Vector3f t_ref(-0.20, -0.05, 0.09);
 
-    src.pointsMatrixMap() = (R_ref*src.pointsMatrixMap()).colwise() + t_ref;
-    src.normalsMatrixMap() = R_ref*src.normalsMatrixMap();
+    src.points = (R_ref*src.points).colwise() + t_ref;
+    src.normals = R_ref*src.normals;
 
 //    std::vector<size_t> ind(dst.size());
 //    for (size_t i = 0; i < ind.size(); i++) {
@@ -95,10 +104,10 @@ int main(int argc, char ** argv) {
     std::cout << "ESTIMATED transformation R:" << std::endl << R_est << std::endl;
     std::cout << "ESTIMATED transformation t:" << std::endl << t_est.transpose() << std::endl;
 
-    cilantro::PointCloud src_trans(src);
+    cilantro::PointCloud3D src_trans(src);
 
-    src_trans.pointsMatrixMap() = (R_est*src_trans.pointsMatrixMap()).colwise() + t_est;
-    src_trans.normalsMatrixMap() = R_est*src_trans.normalsMatrixMap();
+    src_trans.points = (R_est*src_trans.points).colwise() + t_est;
+    src_trans.normals = R_est*src_trans.normals;
 
     viz.addPointCloud("dst", dst.points, cilantro::RenderingProperties().setPointColor(0,0,1));
     viz.addPointCloudNormals("dst", dst.normals);

@@ -4,9 +4,9 @@
 #include <fstream>
 
 namespace cilantro {
-    void readPointCloudFromPLYFile(const std::string &file_name, PointCloud &cloud);
+    void readPointCloudFromPLYFile(const std::string &file_name, PointCloud<float,3> &cloud);
 
-    void writePointCloudToPLYFile(const std::string &file_name, const PointCloud &cloud, bool binary = true);
+    void writePointCloudToPLYFile(const std::string &file_name, const PointCloud<float,3> &cloud, bool binary = true);
 
     template<class Matrix>
     void readEigenMatrixFromFile(const std::string &file_name, Matrix &matrix, bool binary = true) {

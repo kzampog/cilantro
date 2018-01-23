@@ -53,15 +53,16 @@ Eigen::MatrixXf build_dense_radius_affinity_graph(const cilantro::ConstVectorSet
 
 int main(int argc, char ** argv) {
 
-    cilantro::PointCloud cloud;
+    cilantro::PointCloud3D cloud;
+    cloud.points.resize(Eigen::NoChange, 1700);
     for (size_t i = 0; i < 1500; i++) {
-        cloud.points.emplace_back(Eigen::Vector3f::Random().normalized());
+        cloud.points.col(i).setRandom().normalize();
     }
-    for (size_t i = 0; i < 200; i++) {
-        cloud.points.emplace_back(0.3f*Eigen::Vector3f::Random().normalized());
+    for (size_t i = 1500; i < 1700; i++) {
+        cloud.points.col(i).setRandom().normalize();
+        cloud.points.col(i) *= 0.3f;
     }
-    cloud.pointsMatrixMap().row(2).array() += 4.0f;
-
+    cloud.points.row(2).array() += 4.0f;
 
 //    Eigen::MatrixXf data0 = build_dense_radius_affinity_graph(cloud.points, 0.6);
     Eigen::MatrixXf data0 = build_dense_knn_affinity_graph(cloud.points, 30);
@@ -109,7 +110,7 @@ int main(int argc, char ** argv) {
     }
 
     // Create a new colored cloud
-    cilantro::PointCloud cloud_seg(cloud.points, cloud.normals, cols);
+    cilantro::PointCloud3D cloud_seg(cloud.points, cloud.normals, cols);
 
     // Visualize result
     pangolin::CreateWindowAndBind("SpectralClustering demo",1280,480);

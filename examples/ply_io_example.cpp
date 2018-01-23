@@ -4,13 +4,13 @@
 
 
 int main(int argc, char **argv) {
-    cilantro::PointCloud cloud;
+    cilantro::PointCloud3D cloud;
 
     // Get file paths
     std::string fileInPath, fileOutPath;
     if (argc < 3) {
         std::cout << "No input path provided. Using default test cloud location." << std::endl;
-        fileInPath = "../examples/test_clouds/kustas.ply";
+        fileInPath = "../examples/test_clouds/test.ply";
         fileOutPath = "./kustas_copy.ply";
     } else {
         fileInPath = std::string(argv[1]);
@@ -28,16 +28,16 @@ int main(int argc, char **argv) {
     }
 
     readPointCloudFromPLYFile(fileInPath, cloud);
-    std::cout << cloud.points.size() << " points read" << std::endl;
-    std::cout << cloud.normals.size() << " normals read" << std::endl;
-    std::cout << cloud.colors.size() << " colors read" << std::endl;
+    std::cout << cloud.points.cols() << " points read" << std::endl;
+    std::cout << cloud.normals.cols() << " normals read" << std::endl;
+    std::cout << cloud.colors.cols() << " colors read" << std::endl;
 
     // Modify pointcloud
     std::vector<size_t> ind;
-    for (size_t i = 0; i < cloud.points.size(); i += 50) {
+    for (size_t i = 0; i < cloud.points.cols(); i += 50) {
         ind.push_back(i);
     }
-    cilantro::PointCloud pc(cloud, ind);
+    cilantro::PointCloud3D pc(cloud, ind);
 
     // Write ply file
     std::cout << "Writing pointcloud to " << fileOutPath << std::endl;
@@ -47,9 +47,9 @@ int main(int argc, char **argv) {
     }
 
     writePointCloudToPLYFile(fileOutPath, pc);
-    std::cout << pc.points.size() << " points written" << std::endl;
-    std::cout << pc.normals.size() << " normals written" << std::endl;
-    std::cout << pc.colors.size() << " colors written" << std::endl;
+    std::cout << pc.points.cols() << " points written" << std::endl;
+    std::cout << pc.normals.cols() << " normals written" << std::endl;
+    std::cout << pc.colors.cols() << " colors written" << std::endl;
 
     return 0;
 }

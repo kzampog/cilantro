@@ -38,12 +38,12 @@ namespace cilantro {
         {}
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
-        DataMatrixMap(ScalarT * data, size_t num_points)
+        DataMatrixMap(ScalarT * data, size_t num_points = 0)
                 : Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>(data, EigenDim, num_points)
         {}
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == Eigen::Dynamic>::type>
-        DataMatrixMap(ScalarT * data, size_t dim, size_t num_points)
+        DataMatrixMap(ScalarT * data, size_t dim, size_t num_points = 0)
                 : Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>(data, dim, num_points)
         {}
 
@@ -89,12 +89,12 @@ namespace cilantro {
         {}
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
-        ConstDataMatrixMap(const ScalarT * data, size_t num_points)
+        ConstDataMatrixMap(const ScalarT * data, size_t num_points = 0)
                 : Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>(data, EigenDim, num_points)
         {}
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == Eigen::Dynamic>::type>
-        ConstDataMatrixMap(const ScalarT * data, size_t dim, size_t num_points)
+        ConstDataMatrixMap(const ScalarT * data, size_t dim, size_t num_points = 0)
                 : Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>(data, dim, num_points)
         {}
 

@@ -8,7 +8,7 @@ void callback(bool &re_estimate) {
 }
 
 int main(int argc, char **argv) {
-    cilantro::PointCloud cloud;
+    cilantro::PointCloud3D cloud;
     readPointCloudFromPLYFile(argv[1], cloud);
 
     cilantro::Visualizer viz("PlaneEstimator example", "disp");
@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
             std::vector<size_t> inliers = pe.getModelInliers();
             std::cout << "RANSAC iterations: " << pe.getPerformedIterationsCount() << ", inlier count: " << pe.getNumberOfInliers() << std::endl;
 
-            cilantro::PointCloud planar_cloud(cloud, inliers);
+            cilantro::PointCloud3D planar_cloud(cloud, inliers);
             viz.addPointCloud("plane", planar_cloud.points, cilantro::RenderingProperties().setPointColor(1,0,0).setPointSize(3.0));
 
             std::cout << "Press 'a' for a new estimate" << std::endl;
