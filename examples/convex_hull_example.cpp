@@ -74,9 +74,7 @@ int main(int argc, char ** argv) {
 
     cilantro::Visualizer viz1("3D convex hull", "disp");
 
-    viz1.addPointCloud("cloud", cloud.points, cilantro::RenderingProperties().setOpacity(1.0));
-    viz1.addPointCloudNormals("cloud", cloud.normals);
-    viz1.addPointCloudColors("cloud", cloud.colors);
+    viz1.addPointCloud("cloud", cloud, cilantro::RenderingProperties().setOpacity(1.0));
 
     viz1.addTriangleMesh("mesh", ch.getVertices(), ch.getFacetVertexIndices());
     viz1.addTriangleMeshVertexNormals("mesh", hc.normals);
@@ -104,8 +102,7 @@ int main(int argc, char ** argv) {
     }
 
     cilantro::Visualizer viz2("2D convex hull in 3D space", "disp");
-    viz2.addPointCloud("cloud", cloud.points, cilantro::RenderingProperties().setOpacity(0.5));
-    viz2.addPointCloudColors("cloud", cloud.colors);
+    viz2.addPointCloud("cloud", cloud, cilantro::RenderingProperties().setOpacity(0.5));
     viz2.addPointCloud("hull_cloud", ch2d.getVertices3D(), cilantro::RenderingProperties().setPointColor(1,0,0).setPointSize(10.0));
     viz2.addPointCorrespondences("hull_lines", p_src, p_dst, cilantro::RenderingProperties().setLineColor(0,0,1).setLineWidth(5.0).setLineDensityFraction(1.0));
 

@@ -36,8 +36,7 @@ int main(int argc, char **argv) {
     std::vector<size_t> dst_ind(100);
     std::vector<size_t> src_ind(100);
 
-    viz.addPointCloud("dst", dst.points, cilantro::RenderingProperties().setPointColor(0,0,1));
-    viz.addPointCloudNormals("dst", dst.normals);
+    viz.addPointCloud("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
     while (!viz.wasStopped()) {
         if (randomize) {
             randomize = false;
@@ -69,8 +68,7 @@ int main(int argc, char **argv) {
             }
 
             src.transform(R_ref, t_ref);
-            viz.addPointCloud("src", src.points, cilantro::RenderingProperties().setPointColor(1,0,0));
-            viz.addPointCloudNormals("src", src.normals);
+            viz.addPointCloud("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
             viz.addPointCorrespondences("corr", selectByIndices(src.points, src_ind), selectByIndices(dst.points, dst_ind), cilantro::RenderingProperties().setOpacity(0.5f));
 
             std::cout << "Press 'a' for a transform estimate" << std::endl;
@@ -90,8 +88,7 @@ int main(int argc, char **argv) {
 
             src.points = (tform.rotation*src.points).colwise() + tform.translation;
 
-            viz.addPointCloud("src", src.points, cilantro::RenderingProperties().setPointColor(1,0,0));
-            viz.addPointCloudNormals("src", src.normals);
+            viz.addPointCloud("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
 
             std::cout << "Press 'd' for a new random pose" << std::endl;
         }

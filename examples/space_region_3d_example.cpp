@@ -48,14 +48,9 @@ int main(int argc, char* argv[]) {
     viz.registerKeyboardCallback('a', std::bind(callback, std::ref(viz), 'a'));
     viz.registerKeyboardCallback('s', std::bind(callback, std::ref(viz), 's'));
 
-    viz.addPointCloud("cloud1", cloud1.points, cilantro::RenderingProperties().setOpacity(0.3));
-    viz.addPointCloudNormals("cloud1", cloud1.normals);
-    viz.addPointCloudColors("cloud1", cloud1.colors);
-    viz.addPointCloud("cloud2", cloud2.points, cilantro::RenderingProperties().setOpacity(0.3));
-    viz.addPointCloudNormals("cloud2", cloud2.normals);
-    viz.addPointCloudColors("cloud2", cloud2.colors);
-    viz.addPointCloud("interior_cloud", interior_cloud.points, cilantro::RenderingProperties().setOpacity(1.0).setPointSize(2.5f).setPointColor(0.8,0.8,0.8));
-    viz.addPointCloudNormals("interior_cloud", interior_cloud.normals);
+    viz.addPointCloud("cloud1", cloud1, cilantro::RenderingProperties().setOpacity(0.3));
+    viz.addPointCloud("cloud2", cloud2, cilantro::RenderingProperties().setOpacity(0.3));
+    viz.addPointCloud("interior_cloud", interior_cloud, cilantro::RenderingProperties().setOpacity(1.0).setPointSize(2.5f).setPointColor(0.8,0.8,0.8));
 
     const cilantro::ConvexPolytope3D& cp1(sr1.getConvexPolytopes()[0]);
     const cilantro::ConvexPolytope3D& cp2(sr2.getConvexPolytopes()[0]);

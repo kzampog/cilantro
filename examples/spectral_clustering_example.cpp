@@ -117,15 +117,10 @@ int main(int argc, char ** argv) {
     pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual).AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2"));
 
     cilantro::Visualizer viz1("SpectralClustering demo", "disp1");
-    viz1.addPointCloud("cloud", cloud.points, cilantro::RenderingProperties().setPointSize(5.0f));
-    viz1.addPointCloudNormals("cloud", cloud.normals);
-    viz1.addPointCloudColors("cloud", cloud.colors);
+    viz1.addPointCloud("cloud", cloud, cilantro::RenderingProperties().setPointSize(5.0f));
 
     cilantro::Visualizer viz2("SpectralClustering demo", "disp2");
-    viz2.addPointCloud("cloud_seg", cloud_seg.points, cilantro::RenderingProperties().setPointSize(5.0f));
-    viz2.addPointCloudNormals("cloud_seg", cloud_seg.normals);
-    viz2.addPointCloudColors("cloud_seg", cloud_seg.colors);
-
+    viz2.addPointCloud("cloud_seg", cloud_seg, cilantro::RenderingProperties().setPointSize(5.0f));
 
     while (!viz1.wasStopped() && !viz2.wasStopped()) {
         viz1.clearRenderArea();

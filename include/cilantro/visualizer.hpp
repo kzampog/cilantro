@@ -2,7 +2,7 @@
 
 #include <cilantro/renderables.hpp>
 #include <cilantro/visualizer_handler.hpp>
-//#include <cilantro/point_cloud.hpp>
+#include <cilantro/type_traits.hpp>
 #include <pangolin/display/display_internal.h>
 
 namespace cilantro {
@@ -15,7 +15,26 @@ namespace cilantro {
         Visualizer(const std::string &window_name, const std::string &display_name);
         ~Visualizer();
 
-//        Visualizer& addPointCloud(const std::string &name, const PointCloud &cloud, const RenderingProperties &rp = RenderingProperties());
+        template <class CloudT, class = typename std::enable_if<has_points<CloudT>::value && has_normals<CloudT>::value && has_colors<CloudT>::value>::type>
+        Visualizer& addPointCloud(const std::string &name, const CloudT &cloud, const RenderingProperties &rp = RenderingProperties()) {
+            gl_context_->MakeCurrent();
+            if (cloud.points.cols() == 0) {
+                renderables_.erase(name);
+                return *this;
+            }
+            renderables_[name] = std::shared_ptr<PointCloudRenderable>(new PointCloudRenderable);
+            PointCloudRenderable *obj_ptr = (PointCloudRenderable *)renderables_[name].get();
+            // Copy fields
+            obj_ptr->points = cloud.points;
+            if (cloud.normals.cols() == cloud.points.cols()) obj_ptr->normals = cloud.normals;
+            if (cloud.colors.cols() ==  cloud.points.cols()) obj_ptr->colors = cloud.colors;
+            obj_ptr->centroid = cloud.points.rowwise().mean();
+            // Update buffers
+            ((Renderable *)obj_ptr)->applyRenderingProperties(rp);
+
+            return *this;
+        }
+
         Visualizer& addPointCloud(const std::string &name, const ConstVectorSetMatrixMap<float,3> &points, const RenderingProperties &rp = RenderingProperties());
         Visualizer& addPointCloudNormals(const std::string &name, const ConstVectorSetMatrixMap<float,3> &normals);
         Visualizer& addPointCloudColors(const std::string &name, const ConstVectorSetMatrixMap<float,3> &colors);

@@ -17,9 +17,7 @@ int main(int argc, char **argv) {
 
     std::cout << "Press 'a' for a new estimate" << std::endl;
 
-    viz.addPointCloud("cloud", cloud.points);
-    viz.addPointCloudNormals("cloud", cloud.normals);
-    viz.addPointCloudColors("cloud", cloud.colors);
+    viz.addPointCloud("cloud", cloud);
     while (!viz.wasStopped()) {
         if (re_estimate) {
             re_estimate = false;

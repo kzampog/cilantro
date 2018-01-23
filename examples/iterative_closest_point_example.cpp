@@ -59,10 +59,8 @@ int main(int argc, char ** argv) {
     bool proceed = false;
     viz.registerKeyboardCallback('a', std::bind(callback, std::ref(proceed)));
 
-    viz.addPointCloud("dst", dst.points, cilantro::RenderingProperties().setPointColor(0,0,1));
-    viz.addPointCloudNormals("dst", dst.normals);
-    viz.addPointCloud("src", src.points, cilantro::RenderingProperties().setPointColor(1,0,0));
-    viz.addPointCloudNormals("src", src.normals);
+    viz.addPointCloud("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
+    viz.addPointCloud("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
 
     std::cout << "Press 'a' to compute transformation" << std::endl;
     while (!proceed && !viz.wasStopped()) {
@@ -109,10 +107,8 @@ int main(int argc, char ** argv) {
     src_trans.points = (R_est*src_trans.points).colwise() + t_est;
     src_trans.normals = R_est*src_trans.normals;
 
-    viz.addPointCloud("dst", dst.points, cilantro::RenderingProperties().setPointColor(0,0,1));
-    viz.addPointCloudNormals("dst", dst.normals);
-    viz.addPointCloud("src", src_trans.points, cilantro::RenderingProperties().setPointColor(1,0,0));
-    viz.addPointCloudNormals("src", src_trans.normals);
+    viz.addPointCloud("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
+    viz.addPointCloud("src", src_trans, cilantro::RenderingProperties().setPointColor(1,0,0));
 
     std::cout << "Press 'a' to compute residuals" << std::endl;
     while (!proceed && !viz.wasStopped()) {
@@ -128,8 +124,7 @@ int main(int argc, char ** argv) {
     std::cout << "Residual computation time: " << elapsed.count() << "ms" << std::endl;
 
     viz.clear();
-    viz.addPointCloud("src", src_trans.points, cilantro::RenderingProperties().setUseLighting(false)).addPointCloudValues("src", residuals);
-    viz.addPointCloudNormals("src", src_trans.normals);
+    viz.addPointCloud("src", src_trans, cilantro::RenderingProperties().setUseLighting(false)).addPointCloudValues("src", residuals);
 
     while (!proceed && !viz.wasStopped()) {
         if (viz.wasStopped()) return 0;
