@@ -34,20 +34,45 @@ namespace cilantro {
 
             return *this;
         }
-
         Visualizer& addPointCloud(const std::string &name, const ConstVectorSetMatrixMap<float,3> &points, const RenderingProperties &rp = RenderingProperties());
         Visualizer& addPointCloudNormals(const std::string &name, const ConstVectorSetMatrixMap<float,3> &normals);
         Visualizer& addPointCloudColors(const std::string &name, const ConstVectorSetMatrixMap<float,3> &colors);
         Visualizer& addPointCloudValues(const std::string &name, const ConstVectorSetMatrixMap<float,1> &point_values);
 
         Visualizer& addPointCorrespondences(const std::string &name, const ConstVectorSetMatrixMap<float,3> &points_src, const ConstVectorSetMatrixMap<float,3> &points_dst, const RenderingProperties &rp = RenderingProperties());
-//        Visualizer& addPointCorrespondences(const std::string &name, const PointCloud &cloud_src, const PointCloud &cloud_dst, const RenderingProperties &rp = RenderingProperties());
+        template <class CloudT, class = typename std::enable_if<has_points<CloudT>::value>::type>
+        Visualizer& addPointCorrespondences(const std::string &name, const CloudT &cloud_src, const CloudT &cloud_dst, const RenderingProperties &rp = RenderingProperties()) {
+            return addPointCorrespondences(name, cloud_src.points, cloud_dst.points, rp);
+        }
 
         Visualizer& addCoordinateFrame(const std::string &name, const Eigen::Matrix4f &tf = Eigen::Matrix4f::Identity(), float scale = 1.0f, const RenderingProperties &rp = RenderingProperties());
 
         Visualizer& addCameraFrustum(const std::string &name, size_t width, size_t height, const Eigen::Matrix3f &intrinsics, const Eigen::Matrix4f &pose = Eigen::Matrix4f::Identity(), float scale = 1.0f, const RenderingProperties &rp = RenderingProperties());
 
-//        Visualizer& addTriangleMesh(const std::string &name, const PointCloud &cloud, const std::vector<std::vector<size_t>> &faces, const RenderingProperties &rp = RenderingProperties());
+        template <class CloudT, class = typename std::enable_if<has_points<CloudT>::value && has_normals<CloudT>::value && has_colors<CloudT>::value>::type>
+        Visualizer& addTriangleMesh(const std::string &name, const CloudT &cloud, const std::vector<std::vector<size_t>> &faces, const RenderingProperties &rp = RenderingProperties()) {
+            gl_context_->MakeCurrent();
+            if (cloud.points.cols() == 0 || faces.empty()) {
+                renderables_.erase(name);
+                return *this;
+            }
+            renderables_[name] = std::shared_ptr<TriangleMeshRenderable>(new TriangleMeshRenderable);
+            TriangleMeshRenderable *obj_ptr = (TriangleMeshRenderable *)renderables_[name].get();
+            obj_ptr->vertices = cloud.points;
+            obj_ptr->faces = faces;
+            if (cloud.normals.cols() == cloud.points.cols()) obj_ptr->vertexNormals = cloud.normals;
+            if (cloud.colors.cols() ==  cloud.points.cols()) obj_ptr->vertexColors = cloud.colors;
+            obj_ptr->faceNormals.resize(faces.size());
+            for (size_t i = 0; i < faces.size(); i++) {
+                const Eigen::Vector3f& pt0(obj_ptr->vertices.col(faces[i][0]));
+                const Eigen::Vector3f& pt1(obj_ptr->vertices.col(faces[i][1]));
+                const Eigen::Vector3f& pt2(obj_ptr->vertices.col(faces[i][2]));
+                obj_ptr->faceNormals.col(i) = ((pt1-pt0).cross(pt2-pt0)).normalized();
+            }
+            ((Renderable *)obj_ptr)->applyRenderingProperties(rp);
+
+            return *this;
+        }
         Visualizer& addTriangleMesh(const std::string &name, const ConstVectorSetMatrixMap<float,3> &vertices, const std::vector<std::vector<size_t>> &faces, const RenderingProperties &rp = RenderingProperties());
         Visualizer& addTriangleMeshVertexNormals(const std::string &name, const ConstVectorSetMatrixMap<float,3> &vertex_normals);
         Visualizer& addTriangleMeshFaceNormals(const std::string &name, const ConstVectorSetMatrixMap<float,3> &face_normals);
