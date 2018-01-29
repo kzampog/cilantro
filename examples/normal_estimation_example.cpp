@@ -20,9 +20,9 @@ int main(int argc, char ** argv) {
     std::chrono::duration<double, std::milli> kd_tree_time = end - start;
 
     start = std::chrono::high_resolution_clock::now();
-//    cloud.normalsMatrixMap() = ne.estimateNormals(cilantro::KDTree3D::Neighborhood(cilantro::KDTree3D::NeighborhoodType::KNN_IN_RADIUS, 7, 0.01));
-//    cloud.normalsMatrixMap() = ne.estimateNormalsKNNInRadius(7, 0.01);
-//    cloud.normalsMatrixMap() = ne.estimateNormalsRadius(0.01);
+//    cloud.normals = ne.estimateNormals(cilantro::KDTree3D::Neighborhood(cilantro::KDTree3D::NeighborhoodType::KNN_IN_RADIUS, 7, 0.01));
+//    cloud.normals = ne.estimateNormalsKNNInRadius(7, 0.01);
+//    cloud.normals = ne.estimateNormalsRadius(0.01);
     cloud.normals = ne.estimateNormalsKNN(7);
     end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> estimation_time = end - start;
