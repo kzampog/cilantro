@@ -84,8 +84,8 @@ namespace cilantro {
         Visualizer& addText(const std::string &name, const std::string &text, const Eigen::Vector3f &position, const RenderingProperties &rp = RenderingProperties());
         Visualizer& addText(const std::string &name, const std::string &text, float x, float y, float z, const RenderingProperties &rp = RenderingProperties());
 
-        inline Visualizer& clear() { renderables_.clear(); return *this; }
-        inline Visualizer& remove(const std::string &name) { renderables_.erase(name); return *this; }
+        inline Visualizer& clear() { gl_context_->MakeCurrent(); renderables_.clear(); return *this; }
+        inline Visualizer& remove(const std::string &name) { gl_context_->MakeCurrent(); renderables_.erase(name); return *this; }
 
         Visualizer& clearRenderArea();
         Visualizer& render();

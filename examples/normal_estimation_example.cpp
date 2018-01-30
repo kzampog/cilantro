@@ -7,6 +7,7 @@ int main(int argc, char ** argv) {
     cilantro::PointCloud3D cloud;
     readPointCloudFromPLYFile(argv[1], cloud);
 
+    // Clear input normals
     cloud.normals.resize(Eigen::NoChange, 0);
 
     cilantro::VoxelGrid vg(cloud, 0.005);

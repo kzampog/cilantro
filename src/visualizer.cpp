@@ -9,7 +9,9 @@ namespace cilantro {
         init_(window_name, display_name);
     }
 
-    Visualizer::~Visualizer() {}
+    Visualizer::~Visualizer() {
+        gl_context_->MakeCurrent();
+    }
 
     Visualizer& Visualizer::addPointCloud(const std::string &name, const ConstVectorSetMatrixMap<float,3> &points, const RenderingProperties &rp) {
         gl_context_->MakeCurrent();
