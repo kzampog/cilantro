@@ -2,6 +2,10 @@
 
 #include <cilantro/kd_tree.hpp>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 namespace cilantro {
     class ConnectedComponentSegmentation {
     public:
@@ -53,7 +57,7 @@ namespace cilantro {
         float normal_angle_thresh_;
         float color_diff_thresh_sq_;
 
-        inline bool is_similar_(size_t i, size_t j) {
+        inline bool is_similar_(size_t i, size_t j) const {
             if (normals_.cols() > 0) {
                 float angle = std::acos(normals_.col(i).dot(normals_.col(j)));
                 if ((normal_angle_thresh_ >= 0.0f && angle > normal_angle_thresh_) ||

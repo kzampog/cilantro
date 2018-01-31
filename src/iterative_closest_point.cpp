@@ -1,6 +1,10 @@
 #include <cilantro/iterative_closest_point.hpp>
 #include <cilantro/registration.hpp>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 namespace cilantro {
     IterativeClosestPoint::IterativeClosestPoint(const ConstVectorSetMatrixMap<float,3> &dst_p, const ConstVectorSetMatrixMap<float,3> &src_p)
             : dst_points_(dst_p),
