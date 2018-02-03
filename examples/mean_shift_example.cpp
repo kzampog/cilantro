@@ -19,13 +19,13 @@ int main(int argc, char ** argv) {
             points(i,j) = distribution(generator);
         }
     }
-    points.row(2).array() += 8.0f;
+    points.row(2).array() += 10.0f;
 
     for (size_t j = 0; j < offsets.cols(); j++) {
         for (size_t i = 0; i < offsets.rows(); i++) {
             offsets(i,j) = distribution(generator);
         }
-        offsets.col(j) = 2.5*offsets.col(j).normalized();
+        offsets.col(j) = 2.5f*offsets.col(j).normalized();
     }
 
     for (size_t i = 0; i < c_n; i++) {
@@ -39,7 +39,7 @@ int main(int argc, char ** argv) {
     cilantro::MeanShift3D ms(points);
 
     auto start = std::chrono::high_resolution_clock::now();
-    ms.cluster(2.0f, 5000, 1e-1, 1e-7);
+    ms.cluster(2.0f, 5000, 0.2, 1e-7);
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> elapsed = end - start;
     std::cout << "Clustering time: " << elapsed.count() << "ms" << std::endl;
@@ -68,8 +68,8 @@ int main(int argc, char ** argv) {
     }
 
     // Create a new colored cloud
-//    cilantro::PointCloud3D cloud_seg(ms.getShiftedSeeds(), cilantro::VectorSet<float,3>(NULL,0), cols);
     cilantro::PointCloud3D cloud_seg(points, cilantro::VectorSet<float,3>(NULL,0), cols);
+    cilantro::PointCloud3D modes(ms.getClusterModes(), cilantro::VectorSet<float,3>(NULL,0), color_map);
 
     // Visualize result
     pangolin::CreateWindowAndBind("MeanShift demo",1280,480);
@@ -80,6 +80,7 @@ int main(int argc, char ** argv) {
 
     cilantro::Visualizer viz2("MeanShift demo", "disp2");
     viz2.addPointCloud("cloud_seg", cloud_seg, cilantro::RenderingProperties().setPointSize(5.0f));
+    viz2.addPointCloud("modes", modes, cilantro::RenderingProperties().setPointSize(20.0f));
 
     while (!viz1.wasStopped() && !viz2.wasStopped()) {
         viz1.clearRenderArea();
