@@ -13,6 +13,7 @@
 #include <cilantro/iterative_closest_point.hpp>
 #include <cilantro/kd_tree.hpp>
 #include <cilantro/kmeans.hpp>
+#include <cilantro/mean_shift.hpp>
 #include <cilantro/normal_estimation.hpp>
 #include <cilantro/plane_estimator.hpp>
 #include <cilantro/point_cloud.hpp>

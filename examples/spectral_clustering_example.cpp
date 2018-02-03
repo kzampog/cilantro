@@ -86,8 +86,6 @@ int main(int argc, char ** argv) {
     std::cout << "Number of clusters: " << sc.getNumberOfClusters() << std::endl;
     std::cout << "Performed k-means iterations: " << sc.getClusterer().getPerformedIterationsCount() << std::endl;
 
-//    cilantro::writeEigenMatrixToFile("/home/kzampog/Desktop/ddd.txt", sc.getUsedEigenValues(), false);
-
     const std::vector<std::vector<size_t> >& cpi(sc.getClusterPointIndices());
     size_t mins = cloud.size(), maxs = 0;
     for (size_t i = 0; i < cpi.size(); i++) {
