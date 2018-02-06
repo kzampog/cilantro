@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cilantro/data_containers.hpp>
+#include <iterator>
 #include <set>
 
 namespace cilantro {
