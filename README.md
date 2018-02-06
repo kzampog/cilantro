@@ -1,27 +1,38 @@
 # cilantro
 [![Build Status](https://travis-ci.org/kzampog/cilantro.svg?branch=master)](https://travis-ci.org/kzampog/cilantro)
 
-`cilantro` is a lean C++ library for working with 3D point clouds. It implements a number of common operations, with emphasis given to minimizing the amount of code required by the user.
+`cilantro` is a lean C++ library for working with point cloud data, with emphasis given to the 3D case. It implements a number of common operations, while attempting to minimize the amount of code required by the user.
 
 ## Supported functionality
-- Voxel grid based point cloud resampling
+
+#### Basic operations:
 - General dimension kd-trees (using bundled [nanoflann](https://github.com/jlblancoc/nanoflann))
-- Surface normal estimation from point clouds
-- General dimension convex hull computation (using bundled [Qhull](http://www.qhull.org/)) that allows easy switching between vertex and half-space intersection representations for the defined polytope
-- A representation of general dimension space regions as unions of convex polytopes that implements set operations
-- A 3D Iterative Closest Point implementation for point-to-point and point-to-plane metrics that supports multiple correspondence types (based on any combination of point location, normal, and color)
-- A generic RANSAC estimator (and instantiations of it for robust plane estimation and rigid 6DOF point cloud registration)
-- Connected component based point cloud segmentation, with pairwise similarities capturing any combination of spatial proximity, normal smoothness, and color similarity
-- General dimension k-means clustering that supports all distance metrics supported by [nanoflann](https://github.com/jlblancoc/nanoflann)
-- A spectral clustering implementation (using bundled [Spectra](https://github.com/yixuan/spectra) for eigendecompositions)
+- Surface normal estimation from raw point clouds
+- General dimension grid-based point cloud resampling
 - Principal Component Analysis
-- A fast, flexible and easy to use 3D visualizer
-- Basic I/O utilities for point clouds (in PLY format, using bundled [tinyply](https://github.com/ddiakopoulos/tinyply)) and Eigen matrices
+- Basic I/O utilities for 3D point clouds (in PLY format, using bundled [tinyply](https://github.com/ddiakopoulos/tinyply)) and Eigen matrices
+
+#### Convex hulls:
+- A general dimension convex polytope representation that is computed (using bundled [Qhull](http://www.qhull.org/)) from either vertex or half-space intersection input and allows for easy switching between the respective representations
+- A representation of generic (general dimension) space regions as unions of convex polytopes that implements set operations
+
+#### Clustering:
+- General dimension k-means clustering that supports all distance metrics supported by [nanoflann](https://github.com/jlblancoc/nanoflann)
+- Spectral clustering (using bundled [Spectra](https://github.com/yixuan/spectra) for eigendecompositions)
+- A simple flat kernel mean shift implementation
+- Connected component based point cloud segmentation, with pairwise similarities capturing any combination of spatial proximity, normal smoothness, and color similarity
+
+#### Model estimation and point set registration:
+- A generic RANSAC estimator and instantiations thereof for robust plane estimation and rigid 6DOF point cloud registration
+- A 3D Iterative Closest Point implementation for point-to-point and point-to-plane metrics that supports multiple correspondence types (based on any combination of point location, normal, and color)
+
+#### Visualization:
+- A fast, powerful, and easy to use 3D visualizer
 - RGBD images to/from point cloud utility functions
 
 ## Dependencies
 - [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) (3.3 or newer)
-- [Pangolin](https://github.com/stevenlovegrove/Pangolin)
+- [Pangolin](https://github.com/stevenlovegrove/Pangolin) (built with Eigen enabled)
 
 ## Building
 `cilantro` is developed and tested on Ubuntu 14.04 and 16.04 variants using [CMake](https://cmake.org/).
