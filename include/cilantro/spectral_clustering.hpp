@@ -46,14 +46,15 @@ namespace cilantro {
 
     enum struct GraphLaplacianType {UNNORMALIZED, NORMALIZED_SYMMETRIC, NORMALIZED_RANDOM_WALK};
 
-    // EigenDim is the embedding dimension (and also the number of clusters); set to Eigen::Dynamic for runtime setting
+    // If positive, EigenDim is the embedding dimension (and also the number of clusters).
+    // Set to Eigen::Dynamic for runtime setting.
     template <typename ScalarT, ptrdiff_t EigenDim = Eigen::Dynamic>
     class SpectralClustering {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         // Dense input
-        // Number of clusters (embedding dimension) set at compile time
+        // Number of clusters (embedding dimension) set at compile time (EigenDim template parameter)
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
         SpectralClustering(const Eigen::Ref<const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> &affinities,
                            const GraphLaplacianType &laplacian_type = GraphLaplacianType::NORMALIZED_RANDOM_WALK,
@@ -65,8 +66,8 @@ namespace cilantro {
         }
 
         // Dense input
-        // Number of clusters (embedding dimension) set at runtime
-        // If estimate_num_clusters == true, figures out number of clusters in [1,max_num_clusters] based on eigenvalue
+        // Number of clusters (embedding dimension) set at runtime (EigenDim == Eigen::Dynamic)
+        // If estimate_num_clusters == true, chooses number of clusters in [1, max_num_clusters] based on eigenvalue
         // distribution. Otherwise, returns max_num_clusters clusters.
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == Eigen::Dynamic>::type>
         SpectralClustering(const Eigen::Ref<const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> &affinities,
@@ -85,7 +86,7 @@ namespace cilantro {
         }
 
         // Sparse input
-        // Number of clusters (embedding dimension) set at compile time
+        // Number of clusters (embedding dimension) set at compile time (EigenDim template parameter)
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
         SpectralClustering(const Eigen::SparseMatrix<ScalarT> &affinities,
                            const GraphLaplacianType &laplacian_type = GraphLaplacianType::NORMALIZED_RANDOM_WALK,
@@ -97,8 +98,8 @@ namespace cilantro {
         }
 
         // Sparse input
-        // Number of clusters (embedding dimension) set at runtime
-        // If estimate_num_clusters == true, figures out number of clusters in [1,max_num_clusters] based on eigenvalue
+        // Number of clusters (embedding dimension) set at runtime (EigenDim == Eigen::Dynamic)
+        // If estimate_num_clusters == true, chooses number of clusters in [1, max_num_clusters] based on eigenvalue
         // distribution. Otherwise, returns max_num_clusters clusters.
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == Eigen::Dynamic>::type>
         SpectralClustering(const Eigen::SparseMatrix<ScalarT> &affinities,
@@ -120,7 +121,7 @@ namespace cilantro {
 
         inline const VectorSet<ScalarT,EigenDim>& getEmbeddedPoints() const { return embedded_points_; }
 
-        inline const Vector<ScalarT,Eigen::Dynamic>& getUsedEigenValues() const { return eigenvalues_; }
+        inline const Vector<ScalarT,Eigen::Dynamic>& getComputedEigenValues() const { return eigenvalues_; }
 
         inline const std::vector<std::vector<size_t>>& getClusterPointIndices() const { return clusterer_->getClusterPointIndices(); }
 

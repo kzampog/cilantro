@@ -1,5 +1,5 @@
 #include <cilantro/spectral_clustering.hpp>
-#include <cilantro/io.hpp>
+#include <cilantro/point_cloud.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/voxel_grid.hpp>
 
