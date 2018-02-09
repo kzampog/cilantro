@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cilantro/3rd_party/spectra/SymEigsSolver.h>
+#include <cilantro/data_containers.hpp>
 
 namespace cilantro {
     // If positive, EigenDim is the embedding dimension. Set to Eigen::Dynamic for runtime setting.
@@ -14,7 +15,7 @@ namespace cilantro {
         MultidimensionalScaling(const Eigen::Ref<const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> &distances,
                                 bool distances_are_squared = false)
         {
-            compute_dense_(distances, EigenDim, false, distances_are_squared);
+            compute_(distances, EigenDim, false, distances_are_squared);
         }
 
         // Embedding dimension set at runtime (EigenDim == Eigen::Dynamic)
@@ -27,9 +28,9 @@ namespace cilantro {
                                 bool distances_are_squared = false)
         {
             if (max_dim > 0 && max_dim < distances.rows()) {
-                compute_dense_(distances, max_dim, estimate_dim, distances_are_squared);
+                compute_(distances, max_dim, estimate_dim, distances_are_squared);
             } else {
-                compute_dense_(distances, 2, false, distances_are_squared);
+                compute_(distances, 2, false, distances_are_squared);
             }
         }
 
@@ -43,7 +44,7 @@ namespace cilantro {
         Vector<ScalarT,Eigen::Dynamic> eigenvalues_;
         VectorSet<ScalarT,EigenDim> embedded_points_;
 
-        void compute_dense_(const Eigen::Ref<const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> &distances,
+        void compute_(const Eigen::Ref<const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> &distances,
                             size_t max_dim, bool estimate_dim, bool distances_are_squared)
         {
             size_t dim = max_dim;
@@ -79,6 +80,7 @@ namespace cilantro {
             }
 
             embedded_points_ = eigenvalues_.head(dim).cwiseSqrt().asDiagonal() * eig.eigenvectors(dim).transpose();
+//            embedded_points_ = (eig.eigenvectors(dim)*eigenvalues_.head(dim).cwiseSqrt().asDiagonal()).transpose();
         }
 
         size_t estimate_embedding_dimension_(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &eigenvalues, size_t max_dim) {
@@ -101,6 +103,5 @@ namespace cilantro {
             if (max_val - min_val < std::numeric_limits<ScalarT>::epsilon()) return max_dim;
             return max_ind + 1;
         }
-
     };
 }

@@ -1,10 +1,8 @@
 #include <random>
-#include <cilantro/point_cloud.hpp>
 #include <cilantro/mean_shift.hpp>
 #include <cilantro/visualizer.hpp>
 
 int main(int argc, char ** argv) {
-
     // Generate random points
     std::default_random_engine generator;
     std::normal_distribution<float> distribution(0.0f,1.0f);
@@ -67,10 +65,6 @@ int main(int argc, char ** argv) {
         cols[i] = color_map[idx_map[i]];
     }
 
-    // Create a new colored cloud
-    cilantro::PointCloud3D cloud_seg(points, cilantro::VectorSet<float,3>(NULL,0), cols);
-    cilantro::PointCloud3D modes(ms.getClusterModes(), cilantro::VectorSet<float,3>(NULL,0), color_map);
-
     // Visualize result
     pangolin::CreateWindowAndBind("MeanShift demo",1280,480);
     pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual).AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2"));
@@ -79,8 +73,10 @@ int main(int argc, char ** argv) {
     viz1.addPointCloud("cloud", points, cilantro::RenderingProperties().setPointSize(5.0f));
 
     cilantro::Visualizer viz2("MeanShift demo", "disp2");
-    viz2.addPointCloud("cloud_seg", cloud_seg, cilantro::RenderingProperties().setPointSize(5.0f));
-    viz2.addPointCloud("modes", modes, cilantro::RenderingProperties().setPointSize(20.0f));
+    viz2.addPointCloud("cloud_seg", points, cilantro::RenderingProperties().setPointSize(5.0f));
+    viz2.addPointCloudColors("cloud_seg", cols);
+    viz2.addPointCloud("modes", ms.getClusterModes(), cilantro::RenderingProperties().setPointSize(20.0f));
+    viz2.addPointCloudColors("modes", color_map);
 
     while (!viz1.wasStopped() && !viz2.wasStopped()) {
         viz1.clearRenderArea();

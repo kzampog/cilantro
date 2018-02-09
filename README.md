@@ -7,9 +7,10 @@
 
 #### Basic operations:
 - General dimension kd-trees (using bundled [nanoflann](https://github.com/jlblancoc/nanoflann))
-- Surface normal estimation from raw point clouds
+- Surface normal and curvature estimation from raw point clouds
 - General dimension grid-based point cloud resampling
 - Principal Component Analysis
+- Classical Multidimensional Scaling (using bundled [Spectra](https://github.com/yixuan/spectra) for eigendecompositions)
 - Basic I/O utilities for 3D point clouds (in PLY format, using bundled [tinyply](https://github.com/ddiakopoulos/tinyply)) and Eigen matrices
 
 #### Convex hulls:
@@ -18,12 +19,12 @@
 
 #### Clustering:
 - General dimension k-means clustering that supports all distance metrics supported by [nanoflann](https://github.com/jlblancoc/nanoflann)
-- Spectral clustering (using bundled [Spectra](https://github.com/yixuan/spectra) for eigendecompositions)
-- A simple flat kernel mean shift implementation
+- Spectral clustering based on various graph Laplacian types (using bundled [Spectra](https://github.com/yixuan/spectra))
+- Flat kernel mean-shift clustering
 - Connected component based point cloud segmentation, with pairwise similarities capturing any combination of spatial proximity, normal smoothness, and color similarity
 
 #### Model estimation and point set registration:
-- A generic RANSAC estimator and instantiations thereof for robust plane estimation and rigid 6DOF point cloud registration
+- A RANSAC estimator template and instantiations thereof for robust plane estimation and rigid 6DOF point cloud registration
 - A 3D Iterative Closest Point implementation for point-to-point and point-to-plane metrics that supports multiple correspondence types (based on any combination of point location, normal, and color)
 
 #### Visualization:

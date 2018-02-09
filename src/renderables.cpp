@@ -35,7 +35,7 @@ namespace cilantro {
             tmp(3) = renderingProperties.opacity;
             color_alpha = tmp.replicate(1,points.cols());
         } else if (pointValues.cols() == points.cols() && renderingProperties.useScalarValueMappedColors) {
-            VectorSet<float,3> color_tmp = colormap(pointValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
+            VectorSet<float,3> color_tmp = colormap(pointValues, renderingProperties.colormapType, renderingProperties.minScalarValue, renderingProperties.maxScalarValue);
             color_alpha.resize(Eigen::NoChange, pointValues.cols());
             color_alpha.topRows(3) = color_tmp;
             color_alpha.row(3).setConstant(renderingProperties.opacity);
@@ -214,7 +214,7 @@ namespace cilantro {
         } else if (renderingProperties.useFaceColors && (faceValues.cols() == faces.size() || faceColors.cols() == faces.size())) {
             if (faceValues.cols() == faces.size() && renderingProperties.useScalarValueMappedColors) {
                 colors_flat.resize(Eigen::NoChange, faces.size()*3);
-                VectorSet<float,3> colors_tmp = colormap(faceValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
+                VectorSet<float,3> colors_tmp = colormap(faceValues, renderingProperties.colormapType, renderingProperties.minScalarValue, renderingProperties.maxScalarValue);
                 k = 0;
                 for (size_t i = 0; i < faces.size(); i++) {
                     for (size_t j = 0; j < faces[i].size(); j++) {
@@ -235,7 +235,7 @@ namespace cilantro {
         } else if (!renderingProperties.useFaceColors && (vertexValues.cols() == vertices.cols() || vertexColors.cols() == vertices.cols())) {
             if (vertexValues.cols() == vertices.cols() && renderingProperties.useScalarValueMappedColors) {
                 colors_flat.resize(Eigen::NoChange, faces.size()*3);
-                VectorSet<float,3> colors_tmp = colormap(vertexValues, renderingProperties.minScalarValue, renderingProperties.maxScalarValue, renderingProperties.colormapType);
+                VectorSet<float,3> colors_tmp = colormap(vertexValues, renderingProperties.colormapType, renderingProperties.minScalarValue, renderingProperties.maxScalarValue);
                 k = 0;
                 for (size_t i = 0; i < faces.size(); i++) {
                     for (size_t j = 0; j < faces[i].size(); j++) {

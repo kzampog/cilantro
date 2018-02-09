@@ -53,23 +53,22 @@ Eigen::MatrixXf build_dense_radius_affinity_graph(const cilantro::ConstVectorSet
 
 int main(int argc, char ** argv) {
 
-    cilantro::PointCloud3D cloud;
-    cloud.points.resize(Eigen::NoChange, 1700);
+    cilantro::VectorSet<float,3> points(3, 1700);
     for (size_t i = 0; i < 1500; i++) {
-        cloud.points.col(i).setRandom().normalize();
+        points.col(i).setRandom().normalize();
     }
     for (size_t i = 1500; i < 1700; i++) {
-        cloud.points.col(i).setRandom().normalize();
-        cloud.points.col(i) *= 0.3f;
+        points.col(i).setRandom().normalize();
+        points.col(i) *= 0.3f;
     }
-    cloud.points.row(2).array() += 4.0f;
+    points.row(2).array() += 4.0f;
 
 //    Eigen::MatrixXf data0 = build_dense_radius_affinity_graph(cloud.points, 0.6);
-    Eigen::MatrixXf data0 = build_dense_knn_affinity_graph(cloud.points, 30);
+    Eigen::MatrixXf data0 = build_dense_knn_affinity_graph(points, 30);
 
     Eigen::SparseMatrix<float> data = data0.sparseView();
 
-    std::cout << "Number of points: " << cloud.size() << std::endl;
+    std::cout << "Number of points: " << points.cols() << std::endl;
 
     size_t max_num_clusters = 4;
 
@@ -87,7 +86,7 @@ int main(int argc, char ** argv) {
     std::cout << "Performed k-means iterations: " << sc.getClusterer().getPerformedIterationsCount() << std::endl;
 
     const std::vector<std::vector<size_t> >& cpi(sc.getClusterPointIndices());
-    size_t mins = cloud.size(), maxs = 0;
+    size_t mins = points.cols(), maxs = 0;
     for (size_t i = 0; i < cpi.size(); i++) {
         if (cpi[i].size() < mins) mins = cpi[i].size();
         if (cpi[i].size() > maxs) maxs = cpi[i].size();
@@ -107,18 +106,16 @@ int main(int argc, char ** argv) {
         cols[i] = color_map[idx_map[i]];
     }
 
-    // Create a new colored cloud
-    cilantro::PointCloud3D cloud_seg(cloud.points, cloud.normals, cols);
-
     // Visualize result
     pangolin::CreateWindowAndBind("SpectralClustering demo",1280,480);
     pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual).AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2"));
 
     cilantro::Visualizer viz1("SpectralClustering demo", "disp1");
-    viz1.addPointCloud("cloud", cloud, cilantro::RenderingProperties().setPointSize(5.0f));
+    viz1.addPointCloud("cloud", points, cilantro::RenderingProperties().setPointSize(5.0f));
 
     cilantro::Visualizer viz2("SpectralClustering demo", "disp2");
-    viz2.addPointCloud("cloud_seg", cloud_seg, cilantro::RenderingProperties().setPointSize(5.0f));
+    viz2.addPointCloud("cloud_seg", points, cilantro::RenderingProperties().setPointSize(5.0f));
+    viz2.addPointCloudColors("cloud_seg", cols);
 
     while (!viz1.wasStopped() && !viz2.wasStopped()) {
         viz1.clearRenderArea();

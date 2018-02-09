@@ -1,7 +1,7 @@
 #include <cilantro/colormap.hpp>
 
 namespace cilantro {
-    VectorSet<float,3> colormap(const ConstVectorSetMatrixMap<float,1> &scalars, float scalar_min, float scalar_max, const ColormapType &colormap_type) {
+    VectorSet<float,3> colormap(const ConstVectorSetMatrixMap<float,1> &scalars, const ColormapType &colormap_type, float scalar_min, float scalar_max) {
         float scalar_min_used = scalar_min;
         float scalar_max_used = scalar_max;
         if (!std::isfinite(scalar_min_used)) scalar_min_used = scalars.minCoeff();
