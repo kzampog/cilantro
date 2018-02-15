@@ -15,6 +15,7 @@
 #include <cilantro/kmeans.hpp>
 #include <cilantro/mean_shift.hpp>
 #include <cilantro/multidimensional_scaling.hpp>
+#include <cilantro/nearest_neighbor_graph.hpp>
 #include <cilantro/normal_estimation.hpp>
 #include <cilantro/plane_estimator.hpp>
 #include <cilantro/point_cloud.hpp>

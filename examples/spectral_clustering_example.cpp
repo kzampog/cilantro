@@ -1,58 +1,11 @@
+#include <cilantro/nearest_neighbor_graph.hpp>
 #include <cilantro/spectral_clustering.hpp>
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/voxel_grid.hpp>
 
-Eigen::MatrixXf build_dense_knn_affinity_graph(const cilantro::ConstVectorSetMatrixMap<float,3> &points, size_t k) {
-    Eigen::MatrixXf graph(Eigen::MatrixXf::Zero(points.cols(), points.cols()));
-
-    cilantro::VectorSet<float,3> tree_data = points.topRows(3);
-    cilantro::KDTree<float,3> tree(tree_data);
-    std::vector<size_t> neighbors;
-    std::vector<float> distances;
-#pragma omp parallel for shared (graph) private (neighbors, distances)
-    for (size_t i = 0; i < points.cols(); i++) {
-        tree.kNNSearch(points.col(i).head(3), k+1, neighbors, distances);
-        for (size_t j = 0; j < neighbors.size(); j++) {
-//            float val = std::exp(-1.0f*(points.col(i) - points.col(neighbors[j])).squaredNorm());
-            float val = 1.0f;
-            graph(i,neighbors[j]) = val;
-            graph(neighbors[j],i) = val;
-        }
-    }
-
-//    std::cout << (graph - graph.transpose()).cwiseAbs().maxCoeff() << std::endl;
-
-    return graph;
-}
-
-Eigen::MatrixXf build_dense_radius_affinity_graph(const cilantro::ConstVectorSetMatrixMap<float,3> &points, float radius) {
-    Eigen::MatrixXf graph(Eigen::MatrixXf::Zero(points.cols(), points.cols()));
-
-    float radius_sq = radius*radius;
-
-    cilantro::VectorSet<float,3> tree_data = points.topRows(3);
-    cilantro::KDTree<float,3> tree(tree_data);
-    std::vector<size_t> neighbors;
-    std::vector<float> distances;
-#pragma omp parallel for shared (graph) private (neighbors, distances)
-    for (size_t i = 0; i < points.cols(); i++) {
-        tree.radiusSearch(points.col(i).head(3), radius_sq, neighbors, distances);
-        for (size_t j = 0; j < neighbors.size(); j++) {
-//            float val = std::exp(-1.0f*(points.col(i) - points.col(neighbors[j])).squaredNorm());
-            float val = 1.0f;
-            graph(i,neighbors[j]) = val;
-            graph(neighbors[j],i) = val;
-        }
-    }
-
-//    std::cout << (graph - graph.transpose()).cwiseAbs().maxCoeff() << std::endl;
-
-    return graph;
-}
-
 int main(int argc, char ** argv) {
-
+    // Generate dataset
     cilantro::VectorSet<float,3> points(3, 1700);
     for (size_t i = 0; i < 1500; i++) {
         points.col(i).setRandom().normalize();
@@ -63,10 +16,27 @@ int main(int argc, char ** argv) {
     }
     points.row(2).array() += 4.0f;
 
-//    Eigen::MatrixXf data0 = build_dense_radius_affinity_graph(cloud.points, 0.6);
-    Eigen::MatrixXf data0 = build_dense_knn_affinity_graph(points, 30);
+    // Build neighborhood graph
+    // radius of 0.6
+//    cilantro::NeighborhoodSpecification<float> nh(cilantro::NeighborhoodType::RADIUS, 0, 0.6f*0.6f);
+    // 30 neighbors
+    cilantro::NeighborhoodSpecification<float> nh(cilantro::NeighborhoodType::KNN, 30, 0.0f);
+    cilantro::NearestNeighborGraph<float,3> nng(points, nh);
 
-    Eigen::SparseMatrix<float> data = data0.sparseView();
+    const auto& nn_indices = nng.getNeighborIndices();
+
+    std::vector<Eigen::Triplet<float>> triplet_list;
+    triplet_list.reserve(30*points.cols());
+
+    for (size_t i = 0; i < nn_indices.size(); i++) {
+        for (size_t j = 0; j < nn_indices[i].size(); j++) {
+            triplet_list.emplace_back(i, nn_indices[i][j], 1.0f);
+            triplet_list.emplace_back(nn_indices[i][j], i, 1.0f);
+        }
+    }
+
+    Eigen::SparseMatrix<float> data(points.cols(), points.cols());
+    data.setFromTriplets(triplet_list.begin(), triplet_list.end());
 
     std::cout << "Number of points: " << points.cols() << std::endl;
 
