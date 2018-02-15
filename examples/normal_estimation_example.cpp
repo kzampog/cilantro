@@ -21,7 +21,7 @@ int main(int argc, char ** argv) {
     std::chrono::duration<double, std::milli> kd_tree_time = end - start;
 
     start = std::chrono::high_resolution_clock::now();
-//    cloud.normals = ne.estimateNormals(cilantro::KDTree3D::Neighborhood(cilantro::KDTree3D::NeighborhoodType::KNN_IN_RADIUS, 7, 0.01));
+//    cloud.normals = ne.estimateNormals(cilantro::NeighborhoodSpecification<float>(cilantro::NeighborhoodType::KNN_IN_RADIUS, 7, 0.01));
 //    cloud.normals = ne.estimateNormalsKNNInRadius(7, 0.01);
 //    cloud.normals = ne.estimateNormalsRadius(0.01);
     cloud.normals = ne.estimateNormalsKNN(7);

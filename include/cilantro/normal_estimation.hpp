@@ -32,21 +32,21 @@ namespace cilantro {
         inline NormalEstimation& setViewPoint(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &vp) { view_point_ = vp; return *this; }
 
         inline const NormalEstimation& estimateNormalsAndCurvatureKNN(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, size_t k) const {
-            compute_knn_(normals, curvatures, k);
+            compute_<NeighborhoodType::KNN>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN, k, 0.0));
             return *this;
         }
 
         inline VectorSet<ScalarT,EigenDim> estimateNormalsKNN(size_t k) const {
             VectorSet<ScalarT,EigenDim> normals;
             VectorSet<ScalarT,1> curvatures;
-            compute_knn_(normals, curvatures, k);
+            compute_<NeighborhoodType::KNN>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN, k, 0.0));
             return normals;
         }
 
         inline VectorSet<ScalarT,1> estimateCurvatureKNN(size_t k) const {
             VectorSet<ScalarT,EigenDim> normals;
             VectorSet<ScalarT,1> curvatures;
-            compute_knn_(normals, curvatures, k);
+            compute_<NeighborhoodType::KNN>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN, k, 0.0));
             return curvatures;
         }
 
@@ -58,49 +58,71 @@ namespace cilantro {
         inline VectorSet<ScalarT,EigenDim> estimateNormalsRadius(ScalarT radius) const {
             VectorSet<ScalarT,EigenDim> normals;
             VectorSet<ScalarT,1> curvatures;
-            compute_radius_(normals, curvatures, radius);
+            compute_<NeighborhoodType::RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::RADIUS, 0, radius*radius));
             return normals;
         }
 
         inline VectorSet<ScalarT,1> estimateCurvatureRadius(ScalarT radius) const {
             VectorSet<ScalarT,EigenDim> normals;
             VectorSet<ScalarT,1> curvatures;
-            compute_radius_(normals, curvatures, radius);
+            compute_<NeighborhoodType::RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::RADIUS, 0, radius*radius));
             return curvatures;
         }
 
         inline const NormalEstimation& estimateNormalsAndCurvatureKNNInRadius(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, size_t k, ScalarT radius) const {
-            compute_knn_in_radius_(normals, curvatures, k, radius);
+            compute_<NeighborhoodType::KNN_IN_RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN_IN_RADIUS, k, radius*radius));
             return *this;
         }
 
         inline VectorSet<ScalarT,EigenDim> estimateNormalsKNNInRadius(size_t k, ScalarT radius) const {
             VectorSet<ScalarT,EigenDim> normals;
             VectorSet<ScalarT,1> curvatures;
-            compute_knn_in_radius_(normals, curvatures, k, radius);
+            compute_<NeighborhoodType::KNN_IN_RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN_IN_RADIUS, k, radius*radius));
             return normals;
         }
 
         inline VectorSet<ScalarT,1> estimateCurvatureKNNInRadius(size_t k, ScalarT radius) const {
             VectorSet<ScalarT,EigenDim> normals;
             VectorSet<ScalarT,1> curvatures;
-            compute_knn_in_radius_(normals, curvatures, k, radius);
+            compute_<NeighborhoodType::KNN_IN_RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN_IN_RADIUS, k, radius*radius));
             return curvatures;
         }
 
-        inline const NormalEstimation& estimateNormalsAndCurvature(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, const typename KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2>::Neighborhood &nh) const {
+        template <NeighborhoodType NT>
+        inline const NormalEstimation& estimateNormalsAndCurvature(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, const NeighborhoodSpecification<ScalarT> &nh) const {
+            compute_<NT>(normals, curvatures, nh);
+            return *this;
+        }
+
+        template <NeighborhoodType NT>
+        inline VectorSet<ScalarT,EigenDim> estimateNormals(const NeighborhoodSpecification<ScalarT> &nh) const {
+            VectorSet<ScalarT,EigenDim> normals;
+            VectorSet<ScalarT,1> curvatures;
+            compute_<NT>(normals, curvatures, nh);
+            return normals;
+        }
+
+        template <NeighborhoodType NT>
+        inline VectorSet<ScalarT,1> estimateCurvature(const NeighborhoodSpecification<ScalarT> &nh) const {
+            VectorSet<ScalarT,EigenDim> normals;
+            VectorSet<ScalarT,1> curvatures;
+            compute_<NT>(normals, curvatures, nh);
+            return curvatures;
+        }
+
+        inline const NormalEstimation& estimateNormalsAndCurvature(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, const NeighborhoodSpecification<ScalarT> &nh) const {
             compute_nh_(normals, curvatures, nh);
             return *this;
         }
 
-        inline VectorSet<ScalarT,EigenDim> estimateNormals(const typename KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2>::Neighborhood &nh) const {
+        inline VectorSet<ScalarT,EigenDim> estimateNormals(const NeighborhoodSpecification<ScalarT> &nh) const {
             VectorSet<ScalarT,EigenDim> normals;
             VectorSet<ScalarT,1> curvatures;
             compute_nh_(normals, curvatures, nh);
             return normals;
         }
 
-        inline VectorSet<ScalarT,1> estimateCurvature(const typename KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2>::Neighborhood &nh) const {
+        inline VectorSet<ScalarT,1> estimateCurvature(const NeighborhoodSpecification<ScalarT> &nh) const {
             VectorSet<ScalarT,EigenDim> normals;
             VectorSet<ScalarT,1> curvatures;
             compute_nh_(normals, curvatures, nh);
@@ -113,114 +135,51 @@ namespace cilantro {
         bool kd_tree_owned_;
         Vector<ScalarT,EigenDim> view_point_;
 
-        void compute_knn_(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, size_t k) const {
-            size_t dim = points_.rows();
-            size_t num_points = points_.cols();
-
-            normals.resize(dim, num_points);
-            curvatures.resize(1, num_points);
-
-            if (num_points < dim) {
-                for (size_t i = 0; i < num_points; i++) {
-                    normals.col(i).setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
-                    curvatures[i] = std::numeric_limits<ScalarT>::quiet_NaN();
-                }
-                return;
-            }
-
-            std::vector<size_t> neighbors;
-            std::vector<ScalarT> distances;
-#pragma omp parallel for shared (normals) private (neighbors, distances)
-            for (size_t i = 0; i < num_points; i++) {
-                kd_tree_ptr_->kNNSearch(points_.col(i), k, neighbors, distances);
-                VectorSet<ScalarT,EigenDim> neighborhood(dim, neighbors.size());
-                for (size_t j = 0; j < neighbors.size(); j++) {
-                    neighborhood.col(j) = points_.col(neighbors[j]);
-                }
-                PrincipalComponentAnalysis<ScalarT,EigenDim> pca(neighborhood);
-                normals.col(i) = pca.getEigenVectors().col(dim-1);
-                if (normals.col(i).dot(view_point_ - points_.col(i)) < 0.0) {
-                    normals.col(i) *= -1.0;
-                }
-                curvatures[i] = pca.getEigenValues()[dim-1]/pca.getEigenValues().sum();
-            }
-        }
-
-        void compute_radius_(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, ScalarT radius) const {
-            size_t dim = points_.rows();
-            size_t num_points = points_.cols();
-            ScalarT radius_sq = radius*radius;
-
-            normals.resize(dim, num_points);
-            curvatures.resize(1, num_points);
-
-            std::vector<size_t> neighbors;
-            std::vector<ScalarT> distances;
-#pragma omp parallel for shared (normals) private (neighbors, distances)
-            for (size_t i = 0; i < num_points; i++) {
-                kd_tree_ptr_->radiusSearch(points_.col(i), radius_sq, neighbors, distances);
-                if (neighbors.size() < EigenDim) {
-                    normals.col(i).setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
-                    curvatures[i] = std::numeric_limits<ScalarT>::quiet_NaN();
-                    continue;
-                }
-                VectorSet<ScalarT,EigenDim> neighborhood(dim, neighbors.size());
-                for (size_t j = 0; j < neighbors.size(); j++) {
-                    neighborhood.col(j) = points_.col(neighbors[j]);
-                }
-                PrincipalComponentAnalysis<ScalarT,EigenDim> pca(neighborhood);
-                normals.col(i) = pca.getEigenVectors().col(dim-1);
-                if (normals.col(i).dot(view_point_ - points_.col(i)) < 0.0) {
-                    normals.col(i) *= -1.0;
-                }
-                curvatures[i] = pca.getEigenValues()[dim-1]/pca.getEigenValues().sum();
-            }
-        }
-
-        void compute_knn_in_radius_(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, size_t k, ScalarT radius) const {
-            size_t dim = points_.rows();
-            size_t num_points = points_.cols();
-            ScalarT radius_sq = radius*radius;
-
-            normals.resize(dim, num_points);
-            curvatures.resize(1, num_points);
-
-            std::vector<size_t> neighbors;
-            std::vector<ScalarT> distances;
-#pragma omp parallel for shared (normals) private (neighbors, distances)
-            for (size_t i = 0; i < num_points; i++) {
-                kd_tree_ptr_->kNNInRadiusSearch(points_.col(i), k, radius_sq, neighbors, distances);
-                if (neighbors.size() < EigenDim) {
-                    normals.col(i).setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
-                    curvatures[i] = std::numeric_limits<ScalarT>::quiet_NaN();
-                    continue;
-                }
-                VectorSet<ScalarT,EigenDim> neighborhood(dim, neighbors.size());
-                for (size_t j = 0; j < neighbors.size(); j++) {
-                    neighborhood.col(j) = points_.col(neighbors[j]);
-                }
-                PrincipalComponentAnalysis<ScalarT,EigenDim> pca(neighborhood);
-                normals.col(i) = pca.getEigenVectors().col(dim-1);
-                if (normals.col(i).dot(view_point_ - points_.col(i)) < 0.0) {
-                    normals.col(i) *= -1.0;
-                }
-                curvatures[i] = pca.getEigenValues()[dim-1]/pca.getEigenValues().sum();
-            }
-        }
-
-        void compute_nh_(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, const typename KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2>::Neighborhood &nh) const {
+        void compute_nh_(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, const NeighborhoodSpecification<ScalarT> &nh) const {
             switch (nh.type) {
-                case KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2>::NeighborhoodType::KNN:
-                    compute_knn_(normals, curvatures, nh.maxNumberOfNeighbors);
+                case NeighborhoodType::KNN:
+                    compute_<NeighborhoodType::KNN>(normals, curvatures, nh);
                     break;
-                case KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2>::NeighborhoodType::RADIUS:
-                    compute_radius_(normals, curvatures, nh.radius);
+                case NeighborhoodType::RADIUS:
+                    compute_<NeighborhoodType::RADIUS>(normals, curvatures, nh);
                     break;
-                case KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2>::NeighborhoodType::KNN_IN_RADIUS:
-                    compute_knn_in_radius_(normals, curvatures, nh.maxNumberOfNeighbors, nh.radius);
+                case NeighborhoodType::KNN_IN_RADIUS:
+                    compute_<NeighborhoodType::KNN_IN_RADIUS>(normals, curvatures, nh);
                     break;
             }
         }
+
+        template <NeighborhoodType NT>
+        void compute_(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, const NeighborhoodSpecification<ScalarT> &nh) const {
+            size_t dim = points_.rows();
+            size_t num_points = points_.cols();
+
+            normals.resize(dim, num_points);
+            curvatures.resize(1, num_points);
+
+            std::vector<size_t> neighbors;
+            std::vector<ScalarT> distances;
+#pragma omp parallel for shared (normals) private (neighbors, distances)
+            for (size_t i = 0; i < num_points; i++) {
+                kd_tree_ptr_->template search<NT>(points_.col(i), nh, neighbors, distances);
+                if (neighbors.size() < dim) {
+                    normals.col(i).setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
+                    curvatures[i] = std::numeric_limits<ScalarT>::quiet_NaN();
+                    continue;
+                }
+                VectorSet<ScalarT,EigenDim> neighborhood(dim, neighbors.size());
+                for (size_t j = 0; j < neighbors.size(); j++) {
+                    neighborhood.col(j) = points_.col(neighbors[j]);
+                }
+                PrincipalComponentAnalysis<ScalarT,EigenDim> pca(neighborhood);
+                normals.col(i) = pca.getEigenVectors().col(dim-1);
+                if (normals.col(i).dot(view_point_ - points_.col(i)) < 0.0) {
+                    normals.col(i) *= -1.0;
+                }
+                curvatures[i] = pca.getEigenValues()[dim-1]/pca.getEigenValues().sum();
+            }
+        }
+
     };
 
     typedef NormalEstimation<float,2> NormalEstimation2D;

@@ -52,21 +52,23 @@ namespace cilantro {
         using SO3 = nanoflann::SO3_Adaptor<typename DataAdaptor::coord_t, DataAdaptor, typename DataAdaptor::coord_t>;
     };
 
+    enum struct NeighborhoodType {KNN, RADIUS, KNN_IN_RADIUS};
+
+    template <typename ScalarT>
+    struct NeighborhoodSpecification {
+        inline NeighborhoodSpecification() : type(NeighborhoodType::KNN), maxNumberOfNeighbors(1) {}
+        inline NeighborhoodSpecification(size_t knn, ScalarT radius) : type(NeighborhoodType::KNN_IN_RADIUS), maxNumberOfNeighbors(knn), radius(radius) {}
+        inline NeighborhoodSpecification(NeighborhoodType type, size_t knn, ScalarT radius) : type(type), maxNumberOfNeighbors(knn), radius(radius) {}
+
+        NeighborhoodType type;
+        size_t maxNumberOfNeighbors;
+        ScalarT radius;
+    };
+
     template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
     class KDTree {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-        enum struct NeighborhoodType {KNN, RADIUS, KNN_IN_RADIUS};
-        struct Neighborhood {
-            inline Neighborhood() : type(NeighborhoodType::KNN), maxNumberOfNeighbors(1) {}
-            inline Neighborhood(size_t knn, ScalarT radius) : type(NeighborhoodType::KNN_IN_RADIUS), maxNumberOfNeighbors(knn), radius(radius) {}
-            inline Neighborhood(NeighborhoodType type, size_t knn, ScalarT radius) : type(type), maxNumberOfNeighbors(knn), radius(radius) {}
-
-            NeighborhoodType type;
-            size_t maxNumberOfNeighbors;
-            ScalarT radius;
-        };
 
         KDTree(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data, size_t max_leaf_size = 10)
                 : data_map_(data),
@@ -116,7 +118,22 @@ namespace cilantro {
 //            }
         }
 
-        inline void search(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances, const Neighborhood &nh) const {
+        template <NeighborhoodType NT>
+        inline typename std::enable_if<NT == NeighborhoodType::KNN, void>::type search(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, const NeighborhoodSpecification<ScalarT> &nh, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
+            kNNSearch(query_pt, nh.maxNumberOfNeighbors, neighbors, distances);
+        }
+
+        template <NeighborhoodType NT>
+        inline typename std::enable_if<NT == NeighborhoodType::RADIUS, void>::type search(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, const NeighborhoodSpecification<ScalarT> &nh, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
+            radiusSearch(query_pt, nh.radius, neighbors, distances);
+        }
+
+        template <NeighborhoodType NT>
+        inline typename std::enable_if<NT == NeighborhoodType::KNN_IN_RADIUS, void>::type search(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, const NeighborhoodSpecification<ScalarT> &nh, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
+            kNNInRadiusSearch(query_pt, nh.maxNumberOfNeighbors, nh.radius, neighbors, distances);
+        }
+
+        inline void search(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, const NeighborhoodSpecification<ScalarT> &nh, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
             switch (nh.type) {
                 case NeighborhoodType::KNN:
                     kNNSearch(query_pt, nh.maxNumberOfNeighbors, neighbors, distances);
