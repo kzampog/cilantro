@@ -4,6 +4,12 @@
 #include <cilantro/visualizer.hpp>
 #include <cilantro/voxel_grid.hpp>
 
+struct AffinityEvaluator {
+    inline float getValue(size_t i, size_t j, float dist) const {
+        return std::exp(-dist/2.0f);
+    }
+};
+
 int main(int argc, char ** argv) {
     // Generate dataset
     cilantro::VectorSet<float,3> points(3, 1700);
@@ -16,29 +22,17 @@ int main(int argc, char ** argv) {
     }
     points.row(2).array() += 4.0f;
 
+    std::cout << "Number of points: " << points.cols() << std::endl;
+
     // Build neighborhood graph
     // radius of 0.6
 //    cilantro::NeighborhoodSpecification<float> nh(cilantro::NeighborhoodType::RADIUS, 0, 0.6f*0.6f);
     // 30 neighbors
     cilantro::NeighborhoodSpecification<float> nh(cilantro::NeighborhoodType::KNN, 30, 0.0f);
     cilantro::NearestNeighborGraph<float,3> nng(points, nh);
-
-    const auto& nn_indices = nng.getNeighborIndices();
-
-    std::vector<Eigen::Triplet<float>> triplet_list;
-    triplet_list.reserve(30*points.cols());
-
-    for (size_t i = 0; i < nn_indices.size(); i++) {
-        for (size_t j = 0; j < nn_indices[i].size(); j++) {
-            triplet_list.emplace_back(i, nn_indices[i][j], 1.0f);
-            triplet_list.emplace_back(nn_indices[i][j], i, 1.0f);
-        }
-    }
-
-    Eigen::SparseMatrix<float> data(points.cols(), points.cols());
-    data.setFromTriplets(triplet_list.begin(), triplet_list.end());
-
-    std::cout << "Number of points: " << points.cols() << std::endl;
+//    Eigen::MatrixXf data = nng.getDenseAdjacencyMatrix<float>(true);
+//    Eigen::SparseMatrix<float> data = nng.getSparseAdjacencyMatrix<float>(true);
+    Eigen::SparseMatrix<float> data = nng.getFunctionValueSparseMatrix(AffinityEvaluator(), true);
 
     size_t max_num_clusters = 4;
 
@@ -47,7 +41,7 @@ int main(int argc, char ** argv) {
 //    cilantro::SpectralClustering<float,2> sc(data);
 //    cilantro::SpectralClustering<float,Eigen::Dynamic> sc(data, max_num_clusters, true, cilantro::GraphLaplacianType::UNNORMALIZED);
 //    cilantro::SpectralClustering<float,Eigen::Dynamic> sc(data, max_num_clusters, true, cilantro::GraphLaplacianType::NORMALIZED_SYMMETRIC);
-    cilantro::SpectralClustering<float,Eigen::Dynamic> sc(data, max_num_clusters, true, cilantro::GraphLaplacianType::NORMALIZED_RANDOM_WALK);
+    cilantro::SpectralClustering<float> sc(data, max_num_clusters, true, cilantro::GraphLaplacianType::NORMALIZED_RANDOM_WALK);
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> elapsed = end - start;
