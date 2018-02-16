@@ -6,7 +6,6 @@
 #include <cilantro/3rd_party/spectra/SymGEigsSolver.h>
 
 namespace cilantro {
-
     template <typename ScalarT>
     class SpectraDiagonalInverseBop {
     private:

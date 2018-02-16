@@ -63,6 +63,14 @@ namespace cilantro {
             return deg;
         }
 
+        size_t getSumOfDegrees() const {
+            size_t sum = 0;
+            for (size_t i = 0; i < neighbor_indices_.size(); i++) {
+                sum += neighbor_indices_[i].size();
+            }
+            return sum;
+        }
+
         template <typename ValueT = bool>
         Eigen::Matrix<ValueT,Eigen::Dynamic,Eigen::Dynamic> getDenseAdjacencyMatrix(bool force_symmetry = false) const {
             return getFunctionValueDenseMatrix<AdjacencyEvaluator_<ValueT>,ValueT>(AdjacencyEvaluator_<ValueT>(), force_symmetry);
@@ -106,14 +114,9 @@ namespace cilantro {
 
         template <class PairEvaluatorT, typename ValueT = ScalarT>
         Eigen::SparseMatrix<ValueT> getFunctionValueSparseMatrix(const PairEvaluatorT &evaluator, bool force_symmetry = false) const {
-            size_t num_entries = 0;
-            for (size_t i = 0; i < neighbor_indices_.size(); i++) {
-                num_entries += neighbor_indices_[i].size();
-            }
-
             std::vector<Eigen::Triplet<ValueT>> triplet_list;
             if (force_symmetry) {
-                triplet_list.reserve(2*num_entries);
+                triplet_list.reserve(2*getSumOfDegrees());
                 for (size_t i = 0; i < neighbor_indices_.size(); i++) {
                     for (size_t j = 0; j < neighbor_indices_[i].size(); j++) {
                         ValueT val = evaluator.getValue(i,neighbor_indices_[i][j],neighbor_distances_[i][j]);
@@ -122,7 +125,7 @@ namespace cilantro {
                     }
                 }
             } else {
-                triplet_list.reserve(num_entries);
+                triplet_list.reserve(getSumOfDegrees());
                 for (size_t i = 0; i < neighbor_indices_.size(); i++) {
                     for (size_t j = 0; j < neighbor_indices_[i].size(); j++) {
                         triplet_list.emplace_back(neighbor_indices_[i][j], i, evaluator.getValue(i,neighbor_indices_[i][j],neighbor_distances_[i][j]));
