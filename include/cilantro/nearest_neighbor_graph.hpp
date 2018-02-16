@@ -63,7 +63,7 @@ namespace cilantro {
             return deg;
         }
 
-        size_t getSumOfDegrees() const {
+        size_t getSumOfNodeDegrees() const {
             size_t sum = 0;
             for (size_t i = 0; i < neighbor_indices_.size(); i++) {
                 sum += neighbor_indices_[i].size();
@@ -116,7 +116,7 @@ namespace cilantro {
         Eigen::SparseMatrix<ValueT> getFunctionValueSparseMatrix(const PairEvaluatorT &evaluator, bool force_symmetry = false) const {
             std::vector<Eigen::Triplet<ValueT>> triplet_list;
             if (force_symmetry) {
-                triplet_list.reserve(2*getSumOfDegrees());
+                triplet_list.reserve(2*getSumOfNodeDegrees());
                 for (size_t i = 0; i < neighbor_indices_.size(); i++) {
                     for (size_t j = 0; j < neighbor_indices_[i].size(); j++) {
                         ValueT val = evaluator.getValue(i,neighbor_indices_[i][j],neighbor_distances_[i][j]);
@@ -125,7 +125,7 @@ namespace cilantro {
                     }
                 }
             } else {
-                triplet_list.reserve(getSumOfDegrees());
+                triplet_list.reserve(getSumOfNodeDegrees());
                 for (size_t i = 0; i < neighbor_indices_.size(); i++) {
                     for (size_t j = 0; j < neighbor_indices_[i].size(); j++) {
                         triplet_list.emplace_back(neighbor_indices_[i][j], i, evaluator.getValue(i,neighbor_indices_[i][j],neighbor_distances_[i][j]));
