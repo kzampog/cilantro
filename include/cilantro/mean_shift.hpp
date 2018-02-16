@@ -3,20 +3,20 @@
 #include <cilantro/kd_tree.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, ptrdiff_t EigenDim>
+    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
     class MeanShift {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         MeanShift(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points)
                 : data_map_(points),
-                  kd_tree_ptr_(new KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2>(points)),
+                  kd_tree_ptr_(new KDTree<ScalarT,EigenDim,DistAdaptor>(points)),
                   kd_tree_owned_(true),
                   iteration_count_(0)
         {}
 
-        MeanShift(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree)
-                : data_map_(points),
+        MeanShift(const KDTree<ScalarT,EigenDim,DistAdaptor> &kd_tree)
+                : data_map_(kd_tree.getIndexedPointsMatrixMap()),
                   kd_tree_ptr_(&kd_tree),
                   kd_tree_owned_(false),
                   iteration_count_(0)
@@ -115,7 +115,7 @@ namespace cilantro {
 
     private:
         ConstVectorSetMatrixMap<ScalarT,EigenDim> data_map_;
-        const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> *kd_tree_ptr_;
+        const KDTree<ScalarT,EigenDim,DistAdaptor> *kd_tree_ptr_;
         bool kd_tree_owned_;
         size_t iteration_count_;
 

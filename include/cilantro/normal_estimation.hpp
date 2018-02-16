@@ -16,8 +16,8 @@ namespace cilantro {
                   view_point_(Vector<ScalarT,EigenDim>::Zero())
         {}
 
-        NormalEstimation(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree)
-                : points_(points),
+        NormalEstimation(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree)
+                : points_(kd_tree.getIndexedPointsMatrixMap()),
                   kd_tree_ptr_(&kd_tree),
                   kd_tree_owned_(false),
                   view_point_(Vector<ScalarT,EigenDim>::Zero())
