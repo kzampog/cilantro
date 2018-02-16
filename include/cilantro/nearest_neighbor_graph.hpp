@@ -71,6 +71,18 @@ namespace cilantro {
             return sum;
         }
 
+        template <class PairEvaluatorT, typename ValueT = decltype(std::declval<PairEvaluatorT>().getValue((size_t)0,(size_t)0,(ScalarT)0))>
+        std::vector<std::vector<ValueT>> getFunctionValueList(const PairEvaluatorT &evaluator) const {
+            std::vector<std::vector<ValueT>> f_values(neighbor_indices_.size());
+            for (size_t i = 0; i < f_values.size(); i++) {
+                f_values[i].resize(neighbor_indices_[i].size());
+                for (size_t j = 0; j < f_values[i].size(); j++) {
+                    f_values[i][j] = evaluator.getValue(i, neighbor_indices_[i][j], neighbor_distances_[i][j]);
+                }
+            }
+            return f_values;
+        }
+
         template <typename ValueT = bool>
         Eigen::Matrix<ValueT,Eigen::Dynamic,Eigen::Dynamic> getDenseAdjacencyMatrix(bool force_symmetry = false) const {
             return getFunctionValueDenseMatrix<AdjacencyEvaluator_<ValueT>,ValueT>(AdjacencyEvaluator_<ValueT>(), force_symmetry);
@@ -91,7 +103,7 @@ namespace cilantro {
             return getFunctionValueSparseMatrix<DistanceEvaluator_<ValueT>,ValueT>(DistanceEvaluator_<ValueT>(), force_symmetry);
         }
 
-        template <class PairEvaluatorT, typename ValueT = ScalarT>
+        template <class PairEvaluatorT, typename ValueT = decltype(std::declval<PairEvaluatorT>().getValue((size_t)0,(size_t)0,(ScalarT)0))>
         Eigen::Matrix<ValueT,Eigen::Dynamic,Eigen::Dynamic> getFunctionValueDenseMatrix(const PairEvaluatorT &evaluator, bool force_symmetry = false) const {
             Eigen::Matrix<ValueT,Eigen::Dynamic,Eigen::Dynamic> mat(Eigen::Matrix<ValueT,Eigen::Dynamic,Eigen::Dynamic>::Zero(neighbor_indices_.size(),neighbor_indices_.size()));
             if (force_symmetry) {
@@ -112,7 +124,7 @@ namespace cilantro {
             return mat;
         }
 
-        template <class PairEvaluatorT, typename ValueT = ScalarT>
+        template <class PairEvaluatorT, typename ValueT = decltype(std::declval<PairEvaluatorT>().getValue((size_t)0,(size_t)0,(ScalarT)0))>
         Eigen::SparseMatrix<ValueT> getFunctionValueSparseMatrix(const PairEvaluatorT &evaluator, bool force_symmetry = false) const {
             std::vector<Eigen::Triplet<ValueT>> triplet_list;
             if (force_symmetry) {
