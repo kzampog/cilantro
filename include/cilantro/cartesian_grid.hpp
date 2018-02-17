@@ -67,7 +67,7 @@ namespace cilantro {
 
         ~CartesianGrid() {}
 
-        const ConstVectorSetMatrixMap<ScalarT,EigenDim>& getInputPointsMatrixMap() const { return data_map_; }
+        const ConstVectorSetMatrixMap<ScalarT,EigenDim>& getPointsMatrixMap() const { return data_map_; }
 
         const Vector<ScalarT,EigenDim>& getBinSize() const { return bin_size_; }
 

@@ -16,7 +16,7 @@ namespace cilantro {
         {}
 
         MeanShift(const KDTree<ScalarT,EigenDim,DistAdaptor> &kd_tree)
-                : data_map_(kd_tree.getIndexedPointsMatrixMap()),
+                : data_map_(kd_tree.getPointsMatrixMap()),
                   kd_tree_ptr_(&kd_tree),
                   kd_tree_owned_(false),
                   iteration_count_(0)

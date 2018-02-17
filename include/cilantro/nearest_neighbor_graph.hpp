@@ -17,7 +17,7 @@ namespace cilantro {
                              bool remove_self_from_nn = false)
                 : nh_(nh)
         {
-            compute_(points_tree, points_tree.getIndexedPointsMatrixMap(), remove_self_from_nn);
+            compute_(points_tree, points_tree.getPointsMatrixMap(), remove_self_from_nn);
         }
 
         // Query set is the same as the indexed set
