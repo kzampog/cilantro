@@ -10,7 +10,7 @@ namespace cilantro {
             enum { coeff = EigenDim - EigenCoeff };
             if (p1[coeff] < p2[coeff]) return true;
             if (p2[coeff] < p1[coeff]) return false;
-            return EigenVectorComparatorHelper<ScalarT,EigenDim,EigenCoeff-1>::result(p1, p2);
+            return EigenVectorComparatorHelper<ScalarT,EigenDim,EigenCoeff-1>::result (p1, p2);
         }
     };
 
@@ -67,6 +67,8 @@ namespace cilantro {
 
         ~CartesianGrid() {}
 
+        const ConstVectorSetMatrixMap<ScalarT,EigenDim>& getInputPointsMatrixMap() const { return data_map_; }
+
         const Vector<ScalarT,EigenDim>& getBinSize() const { return bin_size_; }
 
         const GridBinMap& getOccupiedBinMap() const { return grid_lookup_table_; }
@@ -76,10 +78,10 @@ namespace cilantro {
         const std::vector<size_t>& getPointBinNeighbors(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &point) const {
             GridPoint grid_coords(data_map_.rows());
             for (size_t i = 0; i < data_map_.rows(); i++) {
-                ScalarT val = point[i]/bin_size_[i];
-                grid_coords[i] = (ptrdiff_t)val;
-                if (grid_coords[i] > val) grid_coords[i]--;
-//                grid_coords[i] = std::floor(point[i]/bin_size_[i]);
+//                ScalarT val = point[i]/bin_size_[i];
+//                grid_coords[i] = (ptrdiff_t)val;
+//                if (grid_coords[i] > val) grid_coords[i]--;
+                grid_coords[i] = std::floor(point[i]/bin_size_[i]);
             }
             auto it = grid_lookup_table_.find(grid_coords);
             if (it == grid_lookup_table_.end()) return empty_set_of_indices_;
@@ -93,10 +95,10 @@ namespace cilantro {
         GridPoint getPointGridCoordinates(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &point) const {
             GridPoint grid_coords(data_map_.rows());
             for (size_t i = 0; i < data_map_.rows(); i++) {
-                ScalarT val = point[i]/bin_size_[i];
-                grid_coords[i] = (ptrdiff_t)val;
-                if (grid_coords[i] > val) grid_coords[i]--;
-//                grid_coords[i] = std::floor(point[i]/bin_size_[i]);
+//                ScalarT val = point[i]/bin_size_[i];
+//                grid_coords[i] = (ptrdiff_t)val;
+//                if (grid_coords[i] > val) grid_coords[i]--;
+                grid_coords[i] = std::floor(point[i]/bin_size_[i]);
             }
             return grid_coords;
         }
@@ -129,10 +131,10 @@ namespace cilantro {
             GridPoint grid_coords(data_map_.rows());
             for (size_t i = 0; i < data_map_.cols(); i++) {
                 for (size_t j = 0; j < data_map_.rows(); j++) {
-                    ScalarT val = data_map_(j,i)/bin_size_[j];
-                    grid_coords[j] = (ptrdiff_t)val;
-                    if (grid_coords[j] > val) grid_coords[j]--;
-//                    grid_coords[j] = std::floor(data_map_(j,i)/bin_size_[j]);
+//                    ScalarT val = data_map_(j,i)/bin_size_[j];
+//                    grid_coords[j] = (ptrdiff_t)val;
+//                    if (grid_coords[j] > val) grid_coords[j]--;
+                    grid_coords[j] = std::floor(data_map_(j,i)/bin_size_[j]);
                 }
                 auto lb = grid_lookup_table_.lower_bound(grid_coords);
                 if (lb != grid_lookup_table_.end() && !(grid_lookup_table_.key_comp()(grid_coords, lb->first))) {
