@@ -163,8 +163,20 @@ namespace cilantro {
 
         void init_(const std::string &window_name, const std::string &display_name);
 
-        static inline bool render_priority_comparator_(const std::pair<std::tuple<bool,bool,float>, Renderable*> &o1, const std::pair<std::tuple<bool,bool,float>, Renderable*> &o2) {
-            return o1.first > o2.first;
-        }
+        struct RenderPriorityComparator_ {
+            const Eigen::Matrix3f& rot_mat_;
+            const Eigen::Vector3f& t_vec_;
+            inline RenderPriorityComparator_(const Eigen::Matrix3f &R, const Eigen::Vector3f &t)
+                    : rot_mat_(R), t_vec_(t)
+            {}
+            inline bool operator()(Renderable* o1, Renderable* o2) const {
+                return std::make_tuple(dynamic_cast<TextRenderable *>(o1) == NULL,
+                                       o1->renderingProperties.opacity == 1.0f,
+                                       (rot_mat_*(o1->centroid)+t_vec_).squaredNorm()) >
+                       std::make_tuple(dynamic_cast<TextRenderable *>(o2) == NULL,
+                                       o2->renderingProperties.opacity == 1.0f,
+                                       (rot_mat_*(o2->centroid)+t_vec_).squaredNorm());
+            }
+        };
     };
 }

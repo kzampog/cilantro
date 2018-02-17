@@ -115,7 +115,7 @@ namespace cilantro {
         return *this;
     }
 
-    Visualizer& Visualizer::addTriangleMesh(const std::string &name, const ConstVectorSetMatrixMap<float,3> &vertices, const std::vector<std::vector<size_t> > &faces, const RenderingProperties &rp) {
+    Visualizer& Visualizer::addTriangleMesh(const std::string &name, const ConstVectorSetMatrixMap<float,3> &vertices, const std::vector<std::vector<size_t>> &faces, const RenderingProperties &rp) {
         gl_context_->MakeCurrent();
         if (vertices.cols() == 0 || faces.empty()) {
             renderables_.erase(name);
@@ -245,15 +245,15 @@ namespace cilantro {
         }
         Eigen::Vector3f t(mv(0,3), mv(1,3), mv(2,3));
 
-        std::vector<std::pair<std::tuple<bool,bool,float>, Renderable*> > objects;
-        objects.reserve(renderables_.size());
+        std::vector<Renderable*> visible_objects;
+        visible_objects.reserve(renderables_.size());
         for (auto it = renderables_.begin(); it != renderables_.end(); ++it) {
             if (it->second->visible) {
-                objects.emplace_back(std::make_tuple(dynamic_cast<TextRenderable *>(it->second.get()) == NULL, it->second->renderingProperties.opacity == 1.0f, (R*(it->second->centroid)+t).squaredNorm()), it->second.get());
+                visible_objects.emplace_back(it->second.get());
             }
         }
 
-        std::sort(objects.begin(), objects.end(), render_priority_comparator_);
+        std::sort(visible_objects.begin(), visible_objects.end(), RenderPriorityComparator_(R,t));
 
         gl_context_->MakeCurrent();
         display_->Activate(*gl_render_state_);
@@ -261,8 +261,8 @@ namespace cilantro {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        for (size_t i = 0; i < objects.size(); i++) {
-            objects[i].second->render();
+        for (size_t i = 0; i < visible_objects.size(); i++) {
+            visible_objects[i]->render();
         }
 
         if (video_record_on_render_ && video_recorder_) {
