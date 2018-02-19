@@ -63,6 +63,14 @@ namespace cilantro {
             return deg;
         }
 
+        size_t getMaxNodeDegree() const {
+            size_t max = 0;
+            for (size_t i = 0; i < neighbor_indices_.size(); i++) {
+                if (max < neighbor_indices_[i].size()) max = neighbor_indices_[i].size();
+            }
+            return max;
+        }
+
         size_t getSumOfNodeDegrees() const {
             size_t sum = 0;
             for (size_t i = 0; i < neighbor_indices_.size(); i++) {
