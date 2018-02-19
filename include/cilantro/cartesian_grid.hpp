@@ -6,7 +6,7 @@
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim, ptrdiff_t EigenCoeff>
     struct EigenVectorComparatorHelper {
-        static bool result(const Eigen::Matrix<ScalarT,EigenDim,1> &p1, const Eigen::Matrix<ScalarT,EigenDim,1> &p2) {
+        static inline bool result(const Eigen::Matrix<ScalarT,EigenDim,1> &p1, const Eigen::Matrix<ScalarT,EigenDim,1> &p2) {
             enum { coeff = EigenDim - EigenCoeff };
             if (p1[coeff] < p2[coeff]) return true;
             if (p2[coeff] < p1[coeff]) return false;
@@ -16,7 +16,7 @@ namespace cilantro {
 
     template <typename ScalarT, ptrdiff_t EigenDim>
     struct EigenVectorComparatorHelper<ScalarT, EigenDim, 1> {
-        static bool result(const Eigen::Matrix<ScalarT,EigenDim,1> &p1, const Eigen::Matrix<ScalarT,EigenDim,1> &p2) {
+        static inline bool result(const Eigen::Matrix<ScalarT,EigenDim,1> &p1, const Eigen::Matrix<ScalarT,EigenDim,1> &p2) {
             enum { coeff = EigenDim - 1 };
             return p1[coeff] < p2[coeff];
         }
@@ -67,13 +67,13 @@ namespace cilantro {
 
         ~CartesianGrid() {}
 
-        const ConstVectorSetMatrixMap<ScalarT,EigenDim>& getPointsMatrixMap() const { return data_map_; }
+        inline const ConstVectorSetMatrixMap<ScalarT,EigenDim>& getPointsMatrixMap() const { return data_map_; }
 
-        const Vector<ScalarT,EigenDim>& getBinSize() const { return bin_size_; }
+        inline const Vector<ScalarT,EigenDim>& getBinSize() const { return bin_size_; }
 
-        const GridBinMap& getOccupiedBinMap() const { return grid_lookup_table_; }
+        inline const GridBinMap& getOccupiedBinMap() const { return grid_lookup_table_; }
 
-        const std::vector<typename GridBinMap::iterator>& getOccupiedBinIterators() const { return bin_iterators_; }
+        inline const std::vector<typename GridBinMap::iterator>& getOccupiedBinIterators() const { return bin_iterators_; }
 
         const std::vector<size_t>& getPointBinNeighbors(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &point) const {
             GridPoint grid_coords(data_map_.rows());
@@ -88,9 +88,7 @@ namespace cilantro {
             return it->second;
         }
 
-        const std::vector<size_t>& getPointBinNeighbors(size_t point_ind) const {
-            return getPointBinNeighbors(data_map_.col(point_ind));
-        }
+        inline const std::vector<size_t>& getPointBinNeighbors(size_t point_ind) const { return getPointBinNeighbors(data_map_.col(point_ind)); }
 
         GridPoint getPointGridCoordinates(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &point) const {
             GridPoint grid_coords(data_map_.rows());
@@ -103,9 +101,7 @@ namespace cilantro {
             return grid_coords;
         }
 
-        GridPoint getPointGridCoordinates(size_t point_ind) const {
-            return getGridCoordinates(data_map_.col(point_ind));
-        }
+        inline GridPoint getPointGridCoordinates(size_t point_ind) const { return getGridCoordinates(data_map_.col(point_ind)); }
 
         Vector<ScalarT,EigenDim> getBinCornerCoordinates(const Eigen::Ref<const GridPoint> &grid_point) const {
             Vector<ScalarT,EigenDim> point(data_map_.rows());
@@ -124,7 +120,7 @@ namespace cilantro {
         GridBinMap grid_lookup_table_;
         std::vector<typename GridBinMap::iterator> bin_iterators_;
 
-        void build_index_() {
+        inline void build_index_() {
             if (data_map_.cols() == 0) return;
 
             bin_iterators_.reserve(data_map_.cols());

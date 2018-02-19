@@ -145,12 +145,12 @@ namespace cilantro {
         }
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
-        ConvexPolytope& transform(const Eigen::Ref<const Eigen::Matrix<OutputScalarT,EigenDim+1,EigenDim+1>> &rigid_transform) {
+        inline ConvexPolytope& transform(const Eigen::Ref<const Eigen::Matrix<OutputScalarT,EigenDim+1,EigenDim+1>> &rigid_transform) {
             return transform(rigid_transform.topLeftCorner(EigenDim,EigenDim), rigid_transform.topRightCorner(EigenDim,1));
         }
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == Eigen::Dynamic>::type>
-        ConvexPolytope& transform(const Eigen::Ref<const Eigen::Matrix<OutputScalarT,EigenDim,EigenDim>> &rigid_transform) {
+        inline ConvexPolytope& transform(const Eigen::Ref<const Eigen::Matrix<OutputScalarT,EigenDim,EigenDim>> &rigid_transform) {
             return transform(rigid_transform.topLeftCorner(dim_,dim_), rigid_transform.topRightCorner(dim_,1));
         }
 

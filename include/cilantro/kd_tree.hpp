@@ -81,7 +81,7 @@ namespace cilantro {
 
         inline const ConstVectorSetMatrixMap<ScalarT,EigenDim>& getPointsMatrixMap() const { return data_map_; }
 
-        void nearestNeighborSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, size_t &neighbor, ScalarT &distance) const {
+        inline void nearestNeighborSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, size_t &neighbor, ScalarT &distance) const {
             kd_tree_.knnSearch(query_pt.data(), 1, &neighbor, &distance);
         }
 

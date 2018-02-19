@@ -76,7 +76,7 @@ namespace cilantro {
     struct Renderable {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        Renderable() : centroid(Eigen::Vector3f::Zero()), visible(true) {}
+        inline Renderable() : centroid(Eigen::Vector3f::Zero()), visible(true) {}
         virtual inline ~Renderable() {}
 
         virtual void applyRenderingProperties() = 0;    // Updates GPU buffers

@@ -84,22 +84,22 @@ namespace cilantro {
         }
 
         template <typename ValueT = bool>
-        Eigen::Matrix<ValueT,Eigen::Dynamic,Eigen::Dynamic> getDenseAdjacencyMatrix(bool force_symmetry = false) const {
+        inline Eigen::Matrix<ValueT,Eigen::Dynamic,Eigen::Dynamic> getDenseAdjacencyMatrix(bool force_symmetry = false) const {
             return getFunctionValueDenseMatrix<AdjacencyEvaluator_<ValueT>,ValueT>(AdjacencyEvaluator_<ValueT>(), force_symmetry);
         }
 
         template <typename ValueT = bool>
-        Eigen::SparseMatrix<ValueT> getSparseAdjacencyMatrix(bool force_symmetry = false) const {
+        inline Eigen::SparseMatrix<ValueT> getSparseAdjacencyMatrix(bool force_symmetry = false) const {
             return getFunctionValueSparseMatrix<AdjacencyEvaluator_<ValueT>,ValueT>(AdjacencyEvaluator_<ValueT>(), force_symmetry);
         }
 
         template <typename ValueT = ScalarT>
-        Eigen::Matrix<ValueT,Eigen::Dynamic,Eigen::Dynamic> getDenseDistanceMatrix(bool force_symmetry = false) const {
+        inline Eigen::Matrix<ValueT,Eigen::Dynamic,Eigen::Dynamic> getDenseDistanceMatrix(bool force_symmetry = false) const {
             return getFunctionValueDenseMatrix<DistanceEvaluator_<ValueT>,ValueT>(DistanceEvaluator_<ValueT>(), force_symmetry);
         }
 
         template <typename ValueT = ScalarT>
-        Eigen::SparseMatrix<ValueT> getSparseDistanceMatrix(bool force_symmetry = false) const {
+        inline Eigen::SparseMatrix<ValueT> getSparseDistanceMatrix(bool force_symmetry = false) const {
             return getFunctionValueSparseMatrix<DistanceEvaluator_<ValueT>,ValueT>(DistanceEvaluator_<ValueT>(), force_symmetry);
         }
 
@@ -174,7 +174,7 @@ namespace cilantro {
         }
 
         template <NeighborhoodType NT>
-        void compute_(const KDTree<ScalarT,EigenDim,DistAdaptor> &ref_tree,
+        inline void compute_(const KDTree<ScalarT,EigenDim,DistAdaptor> &ref_tree,
                       const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_points,
                       bool remove_self_from_nn)
         {

@@ -131,20 +131,20 @@ namespace cilantro {
             return SpaceRegion(std::move(res_polytopes));
         }
 
-        SpaceRegion relativeComplement(const SpaceRegion &sr, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0, double dist_tol = std::numeric_limits<InputScalarT>::epsilon()) const {
+        inline SpaceRegion relativeComplement(const SpaceRegion &sr, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0, double dist_tol = std::numeric_limits<InputScalarT>::epsilon()) const {
             return intersectionWith(sr.complement(compute_topology, simplicial_facets, merge_tol, dist_tol), compute_topology, simplicial_facets, merge_tol, dist_tol);
         }
 
         inline size_t getSpaceDimension() const { return dim_; }
 
-        inline bool isEmpty() const {
+        bool isEmpty() const {
             for (size_t i = 0; i < polytopes_.size(); i++) {
                 if (!polytopes_[i].isEmpty()) return false;
             }
             return true;
         }
 
-        inline bool isBounded() const {
+        bool isBounded() const {
             for (size_t i = 0; i < polytopes_.size(); i++) {
                 if (!polytopes_[i].isBounded()) return false;
             }
@@ -205,14 +205,14 @@ namespace cilantro {
 
         inline const ConvexPolytopeVector& getConvexPolytopes() const { return polytopes_; }
 
-        inline const Vector<OutputScalarT,EigenDim> getInteriorPoint() const {
+        Vector<OutputScalarT,EigenDim> getInteriorPoint() const {
             for (size_t i = 0; i < polytopes_.size(); i++) {
                 if (!polytopes_[i].isEmpty()) return polytopes_[i].getInteriorPoint();
             }
             return Vector<OutputScalarT,EigenDim>::Constant(dim_, 1, std::numeric_limits<OutputScalarT>::quiet_NaN());
         }
 
-        inline bool containsPoint(const Eigen::Ref<const Vector<OutputScalarT,EigenDim>> &point, OutputScalarT offset = 0.0) const {
+        bool containsPoint(const Eigen::Ref<const Vector<OutputScalarT,EigenDim>> &point, OutputScalarT offset = 0.0) const {
             for (size_t i = 0; i < polytopes_.size(); i++) {
                 if (polytopes_[i].containsPoint(point, offset)) return true;
             }
