@@ -380,7 +380,7 @@ namespace cilantro {
             // Update estimated transformation
             switch (metric_) {
                 case Metric::POINT_TO_POINT:
-                    estimateRigidTransformPointToPointClosedForm<float>(dst_points_, src_points_trans_, *dst_ind, *src_ind, rot_mat_iter, t_vec_iter);
+                    estimateRigidTransformPointToPointClosedForm<float,3>(dst_points_, src_points_trans_, *dst_ind, *src_ind, rot_mat_iter, t_vec_iter);
 //                    estimateRigidTransformPointToPointIterative<float>(*dst_points_, src_points_trans_, *dst_ind, *src_ind, rot_mat_iter, t_vec_iter, max_estimation_iter_, convergence_tol_);
                     break;
                 case Metric::POINT_TO_PLANE:

@@ -4,28 +4,28 @@
 
 namespace cilantro {
     // Point-to-point (closed form, SVD)
-    template <typename ScalarT>
-    bool estimateRigidTransformPointToPointClosedForm(const ConstVectorSetMatrixMap<ScalarT,3> &dst,
-                                                      const ConstVectorSetMatrixMap<ScalarT,3> &src,
-                                                      Eigen::Ref<Eigen::Matrix<ScalarT,3,3>> rot_mat,
-                                                      Eigen::Ref<Eigen::Matrix<ScalarT,3,1>> t_vec)
+    template <typename ScalarT, ptrdiff_t EigenDim>
+    bool estimateRigidTransformPointToPointClosedForm(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst,
+                                                      const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src,
+                                                      Eigen::Ref<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> rot_mat,
+                                                      Eigen::Ref<Eigen::Matrix<ScalarT,EigenDim,1>> t_vec)
     {
-        if (src.cols() != dst.cols() || src.cols() < 3) {
+        if (src.cols() != dst.cols() || src.cols() < EigenDim) {
             rot_mat.setIdentity();
             t_vec.setZero();
             return false;
         }
 
-        Vector<ScalarT,3> mu_dst(dst.rowwise().mean());
-        Vector<ScalarT,3> mu_src(src.rowwise().mean());
+        Vector<ScalarT,EigenDim> mu_dst(dst.rowwise().mean());
+        Vector<ScalarT,EigenDim> mu_src(src.rowwise().mean());
 
-        VectorSet<ScalarT,3> dst_centered(dst.colwise() - mu_dst);
-        VectorSet<ScalarT,3> src_centered(src.colwise() - mu_src);
+        VectorSet<ScalarT,EigenDim> dst_centered(dst.colwise() - mu_dst);
+        VectorSet<ScalarT,EigenDim> src_centered(src.colwise() - mu_src);
 
-        Eigen::JacobiSVD<Eigen::Matrix<ScalarT,3,3>> svd(dst_centered*src_centered.transpose(), Eigen::ComputeFullU | Eigen::ComputeFullV);
-        if (svd.matrixU().determinant() * svd.matrixV().determinant() < 0.0) {
-            Eigen::Matrix<ScalarT,3,3> U(svd.matrixU());
-            U.col(2) *= -1.0;
+        Eigen::JacobiSVD<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> svd(dst_centered*src_centered.transpose(), Eigen::ComputeFullU | Eigen::ComputeFullV);
+        if ((svd.matrixU()*svd.matrixV()).determinant() < 0.0) {
+            Eigen::Matrix<ScalarT,EigenDim,EigenDim> U(svd.matrixU());
+            U.col(dst.rows()-1) *= -1.0;
             rot_mat = U*svd.matrixV().transpose();
         } else {
             rot_mat = svd.matrixU()*svd.matrixV().transpose();
@@ -35,13 +35,13 @@ namespace cilantro {
         return true;
     }
 
-    template <typename ScalarT>
-    bool estimateRigidTransformPointToPointClosedForm(const ConstVectorSetMatrixMap<ScalarT,3> &dst,
-                                                      const ConstVectorSetMatrixMap<ScalarT,3> &src,
+    template <typename ScalarT, ptrdiff_t EigenDim>
+    bool estimateRigidTransformPointToPointClosedForm(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst,
+                                                      const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src,
                                                       const std::vector<size_t> &dst_ind,
                                                       const std::vector<size_t> &src_ind,
-                                                      Eigen::Ref<Eigen::Matrix<ScalarT,3,3>> rot_mat,
-                                                      Eigen::Ref<Eigen::Matrix<ScalarT,3,1>> t_vec)
+                                                      Eigen::Ref<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> rot_mat,
+                                                      Eigen::Ref<Eigen::Matrix<ScalarT,EigenDim,1>> t_vec)
     {
         if (dst_ind.size() != src_ind.size()) {
             rot_mat.setIdentity();
@@ -49,14 +49,14 @@ namespace cilantro {
             return false;
         }
 
-        VectorSet<ScalarT,3> dst_corr(3, dst_ind.size());
-        VectorSet<ScalarT,3> src_corr(3, src_ind.size());
+        VectorSet<ScalarT,EigenDim> dst_corr(dst.rows(), dst_ind.size());
+        VectorSet<ScalarT,EigenDim> src_corr(src.rows(), src_ind.size());
         for (size_t i = 0; i < dst_ind.size(); i++) {
             dst_corr.col(i) = dst.col(dst_ind[i]);
             src_corr.col(i) = src.col(src_ind[i]);
         }
 
-        return estimateRigidTransformPointToPointClosedForm<ScalarT>(dst_corr, src_corr, rot_mat, t_vec);
+        return estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim>(dst_corr, src_corr, rot_mat, t_vec);
     }
 
     // Point-to-point (iterative)
