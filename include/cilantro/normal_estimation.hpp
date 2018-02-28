@@ -51,40 +51,40 @@ namespace cilantro {
         }
 
         inline const NormalEstimation& estimateNormalsAndCurvatureRadius(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, ScalarT radius) const {
-            compute_radius_(normals, curvatures, radius);
+            compute_<NeighborhoodType::RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::RADIUS, 0, radius));
             return *this;
         }
 
         inline VectorSet<ScalarT,EigenDim> estimateNormalsRadius(ScalarT radius) const {
             VectorSet<ScalarT,EigenDim> normals;
             VectorSet<ScalarT,1> curvatures;
-            compute_<NeighborhoodType::RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::RADIUS, 0, radius*radius));
+            compute_<NeighborhoodType::RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::RADIUS, 0, radius));
             return normals;
         }
 
         inline VectorSet<ScalarT,1> estimateCurvatureRadius(ScalarT radius) const {
             VectorSet<ScalarT,EigenDim> normals;
             VectorSet<ScalarT,1> curvatures;
-            compute_<NeighborhoodType::RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::RADIUS, 0, radius*radius));
+            compute_<NeighborhoodType::RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::RADIUS, 0, radius));
             return curvatures;
         }
 
         inline const NormalEstimation& estimateNormalsAndCurvatureKNNInRadius(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, size_t k, ScalarT radius) const {
-            compute_<NeighborhoodType::KNN_IN_RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN_IN_RADIUS, k, radius*radius));
+            compute_<NeighborhoodType::KNN_IN_RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN_IN_RADIUS, k, radius));
             return *this;
         }
 
         inline VectorSet<ScalarT,EigenDim> estimateNormalsKNNInRadius(size_t k, ScalarT radius) const {
             VectorSet<ScalarT,EigenDim> normals;
             VectorSet<ScalarT,1> curvatures;
-            compute_<NeighborhoodType::KNN_IN_RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN_IN_RADIUS, k, radius*radius));
+            compute_<NeighborhoodType::KNN_IN_RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN_IN_RADIUS, k, radius));
             return normals;
         }
 
         inline VectorSet<ScalarT,1> estimateCurvatureKNNInRadius(size_t k, ScalarT radius) const {
             VectorSet<ScalarT,EigenDim> normals;
             VectorSet<ScalarT,1> curvatures;
-            compute_<NeighborhoodType::KNN_IN_RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN_IN_RADIUS, k, radius*radius));
+            compute_<NeighborhoodType::KNN_IN_RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN_IN_RADIUS, k, radius));
             return curvatures;
         }
 
@@ -151,6 +151,9 @@ namespace cilantro {
 
         template <NeighborhoodType NT>
         void compute_(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, const NeighborhoodSpecification<ScalarT> &nh) const {
+            NeighborhoodSpecification<ScalarT> nh_sq(nh);
+            nh_sq.radius = nh_sq.radius*nh_sq.radius;
+
             size_t dim = points_.rows();
             size_t num_points = points_.cols();
 
@@ -161,7 +164,7 @@ namespace cilantro {
             std::vector<ScalarT> distances;
 #pragma omp parallel for shared (normals) private (neighbors, distances)
             for (size_t i = 0; i < num_points; i++) {
-                kd_tree_ptr_->template search<NT>(points_.col(i), nh, neighbors, distances);
+                kd_tree_ptr_->template search<NT>(points_.col(i), nh_sq, neighbors, distances);
                 if (neighbors.size() < dim) {
                     normals.col(i).setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
                     curvatures[i] = std::numeric_limits<ScalarT>::quiet_NaN();
