@@ -9,9 +9,9 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        NormalEstimation(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points)
+        NormalEstimation(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, size_t max_leaf_size = 10)
                 : points_(points),
-                  kd_tree_ptr_(new KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2>(points)),
+                  kd_tree_ptr_(new KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2>(points, max_leaf_size)),
                   kd_tree_owned_(true),
                   view_point_(Vector<ScalarT,EigenDim>::Zero())
         {}

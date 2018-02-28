@@ -8,9 +8,9 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        MeanShift(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points)
+        MeanShift(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, size_t max_leaf_size = 10)
                 : data_map_(points),
-                  kd_tree_ptr_(new KDTree<ScalarT,EigenDim,DistAdaptor>(points)),
+                  kd_tree_ptr_(new KDTree<ScalarT,EigenDim,DistAdaptor>(points, max_leaf_size)),
                   kd_tree_owned_(true),
                   iteration_count_(0)
         {}

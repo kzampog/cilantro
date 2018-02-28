@@ -29,10 +29,11 @@ int main(int argc, char ** argv) {
 //    cilantro::NeighborhoodSpecification<float> nh(cilantro::NeighborhoodType::RADIUS, 0, 0.6f*0.6f);
     // 30 neighbors
     cilantro::NeighborhoodSpecification<float> nh(cilantro::NeighborhoodType::KNN, 30, 0.0f);
-    cilantro::NearestNeighborGraph<float,3> nng(points, nh);
-//    Eigen::MatrixXf data = nng.getDenseAdjacencyMatrix<float>(true);
-//    Eigen::SparseMatrix<float> data = nng.getSparseAdjacencyMatrix<float>(true);
-    Eigen::SparseMatrix<float> data = nng.getFunctionValueSparseMatrix(AffinityEvaluator(), true);
+
+    std::vector<std::vector<size_t>> nn_ind;
+    std::vector<std::vector<float>> nn_dist;
+    cilantro::KDTree3D(points).search(points, nh, nn_ind, nn_dist);
+    Eigen::SparseMatrix<float> data = cilantro::getNNGraphFunctionValueSparseMatrix(nn_ind, nn_dist, AffinityEvaluator(), true);
 
     size_t max_num_clusters = 4;
 
