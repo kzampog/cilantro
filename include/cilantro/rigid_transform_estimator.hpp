@@ -2,14 +2,10 @@
 
 #include <cilantro/random_sample_consensus.hpp>
 #include <cilantro/data_containers.hpp>
+#include <cilantro/rigid_transformation.hpp>
 
 namespace cilantro {
-    struct RigidTransformParameters {
-        Eigen::Matrix3f rotation;
-        Eigen::Vector3f translation;
-    };
-
-    class RigidTransformEstimator : public RandomSampleConsensus<RigidTransformEstimator,RigidTransformParameters,float> {
+    class RigidTransformEstimator : public RandomSampleConsensus<RigidTransformEstimator,RigidTransformation<float,3>,float> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -21,17 +17,17 @@ namespace cilantro {
                                 const std::vector<size_t> &dst_ind,
                                 const std::vector<size_t> &src_ind);
 
-        RigidTransformEstimator& estimateModelParameters(RigidTransformParameters &model_params);
+        RigidTransformEstimator& estimateModelParameters(RigidTransformation<float,3> &model_params);
 
-        RigidTransformParameters estimateModelParameters();
+        RigidTransformation<float,3> estimateModelParameters();
 
-        RigidTransformEstimator& estimateModelParameters(const std::vector<size_t> &sample_ind, RigidTransformParameters &model_params);
+        RigidTransformEstimator& estimateModelParameters(const std::vector<size_t> &sample_ind, RigidTransformation<float,3> &model_params);
 
-        RigidTransformParameters estimateModelParameters(const std::vector<size_t> &sample_ind);
+        RigidTransformation<float,3> estimateModelParameters(const std::vector<size_t> &sample_ind);
 
-        RigidTransformEstimator& computeResiduals(const RigidTransformParameters &model_params, std::vector<float> &residuals);
+        RigidTransformEstimator& computeResiduals(const RigidTransformation<float,3> &model_params, std::vector<float> &residuals);
 
-        std::vector<float> computeResiduals(const RigidTransformParameters &model_params);
+        std::vector<float> computeResiduals(const RigidTransformation<float,3> &model_params);
 
         inline size_t getDataPointsCount() const { return dst_points_.cols(); }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cilantro/kd_tree.hpp>
+#include <cilantro/correspondence.hpp>
 #include <cilantro/point_cloud.hpp>
 
 namespace cilantro {
@@ -201,12 +201,7 @@ namespace cilantro {
         VectorSet<float,6> dst_data_points_6d_;
         VectorSet<float,9> dst_data_points_9d_;
 
-        std::vector<size_t> dst_ind_;
-        std::vector<size_t> src_ind_;
-        std::vector<size_t> dst_ind_all_;
-        std::vector<size_t> src_ind_all_;
-        std::vector<float> distances_all_;
-        std::vector<size_t> ind_all_;
+        CorrespondenceSet<float> correspondences_;
 
         void build_kd_trees_();
         void delete_kd_trees_();
@@ -220,7 +215,7 @@ namespace cilantro {
         };
 
         void init_params_();
-        void find_correspondences_(std::vector<size_t>* &dst_ind, std::vector<size_t>* &src_ind);
+        void find_correspondences_();
         void estimate_transform_();
         void compute_residuals_(const CorrespondencesType &corr_type, const Metric &metric, std::vector<float> &residuals);
     };

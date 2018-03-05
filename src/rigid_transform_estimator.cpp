@@ -25,41 +25,41 @@ namespace cilantro {
         }
     }
 
-    RigidTransformEstimator& RigidTransformEstimator::estimateModelParameters(RigidTransformParameters &model_params) {
-        estimateRigidTransformPointToPointClosedForm<float,3>(dst_points_, src_points_, model_params.rotation, model_params.translation);
+    RigidTransformEstimator& RigidTransformEstimator::estimateModelParameters(RigidTransformation<float,3> &model_params) {
+        estimateRigidTransformPointToPointClosedForm<float,3>(dst_points_, src_points_, model_params);
         return *this;
     }
 
-    RigidTransformParameters RigidTransformEstimator::estimateModelParameters() {
-        RigidTransformParameters model_params;
+    RigidTransformation<float,3> RigidTransformEstimator::estimateModelParameters() {
+        RigidTransformation<float,3> model_params;
         estimateModelParameters(model_params);
         return model_params;
     }
 
-    RigidTransformEstimator& RigidTransformEstimator::estimateModelParameters(const std::vector<size_t> &sample_ind, RigidTransformParameters &model_params) {
+    RigidTransformEstimator& RigidTransformEstimator::estimateModelParameters(const std::vector<size_t> &sample_ind, RigidTransformation<float,3> &model_params) {
         VectorSet<float,3> dst_p(3,sample_ind.size());
         VectorSet<float,3> src_p(3,sample_ind.size());
         for (size_t i = 0; i < sample_ind.size(); i++) {
             dst_p.col(i) = dst_points_.col(sample_ind[i]);
             src_p.col(i) = src_points_.col(sample_ind[i]);
         }
-        estimateRigidTransformPointToPointClosedForm<float,3>(dst_p, src_p, model_params.rotation, model_params.translation);
+        estimateRigidTransformPointToPointClosedForm<float,3>(dst_p, src_p, model_params);
         return *this;
     }
 
-    RigidTransformParameters RigidTransformEstimator::estimateModelParameters(const std::vector<size_t> &sample_ind) {
-        RigidTransformParameters model_params;
+    RigidTransformation<float,3> RigidTransformEstimator::estimateModelParameters(const std::vector<size_t> &sample_ind) {
+        RigidTransformation<float,3> model_params;
         estimateModelParameters(sample_ind, model_params);
         return model_params;
     }
 
-    RigidTransformEstimator& RigidTransformEstimator::computeResiduals(const RigidTransformParameters &model_params, std::vector<float> &residuals) {
+    RigidTransformEstimator& RigidTransformEstimator::computeResiduals(const RigidTransformation<float,3> &model_params, std::vector<float> &residuals) {
         residuals.resize(dst_points_.cols());
-        Eigen::Map<Eigen::Matrix<float,1,Eigen::Dynamic> >(residuals.data(),1,residuals.size()) = (((model_params.rotation*src_points_).colwise() + model_params.translation) - dst_points_).colwise().norm();
+        Eigen::Map<Eigen::Matrix<float,1,Eigen::Dynamic> >(residuals.data(),1,residuals.size()) = (model_params*src_points_ - dst_points_).colwise().norm();
         return *this;
     }
 
-    std::vector<float> RigidTransformEstimator::computeResiduals(const RigidTransformParameters &model_params) {
+    std::vector<float> RigidTransformEstimator::computeResiduals(const RigidTransformation<float,3> &model_params) {
         std::vector<float> residuals;
         computeResiduals(model_params, residuals);
         return residuals;

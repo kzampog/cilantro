@@ -81,12 +81,12 @@ int main(int argc, char **argv) {
 
             cilantro::RigidTransformEstimator te(dst.points, src.points, dst_ind, src_ind);
             te.setMaxInlierResidual(0.01).setTargetInlierCount((size_t)(0.50*dst_ind.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
-            cilantro::RigidTransformParameters tform = te.getModelParameters();
+            cilantro::RigidTransformation<float,3> tform = te.getModelParameters();
             std::vector<size_t> inliers = te.getModelInliers();
 
             std::cout << "RANSAC iterations: " << te.getPerformedIterationsCount() << ", inlier count: " << te.getNumberOfInliers() << std::endl;
 
-            src.points = (tform.rotation*src.points).colwise() + tform.translation;
+            src.points = tform*src.points;
 
             viz.addPointCloud("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
 

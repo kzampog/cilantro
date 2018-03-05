@@ -183,136 +183,116 @@ namespace cilantro {
         rot_mat_init_.setIdentity();
         t_vec_init_.setZero();
 
-        dst_ind_.reserve(src_points_.cols());
-        src_ind_.reserve(src_points_.cols());
-        dst_ind_all_.reserve(src_points_.cols());
-        src_ind_all_.reserve(src_points_.cols());
-        distances_all_.reserve(src_points_.cols());
-        ind_all_.reserve(src_points_.cols());
+        correspondences_.reserve(src_points_.cols());
     }
 
-    void IterativeClosestPoint::find_correspondences_(std::vector<size_t>* &dst_ind, std::vector<size_t>* &src_ind) {
-        float corr_thresh_squared = corr_dist_thres_*corr_dist_thres_;
+    void IterativeClosestPoint::find_correspondences_() {
+        float corr_dist_thres_squared = corr_dist_thres_*corr_dist_thres_;
         size_t neighbor;
         float distance;
 
-        dst_ind_all_.clear();
-        src_ind_all_.clear();
-        distances_all_.clear();
+        correspondences_.clear();
+
         switch (corr_type_) {
             case CorrespondencesType::POINTS: {
-#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
+#pragma omp parallel for private (neighbor, distance)
                 for (size_t i = 0; i < src_points_trans_.cols(); i++) {
                     kd_tree_3d_->nearestNeighborSearch(src_points_trans_.col(i), neighbor, distance);
-                    if (distance < corr_thresh_squared) {
+                    if (distance < corr_dist_thres_squared) {
 #pragma omp critical
                         {
-                            dst_ind_all_.emplace_back(neighbor);
-                            src_ind_all_.emplace_back(i);
-                            distances_all_.emplace_back(distance);
+                            correspondences_.emplace_back(neighbor, i, distance);
                         }
                     }
                 }
                 break;
             }
             case CorrespondencesType::NORMALS: {
-#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
+#pragma omp parallel for private (neighbor, distance)
                 for (size_t i = 0; i < src_points_trans_.cols(); i++) {
                     kd_tree_3d_->nearestNeighborSearch(rot_mat_*src_normals_.col(i), neighbor, distance);
-                    if (distance < corr_thresh_squared) {
+                    if (distance < corr_dist_thres_squared) {
 #pragma omp critical
                         {
-                            dst_ind_all_.emplace_back(neighbor);
-                            src_ind_all_.emplace_back(i);
-                            distances_all_.emplace_back(distance);
+                            correspondences_.emplace_back(neighbor, i, distance);
                         }
                     }
                 }
                 break;
             }
             case CorrespondencesType::COLORS: {
-#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
+#pragma omp parallel for private (neighbor, distance)
                 for (size_t i = 0; i < src_points_trans_.cols(); i++) {
                     kd_tree_3d_->nearestNeighborSearch(src_colors_.col(i), neighbor, distance);
-                    if (distance < corr_thresh_squared) {
+                    if (distance < corr_dist_thres_squared) {
 #pragma omp critical
                         {
-                            dst_ind_all_.emplace_back(neighbor);
-                            src_ind_all_.emplace_back(i);
-                            distances_all_.emplace_back(distance);
+                            correspondences_.emplace_back(neighbor, i, distance);
                         }
                     }
                 }
                 break;
             }
             case CorrespondencesType::POINTS_NORMALS: {
-#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
+#pragma omp parallel for private (neighbor, distance)
                 for (size_t i = 0; i < src_points_trans_.cols(); i++) {
                     Eigen::Matrix<float,6,1> query_pt;
                     query_pt.head(3) = point_dist_weight_*src_points_trans_.col(i);
                     query_pt.tail(3) = normal_dist_weight_*rot_mat_*src_normals_.col(i);
                     kd_tree_6d_->nearestNeighborSearch(query_pt, neighbor, distance);
-                    if (distance < corr_thresh_squared) {
+                    if (distance < corr_dist_thres_squared) {
 #pragma omp critical
                         {
-                            dst_ind_all_.emplace_back(neighbor);
-                            src_ind_all_.emplace_back(i);
-                            distances_all_.emplace_back(distance);
+                            correspondences_.emplace_back(neighbor, i, distance);
                         }
                     }
                 }
                 break;
             }
             case CorrespondencesType::POINTS_COLORS: {
-#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
+#pragma omp parallel for private (neighbor, distance)
                 for (size_t i = 0; i < src_points_trans_.cols(); i++) {
                     Eigen::Matrix<float,6,1> query_pt;
                     query_pt.head(3) = point_dist_weight_*src_points_trans_.col(i);
                     query_pt.tail(3) = color_dist_weight_*src_colors_.col(i);
                     kd_tree_6d_->nearestNeighborSearch(query_pt, neighbor, distance);
-                    if (distance < corr_thresh_squared) {
+                    if (distance < corr_dist_thres_squared) {
 #pragma omp critical
                         {
-                            dst_ind_all_.emplace_back(neighbor);
-                            src_ind_all_.emplace_back(i);
-                            distances_all_.emplace_back(distance);
+                            correspondences_.emplace_back(neighbor, i, distance);
                         }
                     }
                 }
                 break;
             }
             case CorrespondencesType::NORMALS_COLORS: {
-#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
+#pragma omp parallel for private (neighbor, distance)
                 for (size_t i = 0; i < src_points_trans_.cols(); i++) {
                     Eigen::Matrix<float,6,1> query_pt;
                     query_pt.head(3) = normal_dist_weight_*rot_mat_*src_normals_.col(i);
                     query_pt.tail(3) = color_dist_weight_*src_colors_.col(i);
                     kd_tree_6d_->nearestNeighborSearch(query_pt, neighbor, distance);
-                    if (distance < corr_thresh_squared) {
+                    if (distance < corr_dist_thres_squared) {
 #pragma omp critical
                         {
-                            dst_ind_all_.emplace_back(neighbor);
-                            src_ind_all_.emplace_back(i);
-                            distances_all_.emplace_back(distance);
+                            correspondences_.emplace_back(neighbor, i, distance);
                         }
                     }
                 }
                 break;
             }
             case CorrespondencesType::POINTS_NORMALS_COLORS: {
-#pragma omp parallel for shared (dst_ind, src_ind) private (neighbor, distance)
+#pragma omp parallel for private (neighbor, distance)
                 for (size_t i = 0; i < src_points_trans_.cols(); i++) {
                     Eigen::Matrix<float,9,1> query_pt;
                     query_pt.head(3) = point_dist_weight_*src_points_trans_.col(i);
                     query_pt.segment(3,3) = normal_dist_weight_*rot_mat_*src_normals_.col(i);
                     query_pt.tail(3) = color_dist_weight_*src_colors_.col(i);
                     kd_tree_9d_->nearestNeighborSearch(query_pt, neighbor, distance);
-                    if (distance < corr_thresh_squared) {
+                    if (distance < corr_dist_thres_squared) {
 #pragma omp critical
                         {
-                            dst_ind_all_.emplace_back(neighbor);
-                            src_ind_all_.emplace_back(i);
-                            distances_all_.emplace_back(distance);
+                            correspondences_.emplace_back(neighbor, i, distance);
                         }
                     }
                 }
@@ -320,29 +300,7 @@ namespace cilantro {
             }
         }
 
-        if (corr_fraction_ > 0.0f && corr_fraction_ < 1.0f) {
-            size_t num_corr = (size_t)std::llround(corr_fraction_*dst_ind_all_.size());
-            num_corr = std::min(std::max(num_corr, (size_t)6), dst_ind_all_.size());
-
-            ind_all_.resize(dst_ind_all_.size());
-            for (size_t i = 0; i < ind_all_.size(); i++) ind_all_[i] = i;
-            std::sort(ind_all_.begin(), ind_all_.end(), CorrespondenceComparator_(distances_all_));
-
-            dst_ind_.resize(num_corr);
-            src_ind_.resize(num_corr);
-            for (size_t i = 0; i < num_corr; i++) {
-                dst_ind_[i] = dst_ind_all_[ind_all_[i]];
-                src_ind_[i] = src_ind_all_[ind_all_[i]];
-            }
-
-            dst_ind = &dst_ind_;
-            src_ind = &src_ind_;
-
-        } else {
-            // Use all correspondences
-            dst_ind = &dst_ind_all_;
-            src_ind = &src_ind_all_;
-        }
+        filterCorrespondencesFraction(correspondences_, corr_fraction_);
     }
 
     void IterativeClosestPoint::estimate_transform_() {
@@ -353,14 +311,11 @@ namespace cilantro {
         rot_mat_ = rot_mat_init_;
         t_vec_ = t_vec_init_;
 
-        Eigen::Matrix3f rot_mat_iter;
-        Eigen::Vector3f t_vec_iter;
+        RigidTransformation<float,3> tform_iter;
+
         Eigen::Matrix<float,6,1> delta;
 
         Eigen::Vector3f v_pi(M_PI, M_PI, M_PI);
-
-        std::vector<size_t>* dst_ind;
-        std::vector<size_t>* src_ind;
 
         iteration_count_ = 0;
         while (iteration_count_ < max_iter_) {
@@ -368,11 +323,11 @@ namespace cilantro {
             src_points_trans_ = (rot_mat_*src_points_).colwise() + t_vec_;
 
             // Compute correspondences
-            find_correspondences_(dst_ind, src_ind);
+            find_correspondences_();
 
             iteration_count_++;
 
-            if (dst_ind->size() < 3 || (metric_ != Metric::POINT_TO_POINT && dst_ind->size() < 6)) {
+            if (correspondences_.size() < 3 || (metric_ != Metric::POINT_TO_POINT && correspondences_.size() < 6)) {
                 has_converged_ = false;
                 break;
             }
@@ -380,28 +335,28 @@ namespace cilantro {
             // Update estimated transformation
             switch (metric_) {
                 case Metric::POINT_TO_POINT:
-                    estimateRigidTransformPointToPointClosedForm<float,3>(dst_points_, src_points_trans_, *dst_ind, *src_ind, rot_mat_iter, t_vec_iter);
-//                    estimateRigidTransformPointToPointIterative<float>(*dst_points_, src_points_trans_, *dst_ind, *src_ind, rot_mat_iter, t_vec_iter, max_estimation_iter_, convergence_tol_);
+                    estimateRigidTransformPointToPointClosedForm<float,3>(dst_points_, src_points_trans_, correspondences_, tform_iter);
+//                    estimateRigidTransformPointToPointIterative<float>(*dst_points_, src_points_trans_, correspondences_, tform_iter, max_estimation_iter_, convergence_tol_);
                     break;
                 case Metric::POINT_TO_PLANE:
-                    estimateRigidTransformPointToPlane<float>(dst_points_, dst_normals_, src_points_trans_, *dst_ind, *src_ind, rot_mat_iter, t_vec_iter, max_estimation_iter_, convergence_tol_);
+                    estimateRigidTransformPointToPlane3D<float>(dst_points_, dst_normals_, src_points_trans_, correspondences_, tform_iter, max_estimation_iter_, convergence_tol_);
                     break;
                 case Metric::COMBINED:
-                    estimateRigidTransformCombinedMetric<float>(dst_points_, dst_normals_, src_points_trans_, *dst_ind, *src_ind, point_to_point_weight_, point_to_plane_weight_, rot_mat_iter, t_vec_iter, max_estimation_iter_, convergence_tol_);
+                    estimateRigidTransformCombinedMetric3D<float>(dst_points_, dst_normals_, src_points_trans_, correspondences_, point_to_point_weight_, point_to_plane_weight_, tform_iter, max_estimation_iter_, convergence_tol_);
                     break;
             }
 
-            rot_mat_ = rot_mat_iter*rot_mat_;
-            t_vec_ = rot_mat_iter*t_vec_ + t_vec_iter;
+            rot_mat_ = tform_iter.linear()*rot_mat_;
+            t_vec_ = tform_iter.linear()*t_vec_ + tform_iter.translation();
 
             // Orthonormalize rotation
             rot_mat_ = orthonormalize_rotation_(rot_mat_);
 
             // Check for convergence
-            Eigen::Vector3f tmp = rot_mat_iter.eulerAngles(2,1,0).cwiseAbs();
+            Eigen::Vector3f tmp = tform_iter.linear().eulerAngles(2,1,0).cwiseAbs();
             tmp = tmp.cwiseMin((v_pi-tmp).cwiseAbs());
             delta.head(3) = tmp;
-            delta.tail(3) = t_vec_iter;
+            delta.tail(3) = tform_iter.translation();
 
             if (delta.norm() < convergence_tol_) {
                 has_converged_ = true;
