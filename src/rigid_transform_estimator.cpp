@@ -1,5 +1,5 @@
 #include <cilantro/rigid_transform_estimator.hpp>
-#include <cilantro/registration.hpp>
+#include <cilantro/rigid_registration.hpp>
 
 namespace cilantro {
     RigidTransformEstimator::RigidTransformEstimator(const ConstVectorSetMatrixMap<float,3> &dst_points,

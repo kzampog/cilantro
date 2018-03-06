@@ -22,8 +22,8 @@
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/principal_component_analysis.hpp>
 #include <cilantro/random_sample_consensus.hpp>
-#include <cilantro/registration.hpp>
 #include <cilantro/renderables.hpp>
+#include <cilantro/rigid_registration.hpp>
 #include <cilantro/rigid_transform_estimator.hpp>
 #include <cilantro/rigid_transformation.hpp>
 #include <cilantro/space_region.hpp>

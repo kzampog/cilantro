@@ -1,5 +1,5 @@
 #include <cilantro/iterative_closest_point.hpp>
-#include <cilantro/registration.hpp>
+#include <cilantro/rigid_registration.hpp>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
