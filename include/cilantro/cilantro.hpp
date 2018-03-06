@@ -8,10 +8,13 @@
 #include <cilantro/convex_polytope.hpp>
 #include <cilantro/correspondence.hpp>
 #include <cilantro/data_containers.hpp>
+#include <cilantro/icp_base.hpp>
+#include <cilantro/icp_rigid_combined_metric_3d.hpp>
+#include <cilantro/icp_rigid_point_to_point.hpp>
+#include <cilantro/icp_simple_feature_adaptors.hpp>
 #include <cilantro/image_point_cloud_conversions.hpp>
 #include <cilantro/image_viewer.hpp>
 #include <cilantro/io.hpp>
-#include <cilantro/iterative_closest_point.hpp>
 #include <cilantro/kd_tree.hpp>
 #include <cilantro/kmeans.hpp>
 #include <cilantro/mean_shift.hpp>

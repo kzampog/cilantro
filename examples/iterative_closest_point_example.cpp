@@ -1,4 +1,6 @@
-#include <cilantro/iterative_closest_point.hpp>
+#include <cilantro/icp_rigid_point_to_point.hpp>
+#include <cilantro/icp_rigid_combined_metric_3d.hpp>
+#include <cilantro/icp_simple_feature_adaptors.hpp>
 #include <cilantro/io.hpp>
 #include <cilantro/voxel_grid.hpp>
 #include <cilantro/visualizer.hpp>
@@ -13,6 +15,7 @@ int main(int argc, char ** argv) {
 
     dst = cilantro::VoxelGrid(dst, 0.005).getDownsampledCloud();
 
+    // Create a distorted and transformed version of the point cloud
     src = dst;
     for (size_t i = 0; i < src.size(); i++) {
         src.points.col(i) += 0.005f*Eigen::Vector3f::Random();
@@ -40,21 +43,18 @@ int main(int argc, char ** argv) {
 
     dst = dst2;
 
-    Eigen::Matrix3f R_ref;
-    R_ref = Eigen::AngleAxisf(-0.10 ,Eigen::Vector3f::UnitZ()) *
-            Eigen::AngleAxisf(0.01, Eigen::Vector3f::UnitY()) *
-            Eigen::AngleAxisf(-0.07, Eigen::Vector3f::UnitX());
-    Eigen::Vector3f t_ref(-0.20, -0.05, 0.09);
+    cilantro::RigidTransformation3D tf_ref;
+    Eigen::Matrix3f tmp;
+    tmp = Eigen::AngleAxisf(-0.1f ,Eigen::Vector3f::UnitZ()) *
+          Eigen::AngleAxisf(0.1f, Eigen::Vector3f::UnitY()) *
+          Eigen::AngleAxisf(-0.1f, Eigen::Vector3f::UnitX());
+    tf_ref.linear() = tmp;
+    tf_ref.translation() = Eigen::Vector3f(-0.20f, -0.05f, 0.10f);
 
-    src.points = (R_ref*src.points).colwise() + t_ref;
-    src.normals = R_ref*src.normals;
+    src.points = tf_ref*src.points;
+    src.normals = tf_ref.linear()*src.normals;
 
-//    std::vector<size_t> ind(dst.size());
-//    for (size_t i = 0; i < ind.size(); i++) {
-//        ind[i] = i;
-//    }
-//    std::random_shuffle(ind.begin(), ind.end());
-
+    // Visualize initial configuration
     cilantro::Visualizer viz("IterativeClosestPoint example", "disp");
     bool proceed = false;
     viz.registerKeyboardCallback('a', std::bind(callback, std::ref(proceed)));
@@ -69,43 +69,45 @@ int main(int argc, char ** argv) {
     }
     proceed = false;
 
+    // Perform ICP registration
     auto start = std::chrono::high_resolution_clock::now();
 
-    Eigen::Matrix3f R_est;
-    Eigen::Vector3f t_est;
+    cilantro::RigidTransformation3D tf_est;
 
-//    cilantro::IterativeClosestPoint icp(dst, src, cilantro::IterativeClosestPoint::Metric::POINT_TO_POINT);
-    cilantro::IterativeClosestPoint icp(dst, src, cilantro::IterativeClosestPoint::Metric::POINT_TO_PLANE);
-//    cilantro::IterativeClosestPoint icp(dst, src, cilantro::IterativeClosestPoint::Metric::COMBINED);
-//    icp.setPointToPointMetricWeight(0.01f);
-//    icp.setPointToPlaneMetricWeight(1.0f);
+    // Point features adaptors for correspondence search
+//    cilantro::PointsNormalsColorsAdaptor<float,3> dst_feat(dst.points, dst.normals, dst.colors, 0.5, 5.0);
+//    cilantro::PointsNormalsColorsAdaptor<float,3> src_feat(src.points, src.normals, src.colors, 0.5, 5.0);
+    cilantro::PointsAdaptor<float,3> dst_feat(dst.points);
+    cilantro::PointsAdaptor<float,3> src_feat(src.points);
 
-    icp.setCorrespondencesType(cilantro::IterativeClosestPoint::CorrespondencesType::POINTS_NORMALS_COLORS);
-    icp.setCorrespondencePointWeight(1.0);
-    icp.setCorrespondenceNormalWeight(50.0);
-    icp.setCorrespondenceColorWeight(50.0);
+    // Point-to-point
+//    cilantro::PointToPointRigidICP<float,3,cilantro::PointsNormalsColorsAdaptor<float,3>> icp(dst.points, src.points, dst_feat, src_feat);
+//    cilantro::PointToPointRigidICP<float,3,cilantro::PointsAdaptor<float,3>> icp(dst.points, src.points, dst_feat, src_feat);
 
-    icp.setMaxCorrespondenceDistance(0.5f).setConvergenceTolerance(1e-3f).setMaxNumberOfIterations(200).setMaxNumberOfOptimizationStepIterations(1);
+    // Weighted combination of point-to-point and point-to-plane
+//    cilantro::CombinedMetricRigidICP3D<float,cilantro::PointsNormalsColorsAdaptor<float,3>> icp(dst.points, dst.normals, src.points, dst_feat, src_feat);
+    cilantro::CombinedMetricRigidICP3D<float,cilantro::PointsAdaptor<float,3>> icp(dst.points, dst.normals, src.points, dst_feat, src_feat);
 
-//    icp.setInitialTransformation(R_ref.transpose(), (-R_ref.transpose()*t_ref));
-    icp.getTransformation(R_est, t_est);
+    icp.setMaxCorrespondenceDistance(0.1f*0.1f).setConvergenceTolerance(1e-3f).setMaxNumberOfIterations(100);
+    icp.setMaxNumberOfOptimizationStepIterations(1).setPointToPointMetricWeight(0.0).setPointToPlaneMetricWeight(1.0);
+
+    tf_est = icp.estimateTransformation().getTransformation();
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> elapsed = end - start;
     std::cout << "Registration time: " << elapsed.count() << "ms" << std::endl;
 
-    std::cout << "Iterations performed: " << icp.getPerformedIterationsCount() << std::endl;
+    std::cout << "Iterations performed: " << icp.getNumberOfPerformedIterations() << std::endl;
     std::cout << "Has converged: " << icp.hasConverged() << std::endl;
 
-    std::cout << "TRUE transformation R:" << std::endl << R_ref.transpose() << std::endl;
-    std::cout << "TRUE transformation t:" << std::endl << (-R_ref.transpose()*t_ref).transpose() << std::endl;
-    std::cout << "ESTIMATED transformation R:" << std::endl << R_est << std::endl;
-    std::cout << "ESTIMATED transformation t:" << std::endl << t_est.transpose() << std::endl;
+    std::cout << "TRUE transformation:" << std::endl << tf_ref.inverse().matrix() << std::endl;
+    std::cout << "ESTIMATED transformation R:" << std::endl << tf_est.matrix() << std::endl;
 
+    // Visualize registration results
     cilantro::PointCloud3D src_trans(src);
 
-    src_trans.points = (R_est*src_trans.points).colwise() + t_est;
-    src_trans.normals = R_est*src_trans.normals;
+    src_trans.points = tf_est*src_trans.points;
+    src_trans.normals = tf_est.linear()*src_trans.normals;
 
     viz.addPointCloud("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
     viz.addPointCloud("src", src_trans, cilantro::RenderingProperties().setPointColor(1,0,0));
@@ -118,7 +120,7 @@ int main(int argc, char ** argv) {
     proceed = false;
 
     start = std::chrono::high_resolution_clock::now();
-    auto residuals = icp.getResiduals(cilantro::IterativeClosestPoint::CorrespondencesType::POINTS, cilantro::IterativeClosestPoint::Metric::POINT_TO_POINT);
+    auto residuals = icp.getResiduals();
     end = std::chrono::high_resolution_clock::now();
     elapsed = end - start;
     std::cout << "Residual computation time: " << elapsed.count() << "ms" << std::endl;

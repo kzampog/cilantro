@@ -25,7 +25,7 @@
 
 #### Model estimation and point set registration:
 - A RANSAC estimator template and instantiations thereof for robust plane estimation and rigid 6DOF point cloud registration
-- A 3D Iterative Closest Point implementation for point-to-point and point-to-plane metrics that supports multiple correspondence types (based on any combination of point location, normal, and color)
+- Generic Iterative Closest Point implementations for point-to-point and point-to-plane metrics (and combinations thereof) that support arbitrary correspondence types on any kind of point features
 
 #### Visualization:
 - A fast, powerful, and easy to use 3D visualizer
