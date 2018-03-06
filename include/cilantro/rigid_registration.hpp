@@ -250,6 +250,7 @@ namespace cilantro {
         VectorSet<ScalarT,3> dst_p_corr(3, corr.size());
         VectorSet<ScalarT,3> dst_n_corr(3, corr.size());
         VectorSet<ScalarT,3> src_p_corr(3, corr.size());
+#pragma omp parallel for
         for (size_t i = 0; i < corr.size(); i++) {
             dst_p_corr.col(i) = dst_p.col(corr[i].indexInFirst);
             dst_n_corr.col(i) = dst_n.col(corr[i].indexInFirst);
@@ -412,6 +413,7 @@ namespace cilantro {
         VectorSet<ScalarT,3> dst_p_corr(3, corr.size());
         VectorSet<ScalarT,3> dst_n_corr(3, corr.size());
         VectorSet<ScalarT,3> src_p_corr(3, corr.size());
+#pragma omp parallel for
         for (size_t i = 0; i < corr.size(); i++) {
             dst_p_corr.col(i) = dst_p.col(corr[i].indexInFirst);
             dst_n_corr.col(i) = dst_n.col(corr[i].indexInFirst);

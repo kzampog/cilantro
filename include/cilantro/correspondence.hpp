@@ -48,6 +48,7 @@ namespace cilantro {
                                            VectorSet<ScalarT,EigenDim> &first_corr)
     {
         first_corr.resize(first.rows(), correspondences.size());
+#pragma omp parallel for
         for (size_t i = 0; i < correspondences.size(); i++) {
             first_corr.col(i) = first.col(correspondences[i].indexInFirst);
         }
@@ -58,6 +59,7 @@ namespace cilantro {
                                                                   const ConstVectorSetMatrixMap<ScalarT,EigenDim> &first)
     {
         VectorSet<ScalarT,EigenDim> first_corr(first.rows(), correspondences.size());
+#pragma omp parallel for
         for (size_t i = 0; i < correspondences.size(); i++) {
             first_corr.col(i) = first.col(correspondences[i].indexInFirst);
         }
@@ -70,6 +72,7 @@ namespace cilantro {
                                             VectorSet<ScalarT,EigenDim> &second_corr)
     {
         second_corr.resize(second.rows(), correspondences.size());
+#pragma omp parallel for
         for (size_t i = 0; i < correspondences.size(); i++) {
             second_corr.col(i) = second.col(correspondences[i].indexInSecond);
         }
@@ -80,6 +83,7 @@ namespace cilantro {
                                                                    const ConstVectorSetMatrixMap<ScalarT,EigenDim> &second)
     {
         VectorSet<ScalarT,EigenDim> second_corr(second.rows(), correspondences.size());
+#pragma omp parallel for
         for (size_t i = 0; i < correspondences.size(); i++) {
             second_corr.col(i) = second.col(correspondences[i].indexInSecond);
         }
@@ -95,6 +99,7 @@ namespace cilantro {
     {
         first_corr.resize(first.rows(), correspondences.size());
         second_corr.resize(second.rows(), correspondences.size());
+#pragma omp parallel for
         for (size_t i = 0; i < correspondences.size(); i++) {
             first_corr.col(i) = first.col(correspondences[i].indexInFirst);
             second_corr.col(i) = second.col(correspondences[i].indexInSecond);
