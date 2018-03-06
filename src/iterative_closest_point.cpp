@@ -320,7 +320,14 @@ namespace cilantro {
         iteration_count_ = 0;
         while (iteration_count_ < max_iter_) {
             // Transform src using current estimate
-            src_points_trans_ = (rot_mat_*src_points_).colwise() + t_vec_;
+            if (iteration_count_ > 0) {
+#pragma omp parallel for
+                for (size_t i = 0; i < src_points_.cols(); i++) {
+                    src_points_trans_.col(i) = rot_mat_*src_points_.col(i) + t_vec_;
+                }
+            } else {
+                src_points_trans_ = src_points_;
+            }
 
             // Compute correspondences
             find_correspondences_();
