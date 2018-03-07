@@ -2,7 +2,7 @@
 
 #include <cilantro/random_sample_consensus.hpp>
 #include <cilantro/data_containers.hpp>
-#include <cilantro/rigid_transformation.hpp>
+#include <cilantro/space_transformations.hpp>
 
 namespace cilantro {
     class RigidTransformEstimator : public RandomSampleConsensus<RigidTransformEstimator,RigidTransformation<float,3>,float> {

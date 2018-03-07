@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cilantro/rigid_transformation.hpp>
+#include <cilantro/space_transformations.hpp>
 #include <cilantro/correspondence.hpp>
 
 namespace cilantro {
@@ -73,7 +73,10 @@ namespace cilantro {
         size_t iter = 0;
         while (iter < max_iter) {
             if (iter > 0) {
-                src_t = tform*src_p;
+#pragma omp parallel for
+                for (size_t i = 0; i < src_p.cols(); i++) {
+                    src_t.col(i) = tform*src_p.col(i);
+                }
             }
 
             // Compute differential
@@ -191,7 +194,10 @@ namespace cilantro {
         size_t iter = 0;
         while (iter < max_iter) {
             if (iter > 0) {
-                src_t = tform*src_p;
+#pragma omp parallel for
+                for (size_t i = 0; i < src_p.cols(); i++) {
+                    src_t.col(i) = tform*src_p.col(i);
+                }
             }
 
             // Compute differential
@@ -303,7 +309,10 @@ namespace cilantro {
         size_t iter = 0;
         while (iter < max_iter) {
             if (iter > 0) {
-                src_t = tform*src_p;
+#pragma omp parallel for
+                for (size_t i = 0; i < src_p.cols(); i++) {
+                    src_t.col(i) = tform*src_p.col(i);
+                }
             }
 
             // Compute differential

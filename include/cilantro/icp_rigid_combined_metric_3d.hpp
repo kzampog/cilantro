@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <cilantro/icp_base.hpp>
-#include <cilantro/rigid_registration.hpp>
+#include <cilantro/rigid_registration_utilities.hpp>
 
 namespace cilantro {
     template <typename ScalarT, class FeatureAdaptorT, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>

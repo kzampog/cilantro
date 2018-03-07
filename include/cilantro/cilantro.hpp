@@ -26,10 +26,10 @@
 #include <cilantro/principal_component_analysis.hpp>
 #include <cilantro/random_sample_consensus.hpp>
 #include <cilantro/renderables.hpp>
-#include <cilantro/rigid_registration.hpp>
+#include <cilantro/rigid_registration_utilities.hpp>
 #include <cilantro/rigid_transform_estimator.hpp>
-#include <cilantro/rigid_transformation.hpp>
 #include <cilantro/space_region.hpp>
+#include <cilantro/space_transformations.hpp>
 #include <cilantro/spectral_clustering.hpp>
 #include <cilantro/type_traits.hpp>
 #include <cilantro/visualizer.hpp>

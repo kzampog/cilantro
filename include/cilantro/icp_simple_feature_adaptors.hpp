@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cilantro/rigid_transformation.hpp>
+#include <cilantro/space_transformations.hpp>
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
