@@ -101,7 +101,7 @@ namespace cilantro {
             }
             this->transform_ = tform_iter*this->transform_;
             this->transform_.linear() = this->transform_.rotation();
-            this->last_delta_norm_ = std::sqrt((tform_iter.linear() - Eigen::Matrix<ScalarT,3,3>::Identity(src_points_.rows(),src_points_.rows())).squaredNorm() + tform_iter.translation().squaredNorm());
+            this->last_delta_norm_ = std::sqrt((tform_iter.linear() - Eigen::Matrix<ScalarT,3,3>::Identity()).squaredNorm() + tform_iter.translation().squaredNorm());
             return true;
         }
 
