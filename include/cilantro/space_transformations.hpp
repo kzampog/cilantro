@@ -41,6 +41,24 @@ namespace cilantro {
             return *this;
         }
 
+        RigidTransformationSet& preApply(const RigidTransformationSet<ScalarT,EigenDim> &other) {
+#pragma omp parallel for
+            for (size_t i = 0; i < this->size(); i++) {
+                (*this)[i] = other[i]*(*this)[i];
+                (*this)[i].linear() = (*this)[i].rotation();
+            }
+            return *this;
+        }
+
+        RigidTransformationSet& postApply(const RigidTransformationSet<ScalarT,EigenDim> &other) {
+#pragma omp parallel for
+            for (size_t i = 0; i < this->size(); i++) {
+                (*this)[i] = (*this)[i]*other[i];
+                (*this)[i].linear() = (*this)[i].rotation();
+            }
+            return *this;
+        }
+
         VectorSet<ScalarT,EigenDim> getWarpedPoints(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points) const {
             VectorSet<ScalarT,EigenDim> points_t(points);
 #pragma omp parallel for

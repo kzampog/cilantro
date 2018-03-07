@@ -18,10 +18,10 @@ int main(int argc, char ** argv) {
     // Create a distorted and transformed version of the point cloud
     src = dst;
     for (size_t i = 0; i < src.size(); i++) {
-        src.points.col(i) += 0.005f*Eigen::Vector3f::Random();
-        src.normals.col(i) += 0.005f*Eigen::Vector3f::Random();
+        src.points.col(i) += 0.01f*Eigen::Vector3f::Random();
+        src.normals.col(i) += 0.02f*Eigen::Vector3f::Random();
         src.normals.col(i).normalize();
-        src.colors.col(i) += 0.010f*Eigen::Vector3f::Random();
+        src.colors.col(i) += 0.05f*Eigen::Vector3f::Random();
     }
 
     cilantro::PointCloud3D dst2;

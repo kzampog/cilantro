@@ -143,8 +143,8 @@ namespace cilantro {
                            Eigen::AngleAxis<ScalarT>(d_theta[0], Eigen::Matrix<ScalarT,3,1>::UnitX());
 
             tform.linear() = rot_mat_iter*tform.linear();
-            tform.translation() = rot_mat_iter*tform.translation() + d_theta.tail(3);
             tform.linear() = tform.rotation();
+            tform.translation() = rot_mat_iter*tform.translation() + d_theta.tail(3);
 
             iter++;
 
@@ -232,8 +232,8 @@ namespace cilantro {
                            Eigen::AngleAxis<ScalarT>(d_theta[0], Eigen::Matrix<ScalarT,3,1>::UnitX());
 
             tform.linear() = rot_mat_iter*tform.linear();
-            tform.translation() = rot_mat_iter*tform.translation() + d_theta.tail(3);
             tform.linear() = tform.rotation();
+            tform.translation() = rot_mat_iter*tform.translation() + d_theta.tail(3);
 
             iter++;
 
@@ -396,8 +396,8 @@ namespace cilantro {
                            Eigen::AngleAxis<ScalarT>(d_theta[0], Eigen::Matrix<ScalarT,3,1>::UnitX());
 
             tform.linear() = rot_mat_iter*tform.linear();
-            tform.translation() = rot_mat_iter*tform.translation() + d_theta.tail(3);
             tform.linear() = tform.rotation();
+            tform.translation() = rot_mat_iter*tform.translation() + d_theta.tail(3);
 
             iter++;
 
