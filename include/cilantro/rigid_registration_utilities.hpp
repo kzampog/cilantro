@@ -63,78 +63,81 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,3,3> rot_mat_iter;
         Eigen::Matrix<ScalarT,6,1> d_theta;
         tform.setIdentity();
-        VectorSet<ScalarT,3> src_t(src_p);
+        Vector<ScalarT,3> s;
 
-//        Eigen::Matrix<ScalarT,Eigen::Dynamic,6> A(num_eq, 6);
         Eigen::Matrix<ScalarT,6,Eigen::Dynamic> At(6, num_eq);
         Eigen::Matrix<ScalarT,Eigen::Dynamic,1> b(num_eq, 1);
 
         size_t eq_ind;
         size_t iter = 0;
         while (iter < max_iter) {
+            // Compute differential
             if (iter > 0) {
-#pragma omp parallel for
-                for (size_t i = 0; i < src_p.cols(); i++) {
-                    src_t.col(i) = tform*src_p.col(i);
+#pragma omp parallel for shared (At, b) private (s, eq_ind)
+                for (size_t i = 0; i < dst_p.cols(); i++) {
+                    const Eigen::Matrix<ScalarT,3,1>& d = dst_p.col(i);
+                    s = tform*src_p.col(i);
+
+                    eq_ind = 3*i;
+
+                    At(0,eq_ind) = 0.0;
+                    At(1,eq_ind) = s[2];
+                    At(2,eq_ind) = -s[1];
+                    At(3,eq_ind) = 1.0;
+                    At(4,eq_ind) = 0.0;
+                    At(5,eq_ind) = 0.0;
+                    b[eq_ind++] = d[0] - s[0];
+
+                    At(0,eq_ind) = -s[2];
+                    At(1,eq_ind) = 0.0;
+                    At(2,eq_ind) = s[0];
+                    At(3,eq_ind) = 0.0;
+                    At(4,eq_ind) = 1.0;
+                    At(5,eq_ind) = 0.0;
+                    b[eq_ind++] = d[1] - s[1];
+
+                    At(0,eq_ind) = s[1];
+                    At(1,eq_ind) = -s[0];
+                    At(2,eq_ind) = 0.0;
+                    At(3,eq_ind) = 0.0;
+                    At(4,eq_ind) = 0.0;
+                    At(5,eq_ind) = 1.0;
+                    b[eq_ind++] = d[2] - s[2];
+                }
+            } else {
+#pragma omp parallel for shared (At, b) private (eq_ind)
+                for (size_t i = 0; i < dst_p.cols(); i++) {
+                    const Eigen::Matrix<ScalarT,3,1>& d = dst_p.col(i);
+                    const Eigen::Matrix<ScalarT,3,1>& s = src_p.col(i);
+
+                    eq_ind = 3*i;
+
+                    At(0,eq_ind) = 0.0;
+                    At(1,eq_ind) = s[2];
+                    At(2,eq_ind) = -s[1];
+                    At(3,eq_ind) = 1.0;
+                    At(4,eq_ind) = 0.0;
+                    At(5,eq_ind) = 0.0;
+                    b[eq_ind++] = d[0] - s[0];
+
+                    At(0,eq_ind) = -s[2];
+                    At(1,eq_ind) = 0.0;
+                    At(2,eq_ind) = s[0];
+                    At(3,eq_ind) = 0.0;
+                    At(4,eq_ind) = 1.0;
+                    At(5,eq_ind) = 0.0;
+                    b[eq_ind++] = d[1] - s[1];
+
+                    At(0,eq_ind) = s[1];
+                    At(1,eq_ind) = -s[0];
+                    At(2,eq_ind) = 0.0;
+                    At(3,eq_ind) = 0.0;
+                    At(4,eq_ind) = 0.0;
+                    At(5,eq_ind) = 1.0;
+                    b[eq_ind++] = d[2] - s[2];
                 }
             }
 
-            // Compute differential
-            eq_ind = 0;
-            for (size_t i = 0; i < dst_p.cols(); i++) {
-                const Eigen::Matrix<ScalarT,3,1>& d = dst_p.col(i);
-                const Eigen::Matrix<ScalarT,3,1>& s = src_t.col(i);
-
-//                A(eq_ind,0) = 0.0;
-//                A(eq_ind,1) = s[2];
-//                A(eq_ind,2) = -s[1];
-//                A(eq_ind,3) = 1.0;
-//                A(eq_ind,4) = 0.0;
-//                A(eq_ind,5) = 0.0;
-//                b[eq_ind++] = d[0] - s[0];
-//
-//                A(eq_ind,0) = -s[2];
-//                A(eq_ind,1) = 0.0;
-//                A(eq_ind,2) = s[0];
-//                A(eq_ind,3) = 0.0;
-//                A(eq_ind,4) = 1.0;
-//                A(eq_ind,5) = 0.0;
-//                b[eq_ind++] = d[1] - s[1];
-//
-//                A(eq_ind,0) = s[1];
-//                A(eq_ind,1) = -s[0];
-//                A(eq_ind,2) = 0.0;
-//                A(eq_ind,3) = 0.0;
-//                A(eq_ind,4) = 0.0;
-//                A(eq_ind,5) = 1.0;
-//                b[eq_ind++] = d[2] - s[2];
-
-                At(0,eq_ind) = 0.0;
-                At(1,eq_ind) = s[2];
-                At(2,eq_ind) = -s[1];
-                At(3,eq_ind) = 1.0;
-                At(4,eq_ind) = 0.0;
-                At(5,eq_ind) = 0.0;
-                b[eq_ind++] = d[0] - s[0];
-
-                At(0,eq_ind) = -s[2];
-                At(1,eq_ind) = 0.0;
-                At(2,eq_ind) = s[0];
-                At(3,eq_ind) = 0.0;
-                At(4,eq_ind) = 1.0;
-                At(5,eq_ind) = 0.0;
-                b[eq_ind++] = d[1] - s[1];
-
-                At(0,eq_ind) = s[1];
-                At(1,eq_ind) = -s[0];
-                At(2,eq_ind) = 0.0;
-                At(3,eq_ind) = 0.0;
-                At(4,eq_ind) = 0.0;
-                At(5,eq_ind) = 1.0;
-                b[eq_ind++] = d[2] - s[2];
-            }
-
-//            d_theta = (A.transpose()*A).ldlt().solve(A.transpose()*b);
             d_theta = (At*At.transpose()).ldlt().solve(At*b);
 
             // Update estimate
@@ -185,45 +188,46 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,3,3> rot_mat_iter;
         Eigen::Matrix<ScalarT,6,1> d_theta;
         tform.setIdentity();
-        VectorSet<ScalarT,3> src_t(src_p);
+        Vector<ScalarT,3> s;
 
-//        Eigen::Matrix<ScalarT,Eigen::Dynamic,6> A(dst_p.cols(),6);
         Eigen::Matrix<ScalarT,6,Eigen::Dynamic> At(6,dst_p.cols());
         Eigen::Matrix<ScalarT,Eigen::Dynamic,1> b(dst_p.cols(),1);
 
         size_t iter = 0;
         while (iter < max_iter) {
+            // Compute differential
             if (iter > 0) {
-#pragma omp parallel for
-                for (size_t i = 0; i < src_p.cols(); i++) {
-                    src_t.col(i) = tform*src_p.col(i);
+#pragma omp parallel for shared (At, b) private (s)
+                for (size_t i = 0; i < dst_p.cols(); i++) {
+                    const Eigen::Matrix<ScalarT,3,1>& d = dst_p.col(i);
+                    const Eigen::Matrix<ScalarT,3,1>& n = dst_n.col(i);
+                    s = tform*src_p.col(i);
+
+                    At(0,i) = n[2]*s[1] - n[1]*s[2];
+                    At(1,i) = n[0]*s[2] - n[2]*s[0];
+                    At(2,i) = n[1]*s[0] - n[0]*s[1];
+                    At(3,i) = n[0];
+                    At(4,i) = n[1];
+                    At(5,i) = n[2];
+                    b[i] = n[0]*d[0] + n[1]*d[1] + n[2]*d[2] - n[0]*s[0] - n[1]*s[1] - n[2]*s[2];
+                }
+            } else {
+#pragma omp parallel for shared (At, b)
+                for (size_t i = 0; i < dst_p.cols(); i++) {
+                    const Eigen::Matrix<ScalarT,3,1>& d = dst_p.col(i);
+                    const Eigen::Matrix<ScalarT,3,1>& n = dst_n.col(i);
+                    const Eigen::Matrix<ScalarT,3,1>& s = src_p.col(i);
+
+                    At(0,i) = n[2]*s[1] - n[1]*s[2];
+                    At(1,i) = n[0]*s[2] - n[2]*s[0];
+                    At(2,i) = n[1]*s[0] - n[0]*s[1];
+                    At(3,i) = n[0];
+                    At(4,i) = n[1];
+                    At(5,i) = n[2];
+                    b[i] = n[0]*d[0] + n[1]*d[1] + n[2]*d[2] - n[0]*s[0] - n[1]*s[1] - n[2]*s[2];
                 }
             }
 
-            // Compute differential
-            for (size_t i = 0; i < dst_p.cols(); i++) {
-                const Eigen::Matrix<ScalarT,3,1>& d = dst_p.col(i);
-                const Eigen::Matrix<ScalarT,3,1>& n = dst_n.col(i);
-                const Eigen::Matrix<ScalarT,3,1>& s = src_t.col(i);
-
-//                A(i,0) = n[2]*s[1] - n[1]*s[2];
-//                A(i,1) = n[0]*s[2] - n[2]*s[0];
-//                A(i,2) = n[1]*s[0] - n[0]*s[1];
-//                A(i,3) = n[0];
-//                A(i,4) = n[1];
-//                A(i,5) = n[2];
-//                b[i] = n[0]*d[0] + n[1]*d[1] + n[2]*d[2] - n[0]*s[0] - n[1]*s[1] - n[2]*s[2];
-
-                At(0,i) = n[2]*s[1] - n[1]*s[2];
-                At(1,i) = n[0]*s[2] - n[2]*s[0];
-                At(2,i) = n[1]*s[0] - n[0]*s[1];
-                At(3,i) = n[0];
-                At(4,i) = n[1];
-                At(5,i) = n[2];
-                b[i] = n[0]*d[0] + n[1]*d[1] + n[2]*d[2] - n[0]*s[0] - n[1]*s[1] - n[2]*s[2];
-            }
-
-//            d_theta = (A.transpose()*A).ldlt().solve(A.transpose()*b);
             d_theta = (At*At.transpose()).ldlt().solve(At*b);
 
             // Update estimate
@@ -297,97 +301,101 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,3,3> rot_mat_iter;
         Eigen::Matrix<ScalarT,6,1> d_theta;
         tform.setIdentity();
-        VectorSet<ScalarT,3> src_t(src_p);
+        Vector<ScalarT,3> s;
 
         size_t num_eq = 4*dst_p.cols();
 
-//        Eigen::Matrix<ScalarT,Eigen::Dynamic,6> A(num_eq, 6);
         Eigen::Matrix<ScalarT,6,Eigen::Dynamic> At(6, num_eq);
         Eigen::Matrix<ScalarT,Eigen::Dynamic,1> b(num_eq, 1);
 
         size_t eq_ind;
         size_t iter = 0;
         while (iter < max_iter) {
+            // Compute differential
             if (iter > 0) {
-#pragma omp parallel for
-                for (size_t i = 0; i < src_p.cols(); i++) {
-                    src_t.col(i) = tform*src_p.col(i);
+#pragma omp parallel for shared (At, b) private (s, eq_ind)
+                for (size_t i = 0; i < dst_p.cols(); i++) {
+                    const Eigen::Matrix<ScalarT,3,1>& d = dst_p.col(i);
+                    const Eigen::Matrix<ScalarT,3,1>& n = dst_n.col(i);
+                    s = tform*src_p.col(i);
+
+                    eq_ind = 4*i;
+
+                    At(0,eq_ind) = (n[2]*s[1] - n[1]*s[2])*point_to_plane_weight_sqrt;
+                    At(1,eq_ind) = (n[0]*s[2] - n[2]*s[0])*point_to_plane_weight_sqrt;
+                    At(2,eq_ind) = (n[1]*s[0] - n[0]*s[1])*point_to_plane_weight_sqrt;
+                    At(3,eq_ind) = n[0]*point_to_plane_weight_sqrt;
+                    At(4,eq_ind) = n[1]*point_to_plane_weight_sqrt;
+                    At(5,eq_ind) = n[2]*point_to_plane_weight_sqrt;
+                    b[eq_ind++] = (n[0]*d[0] + n[1]*d[1] + n[2]*d[2] - n[0]*s[0] - n[1]*s[1] - n[2]*s[2])*point_to_plane_weight_sqrt;
+
+                    At(0,eq_ind) = 0.0;
+                    At(1,eq_ind) = s[2]*point_to_point_weight_sqrt;
+                    At(2,eq_ind) = -s[1]*point_to_point_weight_sqrt;
+                    At(3,eq_ind) = 1.0*point_to_point_weight_sqrt;
+                    At(4,eq_ind) = 0.0;
+                    At(5,eq_ind) = 0.0;
+                    b[eq_ind++] = (d[0] - s[0])*point_to_point_weight_sqrt;
+
+                    At(0,eq_ind) = -s[2]*point_to_point_weight_sqrt;
+                    At(1,eq_ind) = 0.0;
+                    At(2,eq_ind) = s[0]*point_to_point_weight_sqrt;
+                    At(3,eq_ind) = 0.0;
+                    At(4,eq_ind) = 1.0*point_to_point_weight_sqrt;
+                    At(5,eq_ind) = 0.0;
+                    b[eq_ind++] = (d[1] - s[1])*point_to_point_weight_sqrt;
+
+                    At(0,eq_ind) = s[1]*point_to_point_weight_sqrt;
+                    At(1,eq_ind) = -s[0]*point_to_point_weight_sqrt;
+                    At(2,eq_ind) = 0.0;
+                    At(3,eq_ind) = 0.0;
+                    At(4,eq_ind) = 0.0;
+                    At(5,eq_ind) = 1.0*point_to_point_weight_sqrt;
+                    b[eq_ind++] = (d[2] - s[2])*point_to_point_weight_sqrt;
+                }
+            } else {
+#pragma omp parallel for shared (At, b) private (eq_ind)
+                for (size_t i = 0; i < dst_p.cols(); i++) {
+                    const Eigen::Matrix<ScalarT,3,1>& d = dst_p.col(i);
+                    const Eigen::Matrix<ScalarT,3,1>& n = dst_n.col(i);
+                    const Eigen::Matrix<ScalarT,3,1>& s = src_p.col(i);
+
+                    eq_ind = 4*i;
+
+                    At(0,eq_ind) = (n[2]*s[1] - n[1]*s[2])*point_to_plane_weight_sqrt;
+                    At(1,eq_ind) = (n[0]*s[2] - n[2]*s[0])*point_to_plane_weight_sqrt;
+                    At(2,eq_ind) = (n[1]*s[0] - n[0]*s[1])*point_to_plane_weight_sqrt;
+                    At(3,eq_ind) = n[0]*point_to_plane_weight_sqrt;
+                    At(4,eq_ind) = n[1]*point_to_plane_weight_sqrt;
+                    At(5,eq_ind) = n[2]*point_to_plane_weight_sqrt;
+                    b[eq_ind++] = (n[0]*d[0] + n[1]*d[1] + n[2]*d[2] - n[0]*s[0] - n[1]*s[1] - n[2]*s[2])*point_to_plane_weight_sqrt;
+
+                    At(0,eq_ind) = 0.0;
+                    At(1,eq_ind) = s[2]*point_to_point_weight_sqrt;
+                    At(2,eq_ind) = -s[1]*point_to_point_weight_sqrt;
+                    At(3,eq_ind) = 1.0*point_to_point_weight_sqrt;
+                    At(4,eq_ind) = 0.0;
+                    At(5,eq_ind) = 0.0;
+                    b[eq_ind++] = (d[0] - s[0])*point_to_point_weight_sqrt;
+
+                    At(0,eq_ind) = -s[2]*point_to_point_weight_sqrt;
+                    At(1,eq_ind) = 0.0;
+                    At(2,eq_ind) = s[0]*point_to_point_weight_sqrt;
+                    At(3,eq_ind) = 0.0;
+                    At(4,eq_ind) = 1.0*point_to_point_weight_sqrt;
+                    At(5,eq_ind) = 0.0;
+                    b[eq_ind++] = (d[1] - s[1])*point_to_point_weight_sqrt;
+
+                    At(0,eq_ind) = s[1]*point_to_point_weight_sqrt;
+                    At(1,eq_ind) = -s[0]*point_to_point_weight_sqrt;
+                    At(2,eq_ind) = 0.0;
+                    At(3,eq_ind) = 0.0;
+                    At(4,eq_ind) = 0.0;
+                    At(5,eq_ind) = 1.0*point_to_point_weight_sqrt;
+                    b[eq_ind++] = (d[2] - s[2])*point_to_point_weight_sqrt;
                 }
             }
 
-            // Compute differential
-            eq_ind = 0;
-            for (size_t i = 0; i < dst_p.cols(); i++) {
-                const Eigen::Matrix<ScalarT,3,1>& d = dst_p.col(i);
-                const Eigen::Matrix<ScalarT,3,1>& n = dst_n.col(i);
-                const Eigen::Matrix<ScalarT,3,1>& s = src_t.col(i);
-
-//                A(eq_ind,0) = (n[2]*s[1] - n[1]*s[2])*plane_weight;
-//                A(eq_ind,1) = (n[0]*s[2] - n[2]*s[0])*plane_weight;
-//                A(eq_ind,2) = (n[1]*s[0] - n[0]*s[1])*plane_weight;
-//                A(eq_ind,3) = n[0]*plane_weight;
-//                A(eq_ind,4) = n[1]*plane_weight;
-//                A(eq_ind,5) = n[2]*plane_weight;
-//                b[eq_ind++] = (n[0]*d[0] + n[1]*d[1] + n[2]*d[2] - n[0]*s[0] - n[1]*s[1] - n[2]*s[2])*plane_weight;
-//
-//                A(eq_ind,0) = 0.0;
-//                A(eq_ind,1) = s[2]*point_weight;
-//                A(eq_ind,2) = -s[1]*point_weight;
-//                A(eq_ind,3) = 1.0*point_weight;
-//                A(eq_ind,4) = 0.0;
-//                A(eq_ind,5) = 0.0;
-//                b[eq_ind++] = (d[0] - s[0])*point_weight;
-//
-//                A(eq_ind,0) = -s[2]*point_weight;
-//                A(eq_ind,1) = 0.0;
-//                A(eq_ind,2) = s[0]*point_weight;
-//                A(eq_ind,3) = 0.0;
-//                A(eq_ind,4) = 1.0*point_weight;
-//                A(eq_ind,5) = 0.0;
-//                b[eq_ind++] = (d[1] - s[1])*point_weight;
-//
-//                A(eq_ind,0) = s[1]*point_weight;
-//                A(eq_ind,1) = -s[0]*point_weight;
-//                A(eq_ind,2) = 0.0;
-//                A(eq_ind,3) = 0.0;
-//                A(eq_ind,4) = 0.0;
-//                A(eq_ind,5) = 1.0*point_weight;
-//                b[eq_ind++] = (d[2] - s[2])*point_weight;
-
-                At(0,eq_ind) = (n[2]*s[1] - n[1]*s[2])*point_to_plane_weight_sqrt;
-                At(1,eq_ind) = (n[0]*s[2] - n[2]*s[0])*point_to_plane_weight_sqrt;
-                At(2,eq_ind) = (n[1]*s[0] - n[0]*s[1])*point_to_plane_weight_sqrt;
-                At(3,eq_ind) = n[0]*point_to_plane_weight_sqrt;
-                At(4,eq_ind) = n[1]*point_to_plane_weight_sqrt;
-                At(5,eq_ind) = n[2]*point_to_plane_weight_sqrt;
-                b[eq_ind++] = (n[0]*d[0] + n[1]*d[1] + n[2]*d[2] - n[0]*s[0] - n[1]*s[1] - n[2]*s[2])*point_to_plane_weight_sqrt;
-
-                At(0,eq_ind) = 0.0;
-                At(1,eq_ind) = s[2]*point_to_point_weight_sqrt;
-                At(2,eq_ind) = -s[1]*point_to_point_weight_sqrt;
-                At(3,eq_ind) = 1.0*point_to_point_weight_sqrt;
-                At(4,eq_ind) = 0.0;
-                At(5,eq_ind) = 0.0;
-                b[eq_ind++] = (d[0] - s[0])*point_to_point_weight_sqrt;
-
-                At(0,eq_ind) = -s[2]*point_to_point_weight_sqrt;
-                At(1,eq_ind) = 0.0;
-                At(2,eq_ind) = s[0]*point_to_point_weight_sqrt;
-                At(3,eq_ind) = 0.0;
-                At(4,eq_ind) = 1.0*point_to_point_weight_sqrt;
-                At(5,eq_ind) = 0.0;
-                b[eq_ind++] = (d[1] - s[1])*point_to_point_weight_sqrt;
-
-                At(0,eq_ind) = s[1]*point_to_point_weight_sqrt;
-                At(1,eq_ind) = -s[0]*point_to_point_weight_sqrt;
-                At(2,eq_ind) = 0.0;
-                At(3,eq_ind) = 0.0;
-                At(4,eq_ind) = 0.0;
-                At(5,eq_ind) = 1.0*point_to_point_weight_sqrt;
-                b[eq_ind++] = (d[2] - s[2])*point_to_point_weight_sqrt;
-            }
-
-//            d_theta = (A.transpose()*A).ldlt().solve(A.transpose()*b);
             d_theta = (At*At.transpose()).ldlt().solve(At*b);
 
             // Update estimate
