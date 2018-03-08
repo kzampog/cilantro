@@ -106,17 +106,18 @@ namespace cilantro {
         }
 
         VectorSet<ScalarT,1> computeResiduals() {
-            VectorSet<ScalarT,1> res(1,src_points_.cols());
             if (!dst_feat_tree_ptr_) {
                 dst_feat_tree_ptr_.reset(new KDTree<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension,DistAdaptor>(dst_feat_adaptor_.getFeatureData()));
             }
+
             const ConstVectorSetMatrixMap<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension>& src_feat_trans = src_feat_adaptor_.getTransformedFeatureData(this->transform_);
 
             size_t neighbor;
             typename FeatureAdaptorT::Scalar distance;
             Vector<ScalarT,3> src_p_trans;
 
-#pragma omp parallel for private (neighbor, distance, src_p_trans)
+            VectorSet<ScalarT,1> res(1,src_points_.cols());
+#pragma omp parallel for shared (res) private (neighbor, distance, src_p_trans)
             for (size_t i = 0; i < src_feat_trans.cols(); i++) {
                 dst_feat_tree_ptr_->nearestNeighborSearch(src_feat_trans.col(i), neighbor, distance);
                 src_p_trans = this->transform_*src_points_.col(i);
