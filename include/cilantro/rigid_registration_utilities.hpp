@@ -75,7 +75,7 @@ namespace cilantro {
             if (iter > 0) {
 #pragma omp parallel for shared (At, b) private (s, eq_ind)
                 for (size_t i = 0; i < dst_p.cols(); i++) {
-                    const Eigen::Matrix<ScalarT,3,1>& d = dst_p.col(i);
+                    const auto& d = dst_p.col(i);
                     s = tform*src_p.col(i);
 
                     eq_ind = 3*i;
@@ -107,8 +107,8 @@ namespace cilantro {
             } else {
 #pragma omp parallel for shared (At, b) private (eq_ind)
                 for (size_t i = 0; i < dst_p.cols(); i++) {
-                    const Eigen::Matrix<ScalarT,3,1>& d = dst_p.col(i);
-                    const Eigen::Matrix<ScalarT,3,1>& s = src_p.col(i);
+                    const auto& d = dst_p.col(i);
+                    const auto& s = src_p.col(i);
 
                     eq_ind = 3*i;
 
@@ -199,8 +199,8 @@ namespace cilantro {
             if (iter > 0) {
 #pragma omp parallel for shared (At, b) private (s)
                 for (size_t i = 0; i < dst_p.cols(); i++) {
-                    const Eigen::Matrix<ScalarT,3,1>& d = dst_p.col(i);
-                    const Eigen::Matrix<ScalarT,3,1>& n = dst_n.col(i);
+                    const auto& d = dst_p.col(i);
+                    const auto& n = dst_n.col(i);
                     s = tform*src_p.col(i);
 
                     At(0,i) = n[2]*s[1] - n[1]*s[2];
@@ -214,9 +214,9 @@ namespace cilantro {
             } else {
 #pragma omp parallel for shared (At, b)
                 for (size_t i = 0; i < dst_p.cols(); i++) {
-                    const Eigen::Matrix<ScalarT,3,1>& d = dst_p.col(i);
-                    const Eigen::Matrix<ScalarT,3,1>& n = dst_n.col(i);
-                    const Eigen::Matrix<ScalarT,3,1>& s = src_p.col(i);
+                    const auto& d = dst_p.col(i);
+                    const auto& n = dst_n.col(i);
+                    const auto& s = src_p.col(i);
 
                     At(0,i) = n[2]*s[1] - n[1]*s[2];
                     At(1,i) = n[0]*s[2] - n[2]*s[0];
@@ -315,8 +315,8 @@ namespace cilantro {
             if (iter > 0) {
 #pragma omp parallel for shared (At, b) private (s, eq_ind)
                 for (size_t i = 0; i < dst_p.cols(); i++) {
-                    const Eigen::Matrix<ScalarT,3,1>& d = dst_p.col(i);
-                    const Eigen::Matrix<ScalarT,3,1>& n = dst_n.col(i);
+                    const auto& d = dst_p.col(i);
+                    const auto& n = dst_n.col(i);
                     s = tform*src_p.col(i);
 
                     eq_ind = 4*i;
@@ -356,9 +356,9 @@ namespace cilantro {
             } else {
 #pragma omp parallel for shared (At, b) private (eq_ind)
                 for (size_t i = 0; i < dst_p.cols(); i++) {
-                    const Eigen::Matrix<ScalarT,3,1>& d = dst_p.col(i);
-                    const Eigen::Matrix<ScalarT,3,1>& n = dst_n.col(i);
-                    const Eigen::Matrix<ScalarT,3,1>& s = src_p.col(i);
+                    const auto& d = dst_p.col(i);
+                    const auto& n = dst_n.col(i);
+                    const auto& s = src_p.col(i);
 
                     eq_ind = 4*i;
 
