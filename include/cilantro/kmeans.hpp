@@ -119,7 +119,7 @@ namespace cilantro {
                 }
 
                 if (assignments_unchanged && iteration_count_ > 0) break;
-                if (tol > 0.0) centroids_old = cluster_centroids_;
+                if (tol > (ScalarT)0.0) centroids_old = cluster_centroids_;
 
                 // Update centroids
                 cluster_centroids_.setZero();
@@ -140,9 +140,9 @@ namespace cilantro {
                     }
 
                     // Find furthest point from (old) centroid of previously found cluster
-                    scale = 1.0/point_count[max_ind];
+                    scale = (ScalarT)(1.0)/point_count[max_ind];
                     Vector<ScalarT,EigenDim> old_centroid(cluster_centroids_.col(max_ind)*scale);
-                    extr_dist = -1.0;
+                    extr_dist = (ScalarT)(-1.0);
 #pragma omp parallel for shared (extr_dist, extr_dist_ind) private (dist)
                     for (size_t j = 0; j < num_points; j++) {
                         if (cluster_index_map_[j] == max_ind) {
@@ -171,14 +171,14 @@ namespace cilantro {
 
                 // Compute new centroids
                 for (size_t i = 0; i < num_clusters; i++) {
-                    scale = 1.0/point_count[i];
+                    scale = (ScalarT)(1.0)/point_count[i];
                     cluster_centroids_.col(i) *= scale;
                 }
 
                 iteration_count_++;
 
                 // Check for convergence of centroids
-                if (tol > 0.0 && (cluster_centroids_ - centroids_old).colwise().squaredNorm().maxCoeff() < tol_sq) break;
+                if (tol > (ScalarT)0.0 && (cluster_centroids_ - centroids_old).colwise().squaredNorm().maxCoeff() < tol_sq) break;
             }
 
             cluster_point_indices_.resize(num_clusters);
@@ -188,6 +188,10 @@ namespace cilantro {
         }
     };
 
-    typedef KMeans<float,2,KDTreeDistanceAdaptors::L2> KMeans2D;
-    typedef KMeans<float,3,KDTreeDistanceAdaptors::L2> KMeans3D;
+    typedef KMeans<float,2,KDTreeDistanceAdaptors::L2> KMeans2f;
+    typedef KMeans<double,2,KDTreeDistanceAdaptors::L2> KMeans2d;
+    typedef KMeans<float,3,KDTreeDistanceAdaptors::L2> KMeans3f;
+    typedef KMeans<double,3,KDTreeDistanceAdaptors::L2> KMeans3d;
+    typedef KMeans<float,Eigen::Dynamic,KDTreeDistanceAdaptors::L2> KMeansXf;
+    typedef KMeans<double,Eigen::Dynamic,KDTreeDistanceAdaptors::L2> KMeansXd;
 }

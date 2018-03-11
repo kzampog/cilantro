@@ -54,7 +54,7 @@ namespace cilantro {
             size_t n_conv = 0;
             size_t max_iter = 1000;
 
-            Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> J = Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>::Identity(distances.rows(),distances.cols()) - Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>::Constant(distances.rows(),distances.cols(),1.0/distances.rows());
+            Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> J = Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>::Identity(distances.rows(),distances.cols()) - Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>::Constant(distances.rows(),distances.cols(),(ScalarT)(1.0)/distances.rows());
             Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> B;
             if (distances_are_squared) {
                 B = -J*distances*J/2.0;
@@ -72,7 +72,7 @@ namespace cilantro {
 
             eigenvalues_ = eig.eigenvalues();
             for (size_t i = 0; i < eigenvalues_.rows(); i++) {
-                if (eigenvalues_[i] < 0.0) eigenvalues_[i] = 0.0;
+                if (eigenvalues_[i] < (ScalarT)0.0) eigenvalues_[i] = (ScalarT)0.0;
             }
 
             if (estimate_dim) {
@@ -104,4 +104,11 @@ namespace cilantro {
             return max_ind + 1;
         }
     };
+
+    typedef MultidimensionalScaling<float,2> MultidimensionalScaling2f;
+    typedef MultidimensionalScaling<double,2> MultidimensionalScaling2d;
+    typedef MultidimensionalScaling<float,3> MultidimensionalScaling3f;
+    typedef MultidimensionalScaling<double,3> MultidimensionalScaling3d;
+    typedef MultidimensionalScaling<float,Eigen::Dynamic> MultidimensionalScalingXf;
+    typedef MultidimensionalScaling<double,Eigen::Dynamic> MultidimensionalScalingXd;
 }

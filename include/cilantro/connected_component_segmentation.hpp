@@ -18,7 +18,7 @@ namespace cilantro {
         ConnectedComponentSegmentation(const ConstVectorSetMatrixMap<float,3> &points,
                                        const ConstVectorSetMatrixMap<float,3> &normals,
                                        const ConstVectorSetMatrixMap<float,3> &colors,
-                                       const KDTree3D &kd_tree);
+                                       const KDTree3f &kd_tree);
 
         ~ConnectedComponentSegmentation();
 
@@ -48,7 +48,7 @@ namespace cilantro {
         ConstVectorSetMatrixMap<float,3> normals_;
         ConstVectorSetMatrixMap<float,3> colors_;
 
-        KDTree3D *kd_tree_;
+        KDTree3f *kd_tree_;
         bool kd_tree_owned_;
 
         std::vector<std::vector<size_t>> component_indices_;

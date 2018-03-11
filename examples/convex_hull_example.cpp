@@ -1,4 +1,4 @@
-#include <cilantro/convex_hull.hpp>
+#include <cilantro/flat_convex_hull_3d.hpp>
 #include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
 
@@ -46,11 +46,11 @@ int main(int argc, char ** argv) {
 //    }
 
 
-    cilantro::PointCloud3D cloud;
+    cilantro::PointCloud3f cloud;
     cilantro::readPointCloudFromPLYFile(argv[1], cloud);
 
-    cilantro::ConvexHull3D ch(cloud.points, true, true);
-    cilantro::PointCloud3D hc(cloud, ch.getVertexPointIndices());
+    cilantro::ConvexHull3f ch(cloud.points, true, true);
+    cilantro::PointCloud3f hc(cloud, ch.getVertexPointIndices());
 
     std::vector<Eigen::Vector3f> v_colors(ch.getVertices().cols());
     std::vector<float> v_vals(ch.getVertices().cols());
@@ -90,7 +90,7 @@ int main(int argc, char ** argv) {
     if (cloud.points.size() < 3) return 0;
 
     // PointCloudHullFlat also inherits from PrincipalComponentAnalysis
-    cilantro::PointCloudHullFlat ch2d(cloud.points);
+    cilantro::FlatConvexHull3D<float> ch2d(cloud.points, true, true);
     cloud.points = ch2d.reconstruct<2>(ch2d.project<2>(cloud.points));
     cloud.normals.resize(Eigen::NoChange, 0);
 

@@ -22,9 +22,9 @@ namespace cilantro {
         VectorSet<ScalarT,EigenDim> src_centered(src.colwise() - mu_src);
 
         Eigen::JacobiSVD<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> svd(dst_centered*src_centered.transpose(), Eigen::ComputeFullU | Eigen::ComputeFullV);
-        if ((svd.matrixU()*svd.matrixV()).determinant() < 0.0) {
+        if ((svd.matrixU()*svd.matrixV()).determinant() < (ScalarT)0.0) {
             Eigen::Matrix<ScalarT,EigenDim,EigenDim> U(svd.matrixU());
-            U.col(dst.rows()-1) *= -1.0;
+            U.col(dst.rows()-1) *= (ScalarT)(-1.0);
             tform.linear() = U*svd.matrixV().transpose();
         } else {
             tform.linear() = svd.matrixU()*svd.matrixV().transpose();
@@ -80,28 +80,28 @@ namespace cilantro {
 
                     eq_ind = 3*i;
 
-                    At(0,eq_ind) = 0.0;
+                    At(0,eq_ind) = (ScalarT)0.0;
                     At(1,eq_ind) = s[2];
                     At(2,eq_ind) = -s[1];
-                    At(3,eq_ind) = 1.0;
-                    At(4,eq_ind) = 0.0;
-                    At(5,eq_ind) = 0.0;
+                    At(3,eq_ind) = (ScalarT)1.0;
+                    At(4,eq_ind) = (ScalarT)0.0;
+                    At(5,eq_ind) = (ScalarT)0.0;
                     b[eq_ind++] = d[0] - s[0];
 
                     At(0,eq_ind) = -s[2];
-                    At(1,eq_ind) = 0.0;
+                    At(1,eq_ind) = (ScalarT)0.0;
                     At(2,eq_ind) = s[0];
-                    At(3,eq_ind) = 0.0;
-                    At(4,eq_ind) = 1.0;
-                    At(5,eq_ind) = 0.0;
+                    At(3,eq_ind) = (ScalarT)0.0;
+                    At(4,eq_ind) = (ScalarT)1.0;
+                    At(5,eq_ind) = (ScalarT)0.0;
                     b[eq_ind++] = d[1] - s[1];
 
                     At(0,eq_ind) = s[1];
                     At(1,eq_ind) = -s[0];
-                    At(2,eq_ind) = 0.0;
-                    At(3,eq_ind) = 0.0;
-                    At(4,eq_ind) = 0.0;
-                    At(5,eq_ind) = 1.0;
+                    At(2,eq_ind) = (ScalarT)0.0;
+                    At(3,eq_ind) = (ScalarT)0.0;
+                    At(4,eq_ind) = (ScalarT)0.0;
+                    At(5,eq_ind) = (ScalarT)1.0;
                     b[eq_ind++] = d[2] - s[2];
                 }
             } else {
@@ -112,28 +112,28 @@ namespace cilantro {
 
                     eq_ind = 3*i;
 
-                    At(0,eq_ind) = 0.0;
+                    At(0,eq_ind) = (ScalarT)0.0;
                     At(1,eq_ind) = s[2];
                     At(2,eq_ind) = -s[1];
-                    At(3,eq_ind) = 1.0;
-                    At(4,eq_ind) = 0.0;
-                    At(5,eq_ind) = 0.0;
+                    At(3,eq_ind) = (ScalarT)1.0;
+                    At(4,eq_ind) = (ScalarT)0.0;
+                    At(5,eq_ind) = (ScalarT)0.0;
                     b[eq_ind++] = d[0] - s[0];
 
                     At(0,eq_ind) = -s[2];
-                    At(1,eq_ind) = 0.0;
+                    At(1,eq_ind) = (ScalarT)0.0;
                     At(2,eq_ind) = s[0];
-                    At(3,eq_ind) = 0.0;
-                    At(4,eq_ind) = 1.0;
-                    At(5,eq_ind) = 0.0;
+                    At(3,eq_ind) = (ScalarT)0.0;
+                    At(4,eq_ind) = (ScalarT)1.0;
+                    At(5,eq_ind) = (ScalarT)0.0;
                     b[eq_ind++] = d[1] - s[1];
 
                     At(0,eq_ind) = s[1];
                     At(1,eq_ind) = -s[0];
-                    At(2,eq_ind) = 0.0;
-                    At(3,eq_ind) = 0.0;
-                    At(4,eq_ind) = 0.0;
-                    At(5,eq_ind) = 1.0;
+                    At(2,eq_ind) = (ScalarT)0.0;
+                    At(3,eq_ind) = (ScalarT)0.0;
+                    At(4,eq_ind) = (ScalarT)0.0;
+                    At(5,eq_ind) = (ScalarT)1.0;
                     b[eq_ind++] = d[2] - s[2];
                 }
             }
@@ -283,17 +283,17 @@ namespace cilantro {
         ScalarT point_to_point_weight_sqrt = std::sqrt(point_to_point_weight);
         ScalarT point_to_plane_weight_sqrt = std::sqrt(point_to_plane_weight);
 
-        if (src_p.cols() != dst_p.cols() || dst_p.cols() != dst_n.cols() || src_p.cols() < 3 || (point_to_point_weight_sqrt == 0.0 && point_to_plane_weight_sqrt == 0.0)) {
+        if (src_p.cols() != dst_p.cols() || dst_p.cols() != dst_n.cols() || src_p.cols() < 3 || (point_to_point_weight_sqrt == (ScalarT)0.0 && point_to_plane_weight_sqrt == (ScalarT)0.0)) {
             tform.setIdentity();
             return false;
         }
 
-        if (point_to_point_weight_sqrt == 0.0) {
+        if (point_to_point_weight_sqrt == (ScalarT)0.0) {
             // Do point-to-plane
             return estimateRigidTransformPointToPlane3D<ScalarT>(dst_p, dst_n, src_p, tform, max_iter, convergence_tol);
         }
 
-        if (point_to_plane_weight_sqrt == 0.0) {
+        if (point_to_plane_weight_sqrt == (ScalarT)0.0) {
             // Do point-to-point
             return estimateRigidTransformPointToPoint3DIterative<ScalarT>(dst_p, src_p, tform, max_iter, convergence_tol);
         }
@@ -329,28 +329,28 @@ namespace cilantro {
                     At(5,eq_ind) = n[2]*point_to_plane_weight_sqrt;
                     b[eq_ind++] = (n[0]*d[0] + n[1]*d[1] + n[2]*d[2] - n[0]*s[0] - n[1]*s[1] - n[2]*s[2])*point_to_plane_weight_sqrt;
 
-                    At(0,eq_ind) = 0.0;
+                    At(0,eq_ind) = (ScalarT)0.0;
                     At(1,eq_ind) = s[2]*point_to_point_weight_sqrt;
                     At(2,eq_ind) = -s[1]*point_to_point_weight_sqrt;
-                    At(3,eq_ind) = 1.0*point_to_point_weight_sqrt;
-                    At(4,eq_ind) = 0.0;
-                    At(5,eq_ind) = 0.0;
+                    At(3,eq_ind) = point_to_point_weight_sqrt;
+                    At(4,eq_ind) = (ScalarT)0.0;
+                    At(5,eq_ind) = (ScalarT)0.0;
                     b[eq_ind++] = (d[0] - s[0])*point_to_point_weight_sqrt;
 
                     At(0,eq_ind) = -s[2]*point_to_point_weight_sqrt;
-                    At(1,eq_ind) = 0.0;
+                    At(1,eq_ind) = (ScalarT)0.0;
                     At(2,eq_ind) = s[0]*point_to_point_weight_sqrt;
-                    At(3,eq_ind) = 0.0;
-                    At(4,eq_ind) = 1.0*point_to_point_weight_sqrt;
-                    At(5,eq_ind) = 0.0;
+                    At(3,eq_ind) = (ScalarT)0.0;
+                    At(4,eq_ind) = point_to_point_weight_sqrt;
+                    At(5,eq_ind) = (ScalarT)0.0;
                     b[eq_ind++] = (d[1] - s[1])*point_to_point_weight_sqrt;
 
                     At(0,eq_ind) = s[1]*point_to_point_weight_sqrt;
                     At(1,eq_ind) = -s[0]*point_to_point_weight_sqrt;
-                    At(2,eq_ind) = 0.0;
-                    At(3,eq_ind) = 0.0;
-                    At(4,eq_ind) = 0.0;
-                    At(5,eq_ind) = 1.0*point_to_point_weight_sqrt;
+                    At(2,eq_ind) = (ScalarT)0.0;
+                    At(3,eq_ind) = (ScalarT)0.0;
+                    At(4,eq_ind) = (ScalarT)0.0;
+                    At(5,eq_ind) = point_to_point_weight_sqrt;
                     b[eq_ind++] = (d[2] - s[2])*point_to_point_weight_sqrt;
                 }
             } else {
@@ -370,28 +370,28 @@ namespace cilantro {
                     At(5,eq_ind) = n[2]*point_to_plane_weight_sqrt;
                     b[eq_ind++] = (n[0]*d[0] + n[1]*d[1] + n[2]*d[2] - n[0]*s[0] - n[1]*s[1] - n[2]*s[2])*point_to_plane_weight_sqrt;
 
-                    At(0,eq_ind) = 0.0;
+                    At(0,eq_ind) = (ScalarT)0.0;
                     At(1,eq_ind) = s[2]*point_to_point_weight_sqrt;
                     At(2,eq_ind) = -s[1]*point_to_point_weight_sqrt;
-                    At(3,eq_ind) = 1.0*point_to_point_weight_sqrt;
-                    At(4,eq_ind) = 0.0;
-                    At(5,eq_ind) = 0.0;
+                    At(3,eq_ind) = point_to_point_weight_sqrt;
+                    At(4,eq_ind) = (ScalarT)0.0;
+                    At(5,eq_ind) = (ScalarT)0.0;
                     b[eq_ind++] = (d[0] - s[0])*point_to_point_weight_sqrt;
 
                     At(0,eq_ind) = -s[2]*point_to_point_weight_sqrt;
-                    At(1,eq_ind) = 0.0;
+                    At(1,eq_ind) = (ScalarT)0.0;
                     At(2,eq_ind) = s[0]*point_to_point_weight_sqrt;
-                    At(3,eq_ind) = 0.0;
-                    At(4,eq_ind) = 1.0*point_to_point_weight_sqrt;
-                    At(5,eq_ind) = 0.0;
+                    At(3,eq_ind) = (ScalarT)0.0;
+                    At(4,eq_ind) = point_to_point_weight_sqrt;
+                    At(5,eq_ind) = (ScalarT)0.0;
                     b[eq_ind++] = (d[1] - s[1])*point_to_point_weight_sqrt;
 
                     At(0,eq_ind) = s[1]*point_to_point_weight_sqrt;
                     At(1,eq_ind) = -s[0]*point_to_point_weight_sqrt;
-                    At(2,eq_ind) = 0.0;
-                    At(3,eq_ind) = 0.0;
-                    At(4,eq_ind) = 0.0;
-                    At(5,eq_ind) = 1.0*point_to_point_weight_sqrt;
+                    At(2,eq_ind) = (ScalarT)0.0;
+                    At(3,eq_ind) = (ScalarT)0.0;
+                    At(4,eq_ind) = (ScalarT)0.0;
+                    At(5,eq_ind) = point_to_point_weight_sqrt;
                     b[eq_ind++] = (d[2] - s[2])*point_to_point_weight_sqrt;
                 }
             }

@@ -13,7 +13,7 @@ int main(int argc, char ** argv) {
     points.emplace_back(1, 1, 0);
     points.emplace_back(1, 1, 1);
 
-    cilantro::KDTree3D tree(points);
+    cilantro::KDTree3f tree(points);
 
     std::vector<size_t> ind;
     std::vector<float> dist;

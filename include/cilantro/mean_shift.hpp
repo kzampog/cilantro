@@ -51,7 +51,7 @@ namespace cilantro {
                     for (size_t j = 0; j < neighbors.size(); j++) {
                         point_tmp += data_map_.col(neighbors[j]);
                     }
-                    scale = 1.0/neighbors.size();
+                    scale = (ScalarT)(1.0)/neighbors.size();
                     point_tmp *= scale;
                     if ((shifted_seeds_.col(i) - point_tmp).squaredNorm() < conv_tol_sq) {
                         has_converged[i] = true;
@@ -90,7 +90,7 @@ namespace cilantro {
                     cluster_modes_.col(i) += shifted_seeds_.col(cluster_point_indices_[i][j]);
                     cluster_index_map_[cluster_point_indices_[i][j]] = i;
                 }
-                scale = 1.0/cluster_point_indices_[i].size();
+                scale = (ScalarT)(1.0)/cluster_point_indices_[i].size();
                 cluster_modes_.col(i) *= scale;
             }
 
@@ -125,6 +125,10 @@ namespace cilantro {
         std::vector<size_t> cluster_index_map_;
     };
 
-    typedef MeanShift<float,2> MeanShift2D;
-    typedef MeanShift<float,3> MeanShift3D;
+    typedef MeanShift<float,2,KDTreeDistanceAdaptors::L2> MeanShift2f;
+    typedef MeanShift<double,2,KDTreeDistanceAdaptors::L2> MeanShift2d;
+    typedef MeanShift<float,3,KDTreeDistanceAdaptors::L2> MeanShift3f;
+    typedef MeanShift<double,3,KDTreeDistanceAdaptors::L2> MeanShift3d;
+    typedef MeanShift<float,Eigen::Dynamic,KDTreeDistanceAdaptors::L2> MeanShiftXf;
+    typedef MeanShift<double,Eigen::Dynamic,KDTreeDistanceAdaptors::L2> MeanShiftXd;
 }

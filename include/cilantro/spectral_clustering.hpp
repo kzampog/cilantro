@@ -161,7 +161,7 @@ namespace cilantro {
 
                     eigenvalues_ = eig.eigenvalues();
                     for (size_t i = 0; i < eigenvalues_.rows(); i++) {
-                        if (eigenvalues_[i] < 0.0) eigenvalues_[i] = 0.0;
+                        if (eigenvalues_[i] < (ScalarT)0.0) eigenvalues_[i] = (ScalarT)0.0;
                     }
 
                     if (estimate_num_clusters) {
@@ -186,7 +186,7 @@ namespace cilantro {
 
                     eigenvalues_ = eig.eigenvalues();
                     for (size_t i = 0; i < eigenvalues_.rows(); i++) {
-                        if (eigenvalues_[i] < 0.0) eigenvalues_[i] = 0.0;
+                        if (eigenvalues_[i] < (ScalarT)0.0) eigenvalues_[i] = (ScalarT)0.0;
                     }
 
                     if (estimate_num_clusters) {
@@ -196,7 +196,7 @@ namespace cilantro {
                     embedded_points_ = eig.eigenvectors(num_clusters).transpose();
 
                     for (size_t i = 0; i < embedded_points_.cols(); i++) {
-                        ScalarT scale = 1.0/embedded_points_.col(i).norm();
+                        ScalarT scale = (ScalarT)(1.0)/embedded_points_.col(i).norm();
                         if (std::isfinite(scale)) embedded_points_.col(i) *= scale;
                     }
 
@@ -218,7 +218,7 @@ namespace cilantro {
 
                     eigenvalues_ = eig.eigenvalues();
                     for (size_t i = 0; i < eigenvalues_.rows(); i++) {
-                        if (eigenvalues_[i] < 0.0) eigenvalues_[i] = 0.0;
+                        if (eigenvalues_[i] < (ScalarT)0.0) eigenvalues_[i] = (ScalarT)0.0;
                     }
 
                     if (estimate_num_clusters) {
@@ -265,7 +265,7 @@ namespace cilantro {
 
                     eigenvalues_ = eig.eigenvalues();
                     for (size_t i = 0; i < eigenvalues_.rows(); i++) {
-                        if (eigenvalues_[i] < 0.0) eigenvalues_[i] = 0.0;
+                        if (eigenvalues_[i] < (ScalarT)0.0) eigenvalues_[i] = (ScalarT)0.0;
                     }
 
                     if (estimate_num_clusters) {
@@ -280,7 +280,7 @@ namespace cilantro {
                     Eigen::SparseMatrix<ScalarT> Dtm12(affinities.rows(),affinities.cols());
                     Dtm12.reserve(Eigen::VectorXi::Ones(affinities.rows()));
                     for (size_t i = 0; i < affinities.cols(); i++) {
-                        Dtm12.insert(i,i) = 1.0/std::sqrt(affinities.col(i).sum());
+                        Dtm12.insert(i,i) = (ScalarT)(1.0)/std::sqrt(affinities.col(i).sum());
                     }
                     Eigen::SparseMatrix<ScalarT> L(affinities.rows(),affinities.cols());
                     L.setIdentity();
@@ -296,7 +296,7 @@ namespace cilantro {
 
                     eigenvalues_ = eig.eigenvalues();
                     for (size_t i = 0; i < eigenvalues_.rows(); i++) {
-                        if (eigenvalues_[i] < 0.0) eigenvalues_[i] = 0.0;
+                        if (eigenvalues_[i] < (ScalarT)0.0) eigenvalues_[i] = (ScalarT)0.0;
                     }
 
                     if (estimate_num_clusters) {
@@ -306,7 +306,7 @@ namespace cilantro {
                     embedded_points_ = eig.eigenvectors(num_clusters).transpose();
 
                     for (size_t i = 0; i < embedded_points_.cols(); i++) {
-                        ScalarT scale = 1.0/embedded_points_.col(i).norm();
+                        ScalarT scale = (ScalarT)(1.0)/embedded_points_.col(i).norm();
                         if (std::isfinite(scale)) embedded_points_.col(i) *= scale;
                     }
 
@@ -332,7 +332,7 @@ namespace cilantro {
 
                     eigenvalues_ = eig.eigenvalues();
                     for (size_t i = 0; i < eigenvalues_.rows(); i++) {
-                        if (eigenvalues_[i] < 0.0) eigenvalues_[i] = 0.0;
+                        if (eigenvalues_[i] < (ScalarT)0.0) eigenvalues_[i] = (ScalarT)0.0;
                     }
 
                     if (estimate_num_clusters) {
@@ -371,6 +371,5 @@ namespace cilantro {
             if (max_val - min_val < std::numeric_limits<ScalarT>::epsilon()) return max_num_clusters;
             return max_ind + 1;
         }
-
     };
 }

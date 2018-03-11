@@ -32,21 +32,21 @@ namespace cilantro {
         inline NormalEstimation& setViewPoint(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &vp) { view_point_ = vp; return *this; }
 
         inline const NormalEstimation& estimateNormalsAndCurvatureKNN(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, size_t k) const {
-            compute_<NeighborhoodType::KNN>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN, k, 0.0));
+            compute_<NeighborhoodType::KNN>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN, k, (ScalarT)0.0));
             return *this;
         }
 
         inline VectorSet<ScalarT,EigenDim> estimateNormalsKNN(size_t k) const {
             VectorSet<ScalarT,EigenDim> normals;
             VectorSet<ScalarT,1> curvatures;
-            compute_<NeighborhoodType::KNN>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN, k, 0.0));
+            compute_<NeighborhoodType::KNN>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN, k, (ScalarT)0.0));
             return normals;
         }
 
         inline VectorSet<ScalarT,1> estimateCurvatureKNN(size_t k) const {
             VectorSet<ScalarT,EigenDim> normals;
             VectorSet<ScalarT,1> curvatures;
-            compute_<NeighborhoodType::KNN>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN, k, 0.0));
+            compute_<NeighborhoodType::KNN>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN, k, (ScalarT)0.0));
             return curvatures;
         }
 
@@ -176,8 +176,8 @@ namespace cilantro {
                 }
                 PrincipalComponentAnalysis<ScalarT,EigenDim> pca(neighborhood);
                 normals.col(i) = pca.getEigenVectors().col(dim-1);
-                if (normals.col(i).dot(view_point_ - points_.col(i)) < 0.0) {
-                    normals.col(i) *= -1.0;
+                if (normals.col(i).dot(view_point_ - points_.col(i)) < (ScalarT)0.0) {
+                    normals.col(i) *= (ScalarT)(-1.0);
                 }
                 curvatures[i] = pca.getEigenValues()[dim-1]/pca.getEigenValues().sum();
             }
@@ -185,6 +185,10 @@ namespace cilantro {
 
     };
 
-    typedef NormalEstimation<float,2> NormalEstimation2D;
-    typedef NormalEstimation<float,3> NormalEstimation3D;
+    typedef NormalEstimation<float,2> NormalEstimation2f;
+    typedef NormalEstimation<double,2> NormalEstimation2d;
+    typedef NormalEstimation<float,3> NormalEstimation3f;
+    typedef NormalEstimation<double,3> NormalEstimation3d;
+    typedef NormalEstimation<float,Eigen::Dynamic> NormalEstimationXf;
+    typedef NormalEstimation<double,Eigen::Dynamic> NormalEstimationXd;
 }

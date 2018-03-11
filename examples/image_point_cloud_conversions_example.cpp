@@ -17,7 +17,7 @@ int main(int argc, char ** argv) {
     pangolin::Image<Eigen::Matrix<unsigned char,3,1> > rgb_img((Eigen::Matrix<unsigned char,3,1> *)img, w, h, w*sizeof(Eigen::Matrix<unsigned char,3,1>));
     pangolin::Image<unsigned short> depth_img((unsigned short *)(img+3*w*h), w, h, w*sizeof(unsigned short));
 
-    cilantro::PointCloud3D cloud;
+    cilantro::PointCloud3f cloud;
 
     std::string win_name = "Image/point cloud conversions demo";
     pangolin::CreateWindowAndBind(win_name, 1280, 960);

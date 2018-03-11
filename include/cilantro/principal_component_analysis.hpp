@@ -15,7 +15,7 @@ namespace cilantro {
             Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig((centered*centered.transpose())/(data.cols()-1));
 
             eigenvectors_ = eig.eigenvectors().rowwise().reverse();
-            if (eigenvectors_.determinant() < 0.0) {
+            if (eigenvectors_.determinant() < (ScalarT)0.0) {
                 ptrdiff_t last_col_ind = data.rows() - 1;
                 eigenvectors_.col(last_col_ind) = -eigenvectors_.col(last_col_ind);
             }
@@ -55,6 +55,10 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,EigenDim,EigenDim> eigenvectors_;
     };
 
-    typedef PrincipalComponentAnalysis<float,2> PrincipalComponentAnalysis2D;
-    typedef PrincipalComponentAnalysis<float,3> PrincipalComponentAnalysis3D;
+    typedef PrincipalComponentAnalysis<float,2> PrincipalComponentAnalysis2f;
+    typedef PrincipalComponentAnalysis<double,2> PrincipalComponentAnalysis2d;
+    typedef PrincipalComponentAnalysis<float,3> PrincipalComponentAnalysis3f;
+    typedef PrincipalComponentAnalysis<double,3> PrincipalComponentAnalysis3d;
+    typedef PrincipalComponentAnalysis<float,Eigen::Dynamic> PrincipalComponentAnalysisXf;
+    typedef PrincipalComponentAnalysis<double,Eigen::Dynamic> PrincipalComponentAnalysisXd;
 }

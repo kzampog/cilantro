@@ -103,9 +103,13 @@ namespace cilantro {
         }
     };
 
-    typedef RigidTransformation<float,2> RigidTransformation2D;
-    typedef RigidTransformation<float,3> RigidTransformation3D;
+    typedef RigidTransformation<float,2> RigidTransformation2f;
+    typedef RigidTransformation<double,2> RigidTransformation2d;
+    typedef RigidTransformation<float,3> RigidTransformation3f;
+    typedef RigidTransformation<double,3> RigidTransformation3d;
 
-    typedef RigidTransformationSet<float,2> RigidTransformationSet2D;
-    typedef RigidTransformationSet<float,3> RigidTransformationSet3D;
+    typedef RigidTransformationSet<float,2> RigidTransformationSet2f;
+    typedef RigidTransformationSet<double,2> RigidTransformationSet2d;
+    typedef RigidTransformationSet<float,3> RigidTransformationSet3f;
+    typedef RigidTransformationSet<double,3> RigidTransformationSet3d;
 }

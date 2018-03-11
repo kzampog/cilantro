@@ -32,7 +32,7 @@ int main(int argc, char ** argv) {
 
     std::vector<std::vector<size_t>> nn_ind;
     std::vector<std::vector<float>> nn_dist;
-    cilantro::KDTree3D(points).search(points, nh, nn_ind, nn_dist);
+    cilantro::KDTree3f(points).search(points, nh, nn_ind, nn_dist);
     Eigen::SparseMatrix<float> data = cilantro::getNNGraphFunctionValueSparseMatrix(nn_ind, nn_dist, AffinityEvaluator(), true);
 
     size_t max_num_clusters = 4;

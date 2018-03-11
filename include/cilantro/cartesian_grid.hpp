@@ -148,6 +148,10 @@ namespace cilantro {
 
     template <typename ScalarT, ptrdiff_t EigenDim> std::vector<size_t> CartesianGrid<ScalarT,EigenDim>::empty_set_of_indices_ = std::vector<size_t>(0);
 
-    typedef CartesianGrid<float,2> CartesianGrid2D;
-    typedef CartesianGrid<float,3> CartesianGrid3D;
+    typedef CartesianGrid<float,2> CartesianGrid2f;
+    typedef CartesianGrid<double,2> CartesianGrid2d;
+    typedef CartesianGrid<float,3> CartesianGrid3f;
+    typedef CartesianGrid<double,3> CartesianGrid3d;
+    typedef CartesianGrid<float,Eigen::Dynamic> CartesianGridXf;
+    typedef CartesianGrid<double,Eigen::Dynamic> CartesianGridXd;
 }

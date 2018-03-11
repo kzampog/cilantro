@@ -8,18 +8,18 @@ namespace cilantro {
             : points_(points),
               normals_((normals.cols() == points.cols()) ? normals : ConstVectorSetMatrixMap<float,3>(NULL,0)),
               colors_((colors.cols() == points.cols()) ? colors : ConstVectorSetMatrixMap<float,3>(NULL,0)),
-              kd_tree_(new KDTree3D(points)),
+              kd_tree_(new KDTree3f(points)),
               kd_tree_owned_(true)
     {}
 
     ConnectedComponentSegmentation::ConnectedComponentSegmentation(const ConstVectorSetMatrixMap<float,3> &points,
                                                                    const ConstVectorSetMatrixMap<float,3> &normals,
                                                                    const ConstVectorSetMatrixMap<float,3> &colors,
-                                                                   const KDTree3D &kd_tree)
+                                                                   const KDTree3f &kd_tree)
             : points_(points),
               normals_((normals.cols() == points.cols()) ? normals : ConstVectorSetMatrixMap<float,3>(NULL,0)),
               colors_((colors.cols() == points.cols()) ? colors : ConstVectorSetMatrixMap<float,3>(NULL,0)),
-              kd_tree_((KDTree3D*)&kd_tree),
+              kd_tree_((KDTree3f*)&kd_tree),
               kd_tree_owned_(false)
     {}
 

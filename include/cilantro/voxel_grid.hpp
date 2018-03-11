@@ -4,7 +4,7 @@
 #include <cilantro/point_cloud.hpp>
 
 namespace cilantro {
-    class VoxelGrid : public CartesianGrid3D {
+    class VoxelGrid : public CartesianGrid3f {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 

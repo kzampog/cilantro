@@ -3,7 +3,7 @@
 #include <cilantro/visualizer.hpp>
 
 int main(int argc, char ** argv) {
-    cilantro::PointCloud3D cloud;
+    cilantro::PointCloud3f cloud;
     readPointCloudFromPLYFile(argv[1], cloud);
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -12,7 +12,7 @@ int main(int argc, char ** argv) {
     std::chrono::duration<double, std::milli> build_time = end - start;
 
     start = std::chrono::high_resolution_clock::now();
-    cilantro::PointCloud3D cloud_d = vg.getDownsampledCloud();
+    cilantro::PointCloud3f cloud_d = vg.getDownsampledCloud();
     end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> ds_time = end - start;
 

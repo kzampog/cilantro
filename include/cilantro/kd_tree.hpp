@@ -223,6 +223,10 @@ namespace cilantro {
         nanoflann::SearchParams params_;
     };
 
-    typedef KDTree<float,2,KDTreeDistanceAdaptors::L2> KDTree2D;
-    typedef KDTree<float,3,KDTreeDistanceAdaptors::L2> KDTree3D;
+    typedef KDTree<float,2,KDTreeDistanceAdaptors::L2> KDTree2f;
+    typedef KDTree<double,2,KDTreeDistanceAdaptors::L2> KDTree2d;
+    typedef KDTree<float,3,KDTreeDistanceAdaptors::L2> KDTree3f;
+    typedef KDTree<double,3,KDTreeDistanceAdaptors::L2> KDTree3d;
+    typedef KDTree<float,Eigen::Dynamic,KDTreeDistanceAdaptors::L2> KDTreeXf;
+    typedef KDTree<double,Eigen::Dynamic,KDTreeDistanceAdaptors::L2> KDTreeXd;
 }

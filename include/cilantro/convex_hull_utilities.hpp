@@ -191,13 +191,13 @@ namespace cilantro {
         return true;
     }
 
-    template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
-    bool evaluateHalfspaceIntersection(const ConstHomogeneousVectorSetMatrixMap<InputScalarT,EigenDim> &halfspaces,
-                                       HomogeneousVectorSet<OutputScalarT,EigenDim> &facet_halfspaces,
-                                       VectorSet<OutputScalarT,EigenDim> &polytope_vertices,
-                                       Vector<OutputScalarT,EigenDim> &interior_point,
+    template <typename ScalarT, ptrdiff_t EigenDim>
+    bool evaluateHalfspaceIntersection(const ConstHomogeneousVectorSetMatrixMap<ScalarT,EigenDim> &halfspaces,
+                                       HomogeneousVectorSet<ScalarT,EigenDim> &facet_halfspaces,
+                                       VectorSet<ScalarT,EigenDim> &polytope_vertices,
+                                       Vector<ScalarT,EigenDim> &interior_point,
                                        bool &is_bounded,
-                                       double dist_tol = std::numeric_limits<InputScalarT>::epsilon(),
+                                       double dist_tol = std::numeric_limits<ScalarT>::epsilon(),
                                        double merge_tol = 0.0)
     {
         size_t dim = halfspaces.rows() - 1;
@@ -213,7 +213,7 @@ namespace cilantro {
         }
 
         bool is_empty = !findFeasiblePointInHalfspaceIntersection<double,EigenDim>(hs_coeffs, feasible_point, dist_tol, true);
-        interior_point = feasible_point.template cast<OutputScalarT>();
+        interior_point = feasible_point.template cast<ScalarT>();
 
         // Check if intersection is empty
         if (is_empty) {
@@ -242,7 +242,7 @@ namespace cilantro {
             for (size_t i = 0; i < num_halfspaces; i++) {
                 hs_coeffs.col(i).swap(hs_coeffs.col(num_halfspaces-1));
                 if (!checkLinearInequalityConstraintRedundancy<double,EigenDim>(hs_coeffs.col(num_halfspaces-1), first_cols, feasible_point, dist_tol)) {
-                    facet_halfspaces.col(nr++) = hs_coeffs.col(num_halfspaces-1).template cast<OutputScalarT>();
+                    facet_halfspaces.col(nr++) = hs_coeffs.col(num_halfspaces-1).template cast<ScalarT>();
                 }
                 hs_coeffs.col(i).swap(hs_coeffs.col(num_halfspaces-1));
             }
@@ -292,7 +292,7 @@ namespace cilantro {
                     normal(i++) = *hpi;
                 }
                 vertices.col(ind) = feasible_point - normal/fi->hyperplane().offset();
-                polytope_vertices.col(ind) = vertices.col(ind).template cast<OutputScalarT>();
+                polytope_vertices.col(ind) = vertices.col(ind).template cast<ScalarT>();
                 ind++;
             } else {
                 is_bounded = false;
@@ -307,7 +307,7 @@ namespace cilantro {
         for (auto vi = qh.vertexList().begin(); vi != qh.vertexList().end(); ++vi) {
             const HomogeneousVector<double,EigenDim>& hs(hs_coeffs.col(vi->point().id()));
             if (((hs.head(dim).transpose()*vertices).array() + hs(dim)).cwiseAbs().minCoeff() < dist_tol) {
-                facet_halfspaces.col(ind++) = hs.template cast<OutputScalarT>();
+                facet_halfspaces.col(ind++) = hs.template cast<ScalarT>();
             }
         }
         facet_halfspaces.conservativeResize(Eigen::NoChange, ind);
@@ -315,10 +315,10 @@ namespace cilantro {
         return true;
     }
 
-    template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
-    bool halfspaceIntersectionFromVertices(const ConstVectorSetMatrixMap<InputScalarT,EigenDim> &vertices,
-                                           VectorSet<OutputScalarT,EigenDim> &polytope_vertices,
-                                           HomogeneousVectorSet<OutputScalarT,EigenDim> &facet_halfspaces,
+    template <typename ScalarT, ptrdiff_t EigenDim>
+    bool halfspaceIntersectionFromVertices(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &vertices,
+                                           VectorSet<ScalarT,EigenDim> &polytope_vertices,
+                                           HomogeneousVectorSet<ScalarT,EigenDim> &facet_halfspaces,
                                            double &area, double &volume,
                                            bool require_full_dimension = true,
                                            double merge_tol = 0.0)
@@ -342,7 +342,7 @@ namespace cilantro {
         // Avoid unnecessary copy/cast if input data is double
         Eigen::Matrix<double,EigenDim,Eigen::Dynamic> data_holder(dim,0);
         Eigen::Map<Eigen::Matrix<double,EigenDim,Eigen::Dynamic>> vert_data(NULL, dim, 0);
-        if (std::is_same<InputScalarT, double>::value) {
+        if (std::is_same<ScalarT, double>::value) {
             new (&vert_data) Eigen::Map<Eigen::Matrix<double,EigenDim,Eigen::Dynamic>>((double *)vertices.data(), dim, num_points);
         } else {
             data_holder = vertices.template cast<double>();
@@ -392,7 +392,7 @@ namespace cilantro {
                 size_t vert_ind = 0;
                 polytope_vertices.resize(dim, qh.vertexCount());
                 for (auto vi = qh.vertexList().begin(); vi != qh.vertexList().end(); ++vi) {
-                    polytope_vertices.col(vert_ind++) = vertices.col(vi->point().id()).template cast<OutputScalarT>();
+                    polytope_vertices.col(vert_ind++) = vertices.col(vi->point().id());
                 }
 
                 // Populate facet halfspaces
@@ -411,7 +411,7 @@ namespace cilantro {
             } else if (true_dim == 0) {
                 // Handle special case (single point)
                 polytope_vertices.resize(dim,1);
-                polytope_vertices.col(0) = vertices.col(0).template cast<OutputScalarT>();
+                polytope_vertices.col(0) = vertices.col(0);
                 facet_halfspaces_d.setZero(dim+1,2*dim);
                 area = 0.0;
                 volume = 0.0;
@@ -422,8 +422,8 @@ namespace cilantro {
                 double max_val = proj_vert.row(0).maxCoeff(&ind_max);
 
                 polytope_vertices.resize(dim,2);
-                polytope_vertices.col(0) = vertices.col(ind_min).template cast<OutputScalarT>();
-                polytope_vertices.col(1) = vertices.col(ind_max).template cast<OutputScalarT>();
+                polytope_vertices.col(0) = vertices.col(ind_min);
+                polytope_vertices.col(1) = vertices.col(ind_max);
 
                 facet_halfspaces_d.setZero(dim+1,2*dim);
                 facet_halfspaces_d(0,0) = -1.0;
@@ -449,7 +449,7 @@ namespace cilantro {
             tform.block(0,dim,dim,1) = t_vec;
             tform(dim,dim) = 1.0;
 
-            facet_halfspaces = (tform.inverse().transpose()*facet_halfspaces_d).template cast<OutputScalarT>();
+            facet_halfspaces = (tform.inverse().transpose()*facet_halfspaces_d).template cast<ScalarT>();
 
             return true;
         }
@@ -467,11 +467,10 @@ namespace cilantro {
         polytope_vertices.resize(dim, qh.vertexCount());
         for (auto vi = qh.vertexList().begin(); vi != qh.vertexList().end(); ++vi) {
             size_t i = 0;
-            Eigen::Matrix<double,EigenDim,1> v(dim);
             for (auto ci = vi->point().begin(); ci != vi->point().end(); ++ci) {
-                v(i++) = *ci;
+                polytope_vertices(i++,k) = (ScalarT)(*ci);
             }
-            polytope_vertices.col(k++) = v.template cast<OutputScalarT>();
+            k++;
         }
 
         // Populate facet halfspaces
@@ -479,12 +478,10 @@ namespace cilantro {
         facet_halfspaces.resize(dim+1, qh.facetCount());
         for (auto fi = qh_facets.begin(); fi != qh_facets.end(); ++fi) {
             size_t i = 0;
-            HomogeneousVector<double,EigenDim> hp(dim+1);
             for (auto hpi = fi->hyperplane().begin(); hpi != fi->hyperplane().end(); ++hpi) {
-                hp(i++) = *hpi;
+                facet_halfspaces(i++,k) = (ScalarT)(*hpi);
             }
-            hp(dim) = fi->hyperplane().offset();
-            facet_halfspaces.col(k++) = hp.template cast<OutputScalarT>();
+            facet_halfspaces(dim,k++) = (ScalarT)(fi->hyperplane().offset());
         }
 
         area = qh.area();
@@ -568,10 +565,10 @@ namespace cilantro {
         volume = qh.volume();
     }
 
-    template <typename InputScalarT, typename OutputScalarT, ptrdiff_t EigenDim>
-    bool convexHullFromPoints(const ConstVectorSetMatrixMap<InputScalarT,EigenDim> &points,
-                              VectorSet<OutputScalarT,EigenDim> &hull_points,
-                              HomogeneousVectorSet<OutputScalarT,EigenDim> &halfspaces,
+    template <typename ScalarT, ptrdiff_t EigenDim>
+    bool convexHullFromPoints(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
+                              VectorSet<ScalarT,EigenDim> &hull_points,
+                              HomogeneousVectorSet<ScalarT,EigenDim> &halfspaces,
                               std::vector<std::vector<size_t>> &facets,
                               std::vector<std::vector<size_t>> &point_neighbor_facets,
                               std::vector<std::vector<size_t>> &facet_neighbor_facets,
@@ -603,7 +600,7 @@ namespace cilantro {
         // Avoid unnecessary copy/cast if input data is double
         Eigen::Matrix<double,EigenDim,Eigen::Dynamic> data_holder(dim,0);
         Eigen::Map<Eigen::Matrix<double,EigenDim,Eigen::Dynamic>> vert_data(NULL, dim, 0);
-        if (std::is_same<InputScalarT, double>::value) {
+        if (std::is_same<ScalarT, double>::value) {
             new (&vert_data) Eigen::Map<Eigen::Matrix<double,EigenDim,Eigen::Dynamic>>((double *)points.data(), dim, num_points);
         } else {
             data_holder = points.template cast<double>();
@@ -661,11 +658,9 @@ namespace cilantro {
         hull_point_indices.resize(qh.vertexCount());
         for (auto vi = qh.vertexList().begin(); vi != qh.vertexList().end(); ++vi) {
             size_t i = 0;
-            Eigen::Matrix<double,EigenDim,1> v(dim);
             for (auto ci = vi->point().begin(); ci != vi->point().end(); ++ci) {
-                v(i++) = *ci;
+                hull_points(i++,k) = (ScalarT)(*ci);
             }
-            hull_points.col(k) = v.template cast<OutputScalarT>();
 
             i = 0;
             point_neighbor_facets[k].resize(vi->neighborFacets().size());
@@ -684,12 +679,10 @@ namespace cilantro {
         facet_neighbor_facets.resize(qh_facets.size());
         for (auto fi = qh_facets.begin(); fi != qh_facets.end(); ++fi) {
             size_t i = 0;
-            HomogeneousVector<double,EigenDim> hp(dim+1);
             for (auto hpi = fi->hyperplane().begin(); hpi != fi->hyperplane().end(); ++hpi) {
-                hp(i++) = *hpi;
+                halfspaces(i++,k) = (ScalarT)(*hpi);
             }
-            hp(dim) = fi->hyperplane().offset();
-            halfspaces.col(k) = hp.template cast<OutputScalarT>();
+            halfspaces(dim,k) = (ScalarT)(fi->hyperplane().offset());
 
             facets[k].resize(fi->vertices().size());
             if (fi->isTopOrient()) {

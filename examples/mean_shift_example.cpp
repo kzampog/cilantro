@@ -34,7 +34,7 @@ int main(int argc, char ** argv) {
 
     std::cout << "Number of points: " << points.cols() << std::endl;
 
-    cilantro::MeanShift3D ms(points);
+    cilantro::MeanShift3f ms(points);
 
     auto start = std::chrono::high_resolution_clock::now();
     ms.cluster(2.0f, 5000, 0.2, 1e-7);

@@ -1,4 +1,4 @@
-#include <cilantro/convex_hull.hpp>
+#include <cilantro/flat_convex_hull_3d.hpp>
 #include <cilantro/space_region.hpp>
 #include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
@@ -14,24 +14,24 @@ void callback(cilantro::Visualizer &viz, int key) {
 }
 
 int main(int argc, char* argv[]) {
-    cilantro::PointCloud3D cloud1;
+    cilantro::PointCloud3f cloud1;
     cilantro::readPointCloudFromPLYFile(argv[1], cloud1);
 
     // Shift to the right
-    cilantro::PointCloud3D cloud2(cloud1);
+    cilantro::PointCloud3f cloud2(cloud1);
     cloud2.points.colwise() += Eigen::Vector3f(1,0,0);
 
     // Compute convex hulls as SpaceRegion objects
     // bool flags enable topology computation (for visualization)
-    cilantro::SpaceRegion3D sr1(cloud1.points, true, true);
-    cilantro::SpaceRegion3D sr2(cloud2.points, true, true);
+    cilantro::SpaceRegion3f sr1(cloud1.points, true, true);
+    cilantro::SpaceRegion3f sr2(cloud2.points, true, true);
 
     // Compute a spatial expression
     auto start = std::chrono::high_resolution_clock::now();
 //    cilantro::SpaceRegion3D sr = sr1.relativeComplement(sr2, true, true);
 //    cilantro::SpaceRegion3D sr = sr1.intersectionWith(sr2, true, true);
 //    cilantro::SpaceRegion3D sr = sr1.intersectionWith(sr2).complement(true, true);
-    cilantro::SpaceRegion3D sr = sr1.complement().unionWith(sr2.complement()).complement(true, true);
+    cilantro::SpaceRegion3f sr = sr1.complement().unionWith(sr2.complement()).complement(true, true);
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> elapsed = end - start;
     std::cout << "Build time: " << elapsed.count() << "ms" << std::endl;
@@ -39,9 +39,9 @@ int main(int argc, char* argv[]) {
     std::cout << "Number of polytopes in union: " << sr.getConvexPolytopes().size() << std::endl;
 
     // Find the points of the concatenation of the clouds that satisfy the spatial expression
-    cilantro::PointCloud3D interior_cloud(cloud1);
+    cilantro::PointCloud3f interior_cloud(cloud1);
     interior_cloud.append(cloud2);
-    interior_cloud = cilantro::PointCloud3D(interior_cloud, sr.getInteriorPointIndices(interior_cloud.points, 0.005f));
+    interior_cloud = cilantro::PointCloud3f(interior_cloud, sr.getInteriorPointIndices(interior_cloud.points, 0.005f));
 
     // Visualize results
     cilantro::Visualizer viz("SpaceRegion3D example", "disp");
@@ -52,8 +52,8 @@ int main(int argc, char* argv[]) {
     viz.addPointCloud("cloud2", cloud2, cilantro::RenderingProperties().setOpacity(0.3));
     viz.addPointCloud("interior_cloud", interior_cloud, cilantro::RenderingProperties().setOpacity(1.0).setPointSize(2.5f).setPointColor(0.8,0.8,0.8));
 
-    const cilantro::ConvexPolytope3D& cp1(sr1.getConvexPolytopes()[0]);
-    const cilantro::ConvexPolytope3D& cp2(sr2.getConvexPolytopes()[0]);
+    const cilantro::ConvexPolytope3f& cp1(sr1.getConvexPolytopes()[0]);
+    const cilantro::ConvexPolytope3f& cp2(sr2.getConvexPolytopes()[0]);
     viz.addTriangleMesh("hull1", cp1.getVertices(), cp1.getFacetVertexIndices(), cilantro::RenderingProperties().setPointColor(1,0,0).setDrawWireframe(true).setUseFaceNormals(true).setLineWidth(2.0));
     viz.addTriangleMesh("hull2", cp2.getVertices(), cp2.getFacetVertexIndices(), cilantro::RenderingProperties().setPointColor(0,0,1).setDrawWireframe(true).setUseFaceNormals(true).setLineWidth(2.0));
 

@@ -2,7 +2,7 @@
 
 namespace cilantro {
     VoxelGrid::VoxelGrid(const PointCloud<float,3> &cloud, float bin_size)
-            : CartesianGrid3D(cloud.points, bin_size),
+            : CartesianGrid3f(cloud.points, bin_size),
               input_cloud_(cloud)
     {}
 

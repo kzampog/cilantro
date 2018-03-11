@@ -15,7 +15,7 @@ int main(int argc, char ** argv) {
     }
 
     cilantro::VectorSet<float,1> values = points.row(2);
-    cilantro::VectorSet<float,3> colors = cilantro::colormap(values);
+    cilantro::VectorSet<float,3> colors = cilantro::colormap<float>(values);
 
     Eigen::MatrixXf distances(num_points, num_points);
     for (size_t i = 0; i < points.cols(); i++) {

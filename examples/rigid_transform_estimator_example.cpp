@@ -22,10 +22,10 @@ void callback(unsigned char key, bool &re_estimate, bool &randomize) {
 
 int main(int argc, char **argv) {
 
-    cilantro::PointCloud3D dst;
+    cilantro::PointCloud3f dst;
     readPointCloudFromPLYFile(argv[1], dst);
 
-    cilantro::PointCloud3D src(dst);
+    cilantro::PointCloud3f src(dst);
 
     cilantro::Visualizer viz("RigidTransformEstimator example", "disp");
     bool re_estimate = false;

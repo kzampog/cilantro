@@ -10,7 +10,7 @@ void callback(bool &proceed) {
 }
 
 int main(int argc, char ** argv) {
-    cilantro::PointCloud3D dst, src;
+    cilantro::PointCloud3f dst, src;
     cilantro::readPointCloudFromPLYFile(argv[1], dst);
 
     dst = cilantro::VoxelGrid(dst, 0.005).getDownsampledCloud();
@@ -24,7 +24,7 @@ int main(int argc, char ** argv) {
         src.colors.col(i) += 0.05f*Eigen::Vector3f::Random();
     }
 
-    cilantro::PointCloud3D dst2;
+    cilantro::PointCloud3f dst2;
     dst2.points.resize(Eigen::NoChange,dst.size());
     dst2.normals.resize(Eigen::NoChange,dst.size());
     dst2.colors.resize(Eigen::NoChange,dst.size());
@@ -43,7 +43,7 @@ int main(int argc, char ** argv) {
 
     dst = dst2;
 
-    cilantro::RigidTransformation3D tf_ref;
+    cilantro::RigidTransformation3f tf_ref;
     Eigen::Matrix3f tmp;
     tmp = Eigen::AngleAxisf(-0.1f ,Eigen::Vector3f::UnitZ()) *
           Eigen::AngleAxisf(0.1f, Eigen::Vector3f::UnitY()) *
@@ -72,7 +72,7 @@ int main(int argc, char ** argv) {
     // Perform ICP registration
     auto start = std::chrono::high_resolution_clock::now();
 
-    cilantro::RigidTransformation3D tf_est;
+    cilantro::RigidTransformation3f tf_est;
 
     // Point features adaptors for correspondence search
 //    cilantro::PointsNormalsColorsAdaptor<float,3> dst_feat(dst.points, dst.normals, dst.colors, 0.5, 5.0);
@@ -104,7 +104,7 @@ int main(int argc, char ** argv) {
     std::cout << "ESTIMATED transformation R:" << std::endl << tf_est.matrix() << std::endl;
 
     // Visualize registration results
-    cilantro::PointCloud3D src_trans(src);
+    cilantro::PointCloud3f src_trans(src);
 
     src_trans.points = tf_est*src_trans.points;
     src_trans.normals = tf_est.linear()*src_trans.normals;

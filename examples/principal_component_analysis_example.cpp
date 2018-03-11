@@ -13,7 +13,7 @@ int main(int argc, char ** argv) {
     points.emplace_back(1, 100, 0);
     points.emplace_back(1, 100, 1000);
 
-    cilantro::PrincipalComponentAnalysis3D pca(points);
+    cilantro::PrincipalComponentAnalysis3f pca(points);
 
     std::cout << "Data mean: " << pca.getDataMean().transpose() << std::endl;
     std::cout << "Eigenvalues: " << pca.getEigenValues().transpose() << std::endl;
