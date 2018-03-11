@@ -14,12 +14,12 @@ namespace cilantro {
                   points_(points)
         {}
 
-        PlaneEstimator& estimateModelParameters(HomogeneousVector<ScalarT,EigenDim> &model_params) {
+        inline PlaneEstimator& estimateModelParameters(HomogeneousVector<ScalarT,EigenDim> &model_params) {
             estimate_params_(points_, model_params);
             return *this;
         }
 
-        HomogeneousVector<ScalarT,EigenDim> estimateModelParameters() {
+        inline HomogeneousVector<ScalarT,EigenDim> estimateModelParameters() {
             HomogeneousVector<ScalarT,EigenDim> model_params;
             estimateModelParameters(model_params);
             return model_params;
@@ -34,7 +34,7 @@ namespace cilantro {
             return *this;
         }
 
-        HomogeneousVector<ScalarT,EigenDim> estimateModelParameters(const std::vector<size_t> &sample_ind) {
+        inline HomogeneousVector<ScalarT,EigenDim> estimateModelParameters(const std::vector<size_t> &sample_ind) {
             HomogeneousVector<ScalarT,EigenDim> model_params;
             estimateModelParameters(sample_ind, model_params);
             return model_params;
@@ -48,7 +48,7 @@ namespace cilantro {
             return *this;
         }
 
-        std::vector<ScalarT> computeResiduals(const HomogeneousVector<ScalarT,EigenDim> &model_params) {
+        inline std::vector<ScalarT> computeResiduals(const HomogeneousVector<ScalarT,EigenDim> &model_params) {
             std::vector<ScalarT> residuals;
             computeResiduals(model_params, residuals);
             return residuals;
