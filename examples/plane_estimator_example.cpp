@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
         if (re_estimate) {
             re_estimate = false;
 
-            cilantro::PlaneEstimator pe(cloud.points);
+            cilantro::PlaneEstimator3f pe(cloud.points);
             pe.setMaxInlierResidual(0.01).setTargetInlierCount((size_t)(0.15*cloud.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
             cilantro::HomogeneousVector<float,3> plane = pe.getModelParameters();
             std::vector<size_t> inliers = pe.getModelInliers();
