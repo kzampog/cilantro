@@ -138,18 +138,18 @@ namespace cilantro {
 #pragma omp parallel for shared (correspondences) private (nn)
             for (size_t i = 0; i < query_pts.cols(); i++) {
                 ref_tree.nearestNeighborSearch(query_pts.col(i), nn);
-                if (nn.distance < max_distance) {
+                if (nn.value < max_distance) {
 #pragma omp critical
-                    correspondences.emplace_back(nn.index, i, evaluator.getValue(nn.index, i, nn.distance));
+                    correspondences.emplace_back(nn.index, i, evaluator.getValue(nn.index, i, nn.value));
                 }
             }
         } else {
 #pragma omp parallel for shared (correspondences) private (nn)
             for (size_t i = 0; i < query_pts.cols(); i++) {
                 ref_tree.nearestNeighborSearch(query_pts.col(i), nn);
-                if (nn.distance < max_distance) {
+                if (nn.value < max_distance) {
 #pragma omp critical
-                    correspondences.emplace_back(i, nn.index, evaluator.getValue(i, nn.index, nn.distance));
+                    correspondences.emplace_back(i, nn.index, evaluator.getValue(i, nn.index, nn.value));
                 }
             }
         }

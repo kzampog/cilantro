@@ -67,7 +67,7 @@ namespace cilantro {
         for (size_t i = 0; i < f_values.size(); i++) {
             f_values[i].resize(adj_list[i].size());
             for (size_t j = 0; j < f_values[i].size(); j++) {
-                f_values[i][j] = evaluator.getValue(i, adj_list[i][j].index, adj_list[i][j].distance);
+                f_values[i][j] = evaluator.getValue(i, adj_list[i][j].index, adj_list[i][j].value);
             }
         }
         return f_values;
@@ -82,7 +82,7 @@ namespace cilantro {
         if (force_symmetry) {
             for (size_t i = 0; i < adj_list.size(); i++) {
                 for (size_t j = 0; j < adj_list[i].size(); j++) {
-                    ValueT val = evaluator.getValue(i, adj_list[i][j].index, adj_list[i][j].distance);
+                    ValueT val = evaluator.getValue(i, adj_list[i][j].index, adj_list[i][j].value);
                     mat(adj_list[i][j].index, i) = val;
                     mat(i, adj_list[i][j].index) = val;
                 }
@@ -90,7 +90,7 @@ namespace cilantro {
         } else {
             for (size_t i = 0; i < adj_list.size(); i++) {
                 for (size_t j = 0; j < adj_list[i].size(); j++) {
-                    mat(adj_list[i][j].index, i) = evaluator.getValue(i, adj_list[i][j].index, adj_list[i][j].distance);
+                    mat(adj_list[i][j].index, i) = evaluator.getValue(i, adj_list[i][j].index, adj_list[i][j].value);
                 }
             }
         }
@@ -107,7 +107,7 @@ namespace cilantro {
             triplet_list.reserve(2*getNNGraphSumOfNodeDegrees(adj_list, false));
             for (size_t i = 0; i < adj_list.size(); i++) {
                 for (size_t j = 0; j < adj_list[i].size(); j++) {
-                    ValueT val = evaluator.getValue(i, adj_list[i][j].index, adj_list[i][j].distance);
+                    ValueT val = evaluator.getValue(i, adj_list[i][j].index, adj_list[i][j].value);
                     triplet_list.emplace_back(adj_list[i][j].index, i, val);
                     triplet_list.emplace_back(i, adj_list[i][j].index, val);
                 }
@@ -116,7 +116,7 @@ namespace cilantro {
             triplet_list.reserve(getNNGraphSumOfNodeDegrees(adj_list, false));
             for (size_t i = 0; i < adj_list.size(); i++) {
                 for (size_t j = 0; j < adj_list[i].size(); j++) {
-                    triplet_list.emplace_back(adj_list[i][j].index, i, evaluator.getValue(i, adj_list[i][j].index, adj_list[i][j].distance));
+                    triplet_list.emplace_back(adj_list[i][j].index, i, evaluator.getValue(i, adj_list[i][j].index, adj_list[i][j].value));
                 }
             }
         }

@@ -27,7 +27,7 @@ int main(int argc, char ** argv) {
 
     std::cout << "Neighbor distances: ";
     for (int i = 0; i < nn.size(); i++) {
-        std::cout << nn[i].distance << " ";
+        std::cout << nn[i].value << " ";
     }
     std::cout << std::endl;
 
