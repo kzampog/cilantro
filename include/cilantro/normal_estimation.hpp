@@ -160,19 +160,18 @@ namespace cilantro {
             normals.resize(dim, num_points);
             curvatures.resize(1, num_points);
 
-            std::vector<size_t> neighbors;
-            std::vector<ScalarT> distances;
-#pragma omp parallel for shared (normals) private (neighbors, distances)
+            NearestNeighborSearchResultSet<ScalarT> nn;
+#pragma omp parallel for shared (normals) private (nn)
             for (size_t i = 0; i < num_points; i++) {
-                kd_tree_ptr_->template search<NT>(points_.col(i), nh_sq, neighbors, distances);
-                if (neighbors.size() < dim) {
+                kd_tree_ptr_->template search<NT>(points_.col(i), nh_sq, nn);
+                if (nn.size() < dim) {
                     normals.col(i).setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
                     curvatures[i] = std::numeric_limits<ScalarT>::quiet_NaN();
                     continue;
                 }
-                VectorSet<ScalarT,EigenDim> neighborhood(dim, neighbors.size());
-                for (size_t j = 0; j < neighbors.size(); j++) {
-                    neighborhood.col(j) = points_.col(neighbors[j]);
+                VectorSet<ScalarT,EigenDim> neighborhood(dim, nn.size());
+                for (size_t j = 0; j < nn.size(); j++) {
+                    neighborhood.col(j) = points_.col(nn[j].index);
                 }
                 PrincipalComponentAnalysis<ScalarT,EigenDim> pca(neighborhood);
                 normals.col(i) = pca.getEigenVectors().col(dim-1);

@@ -59,10 +59,9 @@ namespace cilantro {
         std::vector<std::vector<size_t> > ind_per_seed(seeds_ind.size());
         std::vector<std::set<size_t> > seeds_to_merge_with(seeds_ind.size());
 
-        std::vector<size_t> neighbors;
-        std::vector<float> distances;
+        NearestNeighborSearchResultSet<float> nn;
 
-#pragma omp parallel for shared (seeds_ind, current_label, ind_per_seed, seeds_to_merge_with) private (neighbors, distances, frontier_set)
+#pragma omp parallel for shared (seeds_ind, current_label, ind_per_seed, seeds_to_merge_with) private (nn, frontier_set)
         for (size_t i = 0; i < seeds_ind.size(); i++) {
             if (current_label[seeds_ind[i]] != unassigned) continue;
 
@@ -80,13 +79,13 @@ namespace cilantro {
 //                ind_per_seed[i].insert(curr_seed);
                 ind_per_seed[i].emplace_back(curr_seed);
 
-                kd_tree_->radiusSearch(points_.col(curr_seed), radius_sq, neighbors, distances);
-                for (size_t j = 1; j < neighbors.size(); j++) {
-                    const size_t& curr_lbl = current_label[neighbors[j]];
-                    if (curr_lbl == i || is_similar_(curr_seed, neighbors[j])) {
+                kd_tree_->radiusSearch(points_.col(curr_seed), radius_sq, nn);
+                for (size_t j = 1; j < nn.size(); j++) {
+                    const size_t& curr_lbl = current_label[nn[j].index];
+                    if (curr_lbl == i || is_similar_(curr_seed, nn[j].index)) {
                         if (curr_lbl == unassigned) {
-                            frontier_set.emplace_back(neighbors[j]);
-                            current_label[neighbors[j]] = i;
+                            frontier_set.emplace_back(nn[j].index);
+                            current_label[nn[j].index] = i;
                         } else {
                             if (curr_lbl != i) seeds_to_merge_with[i].insert(curr_lbl);
                         }

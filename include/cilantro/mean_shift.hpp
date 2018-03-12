@@ -37,21 +37,20 @@ namespace cilantro {
             Eigen::Matrix<bool,Eigen::Dynamic,1> has_converged = Eigen::Matrix<bool,Eigen::Dynamic,1>::Constant(shifted_seeds_.cols(), 1, false);
             ScalarT scale;
             bool all_converged;
-            std::vector<size_t> neighbors;
-            std::vector<ScalarT> distances;
+            NearestNeighborSearchResultSet<ScalarT> nn;
 
             while (iteration_count_ < max_iter) {
                 all_converged = true;
-#pragma omp parallel for shared (has_converged, all_converged) private (scale, neighbors, distances)
+#pragma omp parallel for shared (has_converged, all_converged) private (scale, nn)
                 for (size_t i = 0; i < shifted_seeds_.cols(); i++) {
                     Vector<ScalarT,EigenDim> point_tmp(shifted_seeds_.rows(), 1);
                     if (has_converged[i]) continue;
-                    kd_tree_ptr_->radiusSearch(shifted_seeds_.col(i), radius_sq, neighbors, distances);
+                    kd_tree_ptr_->radiusSearch(shifted_seeds_.col(i), radius_sq, nn);
                     point_tmp.setZero();
-                    for (size_t j = 0; j < neighbors.size(); j++) {
-                        point_tmp += data_map_.col(neighbors[j]);
+                    for (size_t j = 0; j < nn.size(); j++) {
+                        point_tmp += data_map_.col(nn[j].index);
                     }
-                    scale = (ScalarT)(1.0)/neighbors.size();
+                    scale = (ScalarT)(1.0)/nn.size();
                     point_tmp *= scale;
                     if ((shifted_seeds_.col(i) - point_tmp).squaredNorm() < conv_tol_sq) {
                         has_converged[i] = true;

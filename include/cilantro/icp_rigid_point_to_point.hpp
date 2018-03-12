@@ -103,14 +103,13 @@ namespace cilantro {
 
             const ConstVectorSetMatrixMap<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension>& src_feat_trans = src_feat_adaptor_.getTransformedFeatureData(this->transform_);
 
-            size_t neighbor;
-            typename FeatureAdaptorT::Scalar distance;
+            NearestNeighborSearchResult<typename FeatureAdaptorT::Scalar> nn;
 
             VectorSet<ScalarT,1> res(1,src_points_.cols());
-#pragma omp parallel for shared (res) private (neighbor, distance)
+#pragma omp parallel for shared (res) private (nn)
             for (size_t i = 0; i < src_feat_trans.cols(); i++) {
-                dst_feat_tree_ptr_->nearestNeighborSearch(src_feat_trans.col(i), neighbor, distance);
-                res[i] = (dst_points_.col(neighbor) - this->transform_*src_points_.col(i)).squaredNorm();
+                dst_feat_tree_ptr_->nearestNeighborSearch(src_feat_trans.col(i), nn);
+                res[i] = (dst_points_.col(nn.index) - this->transform_*src_points_.col(i)).squaredNorm();
             }
             return res;
         }

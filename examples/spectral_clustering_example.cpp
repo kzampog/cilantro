@@ -30,10 +30,10 @@ int main(int argc, char ** argv) {
     // 30 neighbors
     cilantro::NeighborhoodSpecification<float> nh(cilantro::NeighborhoodType::KNN, 30, 0.0f);
 
-    std::vector<std::vector<size_t>> nn_ind;
-    std::vector<std::vector<float>> nn_dist;
-    cilantro::KDTree3f(points).search(points, nh, nn_ind, nn_dist);
-    Eigen::SparseMatrix<float> data = cilantro::getNNGraphFunctionValueSparseMatrix(nn_ind, nn_dist, AffinityEvaluator(), true);
+    std::vector<cilantro::NearestNeighborSearchResultSet<float>> nn;
+
+    cilantro::KDTree3f(points).search(points, nh, nn);
+    Eigen::SparseMatrix<float> data = cilantro::getNNGraphFunctionValueSparseMatrix(nn, AffinityEvaluator(), true);
 
     size_t max_num_clusters = 4;
 

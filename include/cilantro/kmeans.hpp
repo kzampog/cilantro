@@ -86,14 +86,13 @@ namespace cilantro {
 
                 // Update assignments
                 if (use_kd_tree) {
-                    size_t neighbor;
-                    ScalarT distance;
+                    NearestNeighborSearchResult<ScalarT> nn;
                     KDTree<ScalarT,EigenDim,DistAdaptor> tree(cluster_centroids_);
-#pragma omp parallel for shared (assignments_unchanged) private (neighbor, distance)
+#pragma omp parallel for shared (assignments_unchanged) private (nn)
                     for (size_t i = 0; i < num_points; i++) {
-                        tree.nearestNeighborSearch(data_map_.col(i), neighbor, distance);
-                        if (cluster_index_map_[i] != neighbor) assignments_unchanged = false;
-                        cluster_index_map_[i] = neighbor;
+                        tree.nearestNeighborSearch(data_map_.col(i), nn);
+                        if (cluster_index_map_[i] != nn.index) assignments_unchanged = false;
+                        cluster_index_map_[i] = nn.index;
                     }
                 } else {
 #pragma omp parallel for shared (assignments_unchanged) private (extr_dist, extr_dist_ind, dist)

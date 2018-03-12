@@ -112,17 +112,16 @@ namespace cilantro {
 
             const ConstVectorSetMatrixMap<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension>& src_feat_trans = src_feat_adaptor_.getTransformedFeatureData(this->transform_);
 
-            size_t neighbor;
-            typename FeatureAdaptorT::Scalar distance;
+            NearestNeighborSearchResult<typename FeatureAdaptorT::Scalar> nn;
             Vector<ScalarT,3> src_p_trans;
 
             VectorSet<ScalarT,1> res(1,src_points_.cols());
-#pragma omp parallel for shared (res) private (neighbor, distance, src_p_trans)
+#pragma omp parallel for shared (res) private (nn, src_p_trans)
             for (size_t i = 0; i < src_feat_trans.cols(); i++) {
-                dst_feat_tree_ptr_->nearestNeighborSearch(src_feat_trans.col(i), neighbor, distance);
+                dst_feat_tree_ptr_->nearestNeighborSearch(src_feat_trans.col(i), nn);
                 src_p_trans = this->transform_*src_points_.col(i);
-                ScalarT point_to_plane_dist = dst_normals_.col(neighbor).dot(dst_points_.col(neighbor) - src_p_trans);
-                res[i] = point_to_point_weight_*(dst_points_.col(neighbor) - src_p_trans).squaredNorm() + point_to_plane_weight_*point_to_plane_dist*point_to_plane_dist;
+                ScalarT point_to_plane_dist = dst_normals_.col(nn.index).dot(dst_points_.col(nn.index) - src_p_trans);
+                res[i] = point_to_point_weight_*(dst_points_.col(nn.index) - src_p_trans).squaredNorm() + point_to_plane_weight_*point_to_plane_dist*point_to_plane_dist;
             }
             return res;
         }

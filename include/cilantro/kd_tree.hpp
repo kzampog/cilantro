@@ -50,6 +50,94 @@ namespace cilantro {
         using SO3 = nanoflann::SO3_Adaptor<typename DataAdaptor::coord_t, DataAdaptor, typename DataAdaptor::coord_t>;
     };
 
+    template <typename ScalarT>
+    struct NearestNeighborSearchResult {
+        size_t index;
+        ScalarT distance;
+
+        inline NearestNeighborSearchResult() {}
+
+        inline NearestNeighborSearchResult(size_t ind, ScalarT dist) : index(ind), distance(dist) {}
+
+        struct DistanceLessComparator {
+            inline bool operator()(const NearestNeighborSearchResult &r1, const NearestNeighborSearchResult &r2) const {
+                return r1.distance < r2.distance;
+            }
+        };
+    };
+
+    template <typename ScalarT>
+    using NearestNeighborSearchResultSet = std::vector<NearestNeighborSearchResult<ScalarT>>;
+
+    template <typename ScalarT>
+    class KNNSearchResultAdaptor {
+    public:
+        KNNSearchResultAdaptor(NearestNeighborSearchResultSet<ScalarT> &results, size_t k)
+                : results_(results), k_(k), count_(0)
+        {
+            results_.resize(k_);
+            results_[k_-1].distance = std::numeric_limits<ScalarT>::max();
+        }
+
+        inline size_t size() const { return count_; }
+
+        inline bool full() const { return count_ == k_; }
+
+        inline bool addPoint(ScalarT dist, size_t index) {
+            size_t i;
+            for (i = count_; i > 0; --i) {
+                if (results_[i-1].distance > dist) {
+                    if (i < k_) {
+                        results_[i].index = results_[i-1].index;
+                        results_[i].distance = results_[i-1].distance;
+                    }
+                } else {
+                    break;
+                }
+            }
+            if (i < k_) {
+                results_[i].index = index;
+                results_[i].distance = dist;
+            }
+            if (count_ < k_) count_++;
+
+            return true;
+        }
+
+        inline ScalarT worstDist() const { return results_[k_-1].distance; }
+
+    private:
+        NearestNeighborSearchResultSet<ScalarT>& results_;
+        const size_t k_;
+        size_t count_;
+    };
+
+
+    template <typename ScalarT>
+    class RadiusSearchResultAdaptor {
+    public:
+        RadiusSearchResultAdaptor(NearestNeighborSearchResultSet<ScalarT> &results, ScalarT radius)
+                : results_(results), radius_(radius)
+        {
+            results_.clear();
+        }
+
+        inline size_t size() const { return results_.size(); }
+
+        inline bool full() const { return true; }
+
+        inline bool addPoint(ScalarT dist, size_t index) {
+            if (dist < radius_) results_.emplace_back(index, dist);
+            return true;
+        }
+
+        inline ScalarT worstDist() const { return radius_; }
+
+    private:
+        NearestNeighborSearchResultSet<ScalarT>& results_;
+        const ScalarT radius_;
+    };
+
     enum struct NeighborhoodType {KNN, RADIUS, KNN_IN_RADIUS};
 
     template <typename ScalarT>
@@ -83,63 +171,51 @@ namespace cilantro {
 
         inline bool isEmpty() const { return data_map_.cols() > 0; }
 
-        inline void nearestNeighborSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, size_t &neighbor, ScalarT &distance) const {
-            kd_tree_.knnSearch(query_pt.data(), 1, &neighbor, &distance);
+        inline void nearestNeighborSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, NearestNeighborSearchResult<ScalarT> &result) const {
+            kd_tree_.knnSearch(query_pt.data(), 1, &result.index, &result.distance);
         }
 
-        void nearestNeighborSearch(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
-            neighbors.resize(query_pts.cols());
-            distances.resize(query_pts.cols());
-#pragma omp parallel for shared (neighbors, distances)
+        void nearestNeighborSearch(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts, NearestNeighborSearchResultSet<ScalarT> &results) const {
+            results.resize(query_pts.cols());
+#pragma omp parallel for shared (results)
             for (size_t i = 0; i < query_pts.cols(); i++) {
-                nearestNeighborSearch(query_pts.col(i), neighbors[i], distances[i]);
+                nearestNeighborSearch(query_pts.col(i), results[i]);
             }
         }
 
-        void kNNSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, size_t k, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
-            neighbors.resize(k);
-            distances.resize(k);
-            size_t num_results = kd_tree_.knnSearch(query_pt.data(), k, neighbors.data(), distances.data());
-            neighbors.resize(num_results);
-            distances.resize(num_results);
+        void kNNSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, size_t k, NearestNeighborSearchResultSet<ScalarT> &results) const {
+            KNNSearchResultAdaptor<ScalarT> sra(results, k);
+            kd_tree_.findNeighbors(sra, query_pt.data(), params_);
+            results.resize(sra.size());
         }
 
-        void kNNSearch(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts, size_t k, std::vector<std::vector<size_t>> &neighbors, std::vector<std::vector<ScalarT>> &distances) const {
-            neighbors.resize(query_pts.cols());
-            distances.resize(query_pts.cols());
-#pragma omp parallel for shared (neighbors, distances)
+        void kNNSearch(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts, size_t k, std::vector<NearestNeighborSearchResultSet<ScalarT>> &results) const {
+            results.resize(query_pts.cols());
+#pragma omp parallel for shared (results)
             for (size_t i = 0; i < query_pts.cols(); i++) {
-                kNNSearch(query_pts.col(i), k, neighbors[i], distances[i]);
+                kNNSearch(query_pts.col(i), k, results[i]);
             }
         }
 
-        void radiusSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, ScalarT radius, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
-            std::vector<std::pair<size_t,ScalarT>> matches;
-            matches.reserve(data_map_.cols());
-            size_t num_results = kd_tree_.radiusSearch(query_pt.data(), radius, matches, params_);
-            neighbors.resize(num_results);
-            distances.resize(num_results);
-            for (size_t i = 0; i < num_results; i++) {
-                neighbors[i] = matches[i].first;
-                distances[i] = matches[i].second;
-            }
+        void radiusSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, ScalarT radius, NearestNeighborSearchResultSet<ScalarT> &results) const {
+            RadiusSearchResultAdaptor<ScalarT> sra(results, radius);
+            kd_tree_.findNeighbors(sra, query_pt.data(), params_);
+            std::sort(results.begin(), results.end(), typename NearestNeighborSearchResult<ScalarT>::DistanceLessComparator());
         }
 
-        void radiusSearch(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts, ScalarT radius, std::vector<std::vector<size_t>> &neighbors, std::vector<std::vector<ScalarT>> &distances) const {
-            neighbors.resize(query_pts.cols());
-            distances.resize(query_pts.cols());
-#pragma omp parallel for shared (neighbors, distances)
+        void radiusSearch(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts, ScalarT radius, std::vector<NearestNeighborSearchResultSet<ScalarT>> &results) const {
+            results.resize(query_pts.cols());
+#pragma omp parallel for shared (results)
             for (size_t i = 0; i < query_pts.cols(); i++) {
-                radiusSearch(query_pts.col(i), radius, neighbors[i], distances[i]);
+                radiusSearch(query_pts.col(i), radius, results[i]);
             }
         }
 
-        void kNNInRadiusSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, size_t k, ScalarT radius, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
-            KDTree::kNNSearch(query_pt, k, neighbors, distances);
-            size_t ind = neighbors.size() - 1;
-            while (ind >= 0 && distances[ind] >= radius) ind--;
-            neighbors.resize(ind+1);
-            distances.resize(ind+1);
+        void kNNInRadiusSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, size_t k, ScalarT radius, NearestNeighborSearchResultSet<ScalarT> &results) const {
+            this->kNNSearch(query_pt, k, results);
+            size_t ind = results.size() - 1;
+            while (ind >= 0 && results[ind].distance >= radius) ind--;
+            results.resize(ind+1);
 //            KDTree::radiusSearch(query_pt, radius, neighbors, distances);
 //            if (neighbors.size() > k) {
 //                neighbors.resize(k);
@@ -147,69 +223,68 @@ namespace cilantro {
 //            }
         }
 
-        void kNNInRadiusSearch(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts, size_t k, ScalarT radius, std::vector<std::vector<size_t>> &neighbors, std::vector<std::vector<ScalarT>> &distances) const {
-            neighbors.resize(query_pts.cols());
-            distances.resize(query_pts.cols());
-#pragma omp parallel for shared (neighbors, distances)
+        void kNNInRadiusSearch(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts, size_t k, ScalarT radius, std::vector<NearestNeighborSearchResultSet<ScalarT>> &results) const {
+            results.resize(query_pts.cols());
+#pragma omp parallel for shared (results)
             for (size_t i = 0; i < query_pts.cols(); i++) {
-                kNNInRadiusSearch(query_pts.col(i), k, radius, neighbors[i], distances[i]);
+                kNNInRadiusSearch(query_pts.col(i), k, radius, results[i]);
             }
         }
 
         template <NeighborhoodType NT>
-        inline typename std::enable_if<NT == NeighborhoodType::KNN, void>::type search(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, const NeighborhoodSpecification<ScalarT> &nh, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
-            kNNSearch(query_pt, nh.maxNumberOfNeighbors, neighbors, distances);
+        inline typename std::enable_if<NT == NeighborhoodType::KNN, void>::type search(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, const NeighborhoodSpecification<ScalarT> &nh, NearestNeighborSearchResultSet<ScalarT> &results) const {
+            kNNSearch(query_pt, nh.maxNumberOfNeighbors, results);
         }
 
         template <NeighborhoodType NT>
-        inline typename std::enable_if<NT == NeighborhoodType::KNN, void>::type search(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts, const NeighborhoodSpecification<ScalarT> &nh, std::vector<std::vector<size_t>> &neighbors, std::vector<std::vector<ScalarT>> &distances) const {
-            kNNSearch(query_pts, nh.maxNumberOfNeighbors, neighbors, distances);
+        inline typename std::enable_if<NT == NeighborhoodType::KNN, void>::type search(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts, const NeighborhoodSpecification<ScalarT> &nh, std::vector<NearestNeighborSearchResultSet<ScalarT>> &results) const {
+            kNNSearch(query_pts, nh.maxNumberOfNeighbors, results);
         }
 
         template <NeighborhoodType NT>
-        inline typename std::enable_if<NT == NeighborhoodType::RADIUS, void>::type search(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, const NeighborhoodSpecification<ScalarT> &nh, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
-            radiusSearch(query_pt, nh.radius, neighbors, distances);
+        inline typename std::enable_if<NT == NeighborhoodType::RADIUS, void>::type search(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, const NeighborhoodSpecification<ScalarT> &nh, NearestNeighborSearchResultSet<ScalarT> &results) const {
+            radiusSearch(query_pt, nh.radius, results);
         }
 
         template <NeighborhoodType NT>
-        inline typename std::enable_if<NT == NeighborhoodType::RADIUS, void>::type search(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts, const NeighborhoodSpecification<ScalarT> &nh, std::vector<std::vector<size_t>> &neighbors, std::vector<std::vector<ScalarT>> &distances) const {
-            radiusSearch(query_pts, nh.radius, neighbors, distances);
+        inline typename std::enable_if<NT == NeighborhoodType::RADIUS, void>::type search(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts, const NeighborhoodSpecification<ScalarT> &nh, std::vector<NearestNeighborSearchResultSet<ScalarT>> &results) const {
+            radiusSearch(query_pts, nh.radius, results);
         }
 
         template <NeighborhoodType NT>
-        inline typename std::enable_if<NT == NeighborhoodType::KNN_IN_RADIUS, void>::type search(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, const NeighborhoodSpecification<ScalarT> &nh, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
-            kNNInRadiusSearch(query_pt, nh.maxNumberOfNeighbors, nh.radius, neighbors, distances);
+        inline typename std::enable_if<NT == NeighborhoodType::KNN_IN_RADIUS, void>::type search(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, const NeighborhoodSpecification<ScalarT> &nh, NearestNeighborSearchResultSet<ScalarT> &results) const {
+            kNNInRadiusSearch(query_pt, nh.maxNumberOfNeighbors, nh.radius, results);
         }
 
         template <NeighborhoodType NT>
-        inline typename std::enable_if<NT == NeighborhoodType::KNN_IN_RADIUS, void>::type search(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts, const NeighborhoodSpecification<ScalarT> &nh, std::vector<std::vector<size_t>> &neighbors, std::vector<std::vector<ScalarT>> &distances) const {
-            kNNInRadiusSearch(query_pts, nh.maxNumberOfNeighbors, nh.radius, neighbors, distances);
+        inline typename std::enable_if<NT == NeighborhoodType::KNN_IN_RADIUS, void>::type search(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts, const NeighborhoodSpecification<ScalarT> &nh, std::vector<NearestNeighborSearchResultSet<ScalarT>> &results) const {
+            kNNInRadiusSearch(query_pts, nh.maxNumberOfNeighbors, nh.radius, results);
         }
 
-        inline void search(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, const NeighborhoodSpecification<ScalarT> &nh, std::vector<size_t> &neighbors, std::vector<ScalarT> &distances) const {
+        inline void search(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, const NeighborhoodSpecification<ScalarT> &nh, NearestNeighborSearchResultSet<ScalarT> &results) const {
             switch (nh.type) {
                 case NeighborhoodType::KNN:
-                    kNNSearch(query_pt, nh.maxNumberOfNeighbors, neighbors, distances);
+                    kNNSearch(query_pt, nh.maxNumberOfNeighbors, results);
                     break;
                 case NeighborhoodType::RADIUS:
-                    radiusSearch(query_pt, nh.radius, neighbors, distances);
+                    radiusSearch(query_pt, nh.radius, results);
                     break;
                 case NeighborhoodType::KNN_IN_RADIUS:
-                    kNNInRadiusSearch(query_pt, nh.maxNumberOfNeighbors, nh.radius, neighbors, distances);
+                    kNNInRadiusSearch(query_pt, nh.maxNumberOfNeighbors, nh.radius, results);
                     break;
             }
         }
 
-        inline void search(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts, const NeighborhoodSpecification<ScalarT> &nh, std::vector<std::vector<size_t>> &neighbors, std::vector<std::vector<ScalarT>> &distances) const {
+        inline void search(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts, const NeighborhoodSpecification<ScalarT> &nh, std::vector<NearestNeighborSearchResultSet<ScalarT>> &results) const {
             switch (nh.type) {
                 case NeighborhoodType::KNN:
-                    kNNSearch(query_pts, nh.maxNumberOfNeighbors, neighbors, distances);
+                    kNNSearch(query_pts, nh.maxNumberOfNeighbors, results);
                     break;
                 case NeighborhoodType::RADIUS:
-                    radiusSearch(query_pts, nh.radius, neighbors, distances);
+                    radiusSearch(query_pts, nh.radius, results);
                     break;
                 case NeighborhoodType::KNN_IN_RADIUS:
-                    kNNInRadiusSearch(query_pts, nh.maxNumberOfNeighbors, nh.radius, neighbors, distances);
+                    kNNInRadiusSearch(query_pts, nh.maxNumberOfNeighbors, nh.radius, results);
                     break;
             }
         }
