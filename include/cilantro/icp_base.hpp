@@ -28,7 +28,9 @@ namespace cilantro {
 
         inline const TransformT& getInitialTransformation() const { return transform_init_; }
 
-        inline const ICPInstanceT& getInitialTransformation(TransformT& tform_init) const { tform_init = transform_init_; return *static_cast<ICPInstanceT*>(this); }
+        inline const ICPInstanceT& setInitialTransformation(TransformT& tform_init) const { tform_init = transform_init_; return *static_cast<ICPInstanceT*>(this); }
+
+        inline TransformT& initialTransformation() { return transform_init_; }
 
         inline ICPInstanceT& setInitialTransformation(const TransformT &tform_init) { transform_init_ = tform_init; return *static_cast<ICPInstanceT*>(this); }
 
@@ -47,6 +49,8 @@ namespace cilantro {
         inline bool getRequireReciprocalCorrespondences() const { return corr_require_reciprocal_; }
 
         inline ICPInstanceT& setRequireReciprocalCorrespondences(bool require_reciprocal) { corr_require_reciprocal_ = require_reciprocal; return *static_cast<ICPInstanceT*>(this); }
+
+        inline PointScalarT getLastUpdateNorm() const { return last_delta_norm_; }
 
         ICPInstanceT& estimateTransformation() {
             // Main ICP loop
