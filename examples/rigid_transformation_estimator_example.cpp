@@ -42,19 +42,10 @@ int main(int argc, char **argv) {
             randomize = false;
 
             // Randomly transform src
-            Eigen::Matrix3f R_ref(Eigen::Matrix3f::Random());
-            Eigen::JacobiSVD<Eigen::Matrix3f> svd(R_ref, Eigen::ComputeFullU | Eigen::ComputeFullV);
-            Eigen::Matrix3f U(svd.matrixU());
-            Eigen::Matrix3f Vt(svd.matrixV().transpose());
-            Eigen::Matrix3f tmp(U * Vt);
-            if (tmp.determinant() < 0) {
-                Eigen::Matrix3f S(Eigen::Matrix3f::Identity());
-                S(2, 2) = -1;
-                R_ref = U * S * Vt;
-            } else {
-                R_ref = tmp;
-            }
-            Eigen::Vector3f t_ref(Eigen::Vector3f::Random());
+            cilantro::RigidTransformation3f tform;
+            tform.linear().setRandom();
+            tform.linear() = tform.rotation();
+            tform.translation().setRandom();
 
             // Build noisy correspondences
             for (size_t i = 0; i < dst_ind.size(); i++) {
@@ -67,7 +58,7 @@ int main(int argc, char **argv) {
                 }
             }
 
-            src.transform(R_ref, t_ref);
+            src.transform(tform);
             viz.addPointCloud("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
             viz.addPointCorrespondences("corr", selectByIndices(src.points, src_ind), selectByIndices(dst.points, dst_ind), cilantro::RenderingProperties().setOpacity(0.5f));
 
@@ -81,12 +72,12 @@ int main(int argc, char **argv) {
 
             cilantro::RigidTransformationEstimator3f te(dst.points, src.points, dst_ind, src_ind);
             te.setMaxInlierResidual(0.01).setTargetInlierCount((size_t)(0.50*dst_ind.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
-            cilantro::RigidTransformation<float,3> tform = te.getModelParameters();
+            cilantro::RigidTransformation3f tform = te.getModelParameters();
             std::vector<size_t> inliers = te.getModelInliers();
 
             std::cout << "RANSAC iterations: " << te.getPerformedIterationsCount() << ", inlier count: " << te.getNumberOfInliers() << std::endl;
 
-            src.points = tform*src.points;
+            src.transform(tform);
 
             viz.addPointCloud("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
 

@@ -318,4 +318,32 @@ namespace cilantro {
             return *this;
         }
     };
+
+    typedef PointsGridDownsampler<float,2> PointsGridDownsampler2f;
+    typedef PointsGridDownsampler<double,2> PointsGridDownsampler2d;
+    typedef PointsGridDownsampler<float,3> PointsGridDownsampler3f;
+    typedef PointsGridDownsampler<double,3> PointsGridDownsampler3d;
+    typedef PointsGridDownsampler<float,Eigen::Dynamic> PointsGridDownsamplerXf;
+    typedef PointsGridDownsampler<double,Eigen::Dynamic> PointsGridDownsamplerXd;
+
+    typedef PointsNormalsGridDownsampler<float,2> PointsNormalsGridDownsampler2f;
+    typedef PointsNormalsGridDownsampler<double,2> PointsNormalsGridDownsampler2d;
+    typedef PointsNormalsGridDownsampler<float,3> PointsNormalsGridDownsampler3f;
+    typedef PointsNormalsGridDownsampler<double,3> PointsNormalsGridDownsampler3d;
+    typedef PointsNormalsGridDownsampler<float,Eigen::Dynamic> PointsNormalsGridDownsamplerXf;
+    typedef PointsNormalsGridDownsampler<double,Eigen::Dynamic> PointsNormalsGridDownsamplerXd;
+
+    typedef PointsColorsGridDownsampler<float,2> PointsColorsGridDownsampler2f;
+    typedef PointsColorsGridDownsampler<double,2> PointsColorsGridDownsampler2d;
+    typedef PointsColorsGridDownsampler<float,3> PointsColorsGridDownsampler3f;
+    typedef PointsColorsGridDownsampler<double,3> PointsColorsGridDownsampler3d;
+    typedef PointsColorsGridDownsampler<float,Eigen::Dynamic> PointsColorsGridDownsamplerXf;
+    typedef PointsColorsGridDownsampler<double,Eigen::Dynamic> PointsColorsGridDownsamplerXd;
+
+    typedef PointsNormalsColorsGridDownsampler<float,2> PointsNormalsColorsGridDownsampler2f;
+    typedef PointsNormalsColorsGridDownsampler<double,2> PointsNormalsColorsGridDownsampler2d;
+    typedef PointsNormalsColorsGridDownsampler<float,3> PointsNormalsColorsGridDownsampler3f;
+    typedef PointsNormalsColorsGridDownsampler<double,3> PointsNormalsColorsGridDownsampler3d;
+    typedef PointsNormalsColorsGridDownsampler<float,Eigen::Dynamic> PointsNormalsColorsGridDownsamplerXf;
+    typedef PointsNormalsColorsGridDownsampler<double,Eigen::Dynamic> PointsNormalsColorsGridDownsamplerXd;
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cilantro/convex_hull_utilities.hpp>
+#include <cilantro/space_transformations.hpp>
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
@@ -144,12 +145,6 @@ namespace cilantro {
             return *this;
         }
 
-        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
-        inline ConvexPolytope& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim+1,EigenDim+1>> &rigid_transform) {
-            return transform(rigid_transform.topLeftCorner(EigenDim,EigenDim), rigid_transform.topRightCorner(EigenDim,1));
-        }
-
-        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == Eigen::Dynamic>::type>
         inline ConvexPolytope& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rigid_transform) {
             return transform(rigid_transform.topLeftCorner(dim_,dim_), rigid_transform.topRightCorner(dim_,1));
         }

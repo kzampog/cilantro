@@ -2,6 +2,7 @@
 
 #include <iterator>
 #include <set>
+#include <cilantro/space_transformations.hpp>
 #include <cilantro/grid_downsampler.hpp>
 
 namespace cilantro {
@@ -38,23 +39,37 @@ namespace cilantro {
                 indices_set = std::set<size_t>(indices.begin(), indices.end());
             }
 
-            size_t k = 0;
-            points.resize(cloud.points.rows(), indices_set.size());
-            for (auto it = indices_set.begin(); it != indices_set.end(); ++it) {
-                points.col(k++) = cloud.points.col(*it);
-            }
-            if (cloud.hasNormals()) {
-                k = 0;
+            if (cloud.hasNormals() && cloud.hasColors()) {
+                points.resize(cloud.points.rows(), indices_set.size());
                 normals.resize(cloud.normals.rows(), indices_set.size());
+                colors.resize(3, indices_set.size());
+                size_t k = 0;
                 for (auto it = indices_set.begin(); it != indices_set.end(); ++it) {
+                    points.col(k) = cloud.points.col(*it);
+                    normals.col(k) = cloud.normals.col(*it);
+                    colors.col(k++) = cloud.colors.col(*it);
+                }
+            } else if (cloud.hasNormals()) {
+                points.resize(cloud.points.rows(), indices_set.size());
+                normals.resize(cloud.normals.rows(), indices_set.size());
+                size_t k = 0;
+                for (auto it = indices_set.begin(); it != indices_set.end(); ++it) {
+                    points.col(k) = cloud.points.col(*it);
                     normals.col(k++) = cloud.normals.col(*it);
                 }
-            }
-            if (cloud.hasColors()) {
-                k = 0;
+            } else if (cloud.hasColors()) {
+                points.resize(cloud.points.rows(), indices_set.size());
                 colors.resize(3, indices_set.size());
+                size_t k = 0;
                 for (auto it = indices_set.begin(); it != indices_set.end(); ++it) {
+                    points.col(k) = cloud.points.col(*it);
                     colors.col(k++) = cloud.colors.col(*it);
+                }
+            } else {
+                points.resize(cloud.points.rows(), indices_set.size());
+                size_t k = 0;
+                for (auto it = indices_set.begin(); it != indices_set.end(); ++it) {
+                    points.col(k++) = cloud.points.col(*it);
                 }
             }
         }
@@ -174,11 +189,7 @@ namespace cilantro {
             std::vector<size_t> ind_to_remove;
             ind_to_remove.reserve(points.cols());
             for (size_t i = 0; i < points.cols(); i++) {
-                if (!points.col(i).allFinite()) {
-                    ind_to_remove.emplace_back(i);
-                } else if (has_normals && !normals.col(i).allFinite()) {
-                    ind_to_remove.emplace_back(i);
-                } else if (has_colors && !colors.col(i).allFinite()) {
+                if (!points.col(i).allFinite() || (has_normals && !normals.col(i).allFinite()) || (has_colors && !colors.col(i).allFinite())) {
                     ind_to_remove.emplace_back(i);
                 }
             }
@@ -198,32 +209,32 @@ namespace cilantro {
             return *this;
         }
 
-        PointCloud gridDownsampled(ScalarT bin_size, size_t min_points_in_bin = 1) {
-            PointCloud res(*this);
-            res.gridDownsample(bin_size, min_points_in_bin);
+        PointCloud gridDownsampled(ScalarT bin_size, size_t min_points_in_bin = 1) const {
+            PointCloud res;
+            if (hasNormals() && hasColors()) {
+                PointsNormalsColorsGridDownsampler<ScalarT,EigenDim>(points, normals, colors, bin_size).getDownsampledPointsNormalsColors(res.points, res.normals, res.colors, min_points_in_bin);
+            } else if (hasNormals()) {
+                PointsNormalsGridDownsampler<ScalarT,EigenDim>(points, normals, bin_size).getDownsampledPointsNormals(res.points, res.normals, min_points_in_bin);
+            } else if (hasColors()) {
+                PointsColorsGridDownsampler<ScalarT,EigenDim>(points, colors, bin_size).getDownsampledPointsColors(res.points, res.colors, min_points_in_bin);
+            } else {
+                PointsGridDownsampler<ScalarT,EigenDim>(points, bin_size).getDownsampledPoints(res.points, min_points_in_bin);
+            }
             return res;
         }
 
-        PointCloud& transform(const Eigen::Ref<const Eigen::Matrix3f> &rotation, const Eigen::Ref<const Eigen::Vector3f> &translation) {
-            points = (rotation*points).colwise() + translation;
-            if (hasNormals()) normals = rotation*normals;
+        PointCloud& transform(const RigidTransformation<ScalarT,EigenDim> &tform) {
+            points = tform*points;
+            if (hasNormals()) normals = tform.linear()*normals;
             return *this;
         }
 
-        PointCloud& transform(const Eigen::Ref<const Eigen::Matrix4f> &rigid_transform) {
-            return transform(rigid_transform.topLeftCorner(3,3), rigid_transform.topRightCorner(3,1));
-        }
-
-        PointCloud transformed(const Eigen::Ref<const Eigen::Matrix3f> &rotation, const Eigen::Ref<const Eigen::Vector3f> &translation) const {
+        PointCloud transformed(const RigidTransformation<ScalarT,EigenDim> &tform) const {
             PointCloud cloud;
-            cloud.points = (rotation*points).colwise() + translation;
-            if (hasNormals()) cloud.normals = rotation*normals;
+            cloud.points = tform*points;
+            if (hasNormals()) cloud.normals = tform.linear()*normals;
             cloud.colors = colors;
             return cloud;
-        }
-
-        PointCloud transformed(const Eigen::Ref<const Eigen::Matrix4f> &rigid_transform) const {
-            return transformed(rigid_transform.topLeftCorner(3,3), rigid_transform.topRightCorner(3,1));
         }
     };
 
