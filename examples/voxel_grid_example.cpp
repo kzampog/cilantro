@@ -1,4 +1,4 @@
-#include <cilantro/voxel_grid.hpp>
+#include <cilantro/grid_downsampler.hpp>
 #include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
 
@@ -7,12 +7,18 @@ int main(int argc, char ** argv) {
     readPointCloudFromPLYFile(argv[1], cloud);
 
     auto start = std::chrono::high_resolution_clock::now();
-    cilantro::VoxelGrid vg(cloud, 0.01f);
+    cilantro::PointsNormalsColorsGridDownsampler<float,3> vg(cloud.points, cloud.normals, cloud.colors, 0.01f);
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> build_time = end - start;
 
     start = std::chrono::high_resolution_clock::now();
-    cilantro::PointCloud3f cloud_d = vg.getDownsampledCloud();
+//    cilantro::PointCloud3f cloud_d = vg.getDownsampledCloud();
+    cilantro::PointCloud3f cloud_d;
+//    cloud_d.points = vg.getDownsampledPoints();
+//    cloud_d.normals = vg.getDownsampledNormals();
+//    cloud_d.colors = vg.getDownsampledColors();
+    vg.getDownsampledPointsNormalsColors(cloud_d.points, cloud_d.normals, cloud_d.colors);
+
     end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> ds_time = end - start;
 

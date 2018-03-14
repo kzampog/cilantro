@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cilantro/data_containers.hpp>
 #include <iterator>
 #include <set>
+#include <cilantro/data_containers.hpp>
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
