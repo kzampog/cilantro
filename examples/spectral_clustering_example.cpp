@@ -2,7 +2,6 @@
 #include <cilantro/spectral_clustering.hpp>
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/visualizer.hpp>
-#include <cilantro/voxel_grid.hpp>
 
 struct AffinityEvaluator {
     inline float getValue(size_t i, size_t j, float dist) const {

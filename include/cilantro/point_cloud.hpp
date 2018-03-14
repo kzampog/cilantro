@@ -2,7 +2,7 @@
 
 #include <iterator>
 #include <set>
-#include <cilantro/data_containers.hpp>
+#include <cilantro/grid_downsampler.hpp>
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
@@ -183,6 +183,25 @@ namespace cilantro {
                 }
             }
             return remove(ind_to_remove);
+        }
+
+        PointCloud& gridDownsample(ScalarT bin_size, size_t min_points_in_bin = 1) {
+            if (hasNormals() && hasColors()) {
+                PointsNormalsColorsGridDownsampler<ScalarT,EigenDim>(points, normals, colors, bin_size).getDownsampledPointsNormalsColors(points, normals, colors, min_points_in_bin);
+            } else if (hasNormals()) {
+                PointsNormalsGridDownsampler<ScalarT,EigenDim>(points, normals, bin_size).getDownsampledPointsNormals(points, normals, min_points_in_bin);
+            } else if (hasColors()) {
+                PointsColorsGridDownsampler<ScalarT,EigenDim>(points, colors, bin_size).getDownsampledPointsColors(points, colors, min_points_in_bin);
+            } else {
+                PointsGridDownsampler<ScalarT,EigenDim>(points, bin_size).getDownsampledPoints(points, min_points_in_bin);
+            }
+            return *this;
+        }
+
+        PointCloud gridDownsampled(ScalarT bin_size, size_t min_points_in_bin = 1) {
+            PointCloud res(*this);
+            res.gridDownsample(bin_size, min_points_in_bin);
+            return res;
         }
 
         PointCloud& transform(const Eigen::Ref<const Eigen::Matrix3f> &rotation, const Eigen::Ref<const Eigen::Vector3f> &translation) {

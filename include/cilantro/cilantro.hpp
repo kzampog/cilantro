@@ -1,13 +1,15 @@
 #pragma once
 
-#include <cilantro/cartesian_grid.hpp>
+#include <cilantro/accumulators.hpp>
 #include <cilantro/colormap.hpp>
 #include <cilantro/connected_component_segmentation.hpp>
-#include <cilantro/flat_convex_hull_3d.hpp>
 #include <cilantro/convex_hull_utilities.hpp>
 #include <cilantro/convex_polytope.hpp>
 #include <cilantro/correspondence.hpp>
 #include <cilantro/data_containers.hpp>
+#include <cilantro/flat_convex_hull_3d.hpp>
+#include <cilantro/grid_accumulator.hpp>
+#include <cilantro/grid_downsampler.hpp>
 #include <cilantro/icp_base.hpp>
 #include <cilantro/icp_rigid_combined_metric_3d.hpp>
 #include <cilantro/icp_rigid_point_to_point.hpp>
@@ -34,4 +36,3 @@
 #include <cilantro/type_traits.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/visualizer_handler.hpp>
-#include <cilantro/voxel_grid.hpp>

@@ -2,7 +2,6 @@
 #include <cilantro/icp_rigid_combined_metric_3d.hpp>
 #include <cilantro/icp_simple_feature_adaptors.hpp>
 #include <cilantro/io.hpp>
-#include <cilantro/voxel_grid.hpp>
 #include <cilantro/visualizer.hpp>
 
 void callback(bool &proceed) {
@@ -13,7 +12,7 @@ int main(int argc, char ** argv) {
     cilantro::PointCloud3f dst, src;
     cilantro::readPointCloudFromPLYFile(argv[1], dst);
 
-    dst = cilantro::VoxelGrid(dst, 0.005).getDownsampledCloud();
+    dst.gridDownsample(0.005f);
 
     // Create a distorted and transformed version of the point cloud
     src = dst;

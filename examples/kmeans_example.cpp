@@ -1,13 +1,12 @@
 #include <cilantro/kmeans.hpp>
 #include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
-#include <cilantro/voxel_grid.hpp>
 
 int main(int argc, char ** argv) {
     cilantro::PointCloud3f cloud;
     cilantro::readPointCloudFromPLYFile(argv[1], cloud);
 
-    cloud = cilantro::VoxelGrid(cloud, 0.005).getDownsampledCloud().removeInvalidData();
+    cloud.gridDownsample(0.005f).removeInvalidData();
 
 //    Eigen::MatrixXf data_points(6,cloud.size());
 //    data_points.topRows(3) = cloud.pointsMatrixMap();

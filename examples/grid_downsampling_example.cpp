@@ -7,25 +7,13 @@ int main(int argc, char ** argv) {
     readPointCloudFromPLYFile(argv[1], cloud);
 
     auto start = std::chrono::high_resolution_clock::now();
-    cilantro::PointsNormalsColorsGridDownsampler<float,3> vg(cloud.points, cloud.normals, cloud.colors, 0.01f);
+    cilantro::PointCloud3f cloud_d(cloud.gridDownsampled(0.01f));
     auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> build_time = end - start;
-
-    start = std::chrono::high_resolution_clock::now();
-//    cilantro::PointCloud3f cloud_d = vg.getDownsampledCloud();
-    cilantro::PointCloud3f cloud_d;
-//    cloud_d.points = vg.getDownsampledPoints();
-//    cloud_d.normals = vg.getDownsampledNormals();
-//    cloud_d.colors = vg.getDownsampledColors();
-    vg.getDownsampledPointsNormalsColors(cloud_d.points, cloud_d.normals, cloud_d.colors);
-
-    end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> ds_time = end - start;
 
     std::cout << "Before: " << cloud.size() << std::endl;
     std::cout << "After: " << cloud_d.size() << std::endl;
 
-    std::cout << "Build time: " << build_time.count() << "ms" << std::endl;
     std::cout << "Downsampling time: " << ds_time.count() << "ms" << std::endl;
 
     pangolin::CreateWindowAndBind("VoxelGrid demo",1280,480);

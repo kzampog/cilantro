@@ -1,6 +1,5 @@
 #include <cilantro/visualizer.hpp>
 #include <cilantro/io.hpp>
-#include <cilantro/voxel_grid.hpp>
 
 void callback(cilantro::Visualizer &viz, const std::string &name) {
     std::cout << "Toggling visibility for " << name << std::endl;

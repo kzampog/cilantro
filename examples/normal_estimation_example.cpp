@@ -1,7 +1,6 @@
 #include <cilantro/normal_estimation.hpp>
 #include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
-#include <cilantro/voxel_grid.hpp>
 
 int main(int argc, char ** argv) {
     cilantro::PointCloud3f cloud;
@@ -10,8 +9,7 @@ int main(int argc, char ** argv) {
     // Clear input normals
     cloud.normals.resize(Eigen::NoChange, 0);
 
-    cilantro::VoxelGrid vg(cloud, 0.005);
-    cloud = vg.getDownsampledCloud();
+    cloud.gridDownsample(0.005f);
 
     auto start = std::chrono::high_resolution_clock::now();
 //    cilantro::KDTree3D tree(cloud.points);
