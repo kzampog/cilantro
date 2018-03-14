@@ -223,6 +223,40 @@ namespace cilantro {
             return res;
         }
 
+        PointCloud& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rotation, const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation) {
+            points = (rotation*points).colwise() + translation();
+            if (hasNormals()) normals = rotation*normals;
+            return *this;
+        }
+
+        PointCloud transformed(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rotation, const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation) {
+            PointCloud cloud;
+            cloud.points = (rotation*points).colwise() + translation();
+            if (hasNormals()) cloud.normals = rotation*normals;
+            if (hasColors()) cloud.colors = colors;
+            return cloud;
+        }
+
+        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
+        inline PointCloud& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim+1,EigenDim+1>> &tform) {
+            return transform(tform.topLeftCorner(EigenDim,EigenDim), tform.topRightCorner(EigenDim,1));
+        }
+
+        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
+        inline PointCloud transformed(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim+1,EigenDim+1>> &tform) {
+            return transformed(tform.topLeftCorner(EigenDim,EigenDim), tform.topRightCorner(EigenDim,1));
+        }
+
+        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == Eigen::Dynamic>::type>
+        inline PointCloud& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &tform) {
+            return transform(tform.topLeftCorner(points.rows(),points.rows()), tform.topRightCorner(points.rows(),1));
+        }
+
+        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == Eigen::Dynamic>::type>
+        inline PointCloud transformed(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &tform) {
+            return transformed(tform.topLeftCorner(points.rows(),points.rows()), tform.topRightCorner(points.rows(),1));
+        }
+
         PointCloud& transform(const RigidTransformation<ScalarT,EigenDim> &tform) {
             points = tform*points;
             if (hasNormals()) normals = tform.linear()*normals;
@@ -233,7 +267,7 @@ namespace cilantro {
             PointCloud cloud;
             cloud.points = tform*points;
             if (hasNormals()) cloud.normals = tform.linear()*normals;
-            cloud.colors = colors;
+            if (hasColors()) cloud.colors = colors;
             return cloud;
         }
     };

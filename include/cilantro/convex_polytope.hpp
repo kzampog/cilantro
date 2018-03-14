@@ -145,8 +145,18 @@ namespace cilantro {
             return *this;
         }
 
-        inline ConvexPolytope& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rigid_transform) {
-            return transform(rigid_transform.topLeftCorner(dim_,dim_), rigid_transform.topRightCorner(dim_,1));
+        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
+        inline ConvexPolytope& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim+1,EigenDim+1>> &tform) {
+            return transform(tform.topLeftCorner(EigenDim,EigenDim), tform.topRightCorner(EigenDim,1));
+        }
+
+        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == Eigen::Dynamic>::type>
+        inline ConvexPolytope& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &tform) {
+            return transform(tform.topLeftCorner(dim_,dim_), tform.topRightCorner(dim_,1));
+        }
+
+        inline ConvexPolytope& transform(const RigidTransformation<ScalarT,EigenDim> &tform) {
+            return transform(tform.linear(), tform.translation());
         }
 
     protected:

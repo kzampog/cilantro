@@ -236,14 +236,30 @@ namespace cilantro {
             return indices;
         }
 
-        SpaceRegion& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim> > &rotation, const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1> > &translation) {
+        SpaceRegion& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rotation, const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation) {
             for (size_t i = 0; i < polytopes_.size(); i++) {
                 polytopes_[i].transform(rotation, translation);
             }
             return *this;
         }
 
+        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
         SpaceRegion& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim+1,EigenDim+1>> &tform) {
+            for (size_t i = 0; i < polytopes_.size(); i++) {
+                polytopes_[i].transform(tform);
+            }
+            return *this;
+        }
+
+        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == Eigen::Dynamic>::type>
+        SpaceRegion& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &tform) {
+            for (size_t i = 0; i < polytopes_.size(); i++) {
+                polytopes_[i].transform(tform);
+            }
+            return *this;
+        }
+
+        inline SpaceRegion& transform(const RigidTransformation<ScalarT,EigenDim> &tform) {
             for (size_t i = 0; i < polytopes_.size(); i++) {
                 polytopes_[i].transform(tform);
             }
