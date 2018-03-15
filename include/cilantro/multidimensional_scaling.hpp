@@ -48,9 +48,9 @@ namespace cilantro {
                             size_t max_dim, bool estimate_dim, bool distances_are_squared)
         {
             size_t dim = max_dim;
-            size_t num_eigenvalues = (estimate_dim) ? std::min(max_dim+1, (size_t)(distances.rows()-1)) : max_dim;
+            const size_t num_eigenvalues = (estimate_dim) ? std::min(max_dim+1, (size_t)(distances.rows()-1)) : max_dim;
 
-            ScalarT conv_tol = (std::is_same<ScalarT,float>::value) ? 1e-7 : 1e-10;
+            const ScalarT conv_tol = (std::is_same<ScalarT,float>::value) ? 1e-7 : 1e-10;
             size_t n_conv = 0;
             size_t max_iter = 1000;
 

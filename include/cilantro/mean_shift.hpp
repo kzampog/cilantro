@@ -30,18 +30,17 @@ namespace cilantro {
             shifted_seeds_ = seeds;
 
             // Shift points
-            ScalarT radius_sq = kernel_radius*kernel_radius;
-            ScalarT conv_tol_sq = convergence_tol*convergence_tol;
+            const ScalarT radius_sq = kernel_radius*kernel_radius;
+            const ScalarT conv_tol_sq = convergence_tol*convergence_tol;
             iteration_count_ = 0;
 
             Eigen::Matrix<bool,Eigen::Dynamic,1> has_converged = Eigen::Matrix<bool,Eigen::Dynamic,1>::Constant(shifted_seeds_.cols(), 1, false);
-            ScalarT scale;
             bool all_converged;
             NearestNeighborSearchResultSet<ScalarT> nn;
 
             while (iteration_count_ < max_iter) {
                 all_converged = true;
-#pragma omp parallel for shared (has_converged, all_converged) private (scale, nn)
+#pragma omp parallel for shared (has_converged, all_converged) private (nn)
                 for (size_t i = 0; i < shifted_seeds_.cols(); i++) {
                     Vector<ScalarT,EigenDim> point_tmp(shifted_seeds_.rows(), 1);
                     if (has_converged[i]) continue;
@@ -50,8 +49,7 @@ namespace cilantro {
                     for (size_t j = 0; j < nn.size(); j++) {
                         point_tmp += data_map_.col(nn[j].index);
                     }
-                    scale = (ScalarT)(1.0)/nn.size();
-                    point_tmp *= scale;
+                    point_tmp *= (ScalarT)(1.0)/nn.size();
                     if ((shifted_seeds_.col(i) - point_tmp).squaredNorm() < conv_tol_sq) {
                         has_converged[i] = true;
                     } else {
@@ -89,8 +87,7 @@ namespace cilantro {
                     cluster_modes_.col(i) += shifted_seeds_.col(cluster_point_indices_[i][j]);
                     cluster_index_map_[cluster_point_indices_[i][j]] = i;
                 }
-                scale = (ScalarT)(1.0)/cluster_point_indices_[i].size();
-                cluster_modes_.col(i) *= scale;
+                cluster_modes_.col(i) *= (ScalarT)(1.0)/cluster_point_indices_[i].size();
             }
 
             return *this;

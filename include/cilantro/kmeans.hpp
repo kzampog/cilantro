@@ -63,9 +63,9 @@ namespace cilantro {
         size_t iteration_count_;
 
         inline void cluster_(size_t max_iter, ScalarT tol, bool use_kd_tree) {
-            size_t num_clusters = cluster_centroids_.cols();
-            size_t num_points = data_map_.cols();
-            ScalarT tol_sq = tol*tol;
+            const size_t num_clusters = cluster_centroids_.cols();
+            const size_t num_points = data_map_.cols();
+            const ScalarT tol_sq = tol*tol;
 
             cluster_index_map_.resize(num_points);
 
@@ -73,7 +73,6 @@ namespace cilantro {
             ScalarT extr_dist;
 
             ScalarT dist;
-            ScalarT scale;
 
             VectorSet<ScalarT,EigenDim> centroids_old;
 
@@ -139,8 +138,7 @@ namespace cilantro {
                     }
 
                     // Find furthest point from (old) centroid of previously found cluster
-                    scale = (ScalarT)(1.0)/point_count[max_ind];
-                    Vector<ScalarT,EigenDim> old_centroid(cluster_centroids_.col(max_ind)*scale);
+                    Vector<ScalarT,EigenDim> old_centroid(cluster_centroids_.col(max_ind)*(ScalarT)(1.0)/point_count[max_ind]);
                     extr_dist = (ScalarT)(-1.0);
 #pragma omp parallel for shared (extr_dist, extr_dist_ind) private (dist)
                     for (size_t j = 0; j < num_points; j++) {
@@ -170,8 +168,7 @@ namespace cilantro {
 
                 // Compute new centroids
                 for (size_t i = 0; i < num_clusters; i++) {
-                    scale = (ScalarT)(1.0)/point_count[i];
-                    cluster_centroids_.col(i) *= scale;
+                    cluster_centroids_.col(i) *= (ScalarT)(1.0)/point_count[i];
                 }
 
                 iteration_count_++;

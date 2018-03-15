@@ -19,7 +19,7 @@ namespace cilantro {
             return VectorSet<float,3>::Zero(3, scalars.cols());
         }
 
-        ValueT scalar_range = scalar_max_used - scalar_min_used;
+        const ValueT scalar_range = scalar_max_used - scalar_min_used;
         float scalar_normalized;
 
         VectorSet<float,3> colors(3, scalars.cols());

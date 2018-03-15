@@ -14,8 +14,8 @@ namespace cilantro {
                                                    const Eigen::Ref<const Vector<ScalarT,EigenDim>> &feasible_point,
                                                    double dist_tol = std::numeric_limits<ScalarT>::epsilon())
     {
-        size_t dim = inequalities.rows() - 1;
-        size_t num_inequalities = inequalities.cols();
+        const size_t dim = inequalities.rows() - 1;
+        const size_t num_inequalities = inequalities.cols();
         if (num_inequalities == 0) return false;
         Eigen::MatrixXd ineq_data(inequalities.template cast<double>());
         Eigen::VectorXd ineq_test(ineq_to_test.template cast<double>());
@@ -38,7 +38,7 @@ namespace cilantro {
 
         // Objective
         // 'Preconditioned' quadratic term
-        ScalarT tol_sq = dist_tol*dist_tol;
+        const ScalarT tol_sq = dist_tol*dist_tol;
         Eigen::MatrixXd G(ineq_test*(ineq_test.transpose()));
         Eigen::JacobiSVD<Eigen::MatrixXd> svd(G, Eigen::ComputeFullU | Eigen::ComputeFullV);
         Eigen::VectorXd S(svd.singularValues());
@@ -81,8 +81,8 @@ namespace cilantro {
                                                   double dist_tol = std::numeric_limits<ScalarT>::epsilon(),
                                                   bool force_strictly_interior = true)
     {
-        size_t dim = halfspaces.rows() - 1;
-        size_t num_halfspaces = halfspaces.cols();
+        const size_t dim = halfspaces.rows() - 1;
+        const size_t num_halfspaces = halfspaces.cols();
         if (num_halfspaces == 0) {
             feasible_point.setZero(dim,1);
             return true;
@@ -98,13 +98,13 @@ namespace cilantro {
         // Center halfspaces around origin and then scale dimensions
         Eigen::Matrix<double,EigenDim,1> t_vec((ineq_data.topRows(dim).array().rowwise()*ineq_data.row(dim).array().abs()).rowwise().mean());
         ineq_data.row(dim) = ineq_data.row(dim) - t_vec.transpose()*ineq_data.topRows(dim);
-        double max_abs_dist = ineq_data.row(dim).cwiseAbs().maxCoeff();
-        double scale = (max_abs_dist < dist_tol) ? 1.0 : 1.0/max_abs_dist;
+        const double max_abs_dist = ineq_data.row(dim).cwiseAbs().maxCoeff();
+        const double scale = (max_abs_dist < dist_tol) ? 1.0 : 1.0/max_abs_dist;
         ineq_data.row(dim) *= scale;
 
         // Objective
         // 'Preconditioned' quadratic term
-        ScalarT tol_sq = dist_tol*dist_tol;
+        const ScalarT tol_sq = dist_tol*dist_tol;
         Eigen::MatrixXd G(dim+2,dim+2);
         G.topLeftCorner(dim+1,dim+1) = ineq_data*(ineq_data.transpose());
         G.row(dim+1).setZero();
@@ -161,7 +161,7 @@ namespace cilantro {
             tight_ind.resize(num_additional);
 
             if (num_additional > 0) {
-                double offset = (double)(num_halfspaces - 1);
+                const double offset = (double)(num_halfspaces - 1);
                 HomogeneousVectorSet<double,EigenDim> halfspaces_tight(dim+1,num_halfspaces+num_additional);
                 halfspaces_tight.leftCols(num_halfspaces) = ineq_data;
                 num_additional = num_halfspaces;
@@ -200,7 +200,7 @@ namespace cilantro {
                                        double dist_tol = std::numeric_limits<ScalarT>::epsilon(),
                                        double merge_tol = 0.0)
     {
-        size_t dim = halfspaces.rows() - 1;
+        const size_t dim = halfspaces.rows() - 1;
         size_t num_halfspaces = halfspaces.cols();
 
         // Set up variables
@@ -323,8 +323,8 @@ namespace cilantro {
                                            bool require_full_dimension = true,
                                            double merge_tol = 0.0)
     {
-        size_t dim = vertices.rows();
-        size_t num_points = vertices.cols();
+        const size_t dim = vertices.rows();
+        const size_t num_points = vertices.cols();
 
         if (num_points == 0) {
             facet_halfspaces.resize(dim+1, 2);
@@ -350,7 +350,7 @@ namespace cilantro {
         }
 
         Eigen::Matrix<double,EigenDim,1> mu(vert_data.rowwise().mean());
-        size_t true_dim = Eigen::FullPivLU<Eigen::Matrix<double,EigenDim,Eigen::Dynamic>>(vert_data.colwise() - mu).rank();
+        const size_t true_dim = Eigen::FullPivLU<Eigen::Matrix<double,EigenDim,Eigen::Dynamic>>(vert_data.colwise() - mu).rank();
 
         //std::cout << "TRUE DIMENSION: " << true_dim << std::endl << std::endl;
 
@@ -418,8 +418,8 @@ namespace cilantro {
             } else if (true_dim == 1) {
                 // Handle special case (1D line, not handled by qhull)
                 size_t ind_min, ind_max;
-                double min_val = proj_vert.row(0).minCoeff(&ind_min);
-                double max_val = proj_vert.row(0).maxCoeff(&ind_max);
+                const double min_val = proj_vert.row(0).minCoeff(&ind_min);
+                const double max_val = proj_vert.row(0).maxCoeff(&ind_max);
 
                 polytope_vertices.resize(dim,2);
                 polytope_vertices.col(0) = vertices.col(ind_min);
@@ -495,8 +495,8 @@ namespace cilantro {
                                         double &area, double &volume,
                                         double merge_tol = 0.0)
     {
-        size_t dim = vertices.rows();
-        size_t num_points = vertices.cols();
+        const size_t dim = vertices.rows();
+        const size_t num_points = vertices.cols();
 
         if (num_points == 0) {
             area = 0.0;
@@ -515,7 +515,7 @@ namespace cilantro {
         }
 
         Eigen::Matrix<double,EigenDim,1> mu(vert_data.rowwise().mean());
-        size_t true_dim = Eigen::FullPivLU<Eigen::Matrix<double,EigenDim,Eigen::Dynamic>>(vert_data.colwise() - mu).rank();
+        const size_t true_dim = Eigen::FullPivLU<Eigen::Matrix<double,EigenDim,Eigen::Dynamic>>(vert_data.colwise() - mu).rank();
 
         //std::cout << "TRUE DIMENSION: " << true_dim << std::endl << std::endl;
 
@@ -545,8 +545,8 @@ namespace cilantro {
             } else if (true_dim == 1) {
                 // Handle special case (1D line, not handled by qhull)
                 size_t ind_min, ind_max;
-                double min_val = proj_vert.row(0).minCoeff(&ind_min);
-                double max_val = proj_vert.row(0).maxCoeff(&ind_max);
+                const double min_val = proj_vert.row(0).minCoeff(&ind_min);
+                const double max_val = proj_vert.row(0).maxCoeff(&ind_max);
                 area = (dim == 2) ? (max_val-min_val) : 0.0;
                 volume = 0.0;
             }
@@ -577,8 +577,8 @@ namespace cilantro {
                               bool simplicial_facets = true,
                               double merge_tol = 0.0)
     {
-        size_t dim = points.rows();
-        size_t num_points = points.cols();
+        const size_t dim = points.rows();
+        const size_t num_points = points.cols();
 
         if (num_points < dim+1) {
             halfspaces.resize(dim+1, 2);

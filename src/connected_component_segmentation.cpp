@@ -73,7 +73,7 @@ namespace cilantro {
             current_label[seeds_ind[i]] = i;
 
             while (!frontier_set.empty()) {
-                size_t curr_seed = frontier_set[frontier_set.size()-1];
+                const size_t curr_seed = frontier_set[frontier_set.size()-1];
                 frontier_set.resize(frontier_set.size()-1);
 
 //                ind_per_seed[i].insert(curr_seed);

@@ -154,8 +154,8 @@ namespace cilantro {
             NeighborhoodSpecification<ScalarT> nh_sq(nh);
             nh_sq.radius = nh_sq.radius*nh_sq.radius;
 
-            size_t dim = points_.rows();
-            size_t num_points = points_.cols();
+            const size_t dim = points_.rows();
+            const size_t num_points = points_.cols();
 
             normals.resize(dim, num_points);
             curvatures.resize(1, num_points);

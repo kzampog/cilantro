@@ -119,8 +119,8 @@ namespace cilantro {
                 valid_ind--;
             }
 
-            bool has_normals = hasNormals();
-            bool has_colors = hasColors();
+            const bool has_normals = hasNormals();
+            const bool has_colors = hasColors();
 
             auto ind_it = indices_set.begin();
             while (ind_it != indices_set.end() && *ind_it < valid_ind) {
@@ -138,8 +138,8 @@ namespace cilantro {
                 ++ind_it;
             }
 
-            size_t original_size = size();
-            size_t new_size = valid_ind + 1;
+            const size_t original_size = size();
+            const size_t new_size = valid_ind + 1;
             points.conservativeResize(Eigen::NoChange, new_size);
             if (normals.cols() == original_size) {
                 normals.conservativeResize(Eigen::NoChange, new_size);
@@ -183,8 +183,8 @@ namespace cilantro {
         }
 
         PointCloud& removeInvalidData() {
-            bool has_normals = hasNormals();
-            bool has_colors = hasColors();
+            const bool has_normals = hasNormals();
+            const bool has_colors = hasColors();
 
             std::vector<size_t> ind_to_remove;
             ind_to_remove.reserve(points.cols());

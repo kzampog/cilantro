@@ -140,7 +140,7 @@ namespace cilantro {
                             size_t kmeans_max_iter, ScalarT kmeans_conv_tol, bool kmeans_use_kd_tree)
         {
             size_t num_clusters = max_num_clusters;
-            size_t num_eigenvalues = (estimate_num_clusters) ? std::min(max_num_clusters+1, (size_t)(affinities.rows()-1)) : max_num_clusters;
+            const size_t num_eigenvalues = (estimate_num_clusters) ? std::min(max_num_clusters+1, (size_t)(affinities.rows()-1)) : max_num_clusters;
 
             ScalarT conv_tol = (std::is_same<ScalarT,float>::value) ? 1e-7 : 1e-10;
             size_t n_conv = 0;
@@ -240,7 +240,7 @@ namespace cilantro {
                              size_t kmeans_max_iter, ScalarT kmeans_conv_tol, bool kmeans_use_kd_tree)
         {
             size_t num_clusters = max_num_clusters;
-            size_t num_eigenvalues = (estimate_num_clusters) ? std::min(max_num_clusters+1, (size_t)(affinities.rows()-1)) : max_num_clusters;
+            const size_t num_eigenvalues = (estimate_num_clusters) ? std::min(max_num_clusters+1, (size_t)(affinities.rows()-1)) : max_num_clusters;
 
             ScalarT conv_tol = (std::is_same<ScalarT,float>::value) ? 1e-7 : 1e-10;
             size_t n_conv = 0;

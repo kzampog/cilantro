@@ -58,7 +58,7 @@ namespace cilantro {
             return false;
         }
 
-        size_t num_eq = 3*dst_p.cols();
+        const size_t num_eq = 3*dst_p.cols();
 
         Eigen::Matrix<ScalarT,3,3> rot_mat_iter;
         Eigen::Matrix<ScalarT,6,1> d_theta;
@@ -280,8 +280,8 @@ namespace cilantro {
                                                 size_t max_iter = 1,
                                                 ScalarT convergence_tol = 1e-5)
     {
-        ScalarT point_to_point_weight_sqrt = std::sqrt(point_to_point_weight);
-        ScalarT point_to_plane_weight_sqrt = std::sqrt(point_to_plane_weight);
+        const ScalarT point_to_point_weight_sqrt = std::sqrt(point_to_point_weight);
+        const ScalarT point_to_plane_weight_sqrt = std::sqrt(point_to_plane_weight);
 
         if (src_p.cols() != dst_p.cols() || dst_p.cols() != dst_n.cols() || src_p.cols() < 3 || (point_to_point_weight_sqrt == (ScalarT)0.0 && point_to_plane_weight_sqrt == (ScalarT)0.0)) {
             tform.setIdentity();
@@ -303,7 +303,7 @@ namespace cilantro {
         tform.setIdentity();
         Vector<ScalarT,3> s;
 
-        size_t num_eq = 4*dst_p.cols();
+        const size_t num_eq = 4*dst_p.cols();
 
         Eigen::Matrix<ScalarT,6,Eigen::Dynamic> At(6, num_eq);
         Eigen::Matrix<ScalarT,Eigen::Dynamic,1> b(num_eq, 1);

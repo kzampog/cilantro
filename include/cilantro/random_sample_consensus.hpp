@@ -101,7 +101,7 @@ namespace cilantro {
 
         void estimate_model_() {
             ModelEstimator * estimator = static_cast<ModelEstimator*>(this);
-            size_t num_points = estimator->getDataPointsCount();
+            const size_t num_points = estimator->getDataPointsCount();
             if (num_points < sample_size_) sample_size_ = num_points;
             if (inlier_count_thresh_ > num_points) inlier_count_thresh_ = num_points;
 

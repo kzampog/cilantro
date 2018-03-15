@@ -59,7 +59,7 @@ namespace cilantro {
 
         inline bool is_similar_(size_t i, size_t j) const {
             if (normals_.cols() > 0) {
-                float angle = std::acos(normals_.col(i).dot(normals_.col(j)));
+                const float angle = std::acos(normals_.col(i).dot(normals_.col(j)));
                 if ((normal_angle_thresh_ >= 0.0f && angle > normal_angle_thresh_) ||
                     (normal_angle_thresh_ < 0.0f && std::min(angle,(float)M_PI-angle) > -normal_angle_thresh_)) return false;
             }
