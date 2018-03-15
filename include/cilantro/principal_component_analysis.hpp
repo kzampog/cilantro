@@ -16,8 +16,8 @@ namespace cilantro {
 
             eigenvectors_ = eig.eigenvectors().rowwise().reverse();
             if (eigenvectors_.determinant() < (ScalarT)0.0) {
-                const ptrdiff_t last_col_ind = data.rows() - 1;
-                eigenvectors_.col(last_col_ind) = -eigenvectors_.col(last_col_ind);
+                auto last_col = eigenvectors_.col(data.rows() - 1);
+                last_col = -last_col;
             }
 
             eigenvalues_ = eig.eigenvalues().reverse();

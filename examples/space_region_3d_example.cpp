@@ -1,9 +1,6 @@
-#include <cilantro/flat_convex_hull_3d.hpp>
 #include <cilantro/space_region.hpp>
 #include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
-
-#include <ctime>
 
 void callback(cilantro::Visualizer &viz, int key) {
     if (key == 'a') {
@@ -28,9 +25,9 @@ int main(int argc, char* argv[]) {
 
     // Compute a spatial expression
     auto start = std::chrono::high_resolution_clock::now();
-//    cilantro::SpaceRegion3D sr = sr1.relativeComplement(sr2, true, true);
-//    cilantro::SpaceRegion3D sr = sr1.intersectionWith(sr2, true, true);
-//    cilantro::SpaceRegion3D sr = sr1.intersectionWith(sr2).complement(true, true);
+//    cilantro::SpaceRegion3f sr = sr1.relativeComplement(sr2, true, true);
+//    cilantro::SpaceRegion3f sr = sr1.intersectionWith(sr2, true, true);
+//    cilantro::SpaceRegion3f sr = sr1.intersectionWith(sr2).complement(true, true);
     cilantro::SpaceRegion3f sr = sr1.complement().unionWith(sr2.complement()).complement(true, true);
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> elapsed = end - start;
