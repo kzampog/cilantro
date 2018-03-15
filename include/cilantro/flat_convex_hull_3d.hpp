@@ -4,11 +4,11 @@
 
 namespace cilantro {
     template <typename ScalarT>
-    class FlatConvexHull3D : public PrincipalComponentAnalysis<ScalarT,3>, public ConvexHull<ScalarT,2> {
+    class FlatConvexHull3 : public PrincipalComponentAnalysis<ScalarT,3>, public ConvexHull<ScalarT,2> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        FlatConvexHull3D(const ConstVectorSetMatrixMap<ScalarT,3> &points, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0)
+        FlatConvexHull3(const ConstVectorSetMatrixMap<ScalarT,3> &points, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0)
                 : PrincipalComponentAnalysis<ScalarT,3>(points),
                   ConvexHull<ScalarT,2>(this->template project<2>(points), compute_topology, simplicial_facets, merge_tol),
                   vertices_3d_(this->template reconstruct<2>(this->vertices_))
@@ -16,7 +16,7 @@ namespace cilantro {
 
         inline const VectorSet<ScalarT,3>& getVertices3D() const { return vertices_3d_; }
 
-        FlatConvexHull3D& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,3,3>> &rotation, const Eigen::Ref<const Eigen::Matrix<ScalarT,3,1>> &translation) {
+        FlatConvexHull3& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,3,3>> &rotation, const Eigen::Ref<const Eigen::Matrix<ScalarT,3,1>> &translation) {
             if (this->is_empty_) return *this;
 
             vertices_3d_ = (rotation*vertices_3d_).colwise() + translation;
@@ -42,16 +42,19 @@ namespace cilantro {
             proj_mat.row(2).setZero();
             proj_mat(2,3) = 1.0;
 
-            ConvexHull2f::transform(proj_mat*tform*rec_mat);
+            ConvexHull<ScalarT,2>::transform(proj_mat*tform*rec_mat);
 
             return *this;
         }
 
-        inline FlatConvexHull3D& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,4,4>> &rigid_transform) {
+        inline FlatConvexHull3& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,4,4>> &rigid_transform) {
             return transform(rigid_transform.topLeftCorner(3,3), rigid_transform.topRightCorner(3,1));
         }
 
     protected:
         VectorSet<ScalarT,3> vertices_3d_;
     };
+
+    typedef FlatConvexHull3<float> FlatConvexHull3f;
+    typedef FlatConvexHull3<double> FlatConvexHull3d;
 }

@@ -90,7 +90,7 @@ int main(int argc, char ** argv) {
     if (cloud.points.size() < 3) return 0;
 
     // PointCloudHullFlat also inherits from PrincipalComponentAnalysis
-    cilantro::FlatConvexHull3D<float> ch2d(cloud.points, true, true);
+    cilantro::FlatConvexHull3f ch2d(cloud.points, true, true);
     cloud.points = ch2d.reconstruct<2>(ch2d.project<2>(cloud.points));
     cloud.normals.resize(Eigen::NoChange, 0);
 
