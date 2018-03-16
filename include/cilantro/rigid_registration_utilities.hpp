@@ -280,20 +280,17 @@ namespace cilantro {
                                                 size_t max_iter = 1,
                                                 ScalarT convergence_tol = 1e-5)
     {
-        const ScalarT point_to_point_weight_sqrt = std::sqrt(point_to_point_weight);
-        const ScalarT point_to_plane_weight_sqrt = std::sqrt(point_to_plane_weight);
-
-        if (src_p.cols() != dst_p.cols() || dst_p.cols() != dst_n.cols() || src_p.cols() < 3 || (point_to_point_weight_sqrt == (ScalarT)0.0 && point_to_plane_weight_sqrt == (ScalarT)0.0)) {
+        if (src_p.cols() != dst_p.cols() || dst_p.cols() != dst_n.cols() || src_p.cols() < 3 || (point_to_point_weight == (ScalarT)0.0 && point_to_plane_weight == (ScalarT)0.0)) {
             tform.setIdentity();
             return false;
         }
 
-        if (point_to_point_weight_sqrt == (ScalarT)0.0) {
+        if (point_to_point_weight == (ScalarT)0.0) {
             // Do point-to-plane
             return estimateRigidTransformPointToPlane3D<ScalarT>(dst_p, dst_n, src_p, tform, max_iter, convergence_tol);
         }
 
-        if (point_to_plane_weight_sqrt == (ScalarT)0.0) {
+        if (point_to_plane_weight == (ScalarT)0.0) {
             // Do point-to-point
             return estimateRigidTransformPointToPoint3DIterative<ScalarT>(dst_p, src_p, tform, max_iter, convergence_tol);
         }
@@ -303,6 +300,8 @@ namespace cilantro {
         tform.setIdentity();
         Vector<ScalarT,3> s;
 
+        const ScalarT point_to_point_weight_sqrt = std::sqrt(point_to_point_weight);
+        const ScalarT point_to_plane_weight_sqrt = std::sqrt(point_to_plane_weight);
         const size_t num_eq = 4*dst_p.cols();
 
         Eigen::Matrix<ScalarT,6,Eigen::Dynamic> At(6, num_eq);
