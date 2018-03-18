@@ -67,7 +67,7 @@ namespace cilantro {
         return num_bytes_to_read;
     }
 
-    void writeRawDataToFile(const std::string &file_name, void * data_ptr, size_t num_bytes) {
+    void writeRawDataToFile(const std::string &file_name, const void * data_ptr, size_t num_bytes) {
         std::ofstream out(file_name, std::ios::out | std::ios::binary);
         out.write((char*)data_ptr, num_bytes);
         out.close();

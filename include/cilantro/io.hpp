@@ -81,5 +81,5 @@ namespace cilantro {
 
     size_t readRawDataFromFile(const std::string &file_name, void * data_ptr, size_t num_bytes = 0);
 
-    void writeRawDataToFile(const std::string &file_name, void * data_ptr, size_t num_bytes);
+    void writeRawDataToFile(const std::string &file_name, const void * data_ptr, size_t num_bytes);
 }
