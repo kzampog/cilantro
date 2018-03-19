@@ -1,8 +1,8 @@
-// Copyright (C) 2016-2017 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2018 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
-// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #ifndef GEN_EIGS_COMPLEX_SHIFT_SOLVER_H
 #define GEN_EIGS_COMPLEX_SHIFT_SOLVER_H

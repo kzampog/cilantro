@@ -1,8 +1,8 @@
-// Copyright (C) 2016-2017 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2018 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
-// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #ifndef SYM_EIGS_SOLVER_H
 #define SYM_EIGS_SOLVER_H
@@ -13,6 +13,7 @@
 #include <algorithm>  // std::min, std::copy
 #include <stdexcept>  // std::invalid_argument
 
+#include "Util/TypeTraits.h"
 #include "Util/SelectionRule.h"
 #include "Util/CompInfo.h"
 #include "Util/SimpleRandom.h"
@@ -86,7 +87,7 @@ namespace Spectra {
 ///     Eigen::MatrixXd A = Eigen::MatrixXd::Random(10, 10);
 ///     Eigen::MatrixXd M = A + A.transpose();
 ///
-///     // Construct matrix operation object using the wrapper class DenseGenMatProd
+///     // Construct matrix operation object using the wrapper class DenseSymMatProd
 ///     DenseSymMatProd<double> op(M);
 ///
 ///     // Construct eigen solver object, requesting the largest three eigenvalues
@@ -190,11 +191,11 @@ private:
     BoolArray m_ritz_conv;   // indicator of the convergence of ritz values
     int m_info;              // status of the computation
 
+    const Scalar m_near_0;   // a very small value, but 1.0 / m_safe_min does not overflow
+                             // ~= 1e-307 for the "double" type
     const Scalar m_eps;      // the machine precision,
                              // e.g. ~= 1e-16 for the "double" type
-    const Scalar m_approx_0; // a number that is approximately zero
-                             // m_approx_0 = m_eps^(2/3)
-                             // used to test the orthogonality of vectors
+    const Scalar m_eps23;    // m_eps^(2/3), used to test the convergence
 
     // Arnoldi factorization starting from step-k
     void factorize_from(int from_k, int to_m, const Vector& fk)
@@ -203,6 +204,8 @@ private:
 
         m_fac_f.noalias() = fk;
 
+        // Pre-allocate Vf
+        Vector Vf(to_m);
         Vector w(m_n);
         Scalar beta = norm(m_fac_f), Hii = 0.0;
         // Keep the upperleft k x k submatrix of H and set other elements to 0
@@ -214,14 +217,14 @@ private:
             // If beta = 0, then the next V is not full rank
             // We need to generate a new residual vector that is orthogonal
             // to the current V, which we call a restart
-            if(beta < m_eps)
+            if(beta < m_near_0)
             {
                 SimpleRandom<Scalar> rng(2 * i);
                 m_fac_f.noalias() = rng.random_vec(m_n);
                 // f <- f - V * V' * f, so that f is orthogonal to V
                 MapMat V(m_fac_V.data(), m_n, i); // The first i columns
-                Vector Vf = inner_product(V, m_fac_f);
-                m_fac_f.noalias() -= V * Vf;
+                Vf.head(i) = inner_product(V, m_fac_f);
+                m_fac_f.noalias() -= V * Vf.head(i);
                 // beta <- ||f||
                 beta = norm(m_fac_f);
 
@@ -257,14 +260,15 @@ private:
 
             // f/||f|| is going to be the next column of V, so we need to test
             // whether V' * (f/||f||) ~= 0
-            MapMat V(m_fac_V.data(), m_n, i + 1); // The first (i+1) columns
-            Vector Vf = inner_product(V, m_fac_f);
+            const int i1 = i + 1;
+            MapMat V(m_fac_V.data(), m_n, i1); // The first (i+1) columns
+            Vf.head(i1) = inner_product(V, m_fac_f);
             // If not, iteratively correct the residual
             int count = 0;
-            while(count < 5 && Vf.cwiseAbs().maxCoeff() > m_approx_0 * beta)
+            while(count < 5 && Vf.head(i1).cwiseAbs().maxCoeff() > m_eps * beta)
             {
                 // f <- f - V * Vf
-                m_fac_f.noalias() -= V * Vf;
+                m_fac_f.noalias() -= V * Vf.head(i1);
                 // h <- h + Vf
                 m_fac_H(i - 1, i) += Vf[i - 1];
                 m_fac_H(i, i - 1) = m_fac_H(i - 1, i);
@@ -272,7 +276,7 @@ private:
                 // beta <- ||f||
                 beta = norm(m_fac_f);
 
-                Vf.noalias() = inner_product(V, m_fac_f);
+                Vf.head(i1).noalias() = inner_product(V, m_fac_f);
                 count++;
             }
         }
@@ -298,7 +302,7 @@ private:
             // H -> Q'HQ
             // Since QR = H - mu * I, we have H = QR + mu * I
             // and therefore Q'HQ = RQ + mu * I
-            m_fac_H = decomp.matrix_RQ();
+            decomp.matrix_RQ(m_fac_H);
             m_fac_H.diagonal().array() += m_ritz_val[i];
         }
         // V -> VQ, only need to update the first k+1 columns
@@ -316,7 +320,7 @@ private:
         Vs.col(k).noalias() = m_fac_V * Q.col(k);
         m_fac_V.leftCols(k + 1).noalias() = Vs;
 
-        Vector fk = m_fac_f * Q(m_ncv - 1, k - 1) + m_fac_V.col(k) * m_fac_H(k, k - 1);
+        const Vector fk = m_fac_f * Q(m_ncv - 1, k - 1) + m_fac_V.col(k) * m_fac_H(k, k - 1);
         factorize_from(k, m_ncv, fk);
         retrieve_ritzpair();
     }
@@ -324,8 +328,8 @@ private:
     // Calculates the number of converged Ritz values
     int num_converged(Scalar tol)
     {
-        // thresh = tol * max(m_approx_0, abs(theta)), theta for ritz value
-        Array thresh = tol * m_ritz_val.head(m_nev).array().abs().max(m_approx_0);
+        // thresh = tol * max(m_eps23, abs(theta)), theta for ritz value
+        Array thresh = tol * m_ritz_val.head(m_nev).array().abs().max(m_eps23);
         Array resid =  m_ritz_est.head(m_nev).array().abs() * norm(m_fac_f);
         // Converged "wanted" ritz values
         m_ritz_conv = (resid < thresh);
@@ -340,7 +344,7 @@ private:
 
         int nev_new = m_nev;
         for(int i = m_nev; i < m_ncv; i++)
-            if(abs(m_ritz_est[i]) < m_eps)  nev_new++;
+            if(abs(m_ritz_est[i]) < m_near_0)  nev_new++;
 
         // Adjust nev_new, according to dsaup2.f line 677~684 in ARPACK
         nev_new += std::min(nconv, (m_ncv - nev_new) / 2);
@@ -359,8 +363,8 @@ private:
     void retrieve_ritzpair()
     {
         TridiagEigen<Scalar> decomp(m_fac_H);
-        Vector evals = decomp.eigenvalues();
-        Matrix evecs = decomp.eigenvectors();
+        const Vector& evals = decomp.eigenvalues();
+        const Matrix& evecs = decomp.eigenvectors();
 
         SortEigenvalue<Scalar, SelectionRule> sorting(evals.data(), evals.size());
         std::vector<int> ind = sorting.index();
@@ -485,8 +489,9 @@ public:
         m_nmatop(0),
         m_niter(0),
         m_info(NOT_COMPUTED),
+        m_near_0(TypeTraits<Scalar>::min() * Scalar(10)),
         m_eps(Eigen::NumTraits<Scalar>::epsilon()),
-        m_approx_0(Eigen::numext::pow(m_eps, Scalar(2.0) / 3))
+        m_eps23(Eigen::numext::pow(m_eps, Scalar(2.0) / 3))
     {
         if(nev_ < 1 || nev_ > m_n - 1)
             throw std::invalid_argument("nev must satisfy 1 <= nev <= n - 1, n is the size of matrix");
@@ -535,7 +540,7 @@ public:
         Vector v(m_n);
         std::copy(init_resid, init_resid + m_n, v.data());
         Scalar vnorm = norm(v);
-        if(vnorm < m_eps)
+        if(vnorm < m_near_0)
             throw std::invalid_argument("initial residual vector cannot be zero");
         v /= vnorm;
 

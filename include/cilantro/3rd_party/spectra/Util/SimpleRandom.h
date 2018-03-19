@@ -1,8 +1,8 @@
-// Copyright (C) 2016-2017 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2018 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
-// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #ifndef SIMPLE_RANDOM_H
 #define SIMPLE_RANDOM_H
@@ -33,8 +33,8 @@ class SimpleRandom
 private:
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
 
-    const int m_a;     // multiplier
-    const long m_max;  // 2^31 - 1
+    const unsigned int m_a;     // multiplier
+    const unsigned long m_max;  // 2^31 - 1
     long m_rand;
 
     inline long next_long_rand(long seed)
@@ -44,13 +44,13 @@ private:
         lo = m_a * (long)(seed & 0xFFFF);
         hi = m_a * (long)((unsigned long)seed >> 16);
         lo += (hi & 0x7FFF) << 16;
-        if((long)lo > m_max)
+        if(lo > m_max)
         {
             lo &= m_max;
             ++lo;
         }
         lo += hi >> 15;
-        if((long)lo > m_max)
+        if(lo > m_max)
         {
             lo &= m_max;
             ++lo;

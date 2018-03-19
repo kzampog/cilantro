@@ -2,11 +2,11 @@
 //
 // Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
-// Copyright (C) 2016-2017 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2018 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
-// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #ifndef TRIDIAG_EIGEN_H
 #define TRIDIAG_EIGEN_H
@@ -14,6 +14,8 @@
 #include <Eigen/Core>
 #include <Eigen/Jacobi>
 #include <stdexcept>
+
+#include "../Util/TypeTraits.h"
 
 namespace Spectra {
 
@@ -107,30 +109,30 @@ public:
         m_n(0), m_computed(false)
     {}
 
-    TridiagEigen(ConstGenericMatrix &mat) :
+    TridiagEigen(ConstGenericMatrix& mat) :
         m_n(mat.rows()), m_computed(false)
     {
         compute(mat);
     }
 
-    void compute(ConstGenericMatrix &mat)
+    void compute(ConstGenericMatrix& mat)
     {
         using std::abs;
 
-        if(mat.rows() != mat.cols())
+        m_n = mat.rows();
+        if(m_n != mat.cols())
             throw std::invalid_argument("TridiagEigen: matrix must be square");
 
-        m_n = mat.rows();
-        m_main_diag = mat.diagonal();
-        m_sub_diag = mat.diagonal(-1);
+        m_main_diag.resize(m_n);
+        m_sub_diag.resize(m_n - 1);
         m_evecs.resize(m_n, m_n);
         m_evecs.setIdentity();
 
         // Scale matrix to improve stability
-        const Scalar scale = std::max(m_main_diag.cwiseAbs().maxCoeff(),
-                                      m_sub_diag.cwiseAbs().maxCoeff());
-        m_main_diag /= scale;
-        m_sub_diag /= scale;
+        const Scalar scale = std::max(mat.diagonal().cwiseAbs().maxCoeff(),
+                                      mat.diagonal(-1).cwiseAbs().maxCoeff());
+        m_main_diag.noalias() = mat.diagonal() / scale;
+        m_sub_diag.noalias() = mat.diagonal(-1) / scale;
 
         Scalar* diag = m_main_diag.data();
         Scalar* subdiag = m_sub_diag.data();
@@ -140,11 +142,8 @@ public:
         int iter = 0; // total number of iterations
         int info = 0; // 0 for success, 1 for failure
 
-        const Scalar eps = Eigen::NumTraits<Scalar>::epsilon();
-        // Ideally this should be std::numeric_limits<Scalar>::min() as in Eigen,
-        // but to allow for other float types, here we use eps^2
-        const Scalar considerAsZero = eps * eps;
-        const Scalar precision = Scalar(2) * eps;
+        const Scalar considerAsZero = TypeTraits<Scalar>::min();
+        const Scalar precision = Scalar(2) * Eigen::NumTraits<Scalar>::epsilon();
 
         while(end > 0)
         {
@@ -184,7 +183,7 @@ public:
         m_computed = true;
     }
 
-    Vector eigenvalues()
+    const Vector& eigenvalues() const
     {
         if(!m_computed)
             throw std::logic_error("TridiagEigen: need to call compute() first");
@@ -193,7 +192,7 @@ public:
         return m_main_diag;
     }
 
-    Matrix eigenvectors()
+    const Matrix& eigenvectors() const
     {
         if(!m_computed)
             throw std::logic_error("TridiagEigen: need to call compute() first");
