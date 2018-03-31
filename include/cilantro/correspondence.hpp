@@ -34,7 +34,7 @@ namespace cilantro {
 
     template <typename ScalarT>
     struct CorrespondenceDistanceEvaluator {
-        inline ScalarT getValue(size_t first_ind, size_t second_ind, ScalarT dist) const {
+        inline ScalarT operator()(size_t first_ind, size_t second_ind, ScalarT dist) const {
             return dist;
         }
     };
@@ -121,7 +121,7 @@ namespace cilantro {
         return corr_res;
     }
 
-    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = CorrespondenceDistanceEvaluator<ScalarT>, typename CorrValueT = decltype(std::declval<EvaluatorT>().getValue((size_t)0,(size_t)0,(ScalarT)0))>
+    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = CorrespondenceDistanceEvaluator<ScalarT>, typename CorrValueT = decltype(std::declval<EvaluatorT>().operator()((size_t)0,(size_t)0,(ScalarT)0))>
     void findNNCorrespondencesUnidirectional(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
                                              const KDTree<ScalarT,EigenDim,DistAdaptor> &ref_tree,
                                              bool ref_is_first,
@@ -140,7 +140,7 @@ namespace cilantro {
                 ref_tree.nearestNeighborSearch(query_pts.col(i), nn);
                 if (nn.value < max_distance) {
 #pragma omp critical
-                    correspondences.emplace_back(nn.index, i, evaluator.getValue(nn.index, i, nn.value));
+                    correspondences.emplace_back(nn.index, i, evaluator(nn.index, i, nn.value));
                 }
             }
         } else {
@@ -149,13 +149,13 @@ namespace cilantro {
                 ref_tree.nearestNeighborSearch(query_pts.col(i), nn);
                 if (nn.value < max_distance) {
 #pragma omp critical
-                    correspondences.emplace_back(i, nn.index, evaluator.getValue(i, nn.index, nn.value));
+                    correspondences.emplace_back(i, nn.index, evaluator(i, nn.index, nn.value));
                 }
             }
         }
     }
 
-    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = CorrespondenceDistanceEvaluator<ScalarT>, typename CorrValueT = decltype(std::declval<EvaluatorT>().getValue((size_t)0,(size_t)0,(ScalarT)0))>
+    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = CorrespondenceDistanceEvaluator<ScalarT>, typename CorrValueT = decltype(std::declval<EvaluatorT>().operator()((size_t)0,(size_t)0,(ScalarT)0))>
     inline CorrespondenceSet<CorrValueT> findNNCorrespondencesUnidirectional(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
                                                                              const KDTree<ScalarT,EigenDim,DistAdaptor> &ref_tree,
                                                                              bool ref_is_first,
@@ -167,7 +167,7 @@ namespace cilantro {
         return corr_set;
     }
 
-    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = CorrespondenceDistanceEvaluator<ScalarT>, typename CorrValueT = decltype(std::declval<EvaluatorT>().getValue((size_t)0,(size_t)0,(ScalarT)0))>
+    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = CorrespondenceDistanceEvaluator<ScalarT>, typename CorrValueT = decltype(std::declval<EvaluatorT>().operator()((size_t)0,(size_t)0,(ScalarT)0))>
     void findNNCorrespondencesBidirectional(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &first_points,
                                             const ConstVectorSetMatrixMap<ScalarT,EigenDim> &second_points,
                                             const KDTree<ScalarT,EigenDim,DistAdaptor> &first_tree,
@@ -200,7 +200,7 @@ namespace cilantro {
         }
     }
 
-    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = CorrespondenceDistanceEvaluator<ScalarT>, typename CorrValueT = decltype(std::declval<EvaluatorT>().getValue((size_t)0,(size_t)0,(ScalarT)0))>
+    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = CorrespondenceDistanceEvaluator<ScalarT>, typename CorrValueT = decltype(std::declval<EvaluatorT>().operator()((size_t)0,(size_t)0,(ScalarT)0))>
     inline CorrespondenceSet<CorrValueT> findNNCorrespondencesBidirectional(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &first_points,
                                                                             const ConstVectorSetMatrixMap<ScalarT,EigenDim> &second_points,
                                                                             const KDTree<ScalarT,EigenDim,DistAdaptor> &first_tree,

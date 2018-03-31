@@ -4,7 +4,7 @@
 #include <cilantro/visualizer.hpp>
 
 struct AffinityEvaluator {
-    inline float getValue(size_t i, size_t j, float dist) const {
+    inline float operator()(size_t i, size_t j, float dist) const {
         return std::exp(-dist/2.0f);
     }
 };

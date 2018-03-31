@@ -30,6 +30,7 @@
 #include <cilantro/renderables.hpp>
 #include <cilantro/rigid_registration_utilities.hpp>
 #include <cilantro/rigid_transform_estimator.hpp>
+#include <cilantro/simple_similarity_evaluators.hpp>
 #include <cilantro/space_region.hpp>
 #include <cilantro/space_transformations.hpp>
 #include <cilantro/spectral_clustering.hpp>

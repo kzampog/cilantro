@@ -1,3 +1,4 @@
+#include <cilantro/simple_similarity_evaluators.hpp>
 #include <cilantro/connected_component_segmentation.hpp>
 #include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
@@ -9,10 +10,19 @@ int main(int argc, char ** argv) {
     cloud.gridDownsample(0.005f).removeInvalidData();
 
     // Perform segmentation
-    cilantro::ConnectedComponentSegmentation ccs(cloud.points, cloud.normals, cloud.colors);
-
     auto start = std::chrono::high_resolution_clock::now();
-    ccs.segment(0.02, (float)(2.0*M_PI/180.0), 5.0, 100, cloud.size());
+
+    cilantro::ConnectedComponentSegmentation ccs;
+
+    cilantro::NeighborhoodSpecification<float> nh(cilantro::NeighborhoodType::RADIUS, 0, 0.02f*0.02f);
+//    cilantro::NormalsColorsProximityEvaluator<float,3> ev(cloud.normals, cloud.colors, (float)(2.0*M_PI/180.0), 0.05f);
+    cilantro::NormalsProximityEvaluator<float,3> ev(cloud.normals, (float)(2.0*M_PI/180.0));
+    ccs.segment<float,3>(cloud.points, nh, ev, 100, cloud.size());
+
+//    std::vector<cilantro::NearestNeighborSearchResultSet<float>> nn;
+//    cilantro::KDTree3f(cloud.points).radiusSearch(cloud.points, 0.02f*0.02f, nn);
+//    ccs.segment(nn);
+
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> elapsed = end - start;
     std::cout << "Segmentation time: " << elapsed.count() << "ms" << std::endl;

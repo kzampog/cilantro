@@ -10,7 +10,7 @@ namespace cilantro {
             enum { coeff = EigenDim - EigenCoeff };
             if (p1[coeff] < p2[coeff]) return true;
             if (p2[coeff] < p1[coeff]) return false;
-            return EigenVectorComparatorHelper<ScalarT,EigenDim,EigenCoeff-1>::result (p1, p2);
+            return EigenVectorComparatorHelper<ScalarT,EigenDim,EigenCoeff-1>::result(p1, p2);
         }
     };
 
