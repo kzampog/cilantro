@@ -14,8 +14,8 @@ int main(int argc, char ** argv) {
 
     cilantro::ConnectedComponentSegmentation ccs;
 
-    cilantro::NeighborhoodSpecification<float> nh(cilantro::NeighborhoodType::RADIUS, 0, 0.02f*0.02f);
-//    cilantro::NormalsColorsProximityEvaluator<float,3> ev(cloud.normals, cloud.colors, (float)(2.0*M_PI/180.0), 0.05f);
+    cilantro::NeighborhoodSpecification<float> nh(cilantro::NeighborhoodType::RADIUS, 32, 0.02f*0.02f);
+//    cilantro::NormalsColorsProximityEvaluator<float,3> ev(cloud.normals, cloud.colors, (float)(2.0*M_PI/180.0), 0.1f);
     cilantro::NormalsProximityEvaluator<float,3> ev(cloud.normals, (float)(2.0*M_PI/180.0));
     ccs.segment<float,3>(cloud.points, nh, ev, 100, cloud.size());
 
