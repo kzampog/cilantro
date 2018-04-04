@@ -4,7 +4,7 @@
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
-    class PointsAdaptor {
+    class PointFeaturesAdaptor {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -12,7 +12,7 @@ namespace cilantro {
 
         enum {FeatureDimension = EigenDim};
 
-        PointsAdaptor(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points)
+        PointFeaturesAdaptor(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points)
                 : data_map_(points),
                   transformed_data_(points.rows(), points.cols()),
                   transformed_data_map_(transformed_data_)
@@ -45,7 +45,7 @@ namespace cilantro {
     };
 
     template <typename ScalarT, ptrdiff_t EigenDim>
-    class PointsNormalsAdaptor {
+    class PointNormalFeaturesAdaptor {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -53,15 +53,15 @@ namespace cilantro {
 
         enum {FeatureDimension = (EigenDim == Eigen::Dynamic) ? Eigen::Dynamic : 2*EigenDim};
 
-        PointsNormalsAdaptor(const ConstVectorSetMatrixMap<ScalarT,FeatureDimension> &data)
+        PointNormalFeaturesAdaptor(const ConstVectorSetMatrixMap<ScalarT,FeatureDimension> &data)
                 : data_map_(data),
                   transformed_data_(data.rows(), data.cols()),
                   transformed_data_map_(transformed_data_)
         {}
 
-        PointsNormalsAdaptor(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
-                             const ConstVectorSetMatrixMap<ScalarT,EigenDim> &normals,
-                             ScalarT normal_weight)
+        PointNormalFeaturesAdaptor(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
+                                   const ConstVectorSetMatrixMap<ScalarT,EigenDim> &normals,
+                                   ScalarT normal_weight)
                 : data_(2*points.rows(), points.cols()),
                   data_map_(data_),
                   transformed_data_(data_.rows(), data_.cols()),
@@ -107,7 +107,7 @@ namespace cilantro {
     };
 
     template <typename ScalarT, ptrdiff_t EigenDim>
-    class PointsColorsAdaptor {
+    class PointColorFeaturesAdaptor {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -115,15 +115,15 @@ namespace cilantro {
 
         enum {FeatureDimension = (EigenDim == Eigen::Dynamic) ? Eigen::Dynamic : EigenDim + 3};
 
-        PointsColorsAdaptor(const ConstVectorSetMatrixMap<ScalarT,FeatureDimension> &data)
+        PointColorFeaturesAdaptor(const ConstVectorSetMatrixMap<ScalarT,FeatureDimension> &data)
                 : data_map_(data),
                   transformed_data_(data.rows(), data.cols()),
                   transformed_data_map_(transformed_data_)
         {}
 
-        PointsColorsAdaptor(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
-                            const ConstVectorSetMatrixMap<ScalarT,3> &colors,
-                            ScalarT color_weight)
+        PointColorFeaturesAdaptor(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
+                                  const ConstVectorSetMatrixMap<ScalarT,3> &colors,
+                                  ScalarT color_weight)
                 : data_(points.rows()+3, points.cols()),
                   data_map_(data_),
                   transformed_data_(data_.rows(), data_.cols()),
@@ -169,7 +169,7 @@ namespace cilantro {
     };
 
     template <typename ScalarT, ptrdiff_t EigenDim>
-    class PointsNormalsColorsAdaptor {
+    class PointNormalColorFeaturesAdaptor {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -177,16 +177,16 @@ namespace cilantro {
 
         enum {FeatureDimension = (EigenDim == Eigen::Dynamic) ? Eigen::Dynamic : 2*EigenDim + 3};
 
-        PointsNormalsColorsAdaptor(const ConstVectorSetMatrixMap<ScalarT,FeatureDimension> &data)
+        PointNormalColorFeaturesAdaptor(const ConstVectorSetMatrixMap<ScalarT,FeatureDimension> &data)
                 : data_map_(data),
                   transformed_data_(data.rows(), data.cols()),
                   transformed_data_map_(transformed_data_)
         {}
 
-        PointsNormalsColorsAdaptor(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
-                                   const ConstVectorSetMatrixMap<ScalarT,EigenDim> &normals,
-                                   const ConstVectorSetMatrixMap<ScalarT,3> &colors,
-                                   ScalarT normal_weight, ScalarT color_weight)
+        PointNormalColorFeaturesAdaptor(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
+                                        const ConstVectorSetMatrixMap<ScalarT,EigenDim> &normals,
+                                        const ConstVectorSetMatrixMap<ScalarT,3> &colors,
+                                        ScalarT normal_weight, ScalarT color_weight)
                 : data_(2*points.rows()+3, points.cols()),
                   data_map_(data_),
                   transformed_data_(data_.rows(), data_.cols()),

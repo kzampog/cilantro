@@ -74,18 +74,18 @@ int main(int argc, char ** argv) {
     cilantro::RigidTransformation3f tf_est;
 
     // Point features adaptors for correspondence search
-//    cilantro::PointsNormalsColorsAdaptor<float,3> dst_feat(dst.points, dst.normals, dst.colors, 0.5, 5.0);
-//    cilantro::PointsNormalsColorsAdaptor<float,3> src_feat(src.points, src.normals, src.colors, 0.5, 5.0);
-    cilantro::PointsAdaptor<float,3> dst_feat(dst.points);
-    cilantro::PointsAdaptor<float,3> src_feat(src.points);
+//    cilantro::PointNormalColorFeaturesAdaptor<float,3> dst_feat(dst.points, dst.normals, dst.colors, 0.5, 5.0);
+//    cilantro::PointNormalColorFeaturesAdaptor<float,3> src_feat(src.points, src.normals, src.colors, 0.5, 5.0);
+    cilantro::PointFeaturesAdaptor<float,3> dst_feat(dst.points);
+    cilantro::PointFeaturesAdaptor<float,3> src_feat(src.points);
 
     // Point-to-point
-//    cilantro::PointToPointRigidICP<float,3,cilantro::PointsNormalsColorsAdaptor<float,3>> icp(dst.points, src.points, dst_feat, src_feat);
-//    cilantro::PointToPointRigidICP<float,3,cilantro::PointsAdaptor<float,3>> icp(dst.points, src.points, dst_feat, src_feat);
+//    cilantro::PointToPointRigidICP<float,3,cilantro::PointNormalColorFeaturesAdaptor<float,3>> icp(dst.points, src.points, dst_feat, src_feat);
+//    cilantro::PointToPointRigidICP<float,3,cilantro::PointFeaturesAdaptor<float,3>> icp(dst.points, src.points, dst_feat, src_feat);
 
     // Weighted combination of point-to-point and point-to-plane
-//    cilantro::CombinedMetricRigidICP3D<float,cilantro::PointsNormalsColorsAdaptor<float,3>> icp(dst.points, dst.normals, src.points, dst_feat, src_feat);
-    cilantro::CombinedMetricRigidICP3D<float,cilantro::PointsAdaptor<float,3>> icp(dst.points, dst.normals, src.points, dst_feat, src_feat);
+//    cilantro::CombinedMetricRigidICP3D<float,cilantro::PointNormalColorFeaturesAdaptor<float,3>> icp(dst.points, dst.normals, src.points, dst_feat, src_feat);
+    cilantro::CombinedMetricRigidICP3D<float,cilantro::PointFeaturesAdaptor<float,3>> icp(dst.points, dst.normals, src.points, dst_feat, src_feat);
 
     icp.setMaxCorrespondenceDistance(0.1f*0.1f).setConvergenceTolerance(1e-3f).setMaxNumberOfIterations(100);
     icp.setMaxNumberOfOptimizationStepIterations(1).setPointToPointMetricWeight(0.0).setPointToPlaneMetricWeight(1.0);
