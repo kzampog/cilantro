@@ -76,7 +76,7 @@ namespace cilantro {
 
         inline const TransformT& getTransformation() const { return transform_; }
 
-        inline const ICPInstanceT& getTransformation(TransformT& tform) const { tform = transform_; return *static_cast<ICPInstanceT*>(this); }
+        inline const ICPInstanceT& getTransformation(TransformT& tform) const { tform = transform_; return *static_cast<const ICPInstanceT*>(this); }
 
         inline ResidualT getResiduals() { return static_cast<ICPInstanceT*>(this)->computeResiduals(); }
 
