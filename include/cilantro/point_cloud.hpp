@@ -224,14 +224,14 @@ namespace cilantro {
         }
 
         PointCloud& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rotation, const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation) {
-            points = (rotation*points).colwise() + translation();
+            points = (rotation*points).colwise() + translation;
             if (hasNormals()) normals = rotation*normals;
             return *this;
         }
 
         PointCloud transformed(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rotation, const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation) {
             PointCloud cloud;
-            cloud.points = (rotation*points).colwise() + translation();
+            cloud.points = (rotation*points).colwise() + translation;
             if (hasNormals()) cloud.normals = rotation*normals;
             if (hasColors()) cloud.colors = colors;
             return cloud;
