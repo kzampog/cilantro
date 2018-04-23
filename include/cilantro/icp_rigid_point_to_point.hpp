@@ -69,30 +69,18 @@ namespace cilantro {
         }
 
         bool updateEstimate() {
-            if (this->iterations_ > 0) {
-                RigidTransformation<ScalarT,EigenDim> tform_iter;
+            RigidTransformation<ScalarT,EigenDim> tform_iter;
 #pragma omp parallel for
-                for (size_t i = 0; i < src_points_.cols(); i++) {
-                    src_points_trans_.col(i) = this->transform_*src_points_.col(i);
-                }
-                if (estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim,typename FeatureAdaptorT::Scalar>(dst_points_, src_points_trans_, correspondences_, tform_iter)) {
-                    this->transform_ = tform_iter*this->transform_;
-                    this->transform_.linear() = this->transform_.rotation();
-                    this->last_delta_norm_ = std::sqrt((tform_iter.linear() - Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Identity(src_points_.rows(),src_points_.rows())).squaredNorm() + tform_iter.translation().squaredNorm());
-                    return true;
-                } else {
-                    return false;
-                }
+            for (size_t i = 0; i < src_points_.cols(); i++) {
+                src_points_trans_.col(i) = this->transform_*src_points_.col(i);
+            }
+            if (estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim,typename FeatureAdaptorT::Scalar>(dst_points_, src_points_trans_, correspondences_, tform_iter)) {
+                this->transform_ = tform_iter*this->transform_;
+                this->transform_.linear() = this->transform_.rotation();
+                this->last_delta_norm_ = std::sqrt((tform_iter.linear() - Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Identity(src_points_.rows(),src_points_.rows())).squaredNorm() + tform_iter.translation().squaredNorm());
+                return true;
             } else {
-                RigidTransformation<ScalarT,EigenDim> tform_iter;
-                if (estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim,typename FeatureAdaptorT::Scalar>(dst_points_, src_points_, correspondences_, tform_iter)) {
-                    this->transform_ = tform_iter*this->transform_;
-                    this->transform_.linear() = this->transform_.rotation();
-                    this->last_delta_norm_ = std::sqrt((tform_iter.linear() - Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Identity(src_points_.rows(),src_points_.rows())).squaredNorm() + tform_iter.translation().squaredNorm());
-                    return true;
-                } else {
-                    return false;
-                }
+                return false;
             }
         }
 

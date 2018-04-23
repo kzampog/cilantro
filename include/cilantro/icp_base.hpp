@@ -53,9 +53,10 @@ namespace cilantro {
         ICPInstanceT& estimateTransformation() {
             // Main ICP loop
             ICPInstanceT& icp_instance = *static_cast<ICPInstanceT*>(this);
-            icp_instance.initializeComputation();
 
             transform_ = transform_init_;
+            icp_instance.initializeComputation();
+
             iterations_ = 0;
             last_delta_norm_ = std::numeric_limits<PointScalarT>::infinity();
             while (iterations_ < max_iterations_) {
