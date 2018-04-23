@@ -28,11 +28,9 @@ namespace cilantro {
 
         inline const TransformT& getInitialTransformation() const { return transform_init_; }
 
-        inline const ICPInstanceT& setInitialTransformation(TransformT& tform_init) const { tform_init = transform_init_; return *static_cast<ICPInstanceT*>(this); }
+        inline ICPInstanceT& setInitialTransformation(const TransformT& tform_init) { transform_init_ = tform_init; return *static_cast<ICPInstanceT*>(this); }
 
         inline TransformT& initialTransformation() { return transform_init_; }
-
-        inline ICPInstanceT& setInitialTransformation(const TransformT &tform_init) { transform_init_ = tform_init; return *static_cast<ICPInstanceT*>(this); }
 
         inline const CorrespondenceSearchDirection& getCorrespondenceSearchDirection() const { return corr_search_dir_; }
 
