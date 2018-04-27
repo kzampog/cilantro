@@ -12,17 +12,30 @@ int main(int argc, char ** argv) {
     cloud.gridDownsample(0.005f);
 
     auto start = std::chrono::high_resolution_clock::now();
-//    cilantro::KDTree3f tree(cloud.points);
-//    cilantro::NormalEstimation3f ne(cloud.points, tree);
-    cilantro::NormalEstimation3f ne(cloud.points);
+    cilantro::KDTree3f tree(cloud.points);
+//    cilantro::NormalEstimation3f ne(tree);
+//    cilantro::NormalEstimation3f ne(cloud.points);
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> kd_tree_time = end - start;
 
     start = std::chrono::high_resolution_clock::now();
-//    cloud.normals = ne.estimateNormals(cilantro::NeighborhoodSpecification<float>(cilantro::NeighborhoodType::KNN_IN_RADIUS, 7, 0.01));
-//    cloud.normals = ne.estimateNormalsKNNInRadius(7, 0.01);
-//    cloud.normals = ne.estimateNormalsRadius(0.01);
-    cloud.normals = ne.estimateNormalsKNN(7);
+
+//    cloud.normals = ne.estimateNormals(cilantro::NeighborhoodSpecification<float>(cilantro::NeighborhoodType::KNN_IN_RADIUS, 7, 0.01f));
+//    cloud.normals = ne.estimateNormalsKNNInRadius(7, 0.01f);
+//    cloud.normals = ne.estimateNormalsRadius(0.01f);
+//    cloud.normals = ne.estimateNormalsKNN(7);
+
+//    cloud.estimateNormals(tree, cilantro::NeighborhoodSpecification<float>(cilantro::NeighborhoodType::KNN_IN_RADIUS, 7, 0.01f));
+//    cloud.estimateNormalsKNNInRadius(tree, 7, 0.01f);
+//    cloud.estimateNormalsRadius(tree, 0.01f);
+    cloud.estimateNormalsKNN(tree, 7);
+
+    // Search tree argument is optional (automatically built):
+//    cloud.estimateNormals(cilantro::NeighborhoodSpecification<float>(cilantro::NeighborhoodType::KNN_IN_RADIUS, 7, 0.01f));
+//    cloud.estimateNormalsKNNInRadius(7, 0.01f);
+//    cloud.estimateNormalsRadius(0.01f);
+//    cloud.estimateNormalsKNN(7);
+
     end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> estimation_time = end - start;
 

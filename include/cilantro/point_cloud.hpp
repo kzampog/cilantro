@@ -3,7 +3,9 @@
 #include <iterator>
 #include <set>
 #include <cilantro/space_transformations.hpp>
+#include <cilantro/image_point_cloud_conversions.hpp>
 #include <cilantro/grid_downsampler.hpp>
+#include <cilantro/normal_estimation.hpp>
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
@@ -223,6 +225,46 @@ namespace cilantro {
             return res;
         }
 
+        inline PointCloud& estimateNormalsKNN(size_t k) {
+            normals = NormalEstimation<ScalarT,EigenDim>(points).estimateNormalsKNN(k);
+            return *this;
+        }
+
+        inline PointCloud& estimateNormalsKNN(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree, size_t k) {
+            normals = NormalEstimation<ScalarT,EigenDim>(kd_tree).estimateNormalsKNN(k);
+            return *this;
+        }
+
+        inline PointCloud& estimateNormalsRadius(ScalarT radius) {
+            normals = NormalEstimation<ScalarT,EigenDim>(points).estimateNormalsRadius(radius);
+            return *this;
+        }
+
+        inline PointCloud& estimateNormalsRadius(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree, ScalarT radius) {
+            normals = NormalEstimation<ScalarT,EigenDim>(kd_tree).estimateNormalsRadius(radius);
+            return *this;
+        }
+
+        inline PointCloud& estimateNormalsKNNInRadius(size_t k, ScalarT radius) {
+            normals = NormalEstimation<ScalarT,EigenDim>(points).estimateNormalsKNNInRadius(k, radius);
+            return *this;
+        }
+
+        inline PointCloud& estimateNormalsKNNInRadius(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree, size_t k, ScalarT radius) {
+            normals = NormalEstimation<ScalarT,EigenDim>(kd_tree).estimateNormalsKNNInRadius(k, radius);
+            return *this;
+        }
+
+        inline PointCloud& estimateNormals(const NeighborhoodSpecification<ScalarT> &nh) {
+            normals = NormalEstimation<ScalarT,EigenDim>(points).estimateNormals(nh);
+            return *this;
+        }
+
+        inline PointCloud& estimateNormals(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree, const NeighborhoodSpecification<ScalarT> &nh) {
+            normals = NormalEstimation<ScalarT,EigenDim>(kd_tree).estimateNormals(nh);
+            return *this;
+        }
+
         PointCloud& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rotation, const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation) {
             points = (rotation*points).colwise() + translation;
             if (hasNormals()) normals = rotation*normals;
@@ -269,6 +311,57 @@ namespace cilantro {
             if (hasNormals()) cloud.normals = tform.linear()*normals;
             if (hasColors()) cloud.colors = colors;
             return cloud;
+        }
+
+        template <typename DepthT, class DepthConverterT = DepthValueConverter<DepthT,ScalarT>, ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
+        inline PointCloud& fromDepthImage(const DepthT* depth_data,
+                                          size_t image_w, size_t image_h,
+                                          const Eigen::Ref<const Eigen::Matrix<ScalarT,3,3>> &intrinsics,
+                                          bool keep_invalid = false,
+                                          const DepthConverterT &depth_converter = DepthConverterT())
+        {
+            normals.resize(Eigen::NoChange, 0);
+            colors.resize(Eigen::NoChange, 0);
+            depthImageToPoints<DepthT,ScalarT,DepthConverterT>(depth_data, image_w, image_h, intrinsics, points, keep_invalid, depth_converter);
+            return *this;
+        }
+
+        template <typename DepthT, class DepthConverterT = DepthValueConverter<DepthT,ScalarT>, ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
+        static inline PointCloud createFromDepthImage(const DepthT* depth_data,
+                                                      size_t image_w, size_t image_h,
+                                                      const Eigen::Ref<const Eigen::Matrix<ScalarT,3,3>> &intrinsics,
+                                                      bool keep_invalid = false,
+                                                      const DepthConverterT &depth_converter = DepthConverterT())
+        {
+            PointCloud res;
+            depthImageToPoints<DepthT,ScalarT,DepthConverterT>(depth_data, image_w, image_h, intrinsics, res.points, keep_invalid, depth_converter);
+            return res;
+        }
+
+        template <typename DepthT, class DepthConverterT = DepthValueConverter<DepthT,ScalarT>, ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
+        inline PointCloud& fromRGBDImages(unsigned char* rgb_data,
+                                          const DepthT* depth_data,
+                                          size_t image_w, size_t image_h,
+                                          const Eigen::Ref<const Eigen::Matrix<ScalarT,3,3>> &intrinsics,
+                                          bool keep_invalid = false,
+                                          const DepthConverterT &depth_converter = DepthConverterT())
+        {
+            normals.resize(Eigen::NoChange, 0);
+            RGBDImagesToPointsColors<DepthT,ScalarT,DepthConverterT>(rgb_data, depth_data, image_w, image_h, intrinsics, points, colors, keep_invalid, depth_converter);
+            return *this;
+        }
+
+        template <typename DepthT, class DepthConverterT = DepthValueConverter<DepthT,ScalarT>, ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
+        static inline PointCloud createFromRGBDImages(unsigned char* rgb_data,
+                                                      const DepthT* depth_data,
+                                                      size_t image_w, size_t image_h,
+                                                      const Eigen::Ref<const Eigen::Matrix<ScalarT,3,3>> &intrinsics,
+                                                      bool keep_invalid = false,
+                                                      const DepthConverterT &depth_converter = DepthConverterT())
+        {
+            PointCloud res;
+            RGBDImagesToPointsColors<DepthT,ScalarT,DepthConverterT>(rgb_data, depth_data, image_w, image_h, intrinsics, res.points, res.colors, keep_invalid, depth_converter);
+            return res;
         }
     };
 

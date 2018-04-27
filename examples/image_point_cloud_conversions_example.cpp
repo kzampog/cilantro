@@ -1,6 +1,6 @@
-#include <cilantro/image_point_cloud_conversions.hpp>
-#include <cilantro/visualizer.hpp>
+#include <cilantro/point_cloud.hpp>
 #include <cilantro/image_viewer.hpp>
+#include <cilantro/visualizer.hpp>
 
 int main(int argc, char ** argv) {
     // Intrinsics
@@ -14,32 +14,43 @@ int main(int argc, char ** argv) {
     size_t w = 640, h = 480;
     unsigned char* img = new unsigned char[dok->SizeBytes()];
 
-    pangolin::Image<Eigen::Matrix<unsigned char,3,1> > rgb_img((Eigen::Matrix<unsigned char,3,1> *)img, w, h, w*sizeof(Eigen::Matrix<unsigned char,3,1>));
+    pangolin::Image<unsigned char> rgb_img(img, w, h, 3*w*sizeof(unsigned char));
     pangolin::Image<unsigned short> depth_img((unsigned short *)(img+3*w*h), w, h, w*sizeof(unsigned short));
 
     cilantro::PointCloud3f cloud;
+    pangolin::ManagedImage<float> depthf_img(w, h);
 
     std::string win_name = "Image/point cloud conversions demo";
     pangolin::CreateWindowAndBind(win_name, 1280, 960);
     pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual)
-            .AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2")).AddDisplay(pangolin::Display("disp3"));
+            .AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2"))
+            .AddDisplay(pangolin::Display("disp3")).AddDisplay(pangolin::Display("disp4"));
 
     cilantro::ImageViewer rgbv(win_name, "disp1");
     cilantro::ImageViewer depthv(win_name, "disp2");
     cilantro::Visualizer pcdv(win_name, "disp3");
+    cilantro::ImageViewer depthfv(win_name, "disp4");
 
     while (!pcdv.wasStopped() && !rgbv.wasStopped() && !depthv.wasStopped()) {
         dok->GrabNext(img, true);
-        RGBDImagesToPointCloud(rgb_img, depth_img, K, cloud, false);
 
-        pcdv.addPointCloud("cloud", cloud);
+        // Get point cloud from RGBD image pair
+        cloud.template fromRGBDImages<unsigned short>(rgb_img.ptr, depth_img.ptr, w, h, K, false, cilantro::DepthValueConverter<unsigned short,float>(1000.0f));
+//        cilantro::RGBDImagesToPointsColors<unsigned short,float>(rgb_img.ptr, depth_img.ptr, w, h, K, cloud.points, cloud.colors, false, cilantro::DepthValueConverter<unsigned short,float>(1000.0f));
+
+        // Get a depth map back from the point cloud
+        cilantro::pointsToDepthImage<float,float>(cloud.points, K, depthf_img.ptr, w, h, cilantro::DepthValueConverter<float,float>(1.0f));
+
         rgbv.setImage(rgb_img.ptr, w, h, "RGB24");
         depthv.setImage(depth_img.ptr, w, h, "GRAY16LE");
+        pcdv.addPointCloud("cloud", cloud);
+        depthfv.setImage(depthf_img.ptr, w, h, "GRAY32F");
 
         pcdv.clearRenderArea();
-        pcdv.render();
         rgbv.render();
         depthv.render();
+        pcdv.render();
+        depthfv.render();
         pangolin::FinishFrame();
     }
 
