@@ -6,16 +6,16 @@
 
 namespace cilantro {
     template <typename ScalarT, class FeatureAdaptorT, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    class CombinedMetricRigidICP3D : public IterativeClosestPointBase<CombinedMetricRigidICP3D<ScalarT,FeatureAdaptorT,DistAdaptor>,RigidTransformation<ScalarT,3>,VectorSet<ScalarT,1>,ScalarT,typename FeatureAdaptorT::Scalar> {
-        friend class IterativeClosestPointBase<CombinedMetricRigidICP3D<ScalarT,FeatureAdaptorT,DistAdaptor>,RigidTransformation<ScalarT,3>,VectorSet<ScalarT,1>,ScalarT,typename FeatureAdaptorT::Scalar>;
+    class CombinedMetricRigidICP3 : public IterativeClosestPointBase<CombinedMetricRigidICP3<ScalarT,FeatureAdaptorT,DistAdaptor>,RigidTransformation<ScalarT,3>,VectorSet<ScalarT,1>,ScalarT,typename FeatureAdaptorT::Scalar> {
+        friend class IterativeClosestPointBase<CombinedMetricRigidICP3<ScalarT,FeatureAdaptorT,DistAdaptor>,RigidTransformation<ScalarT,3>,VectorSet<ScalarT,1>,ScalarT,typename FeatureAdaptorT::Scalar>;
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        CombinedMetricRigidICP3D(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
-                                 const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
-                                 const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
-                                 FeatureAdaptorT &dst_feat,
-                                 FeatureAdaptorT &src_feat)
+        CombinedMetricRigidICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
+                                const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
+                                const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
+                                FeatureAdaptorT &dst_feat,
+                                FeatureAdaptorT &src_feat)
                 : dst_points_(dst_p), dst_normals_(dst_n), src_points_(src_p),
                   src_points_trans_(src_points_.rows(), src_points_.cols()),
                   dst_feat_adaptor_(dst_feat), src_feat_adaptor_(src_feat),
@@ -28,15 +28,15 @@ namespace cilantro {
 
         inline ScalarT getPointToPointMetricWeight() const { return point_to_point_weight_; }
 
-        inline CombinedMetricRigidICP3D& setPointToPointMetricWeight(ScalarT weight) { point_to_point_weight_ = weight; return *this; }
+        inline CombinedMetricRigidICP3& setPointToPointMetricWeight(ScalarT weight) { point_to_point_weight_ = weight; return *this; }
 
         inline ScalarT getPointToPlaneMetricWeight() const { return point_to_plane_weight_; }
 
-        inline CombinedMetricRigidICP3D& setPointToPlaneMetricWeight(ScalarT weight) { point_to_plane_weight_ = weight; return *this; }
+        inline CombinedMetricRigidICP3& setPointToPlaneMetricWeight(ScalarT weight) { point_to_plane_weight_ = weight; return *this; }
 
         inline size_t getMaxNumberOfOptimizationStepIterations() const { return max_estimation_iterations_; }
 
-        inline CombinedMetricRigidICP3D& setMaxNumberOfOptimizationStepIterations(size_t max_iter) { max_estimation_iterations_ = max_iter; return *this; }
+        inline CombinedMetricRigidICP3& setMaxNumberOfOptimizationStepIterations(size_t max_iter) { max_estimation_iterations_ = max_iter; return *this; }
 
     protected:
         ConstVectorSetMatrixMap<ScalarT,3> dst_points_;
@@ -82,9 +82,7 @@ namespace cilantro {
                     break;
                 }
             }
-
             filterCorrespondencesFraction(correspondences_, this->corr_inlier_fraction_);
-
             return correspondences_.size() >= 3;
         }
 
@@ -123,4 +121,10 @@ namespace cilantro {
             return res;
         }
     };
+
+    template <class FeatureAdaptorT, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
+    using CombinedMetricRigidICP3f = CombinedMetricRigidICP3<float,FeatureAdaptorT,DistAdaptor>;
+
+    template <class FeatureAdaptorT, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
+    using CombinedMetricRigidICP3d = CombinedMetricRigidICP3<double,FeatureAdaptorT,DistAdaptor>;
 }

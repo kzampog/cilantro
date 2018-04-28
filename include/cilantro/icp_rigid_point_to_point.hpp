@@ -62,9 +62,7 @@ namespace cilantro {
                     break;
                 }
             }
-
             filterCorrespondencesFraction(correspondences_, this->corr_inlier_fraction_);
-
             return correspondences_.size() >= 3;
         }
 
@@ -102,4 +100,16 @@ namespace cilantro {
             return res;
         }
     };
+
+    template <class FeatureAdaptorT, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
+    using PointToPointRigidICP2f = PointToPointRigidICP<float,2,FeatureAdaptorT,DistAdaptor>;
+
+    template <class FeatureAdaptorT, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
+    using PointToPointRigidICP2d = PointToPointRigidICP<double,2,FeatureAdaptorT,DistAdaptor>;
+
+    template <class FeatureAdaptorT, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
+    using PointToPointRigidICP3f = PointToPointRigidICP<float,3,FeatureAdaptorT,DistAdaptor>;
+
+    template <class FeatureAdaptorT, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
+    using PointToPointRigidICP3d = PointToPointRigidICP<double,3,FeatureAdaptorT,DistAdaptor>;
 }

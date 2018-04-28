@@ -233,4 +233,24 @@ namespace cilantro {
         VectorSet<ScalarT,FeatureDimension> transformed_data_;
         ConstVectorSetMatrixMap<ScalarT,FeatureDimension> transformed_data_map_;
     };
+
+    typedef PointFeaturesAdaptor<float,2> PointFeaturesAdaptor2f;
+    typedef PointFeaturesAdaptor<double,2> PointFeaturesAdaptor2d;
+    typedef PointFeaturesAdaptor<float,3> PointFeaturesAdaptor3f;
+    typedef PointFeaturesAdaptor<double,3> PointFeaturesAdaptor3d;
+
+    typedef PointNormalFeaturesAdaptor<float,2> PointNormalFeaturesAdaptor2f;
+    typedef PointNormalFeaturesAdaptor<double,2> PointNormalFeaturesAdaptor2d;
+    typedef PointNormalFeaturesAdaptor<float,3> PointNormalFeaturesAdaptor3f;
+    typedef PointNormalFeaturesAdaptor<double,3> PointNormalFeaturesAdaptor3d;
+
+    typedef PointColorFeaturesAdaptor<float,2> PointColorFeaturesAdaptor2f;
+    typedef PointColorFeaturesAdaptor<double,2> PointColorFeaturesAdaptor2d;
+    typedef PointColorFeaturesAdaptor<float,3> PointColorFeaturesAdaptor3f;
+    typedef PointColorFeaturesAdaptor<double,3> PointColorFeaturesAdaptor3d;
+
+    typedef PointNormalColorFeaturesAdaptor<float,2> PointNormalColorFeaturesAdaptor2f;
+    typedef PointNormalColorFeaturesAdaptor<double,2> PointNormalColorFeaturesAdaptor2d;
+    typedef PointNormalColorFeaturesAdaptor<float,3> PointNormalColorFeaturesAdaptor3f;
+    typedef PointNormalColorFeaturesAdaptor<double,3> PointNormalColorFeaturesAdaptor3d;
 }
