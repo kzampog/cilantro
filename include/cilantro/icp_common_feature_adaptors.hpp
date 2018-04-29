@@ -122,7 +122,7 @@ namespace cilantro {
         {}
 
         PointColorFeaturesAdaptor(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
-                                  const ConstVectorSetMatrixMap<ScalarT,3> &colors,
+                                  const ConstVectorSetMatrixMap<float,3> &colors,
                                   ScalarT color_weight)
                 : data_(points.rows()+3, points.cols()),
                   data_map_(data_),
@@ -130,7 +130,7 @@ namespace cilantro {
                   transformed_data_map_(transformed_data_)
         {
             data_.topRows(points.rows()) = points;
-            data_.bottomRows(3) = color_weight*colors;
+            data_.bottomRows(3) = color_weight*colors.template cast<ScalarT>();
         }
 
         inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatureData() const { return data_map_; }
@@ -185,7 +185,7 @@ namespace cilantro {
 
         PointNormalColorFeaturesAdaptor(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
                                         const ConstVectorSetMatrixMap<ScalarT,EigenDim> &normals,
-                                        const ConstVectorSetMatrixMap<ScalarT,3> &colors,
+                                        const ConstVectorSetMatrixMap<float,3> &colors,
                                         ScalarT normal_weight, ScalarT color_weight)
                 : data_(2*points.rows()+3, points.cols()),
                   data_map_(data_),
@@ -194,7 +194,7 @@ namespace cilantro {
         {
             data_.topRows(points.rows()) = points;
             data_.block(points.rows(),0,normals.rows(),normals.cols()) = normal_weight*normals;
-            data_.bottomRows(3) = color_weight*colors;
+            data_.bottomRows(3) = color_weight*colors.template cast<ScalarT>();
         }
 
         inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatureData() const { return data_map_; }

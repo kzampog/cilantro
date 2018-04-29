@@ -83,9 +83,17 @@ int main(int argc, char ** argv) {
 
     // Weighted combination of point-to-point and point-to-plane
 //    cilantro::CombinedMetricRigidICP3f<cilantro::PointNormalColorFeaturesAdaptor3f> icp(dst.points, dst.normals, src.points, dst_feat, src_feat);
-    cilantro::CombinedMetricRigidICP3f<cilantro::PointFeaturesAdaptor3f> icp(dst.points, dst.normals, src.points, dst_feat, src_feat);
+//    cilantro::CombinedMetricRigidICP3f<cilantro::PointFeaturesAdaptor3f> icp(dst.points, dst.normals, src.points, dst_feat, src_feat);
 
-//    cilantro::PointToPointMetricPointFeaturesRigidICP<float,3> icp(dst.points, src.points);
+//    cilantro::PointToPointMetricPointFeaturesRigidICP3f icp(dst.points, src.points);
+//    cilantro::PointToPointMetricPointNormalFeaturesRigidICP3f icp(dst.points, dst.normals, src.points, src.normals, 0.1f);
+//    cilantro::PointToPointMetricPointColorFeaturesRigidICP3f icp(dst.points, dst.colors, src.points, src.colors, 0.1f);
+//    cilantro::PointToPointMetricPointNormalColorFeaturesRigidICP3f icp(dst.points, dst.normals, dst.colors, src.points, src.normals, src.colors, 0.1f, 0.1f);
+
+    cilantro::CombinedMetricPointFeaturesRigidICP3f icp(dst.points, dst.normals, src.points);
+//    cilantro::CombinedMetricPointNormalFeaturesRigidICP3f icp(dst.points, dst.normals, src.points, src.normals, 0.1f);
+//    cilantro::CombinedMetricPointColorFeaturesRigidICP3f icp(dst.points, dst.normals, dst.colors, src.points, src.colors, 0.1f);
+//    cilantro::CombinedMetricPointNormalColorFeaturesRigidICP3f icp(dst.points, dst.normals, dst.colors, src.points, src.normals, src.colors, 0.1f, 0.1f);
 
     icp.setMaxCorrespondenceDistance(0.1f*0.1f).setConvergenceTolerance(1e-3f).setMaxNumberOfIterations(100);
     icp.setMaxNumberOfOptimizationStepIterations(1).setPointToPointMetricWeight(0.0).setPointToPlaneMetricWeight(1.0);
