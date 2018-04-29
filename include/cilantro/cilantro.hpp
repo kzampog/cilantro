@@ -2,6 +2,7 @@
 
 #include <cilantro/accumulators.hpp>
 #include <cilantro/colormap.hpp>
+#include <cilantro/common_similarity_evaluators.hpp>
 #include <cilantro/connected_component_segmentation.hpp>
 #include <cilantro/convex_hull_utilities.hpp>
 #include <cilantro/convex_polytope.hpp>
@@ -27,11 +28,10 @@
 #include <cilantro/plane_estimator.hpp>
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/principal_component_analysis.hpp>
-#include <cilantro/random_sample_consensus.hpp>
+#include <cilantro/ransac_base.hpp>
 #include <cilantro/renderables.hpp>
 #include <cilantro/rigid_registration_utilities.hpp>
 #include <cilantro/rigid_transform_estimator.hpp>
-#include <cilantro/simple_similarity_evaluators.hpp>
 #include <cilantro/space_region.hpp>
 #include <cilantro/space_transformations.hpp>
 #include <cilantro/spectral_clustering.hpp>

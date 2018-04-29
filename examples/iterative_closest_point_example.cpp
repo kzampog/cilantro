@@ -78,12 +78,14 @@ int main(int argc, char ** argv) {
     cilantro::PointFeaturesAdaptor3f src_feat(src.points);
 
     // Point-to-point
-//    cilantro::PointToPointRigidICP3f<cilantro::PointNormalColorFeaturesAdaptor3f> icp(dst.points, src.points, dst_feat, src_feat);
-//    cilantro::PointToPointRigidICP3f<cilantro::PointFeaturesAdaptor3f> icp(dst.points, src.points, dst_feat, src_feat);
+//    cilantro::PointToPointMetricRigidICP3f<cilantro::PointNormalColorFeaturesAdaptor3f> icp(dst.points, src.points, dst_feat, src_feat);
+//    cilantro::PointToPointMetricRigidICP3f<cilantro::PointFeaturesAdaptor3f> icp(dst.points, src.points, dst_feat, src_feat);
 
     // Weighted combination of point-to-point and point-to-plane
 //    cilantro::CombinedMetricRigidICP3f<cilantro::PointNormalColorFeaturesAdaptor3f> icp(dst.points, dst.normals, src.points, dst_feat, src_feat);
     cilantro::CombinedMetricRigidICP3f<cilantro::PointFeaturesAdaptor3f> icp(dst.points, dst.normals, src.points, dst_feat, src_feat);
+
+//    cilantro::PointToPointMetricPointFeaturesRigidICP<float,3> icp(dst.points, src.points);
 
     icp.setMaxCorrespondenceDistance(0.1f*0.1f).setConvergenceTolerance(1e-3f).setMaxNumberOfIterations(100);
     icp.setMaxNumberOfOptimizationStepIterations(1).setPointToPointMetricWeight(0.0).setPointToPlaneMetricWeight(1.0);

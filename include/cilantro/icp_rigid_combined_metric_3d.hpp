@@ -18,7 +18,7 @@ namespace cilantro {
                                 FeatureAdaptorT &src_feat)
                 : dst_points_(dst_p), dst_normals_(dst_n), src_points_(src_p),
                   src_points_trans_(src_points_.rows(), src_points_.cols()),
-                  dst_feat_adaptor_(dst_feat), src_feat_adaptor_(src_feat),
+                  dst_features_adaptor_(dst_feat), src_features_adaptor_(src_feat),
                   dst_feat_tree_ptr_(NULL), src_feat_tree_ptr_(NULL),
                   max_estimation_iterations_(1), point_to_point_weight_(0.1), point_to_plane_weight_(1.0)
         {
@@ -45,8 +45,8 @@ namespace cilantro {
         VectorSet<ScalarT,3> src_points_trans_;
         CorrespondenceSet<typename FeatureAdaptorT::Scalar> correspondences_;
 
-        FeatureAdaptorT& dst_feat_adaptor_;
-        FeatureAdaptorT& src_feat_adaptor_;
+        FeatureAdaptorT& dst_features_adaptor_;
+        FeatureAdaptorT& src_features_adaptor_;
         std::shared_ptr<KDTree<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension,DistAdaptor>> dst_feat_tree_ptr_;
         std::shared_ptr<KDTree<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension,DistAdaptor>> src_feat_tree_ptr_;
 
@@ -56,28 +56,28 @@ namespace cilantro {
 
         void initializeComputation() {
             if (!dst_feat_tree_ptr_ && (this->corr_search_dir_ == CorrespondenceSearchDirection::SECOND_TO_FIRST || this->corr_search_dir_ == CorrespondenceSearchDirection::BOTH)) {
-                dst_feat_tree_ptr_.reset(new KDTree<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension,DistAdaptor>(dst_feat_adaptor_.getFeatureData()));
+                dst_feat_tree_ptr_.reset(new KDTree<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension,DistAdaptor>(dst_features_adaptor_.getFeatureData()));
             }
             if (!src_feat_tree_ptr_ && (this->corr_search_dir_ == CorrespondenceSearchDirection::FIRST_TO_SECOND || this->corr_search_dir_ == CorrespondenceSearchDirection::BOTH)) {
-                src_feat_tree_ptr_.reset(new KDTree<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension,DistAdaptor>(src_feat_adaptor_.getFeatureData()));
+                src_feat_tree_ptr_.reset(new KDTree<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension,DistAdaptor>(src_features_adaptor_.getFeatureData()));
             }
         }
 
         bool updateCorrespondences() {
             switch (this->corr_search_dir_) {
                 case CorrespondenceSearchDirection::FIRST_TO_SECOND: {
-                    const ConstVectorSetMatrixMap<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension>& dst_feat_trans(dst_feat_adaptor_.getTransformedFeatureData(this->transform_.inverse()));
+                    const ConstVectorSetMatrixMap<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension>& dst_feat_trans(dst_features_adaptor_.getTransformedFeatureData(this->transform_.inverse()));
                     findNNCorrespondencesUnidirectional<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension,DistAdaptor>(dst_feat_trans, *src_feat_tree_ptr_, false, correspondences_, this->corr_max_distance_);
                     break;
                 }
                 case CorrespondenceSearchDirection::SECOND_TO_FIRST: {
-                    const ConstVectorSetMatrixMap<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension>& src_feat_trans(src_feat_adaptor_.getTransformedFeatureData(this->transform_));
+                    const ConstVectorSetMatrixMap<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension>& src_feat_trans(src_features_adaptor_.getTransformedFeatureData(this->transform_));
                     findNNCorrespondencesUnidirectional<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension,DistAdaptor>(src_feat_trans, *dst_feat_tree_ptr_, true, correspondences_, this->corr_max_distance_);
                     break;
                 }
                 case CorrespondenceSearchDirection::BOTH: {
-                    const ConstVectorSetMatrixMap<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension>& dst_feat_trans(dst_feat_adaptor_.getTransformedFeatureData(this->transform_.inverse()));
-                    const ConstVectorSetMatrixMap<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension>& src_feat_trans(src_feat_adaptor_.getTransformedFeatureData(this->transform_));
+                    const ConstVectorSetMatrixMap<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension>& dst_feat_trans(dst_features_adaptor_.getTransformedFeatureData(this->transform_.inverse()));
+                    const ConstVectorSetMatrixMap<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension>& src_feat_trans(src_features_adaptor_.getTransformedFeatureData(this->transform_));
                     findNNCorrespondencesBidirectional<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension,DistAdaptor>(dst_feat_trans, src_feat_trans, *dst_feat_tree_ptr_, *src_feat_tree_ptr_, correspondences_, this->corr_max_distance_, this->corr_require_reciprocal_);
                     break;
                 }
@@ -102,10 +102,10 @@ namespace cilantro {
 
         VectorSet<ScalarT,1> computeResiduals() {
             if (!dst_feat_tree_ptr_) {
-                dst_feat_tree_ptr_.reset(new KDTree<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension,DistAdaptor>(dst_feat_adaptor_.getFeatureData()));
+                dst_feat_tree_ptr_.reset(new KDTree<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension,DistAdaptor>(dst_features_adaptor_.getFeatureData()));
             }
 
-            const ConstVectorSetMatrixMap<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension>& src_feat_trans = src_feat_adaptor_.getTransformedFeatureData(this->transform_);
+            const ConstVectorSetMatrixMap<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension>& src_feat_trans = src_features_adaptor_.getTransformedFeatureData(this->transform_);
 
             NearestNeighborSearchResult<typename FeatureAdaptorT::Scalar> nn;
             Vector<ScalarT,3> src_p_trans;

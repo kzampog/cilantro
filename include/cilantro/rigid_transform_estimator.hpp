@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cilantro/random_sample_consensus.hpp>
+#include <cilantro/ransac_base.hpp>
 #include <cilantro/rigid_registration_utilities.hpp>
 
 namespace cilantro {
