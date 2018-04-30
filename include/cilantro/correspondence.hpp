@@ -107,18 +107,14 @@ namespace cilantro {
     }
 
     template <typename ScalarT, class ComparatorT = typename Correspondence<ScalarT>::ValueLessComparator>
-    void filterCorrespondencesFraction(CorrespondenceSet<ScalarT> &correspondences, double fraction_to_keep) {
+    void filterCorrespondencesFraction(CorrespondenceSet<ScalarT> &correspondences,
+                                       double fraction_to_keep,
+                                       const ComparatorT &comparator = ComparatorT())
+    {
         if (fraction_to_keep > 0.0 && fraction_to_keep < 1.0) {
-            std::sort(correspondences.begin(), correspondences.end(), ComparatorT());
+            std::sort(correspondences.begin(), correspondences.end(), comparator);
             correspondences.erase(correspondences.begin() + std::llround(fraction_to_keep*correspondences.size()), correspondences.end());
         }
-    }
-
-    template <typename ScalarT, class ComparatorT = typename Correspondence<ScalarT>::ValueLessComparator>
-    inline CorrespondenceSet<ScalarT> filterCorrespondencesFraction(const CorrespondenceSet<ScalarT> &correspondences, double fraction_to_keep) {
-        CorrespondenceSet<ScalarT> corr_res(correspondences);
-        filterCorrespondencesFraction<ScalarT,ComparatorT>(corr_res, fraction_to_keep);
-        return corr_res;
     }
 
     template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = CorrespondenceDistanceEvaluator<ScalarT>, typename CorrValueT = decltype(std::declval<EvaluatorT>().operator()((size_t)0,(size_t)0,(ScalarT)0))>
