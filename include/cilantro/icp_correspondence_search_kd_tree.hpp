@@ -72,7 +72,7 @@ namespace cilantro {
                 case CorrespondenceSearchDirection::BOTH: {
                     if (!dst_tree_ptr_) dst_tree_ptr_.reset(new SearchTree(dst_features_adaptor_.getFeatureData()));
                     src_trans_tree_ptr_.reset(new SearchTree(src_features_adaptor_.getTransformedFeatureData(tform)));
-                    findNNCorrespondencesBidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(dst_features_adaptor_.getFeatureData(), src_features_adaptor_.getFeatureData(), *dst_tree_ptr_, *src_trans_tree_ptr_, correspondences, max_distance_, require_reciprocality_, evaluator_);
+                    findNNCorrespondencesBidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(dst_features_adaptor_.getFeatureData(), src_features_adaptor_.getTransformedFeatureData(), *dst_tree_ptr_, *src_trans_tree_ptr_, correspondences, max_distance_, require_reciprocality_, evaluator_);
                     break;
                 }
             }
