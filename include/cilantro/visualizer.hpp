@@ -2,10 +2,27 @@
 
 #include <cilantro/renderables.hpp>
 #include <cilantro/visualizer_handler.hpp>
-#include <cilantro/type_traits.hpp>
 #include <pangolin/display/display_internal.h>
 
 namespace cilantro {
+    template <typename T, typename = int>
+    struct HasPoints : std::false_type {};
+
+    template <typename T>
+    struct HasPoints<T, decltype((void) T::points, 0)> : std::true_type {};
+
+    template <typename T, typename = int>
+    struct HasNormals : std::false_type {};
+
+    template <typename T>
+    struct HasNormals<T, decltype((void) T::normals, 0)> : std::true_type {};
+
+    template <typename T, typename = int>
+    struct HasColors : std::false_type {};
+
+    template <typename T>
+    struct HasColors<T, decltype((void) T::colors, 0)> : std::true_type {};
+
     class Visualizer {
         friend class VisualizerHandler;
     public:

@@ -13,7 +13,7 @@
 #include <cilantro/grid_downsampler.hpp>
 #include <cilantro/icp_base.hpp>
 #include <cilantro/icp_common_feature_adaptors.hpp>
-#include <cilantro/icp_common_instances.hpp>
+#include <cilantro/icp_correspondence_search.hpp.hpp>
 #include <cilantro/icp_rigid_combined_metric_3d.hpp>
 #include <cilantro/icp_rigid_point_to_point.hpp>
 #include <cilantro/image_point_cloud_conversions.hpp>
@@ -35,6 +35,5 @@
 #include <cilantro/space_region.hpp>
 #include <cilantro/space_transformations.hpp>
 #include <cilantro/spectral_clustering.hpp>
-#include <cilantro/type_traits.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/visualizer_handler.hpp>

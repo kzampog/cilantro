@@ -5,65 +5,33 @@
 #include <cilantro/rigid_registration_utilities.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, ptrdiff_t EigenDim, class FeatureAdaptorT, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    class PointToPointMetricRigidICP : public IterativeClosestPointBase<PointToPointMetricRigidICP<ScalarT,EigenDim,FeatureAdaptorT,DistAdaptor>,RigidTransformation<ScalarT,EigenDim>,VectorSet<ScalarT,1>,ScalarT,typename FeatureAdaptorT::Scalar> {
-        friend class IterativeClosestPointBase<PointToPointMetricRigidICP<ScalarT,EigenDim,FeatureAdaptorT,DistAdaptor>,RigidTransformation<ScalarT,EigenDim>,VectorSet<ScalarT,1>,ScalarT,typename FeatureAdaptorT::Scalar>;
+    template <typename ScalarT, ptrdiff_t EigenDim, class CorrespondenceSearchEngineT>
+    class PointToPointMetricRigidICP : public IterativeClosestPointBase<PointToPointMetricRigidICP<ScalarT,EigenDim,CorrespondenceSearchEngineT>,RigidTransformation<ScalarT,EigenDim>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>> {
+        friend class IterativeClosestPointBase<PointToPointMetricRigidICP<ScalarT,EigenDim,CorrespondenceSearchEngineT>,RigidTransformation<ScalarT,EigenDim>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>;
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         PointToPointMetricRigidICP(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst,
                                    const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src,
-                                   FeatureAdaptorT &dst_feat,
-                                   FeatureAdaptorT &src_feat)
-                : dst_points_(dst), src_points_(src), src_points_trans_(src_points_.rows(), src_points_.cols()),
-                  dst_features_adaptor_(dst_feat), src_features_adaptor_(src_feat),
-                  dst_feat_tree_ptr_(NULL), src_feat_tree_ptr_(NULL)
+                                   CorrespondenceSearchEngineT &corr_engine)
+                : IterativeClosestPointBase<PointToPointMetricRigidICP<ScalarT,EigenDim,CorrespondenceSearchEngineT>,RigidTransformation<ScalarT,EigenDim>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
+                  dst_points_(dst), src_points_(src), src_points_trans_(src_points_.rows(), src_points_.cols())
         {
             this->transform_init_.setIdentity();
-            correspondences_.reserve(dst_points_.cols());
         }
 
     protected:
         ConstVectorSetMatrixMap<ScalarT,EigenDim> dst_points_;
         ConstVectorSetMatrixMap<ScalarT,EigenDim> src_points_;
         VectorSet<ScalarT,EigenDim> src_points_trans_;
-        CorrespondenceSet<typename FeatureAdaptorT::Scalar> correspondences_;
-
-        FeatureAdaptorT& dst_features_adaptor_;
-        FeatureAdaptorT& src_features_adaptor_;
-        std::shared_ptr<KDTree<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension,DistAdaptor>> dst_feat_tree_ptr_;
-        std::shared_ptr<KDTree<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension,DistAdaptor>> src_feat_tree_ptr_;
 
         void initializeComputation() {
-            if (!dst_feat_tree_ptr_ && (this->corr_search_dir_ == CorrespondenceSearchDirection::SECOND_TO_FIRST || this->corr_search_dir_ == CorrespondenceSearchDirection::BOTH)) {
-                dst_feat_tree_ptr_.reset(new KDTree<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension,DistAdaptor>(dst_features_adaptor_.getFeatureData()));
-            }
-            if (!src_feat_tree_ptr_ && (this->corr_search_dir_ == CorrespondenceSearchDirection::FIRST_TO_SECOND || this->corr_search_dir_ == CorrespondenceSearchDirection::BOTH)) {
-                src_feat_tree_ptr_.reset(new KDTree<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension,DistAdaptor>(src_features_adaptor_.getFeatureData()));
-            }
+            this->correspondences_.reserve(std::max(dst_points_.cols(), src_points_.cols()));
         }
 
         bool updateCorrespondences() {
-            switch (this->corr_search_dir_) {
-                case CorrespondenceSearchDirection::FIRST_TO_SECOND: {
-                    const ConstVectorSetMatrixMap<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension>& dst_feat_trans(dst_features_adaptor_.getTransformedFeatureData(this->transform_.inverse()));
-                    findNNCorrespondencesUnidirectional<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension,DistAdaptor>(dst_feat_trans, *src_feat_tree_ptr_, false, correspondences_, this->corr_max_distance_);
-                    break;
-                }
-                case CorrespondenceSearchDirection::SECOND_TO_FIRST: {
-                    const ConstVectorSetMatrixMap<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension>& src_feat_trans(src_features_adaptor_.getTransformedFeatureData(this->transform_));
-                    findNNCorrespondencesUnidirectional<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension,DistAdaptor>(src_feat_trans, *dst_feat_tree_ptr_, true, correspondences_, this->corr_max_distance_);
-                    break;
-                }
-                case CorrespondenceSearchDirection::BOTH: {
-                    const ConstVectorSetMatrixMap<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension>& dst_feat_trans(dst_features_adaptor_.getTransformedFeatureData(this->transform_.inverse()));
-                    const ConstVectorSetMatrixMap<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension>& src_feat_trans(src_features_adaptor_.getTransformedFeatureData(this->transform_));
-                    findNNCorrespondencesBidirectional<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension,DistAdaptor>(dst_feat_trans, src_feat_trans, *dst_feat_tree_ptr_, *src_feat_tree_ptr_, correspondences_, this->corr_max_distance_, this->corr_require_reciprocal_);
-                    break;
-                }
-            }
-            filterCorrespondencesFraction(correspondences_, this->corr_inlier_fraction_);
-            return correspondences_.size() >= 3;
+            this->correspondence_search_engine_.findCorrespondences(this->transform_, this->correspondences_);
+            return this->correspondences_.size() >= src_points_.rows();
         }
 
         bool updateEstimate() {
@@ -72,7 +40,7 @@ namespace cilantro {
             for (size_t i = 0; i < src_points_.cols(); i++) {
                 src_points_trans_.col(i) = this->transform_*src_points_.col(i);
             }
-            if (estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim,typename FeatureAdaptorT::Scalar>(dst_points_, src_points_trans_, correspondences_, tform_iter)) {
+            if (estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim,typename CorrespondenceSearchEngineT::CorrespondenceScalar>(dst_points_, src_points_trans_, this->correspondences_, tform_iter)) {
                 this->transform_ = tform_iter*this->transform_;
                 this->transform_.linear() = this->transform_.rotation();
                 this->last_delta_norm_ = std::sqrt((tform_iter.linear() - Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Identity(src_points_.rows(),src_points_.rows())).squaredNorm() + tform_iter.translation().squaredNorm());
@@ -83,33 +51,26 @@ namespace cilantro {
         }
 
         VectorSet<ScalarT,1> computeResiduals() {
-            if (!dst_feat_tree_ptr_) {
-                dst_feat_tree_ptr_.reset(new KDTree<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension,DistAdaptor>(dst_features_adaptor_.getFeatureData()));
-            }
-
-            const ConstVectorSetMatrixMap<typename FeatureAdaptorT::Scalar,FeatureAdaptorT::FeatureDimension>& src_feat_trans = src_features_adaptor_.getTransformedFeatureData(this->transform_);
-
-            NearestNeighborSearchResult<typename FeatureAdaptorT::Scalar> nn;
-
-            VectorSet<ScalarT,1> res(1,src_points_.cols());
+            VectorSet<ScalarT,1> res(1, src_points_.cols());
+            KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> dst_tree(dst_points_);
+            NearestNeighborSearchResult<ScalarT> nn;
 #pragma omp parallel for shared (res) private (nn)
-            for (size_t i = 0; i < src_feat_trans.cols(); i++) {
-                dst_feat_tree_ptr_->nearestNeighborSearch(src_feat_trans.col(i), nn);
+            for (size_t i = 0; i < src_points_.cols(); i++) {
                 res[i] = (dst_points_.col(nn.index) - this->transform_*src_points_.col(i)).squaredNorm();
             }
             return res;
         }
     };
 
-    template <class FeatureAdaptorT, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    using PointToPointMetricRigidICP2f = PointToPointMetricRigidICP<float,2,FeatureAdaptorT,DistAdaptor>;
+    template <class CorrespondenceSearchEngineT>
+    using PointToPointMetricRigidICP2f = PointToPointMetricRigidICP<float,2,CorrespondenceSearchEngineT>;
 
-    template <class FeatureAdaptorT, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    using PointToPointMetricRigidICP2d = PointToPointMetricRigidICP<double,2,FeatureAdaptorT,DistAdaptor>;
+    template <class CorrespondenceSearchEngineT>
+    using PointToPointMetricRigidICP2d = PointToPointMetricRigidICP<double,2,CorrespondenceSearchEngineT>;
 
-    template <class FeatureAdaptorT, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    using PointToPointMetricRigidICP3f = PointToPointMetricRigidICP<float,3,FeatureAdaptorT,DistAdaptor>;
+    template <class CorrespondenceSearchEngineT>
+    using PointToPointMetricRigidICP3f = PointToPointMetricRigidICP<float,3,CorrespondenceSearchEngineT>;
 
-    template <class FeatureAdaptorT, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    using PointToPointMetricRigidICP3d = PointToPointMetricRigidICP<double,3,FeatureAdaptorT,DistAdaptor>;
+    template <class CorrespondenceSearchEngineT>
+    using PointToPointMetricRigidICP3d = PointToPointMetricRigidICP<double,3,CorrespondenceSearchEngineT>;
 }
