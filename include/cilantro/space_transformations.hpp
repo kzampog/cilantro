@@ -16,6 +16,10 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        typedef ScalarT Scalar;
+
+        enum {Dim = EigenDim};
+
         RigidTransformationSet& setIdentity() {
 #pragma omp parallel for
             for (size_t i = 0; i < this->size(); i++) (*this)[i].setIdentity();

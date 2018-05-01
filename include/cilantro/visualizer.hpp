@@ -15,7 +15,7 @@ namespace cilantro {
         Visualizer(const std::string &window_name, const std::string &display_name);
         ~Visualizer();
 
-        template <class CloudT, class = typename std::enable_if<has_points<CloudT>::value && has_normals<CloudT>::value && has_colors<CloudT>::value>::type>
+        template <class CloudT, class = typename std::enable_if<HasPoints<CloudT>::value && HasNormals<CloudT>::value && HasColors<CloudT>::value>::type>
         Visualizer& addPointCloud(const std::string &name, const CloudT &cloud, const RenderingProperties &rp = RenderingProperties()) {
             gl_context_->MakeCurrent();
             if (cloud.points.cols() == 0) {
@@ -40,7 +40,7 @@ namespace cilantro {
         Visualizer& addPointCloudValues(const std::string &name, const ConstVectorSetMatrixMap<float,1> &point_values);
 
         Visualizer& addPointCorrespondences(const std::string &name, const ConstVectorSetMatrixMap<float,3> &points_src, const ConstVectorSetMatrixMap<float,3> &points_dst, const RenderingProperties &rp = RenderingProperties());
-        template <class CloudT, class = typename std::enable_if<has_points<CloudT>::value>::type>
+        template <class CloudT, class = typename std::enable_if<HasPoints<CloudT>::value>::type>
         Visualizer& addPointCorrespondences(const std::string &name, const CloudT &cloud_src, const CloudT &cloud_dst, const RenderingProperties &rp = RenderingProperties()) {
             return addPointCorrespondences(name, cloud_src.points, cloud_dst.points, rp);
         }
@@ -49,7 +49,7 @@ namespace cilantro {
 
         Visualizer& addCameraFrustum(const std::string &name, size_t width, size_t height, const Eigen::Matrix3f &intrinsics, const Eigen::Matrix4f &pose = Eigen::Matrix4f::Identity(), float scale = 1.0f, const RenderingProperties &rp = RenderingProperties());
 
-        template <class CloudT, class = typename std::enable_if<has_points<CloudT>::value && has_normals<CloudT>::value && has_colors<CloudT>::value>::type>
+        template <class CloudT, class = typename std::enable_if<HasPoints<CloudT>::value && HasNormals<CloudT>::value && HasColors<CloudT>::value>::type>
         Visualizer& addTriangleMesh(const std::string &name, const CloudT &cloud, const std::vector<std::vector<size_t>> &faces, const RenderingProperties &rp = RenderingProperties()) {
             gl_context_->MakeCurrent();
             if (cloud.points.cols() == 0 || faces.empty()) {
