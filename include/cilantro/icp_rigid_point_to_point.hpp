@@ -54,8 +54,11 @@ namespace cilantro {
             VectorSet<ScalarT,1> res(1, src_points_.cols());
             KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> dst_tree(dst_points_);
             NearestNeighborSearchResult<ScalarT> nn;
-#pragma omp parallel for shared (res) private (nn)
+            Vector<ScalarT,3> src_p_trans;
+#pragma omp parallel for shared (res) private (nn, src_p_trans)
             for (size_t i = 0; i < src_points_.cols(); i++) {
+                src_p_trans = this->transform_*src_points_.col(i);
+                dst_tree.nearestNeighborSearch(src_p_trans, nn);
                 res[i] = (dst_points_.col(nn.index) - this->transform_*src_points_.col(i)).squaredNorm();
             }
             return res;
