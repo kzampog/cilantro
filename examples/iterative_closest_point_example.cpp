@@ -1,7 +1,4 @@
-#include <cilantro/icp_common_feature_adaptors.hpp>
-#include <cilantro/icp_correspondence_search.hpp>
-#include <cilantro/icp_rigid_combined_metric_3d.hpp>
-#include <cilantro/icp_rigid_point_to_point.hpp>
+#include <cilantro/icp_common_instances.hpp>
 #include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
 
@@ -75,18 +72,20 @@ int main(int argc, char ** argv) {
     // Point features adaptors for correspondence search
 //    cilantro::PointNormalColorFeaturesAdaptor3f dst_feat(dst.points, dst.normals, dst.colors, 0.5, 5.0);
 //    cilantro::PointNormalColorFeaturesAdaptor3f src_feat(src.points, src.normals, src.colors, 0.5, 5.0);
-    cilantro::PointFeaturesAdaptor3f dst_feat(dst.points);
-    cilantro::PointFeaturesAdaptor3f src_feat(src.points);
+//    cilantro::PointFeaturesAdaptor3f dst_feat(dst.points);
+//    cilantro::PointFeaturesAdaptor3f src_feat(src.points);
 
-    cilantro::CorrespondenceDistanceEvaluator<float> eval;
+//    cilantro::CorrespondenceDistanceEvaluator<float> eval;
 
-    cilantro::ICPCorrespondenceSearchKDTree<decltype(dst_feat)> corr_engine(dst_feat, src_feat, eval);
+//    cilantro::ICPCorrespondenceSearchKDTree<decltype(dst_feat)> corr_engine(dst_feat, src_feat, eval);
 
     // Point-to-point
 //    cilantro::PointToPointMetricRigidICP3f<decltype(corr_engine)> icp(dst.points, src.points, corr_engine);
+//    cilantro::SimplePointToPointMetricRigidICP3f icp(dst.points, src.points);
 
     // Weighted combination of point-to-point and point-to-plane
-    cilantro::CombinedMetricRigidICP3f<decltype(corr_engine)> icp(dst.points, dst.normals, src.points, corr_engine);
+//    cilantro::CombinedMetricRigidICP3f<decltype(corr_engine)> icp(dst.points, dst.normals, src.points, corr_engine);
+    cilantro::SimpleCombinedMetricRigidICP3f icp(dst.points, dst.normals, src.points);
     icp.setMaxNumberOfOptimizationStepIterations(1).setPointToPointMetricWeight(0.0).setPointToPlaneMetricWeight(1.0);
 
     icp.correspondenceSearchEngine().setMaxDistance(0.1f*0.1f);
