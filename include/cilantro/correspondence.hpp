@@ -3,6 +3,8 @@
 #include <cilantro/kd_tree.hpp>
 
 namespace cilantro {
+    enum struct CorrespondenceSearchDirection {FIRST_TO_SECOND, SECOND_TO_FIRST, BOTH};
+
     template <typename ScalarT>
     struct Correspondence {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW

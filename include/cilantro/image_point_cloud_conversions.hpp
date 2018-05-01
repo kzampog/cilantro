@@ -185,7 +185,7 @@ namespace cilantro {
     }
 
     template <typename PointT>
-    void pointsToIndexMap(const VectorSet<PointT,3> &points,
+    void pointsToIndexMap(const ConstVectorSetMatrixMap<PointT,3> &points,
                           const Eigen::Ref<const Eigen::Matrix<PointT,3,3>> &intrinsics,
                           size_t* index_map_data,
                           size_t image_w, size_t image_h)

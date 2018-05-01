@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cilantro/icp_common_feature_adaptors.hpp>
-#include <cilantro/icp_correspondence_search.hpp>
+#include <cilantro/icp_correspondence_search_kd_tree.hpp>
 #include <cilantro/icp_rigid_point_to_point.hpp>
 #include <cilantro/icp_rigid_combined_metric_3d.hpp>
 

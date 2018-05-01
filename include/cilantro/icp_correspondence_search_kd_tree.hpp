@@ -10,8 +10,6 @@ namespace cilantro {
     template <typename T>
     struct IsIsometry<T, decltype((void) T::Mode, 0)> : std::conditional<T::Mode == Eigen::Isometry, std::true_type, std::false_type>::type {};
 
-    enum struct CorrespondenceSearchDirection {FIRST_TO_SECOND, SECOND_TO_FIRST, BOTH};
-
     template <class FeatureAdaptorT, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = CorrespondenceDistanceEvaluator<typename FeatureAdaptorT::Scalar>>
     class ICPCorrespondenceSearchKDTree {
     public:

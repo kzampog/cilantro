@@ -11,8 +11,6 @@ namespace cilantro {
 
         typedef typename TransformT::Scalar PointScalar;
 
-        typedef typename CorrespondenceSearchEngineT::FeatureScalar FeatureScalar;
-
         typedef typename CorrespondenceSearchEngineT::SearchResult CorrespondenceSearchResults;
 
         IterativeClosestPointBase(CorrespondenceSearchEngineT &corr_engine,

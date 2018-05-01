@@ -142,59 +142,59 @@ namespace cilantro {
             return *this;
         }
 
-        // Given search tree and seeds (NeighborhoodType given as template parameter)
-        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor, NeighborhoodType NT, class PointSimilarityEvaluator = AlwaysTrueSimilarityEvaluator<ScalarT>>
-        ConnectedComponentSegmentation& segment(const KDTree<ScalarT,EigenDim,DistAdaptor> &tree,
-                                                const NeighborhoodSpecification<ScalarT> &nh,
-                                                const std::vector<size_t> &seeds_ind,
-                                                const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                                size_t min_segment_size = 0,
-                                                size_t max_segment_size = std::numeric_limits<size_t>::max())
-        {
-            segment_given_search_tree_<ScalarT,EigenDim,DistAdaptor,NT,PointSimilarityEvaluator>(tree, nh, seeds_ind, evaluator, min_segment_size, max_segment_size);
-            return *this;
-        }
-
-        // Given search tree, all seeds (NeighborhoodType given as template parameter)
-        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor, NeighborhoodType NT, class PointSimilarityEvaluator = AlwaysTrueSimilarityEvaluator<ScalarT>>
-        ConnectedComponentSegmentation& segment(const KDTree<ScalarT,EigenDim,DistAdaptor> &tree,
-                                                const NeighborhoodSpecification<ScalarT> &nh,
-                                                const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                                size_t min_segment_size = 0,
-                                                size_t max_segment_size = std::numeric_limits<size_t>::max())
-        {
-            std::vector<size_t> seeds_ind(tree.getPointsMatrixMap().cols());
-            for (size_t i = 0; i < seeds_ind.size(); i++) seeds_ind[i] = i;
-            segment_given_search_tree_<ScalarT,EigenDim,DistAdaptor,NT,PointSimilarityEvaluator>(tree, nh, seeds_ind, evaluator, min_segment_size, max_segment_size);
-            return *this;
-        }
-
-        // Given points and seeds (NeighborhoodType given as template parameter)
-        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor, NeighborhoodType NT, class PointSimilarityEvaluator = AlwaysTrueSimilarityEvaluator<ScalarT>>
-        ConnectedComponentSegmentation& segment(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
-                                                const NeighborhoodSpecification<ScalarT> &nh,
-                                                const std::vector<size_t> &seeds_ind,
-                                                const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                                size_t min_segment_size = 0,
-                                                size_t max_segment_size = std::numeric_limits<size_t>::max())
-        {
-            segment_given_search_tree_<ScalarT,EigenDim,DistAdaptor,NT,PointSimilarityEvaluator>(KDTree<ScalarT,EigenDim,DistAdaptor>(points), nh, seeds_ind, evaluator, min_segment_size, max_segment_size);
-            return *this;
-        }
-
-        // Given points, all seeds (NeighborhoodType given as template parameter)
-        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor, NeighborhoodType NT, class PointSimilarityEvaluator = AlwaysTrueSimilarityEvaluator<ScalarT>>
-        ConnectedComponentSegmentation& segment(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
-                                                const NeighborhoodSpecification<ScalarT> &nh,
-                                                const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                                size_t min_segment_size = 0,
-                                                size_t max_segment_size = std::numeric_limits<size_t>::max())
-        {
-            std::vector<size_t> seeds_ind(points.cols());
-            for (size_t i = 0; i < seeds_ind.size(); i++) seeds_ind[i] = i;
-            segment_given_search_tree_<ScalarT,EigenDim,DistAdaptor,NT,PointSimilarityEvaluator>(KDTree<ScalarT,EigenDim,DistAdaptor>(points), nh, seeds_ind, evaluator, min_segment_size, max_segment_size);
-            return *this;
-        }
+//        // Given search tree and seeds (NeighborhoodType given as template parameter)
+//        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor, NeighborhoodType NT, class PointSimilarityEvaluator = AlwaysTrueSimilarityEvaluator<ScalarT>>
+//        ConnectedComponentSegmentation& segment(const KDTree<ScalarT,EigenDim,DistAdaptor> &tree,
+//                                                const NeighborhoodSpecification<ScalarT> &nh,
+//                                                const std::vector<size_t> &seeds_ind,
+//                                                const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
+//                                                size_t min_segment_size = 0,
+//                                                size_t max_segment_size = std::numeric_limits<size_t>::max())
+//        {
+//            segment_given_search_tree_<ScalarT,EigenDim,DistAdaptor,NT,PointSimilarityEvaluator>(tree, nh, seeds_ind, evaluator, min_segment_size, max_segment_size);
+//            return *this;
+//        }
+//
+//        // Given search tree, all seeds (NeighborhoodType given as template parameter)
+//        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor, NeighborhoodType NT, class PointSimilarityEvaluator = AlwaysTrueSimilarityEvaluator<ScalarT>>
+//        ConnectedComponentSegmentation& segment(const KDTree<ScalarT,EigenDim,DistAdaptor> &tree,
+//                                                const NeighborhoodSpecification<ScalarT> &nh,
+//                                                const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
+//                                                size_t min_segment_size = 0,
+//                                                size_t max_segment_size = std::numeric_limits<size_t>::max())
+//        {
+//            std::vector<size_t> seeds_ind(tree.getPointsMatrixMap().cols());
+//            for (size_t i = 0; i < seeds_ind.size(); i++) seeds_ind[i] = i;
+//            segment_given_search_tree_<ScalarT,EigenDim,DistAdaptor,NT,PointSimilarityEvaluator>(tree, nh, seeds_ind, evaluator, min_segment_size, max_segment_size);
+//            return *this;
+//        }
+//
+//        // Given points and seeds (NeighborhoodType given as template parameter)
+//        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor, NeighborhoodType NT, class PointSimilarityEvaluator = AlwaysTrueSimilarityEvaluator<ScalarT>>
+//        ConnectedComponentSegmentation& segment(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
+//                                                const NeighborhoodSpecification<ScalarT> &nh,
+//                                                const std::vector<size_t> &seeds_ind,
+//                                                const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
+//                                                size_t min_segment_size = 0,
+//                                                size_t max_segment_size = std::numeric_limits<size_t>::max())
+//        {
+//            segment_given_search_tree_<ScalarT,EigenDim,DistAdaptor,NT,PointSimilarityEvaluator>(KDTree<ScalarT,EigenDim,DistAdaptor>(points), nh, seeds_ind, evaluator, min_segment_size, max_segment_size);
+//            return *this;
+//        }
+//
+//        // Given points, all seeds (NeighborhoodType given as template parameter)
+//        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor, NeighborhoodType NT, class PointSimilarityEvaluator = AlwaysTrueSimilarityEvaluator<ScalarT>>
+//        ConnectedComponentSegmentation& segment(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
+//                                                const NeighborhoodSpecification<ScalarT> &nh,
+//                                                const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
+//                                                size_t min_segment_size = 0,
+//                                                size_t max_segment_size = std::numeric_limits<size_t>::max())
+//        {
+//            std::vector<size_t> seeds_ind(points.cols());
+//            for (size_t i = 0; i < seeds_ind.size(); i++) seeds_ind[i] = i;
+//            segment_given_search_tree_<ScalarT,EigenDim,DistAdaptor,NT,PointSimilarityEvaluator>(KDTree<ScalarT,EigenDim,DistAdaptor>(points), nh, seeds_ind, evaluator, min_segment_size, max_segment_size);
+//            return *this;
+//        }
 
         inline const std::vector<std::vector<size_t>>& getComponentPointIndices() const { return component_point_indices_; }
 
