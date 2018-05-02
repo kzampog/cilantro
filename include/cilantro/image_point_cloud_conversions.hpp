@@ -190,7 +190,7 @@ namespace cilantro {
                           size_t* index_map_data,
                           size_t image_w, size_t image_h)
     {
-        const size_t empty = std::numeric_limits<std::size_t>::max();
+        const size_t empty = std::numeric_limits<size_t>::max();
 
 #pragma omp parallel for
         for (size_t i = 0; i < image_w*image_h; i++) {

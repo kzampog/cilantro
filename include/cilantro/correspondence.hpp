@@ -9,6 +9,8 @@ namespace cilantro {
     struct Correspondence {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        Correspondence() {}
+
         Correspondence(size_t i, size_t j, ScalarT val) : indexInFirst(i), indexInSecond(j), value(val) {}
 
         size_t indexInFirst;
@@ -127,30 +129,37 @@ namespace cilantro {
                                              CorrValueT max_distance,
                                              const EvaluatorT &evaluator = EvaluatorT())
     {
-        correspondences.clear();
-        correspondences.reserve(query_pts.cols());
+        CorrespondenceSet<CorrValueT> corr_tmp(query_pts.cols());
 
         NearestNeighborSearchResult<ScalarT> nn;
+        CorrValueT value;
 
         if (ref_is_first) {
-#pragma omp parallel for shared (correspondences) private (nn)
-            for (size_t i = 0; i < query_pts.cols(); i++) {
+#pragma omp parallel for shared (correspondences) private (nn, value)
+            for (size_t i = 0; i < corr_tmp.size(); i++) {
                 ref_tree.nearestNeighborSearch(query_pts.col(i), nn);
-                if (nn.value < max_distance) {
-#pragma omp critical
-                    correspondences.emplace_back(nn.index, i, evaluator(nn.index, i, nn.value));
-                }
+                value = evaluator(nn.index, i, nn.value);
+                corr_tmp[i].indexInFirst = nn.index;
+                corr_tmp[i].indexInSecond = i;
+                corr_tmp[i].value = value;
             }
         } else {
-#pragma omp parallel for shared (correspondences) private (nn)
-            for (size_t i = 0; i < query_pts.cols(); i++) {
+#pragma omp parallel for shared (correspondences) private (nn, value)
+            for (size_t i = 0; i < corr_tmp.size(); i++) {
                 ref_tree.nearestNeighborSearch(query_pts.col(i), nn);
-                if (nn.value < max_distance) {
-#pragma omp critical
-                    correspondences.emplace_back(i, nn.index, evaluator(i, nn.index, nn.value));
-                }
+                value = evaluator(i, nn.index, nn.value);
+                corr_tmp[i].indexInFirst = i;
+                corr_tmp[i].indexInSecond = nn.index;
+                corr_tmp[i].value = value;
             }
         }
+
+        correspondences.resize(corr_tmp.size());
+        size_t count = 0;
+        for (size_t i = 0; i < corr_tmp.size(); i++) {
+            if (corr_tmp[i].value < max_distance) correspondences[count++] = corr_tmp[i];
+        }
+        correspondences.resize(count);
     }
 
     template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = CorrespondenceDistanceEvaluator<ScalarT>, typename CorrValueT = decltype(std::declval<EvaluatorT>().operator()((size_t)0,(size_t)0,(ScalarT)0))>
@@ -181,8 +190,13 @@ namespace cilantro {
 
         typename Correspondence<CorrValueT>::IndicesLexicographicalComparator comparator;
 
-        std::sort(corr_first_to_second.begin(), corr_first_to_second.end(), comparator);
-        std::sort(corr_second_to_first.begin(), corr_second_to_first.end(), comparator);
+#pragma omp parallel sections
+        {
+#pragma omp section
+            std::sort(corr_first_to_second.begin(), corr_first_to_second.end(), comparator);
+#pragma omp section
+            std::sort(corr_second_to_first.begin(), corr_second_to_first.end(), comparator);
+        }
 
         correspondences.clear();
         correspondences.reserve(corr_first_to_second.size()+corr_second_to_first.size());
