@@ -1,4 +1,4 @@
-#include <cilantro/nearest_neighbor_graph.hpp>
+#include <cilantro/nearest_neighbor_graph_utilities.hpp>
 #include <cilantro/spectral_clustering.hpp>
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/visualizer.hpp>

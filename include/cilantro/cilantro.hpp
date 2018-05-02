@@ -14,7 +14,8 @@
 #include <cilantro/icp_base.hpp>
 #include <cilantro/icp_common_feature_adaptors.hpp>
 #include <cilantro/icp_common_instances.hpp>
-#include <cilantro/icp_correspondence_search.hpp.hpp>
+#include <cilantro/icp_correspondence_search_kd_tree.hpp>
+#include <cilantro/icp_correspondence_search_projective.hpp>
 #include <cilantro/icp_rigid_combined_metric_3d.hpp>
 #include <cilantro/icp_rigid_point_to_point.hpp>
 #include <cilantro/image_point_cloud_conversions.hpp>
@@ -24,7 +25,7 @@
 #include <cilantro/kmeans.hpp>
 #include <cilantro/mean_shift.hpp>
 #include <cilantro/multidimensional_scaling.hpp>
-#include <cilantro/nearest_neighbor_graph.hpp>
+#include <cilantro/nearest_neighbor_graph_utilities.hpp>
 #include <cilantro/normal_estimation.hpp>
 #include <cilantro/plane_estimator.hpp>
 #include <cilantro/point_cloud.hpp>

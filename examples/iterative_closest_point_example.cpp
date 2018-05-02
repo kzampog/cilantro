@@ -48,8 +48,7 @@ int main(int argc, char ** argv) {
     tf_ref.linear() = tmp;
     tf_ref.translation() = Eigen::Vector3f(-0.20f, -0.05f, 0.10f);
 
-    src.points = tf_ref*src.points;
-    src.normals = tf_ref.linear()*src.normals;
+    src.transform(tf_ref);
 
     // Visualize initial configuration
     cilantro::Visualizer viz("IterativeClosestPoint example", "disp");
@@ -81,11 +80,13 @@ int main(int argc, char ** argv) {
 
     // Point-to-point
 //    cilantro::PointToPointMetricRigidICP3f<decltype(corr_engine)> icp(dst.points, src.points, corr_engine);
+//    cilantro::SimplePointToPointMetricRigidProjectiveICP3f icp(dst.points, src.points);
 //    cilantro::SimplePointToPointMetricRigidICP3f icp(dst.points, src.points);
 
     // Weighted combination of point-to-point and point-to-plane
 //    cilantro::CombinedMetricRigidICP3f<decltype(corr_engine)> icp(dst.points, dst.normals, src.points, corr_engine);
     cilantro::SimpleCombinedMetricRigidICP3f icp(dst.points, dst.normals, src.points);
+//    cilantro::SimpleCombinedMetricRigidProjectiveICP3f icp(dst.points, dst.normals, src.points);
     icp.setMaxNumberOfOptimizationStepIterations(1).setPointToPointMetricWeight(0.0).setPointToPlaneMetricWeight(1.0);
 
     icp.correspondenceSearchEngine().setMaxDistance(0.1f*0.1f);
@@ -106,8 +107,7 @@ int main(int argc, char ** argv) {
     // Visualize registration results
     cilantro::PointCloud3f src_trans(src);
 
-    src_trans.points = tf_est*src_trans.points;
-    src_trans.normals = tf_est.linear()*src_trans.normals;
+    src_trans.transform(tf_est);
 
     viz.addPointCloud("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
     viz.addPointCloud("src", src_trans, cilantro::RenderingProperties().setPointColor(1,0,0));
