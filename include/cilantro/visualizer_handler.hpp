@@ -9,7 +9,7 @@ namespace cilantro {
     {
         friend class Visualizer;
 
-        VisualizerHandler(cilantro::Visualizer * visualizer);
+        VisualizerHandler(Visualizer *visualizer);
 
         virtual bool ValidWinDepth(pangolin::GLprecision depth);
         virtual void PixelUnproject(pangolin::View& view, pangolin::GLprecision winx, pangolin::GLprecision winy, pangolin::GLprecision winz, pangolin::GLprecision Pc[3]);
@@ -42,7 +42,7 @@ namespace cilantro {
         float minLineWidth;
 
     protected:
-        cilantro::Visualizer * visualizer;
+        Visualizer * visualizer;
         bool ortho;
         float ortho_left;
         float ortho_right;
