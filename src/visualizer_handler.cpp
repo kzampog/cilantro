@@ -2,7 +2,7 @@
 #include <cilantro/visualizer.hpp>
 
 namespace cilantro {
-    VisualizerHandler::VisualizerHandler(cilantro::Visualizer * visualizer)
+    VisualizerHandler::VisualizerHandler(Visualizer *visualizer)
             : translationFactor(0.01f),
               zoomFraction(PANGO_DFLT_HANDLER3D_ZF),
               pointSizeStep(1.0f),
