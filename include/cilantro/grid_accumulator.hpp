@@ -93,7 +93,7 @@ namespace cilantro {
 
         inline const typename GridBinMap::const_iterator findContainingGridBin(size_t ind) const { return getPointBinNeighbors(data_map_.col(ind)); }
 
-        GridPoint getPointGridCoordinates(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &point) const {
+        inline GridPoint getPointGridCoordinates(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &point) const {
             GridPoint grid_coords(data_map_.rows());
             for (size_t i = 0; i < data_map_.rows(); i++) {
                 grid_coords[i] = std::floor(point[i]*bin_size_inv_[i]);
@@ -103,7 +103,7 @@ namespace cilantro {
 
         inline GridPoint getPointGridCoordinates(size_t point_ind) const { return getGridCoordinates(data_map_.col(point_ind)); }
 
-        Vector<ScalarT,EigenDim> getBinCornerCoordinates(const Eigen::Ref<const GridPoint> &grid_point) const {
+        inline Vector<ScalarT,EigenDim> getBinCornerCoordinates(const Eigen::Ref<const GridPoint> &grid_point) const {
             Vector<ScalarT,EigenDim> point(data_map_.rows());
             for (size_t i = 0; i < data_map_.rows(); i++) {
                 point[i] = grid_point[i]*bin_size_[i];

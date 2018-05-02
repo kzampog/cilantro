@@ -174,8 +174,6 @@ namespace cilantro {
                 }
                 model_inliers_.resize(k);
             }
-
-            //return *estimator;
         }
     };
 }

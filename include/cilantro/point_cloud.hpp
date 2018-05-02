@@ -264,13 +264,13 @@ namespace cilantro {
             return *this;
         }
 
-        PointCloud& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rotation, const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation) {
+        inline PointCloud& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rotation, const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation) {
             points = (rotation*points).colwise() + translation;
             if (hasNormals()) normals = rotation*normals;
             return *this;
         }
 
-        PointCloud transformed(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rotation, const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation) {
+        inline PointCloud transformed(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rotation, const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation) {
             PointCloud cloud;
             cloud.points = (rotation*points).colwise() + translation;
             if (hasNormals()) cloud.normals = rotation*normals;
@@ -298,13 +298,13 @@ namespace cilantro {
             return transformed(tform.topLeftCorner(points.rows(),points.rows()), tform.topRightCorner(points.rows(),1));
         }
 
-        PointCloud& transform(const RigidTransformation<ScalarT,EigenDim> &tform) {
+        inline PointCloud& transform(const RigidTransformation<ScalarT,EigenDim> &tform) {
             points = tform*points;
             if (hasNormals()) normals = tform.linear()*normals;
             return *this;
         }
 
-        PointCloud transformed(const RigidTransformation<ScalarT,EigenDim> &tform) const {
+        inline PointCloud transformed(const RigidTransformation<ScalarT,EigenDim> &tform) const {
             PointCloud cloud;
             cloud.points = tform*points;
             if (hasNormals()) cloud.normals = tform.linear()*normals;

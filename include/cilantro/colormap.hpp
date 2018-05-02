@@ -25,6 +25,7 @@ namespace cilantro {
         VectorSet<float,3> colors(3, scalars.cols());
         switch (colormap_type) {
             case ColormapType::JET:
+#pragma omp parallel for private (scalar_normalized)
                 for (size_t i = 0; i < scalars.cols(); i++) {
                     scalar_normalized = (scalars[i] - scalar_min_used)/scalar_range;
                     if (scalar_normalized < 0.7f)
@@ -42,6 +43,7 @@ namespace cilantro {
                 }
                 break;
             case ColormapType::GRAY:
+#pragma omp parallel for private (scalar_normalized)
                 for (size_t i = 0; i < scalars.cols(); i++) {
                     scalar_normalized = (scalars[i] - scalar_min_used)/scalar_range;
                     colors(0,i) = std::max(std::min(scalar_normalized, 1.0f), 0.0f);
@@ -50,6 +52,7 @@ namespace cilantro {
                 }
                 break;
             case ColormapType::BLUE2RED:
+#pragma omp parallel for private (scalar_normalized)
                 for (size_t i = 0; i < scalars.cols(); i++) {
                     scalar_normalized = (scalars[i] - scalar_min_used)/scalar_range;
                     if (scalar_normalized < 0.5f) {

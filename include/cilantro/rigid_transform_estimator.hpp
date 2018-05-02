@@ -46,6 +46,7 @@ namespace cilantro {
         RigidTransformationEstimator& estimateModelParameters(const std::vector<size_t> &sample_ind, RigidTransformation<ScalarT,EigenDim> &model_params) {
             VectorSet<ScalarT,EigenDim> dst_p(dst_points_.rows(), sample_ind.size());
             VectorSet<ScalarT,EigenDim> src_p(src_points_.rows(), sample_ind.size());
+#pragma omp parallel for
             for (size_t i = 0; i < sample_ind.size(); i++) {
                 dst_p.col(i) = dst_points_.col(sample_ind[i]);
                 src_p.col(i) = src_points_.col(sample_ind[i]);

@@ -40,7 +40,7 @@ namespace cilantro {
             return model_params;
         }
 
-        PlaneEstimator& computeResiduals(const HomogeneousVector<ScalarT,EigenDim> &model_params, std::vector<ScalarT> &residuals) {
+        inline PlaneEstimator& computeResiduals(const HomogeneousVector<ScalarT,EigenDim> &model_params, std::vector<ScalarT> &residuals) {
             residuals.resize(points_.cols());
             Eigen::Matrix<ScalarT,1,EigenDim> n_t = model_params.head(points_.rows()).transpose();
             ScalarT norm = n_t.norm();

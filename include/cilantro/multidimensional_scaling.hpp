@@ -45,7 +45,7 @@ namespace cilantro {
         VectorSet<ScalarT,EigenDim> embedded_points_;
 
         inline void compute_(const Eigen::Ref<const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> &distances,
-                            size_t max_dim, bool estimate_dim, bool distances_are_squared)
+                             size_t max_dim, bool estimate_dim, bool distances_are_squared)
         {
             size_t dim = max_dim;
             const size_t num_eigenvalues = (estimate_dim) ? std::min(max_dim+1, (size_t)(distances.rows()-1)) : max_dim;

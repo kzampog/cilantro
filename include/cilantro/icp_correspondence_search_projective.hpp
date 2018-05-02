@@ -40,7 +40,7 @@ namespace cilantro {
             return correspondences;
         }
 
-        ICPCorrespondenceSearchProjective3& findCorrespondences(SearchResult &correspondences) {
+        inline ICPCorrespondenceSearchProjective3& findCorrespondences(SearchResult &correspondences) {
             find_correspondences_(src_points_adaptor_.getFeatureData(), correspondences);
             return *this;
         }
@@ -108,7 +108,7 @@ namespace cilantro {
         CorrespondenceScalar max_distance_;
         double inlier_fraction_;
 
-        inline void find_correspondences_(const ConstVectorSetMatrixMap<ScalarT,3>& src_points_trans, SearchResult &correspondences) {
+        void find_correspondences_(const ConstVectorSetMatrixMap<ScalarT,3>& src_points_trans, SearchResult &correspondences) {
             const ConstVectorSetMatrixMap<ScalarT,3>& dst_points(dst_points_adaptor_.getFeatureData());
 
             if (index_map_.rows() != projection_image_width_ || index_map_.cols() != projection_image_height_) {

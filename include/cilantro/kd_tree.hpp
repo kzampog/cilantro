@@ -189,7 +189,7 @@ namespace cilantro {
             }
         }
 
-        void kNNSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, size_t k, NearestNeighborSearchResultSet<ScalarT> &results) const {
+        inline void kNNSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, size_t k, NearestNeighborSearchResultSet<ScalarT> &results) const {
             KNNSearchResultAdaptor<ScalarT> sra(results, k);
             kd_tree_.findNeighbors(sra, query_pt.data(), params_);
             results.resize(sra.size());
@@ -203,7 +203,7 @@ namespace cilantro {
             }
         }
 
-        void radiusSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, ScalarT radius, NearestNeighborSearchResultSet<ScalarT> &results) const {
+        inline void radiusSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, ScalarT radius, NearestNeighborSearchResultSet<ScalarT> &results) const {
             RadiusSearchResultAdaptor<ScalarT> sra(results, radius);
             kd_tree_.findNeighbors(sra, query_pt.data(), params_);
             std::sort(results.begin(), results.end(), typename NearestNeighborSearchResult<ScalarT>::ValueLessComparator());
@@ -217,7 +217,7 @@ namespace cilantro {
             }
         }
 
-        void kNNInRadiusSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, size_t k, ScalarT radius, NearestNeighborSearchResultSet<ScalarT> &results) const {
+        inline void kNNInRadiusSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt, size_t k, ScalarT radius, NearestNeighborSearchResultSet<ScalarT> &results) const {
             this->kNNSearch(query_pt, k, results);
             size_t ind = results.size() - 1;
             while (ind >= 0 && results[ind].value >= radius) ind--;
