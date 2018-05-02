@@ -21,7 +21,6 @@ int main(int argc, char ** argv) {
     float tol = std::numeric_limits<float>::epsilon();
     bool use_kd_tree = true;
 
-
     auto start = std::chrono::high_resolution_clock::now();
     kmc.cluster(k, max_iter, tol, use_kd_tree);
     auto end = std::chrono::high_resolution_clock::now();

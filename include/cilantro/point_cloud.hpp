@@ -2,7 +2,6 @@
 
 #include <iterator>
 #include <set>
-#include <cilantro/space_transformations.hpp>
 #include <cilantro/image_point_cloud_conversions.hpp>
 #include <cilantro/grid_downsampler.hpp>
 #include <cilantro/normal_estimation.hpp>
