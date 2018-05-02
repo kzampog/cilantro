@@ -27,7 +27,7 @@ namespace cilantro {
                                        textAnchorPoint(0.5f,0.5f)
         {}
 
-        inline ~RenderingProperties() {}
+        virtual inline ~RenderingProperties() {}
 
         static Eigen::Vector3f defaultColor;
         static Eigen::Vector3f noColor;
