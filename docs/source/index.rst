@@ -12,6 +12,32 @@ cilantro is a lean C++ library for working with point cloud data, with emphasis 
 What can cilantro do?
 =====================
 
+* **Basic operations:**
+	* General dimension kd-trees (using bundled nanoflann)
+	* Surface normal and curvature estimation from raw point clouds
+	* General dimension grid-based point cloud resampling
+	* Principal Component Analysis
+ 	* Classical Multidimensional Scaling (using bundled Spectra for eigendecompositions)
+	* Basic I/O utilities for 3D point clouds (in PLY format, using bundled tinyply) and Eigen matrices
+
+* **Convex hulls:**
+	*A general dimension convex polytope representation that is computed (using bundled Qhull) from either vertex or half-space intersection input and allows for easy switching between the respective representations
+	* A representation of generic (general dimension) space regions as unions of convex polytopes that implements set operations
+
+* **Clustering:**
+	* General dimension k-means clustering that supports all distance metrics supported by nanoflann
+	* Spectral clustering based on various graph Laplacian types (using bundled Spectra)
+	* Flat kernel mean-shift clustering
+	* Connected component based point cloud segmentation, with pairwise similarities capturing any combination of spatial proximity, normal smoothness, and color similarity
+
+* **Model estimation and point set registration:**
+	* A RANSAC estimator template and instantiations thereof for robust plane estimation and rigid 6DOF point cloud registration
+	* Generic Iterative Closest Point implementations for point-to-point and point-to-plane metrics (and combinations thereof) that support arbitrary correspondence types on any kind of point features
+
+* **Visualization:**
+	* A fast, powerful, and easy to use 3D visualizer
+	* RGBD images to/from point cloud utility functions
+
 .. toctree::
    :maxdepth: 2
    :caption: Functionality:
@@ -30,4 +56,5 @@ Indices and tables
 ==================
 
 * :ref:`genindex`
-
+* :ref:`modindex`
+* :ref:`search`
