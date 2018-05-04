@@ -3,9 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-==================
-What is cilantro?
-==================
+======================
+cilantro documentation
+======================
 cilantro is a lean C++ library for working with point cloud data, with emphasis given to the 3D case. It implements a number of common operations, while attempting to minimize the amount of code required by the user.
 
 =====================
@@ -13,15 +13,15 @@ What can cilantro do?
 =====================
 
 * **Basic operations:**
-	* General dimension kd-trees (using bundled nanoflann)
+	* General dimension kd-trees (using bundled nanoflann_)
 	* Surface normal and curvature estimation from raw point clouds
 	* General dimension grid-based point cloud resampling
 	* Principal Component Analysis
- 	* Classical Multidimensional Scaling (using bundled Spectra for eigendecompositions)
-	* Basic I/O utilities for 3D point clouds (in PLY format, using bundled tinyply) and Eigen matrices
+ 	* Classical Multidimensional Scaling (using bundled Spectra_ for eigendecompositions)
+	* Basic I/O utilities for 3D point clouds (in PLY format, using bundled tinyply_) and Eigen matrices
 
 * **Convex hulls:**
-	*A general dimension convex polytope representation that is computed (using bundled Qhull) from either vertex or half-space intersection input and allows for easy switching between the respective representations
+	* A general dimension convex polytope representation that is computed (using bundled Qhull_) from either vertex or half-space intersection input and allows for easy switching between the respective representations
 	* A representation of generic (general dimension) space regions as unions of convex polytopes that implements set operations
 
 * **Clustering:**
@@ -58,3 +58,8 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+.. _nanoflann: https://github.com/jlblancoc/nanoflann
+.. _Spectra: https://github.com/yixuan/spectra
+.. _tinyply: https://github.com/ddiakopoulos/tinyply
+.. _Qhull: http://www.qhull.org/
