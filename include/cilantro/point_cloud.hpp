@@ -5,6 +5,7 @@
 #include <cilantro/image_point_cloud_conversions.hpp>
 #include <cilantro/grid_downsampler.hpp>
 #include <cilantro/normal_estimation.hpp>
+#include <cilantro/io.hpp>
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
@@ -73,6 +74,11 @@ namespace cilantro {
                     points.col(k++) = cloud.points.col(*it);
                 }
             }
+        }
+
+        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
+        PointCloud(const std::string &file_name) {
+            readPointCloudFromPLYFile(file_name, points, normals, colors);
         }
 
         inline size_t size() const { return points.cols(); }
@@ -361,6 +367,18 @@ namespace cilantro {
             PointCloud res;
             RGBDImagesToPointsColors<DepthT,ScalarT,DepthConverterT>(rgb_data, depth_data, image_w, image_h, intrinsics, res.points, res.colors, keep_invalid, depth_converter);
             return res;
+        }
+
+        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
+        inline PointCloud& fromPLYFile(const std::string &file_name) {
+            readPointCloudFromPLYFile(file_name, points, normals, colors);
+            return *this;
+        }
+
+        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
+        inline PointCloud& toPLYFile(const std::string &file_name, bool binary = true) {
+            writePointCloudToPLYFile(file_name, points, normals, colors, binary);
+            return *this;
         }
     };
 

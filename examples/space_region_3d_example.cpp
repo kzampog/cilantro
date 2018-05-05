@@ -1,5 +1,5 @@
 #include <cilantro/space_region.hpp>
-#include <cilantro/io.hpp>
+#include <cilantro/point_cloud.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
 
@@ -12,8 +12,12 @@ void callback(cilantro::Visualizer &viz, int key) {
 }
 
 int main(int argc, char* argv[]) {
-    cilantro::PointCloud3f cloud1;
-    cilantro::readPointCloudFromPLYFile(argv[1], cloud1);
+    if (argc < 2) {
+        std::cout << "Please provide path to PLY file" << std::endl;
+        return 0;
+    }
+
+    cilantro::PointCloud3f cloud1(argv[1]);
 
     // Shift to the right
     cilantro::PointCloud3f cloud2(cloud1);

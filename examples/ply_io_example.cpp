@@ -1,7 +1,6 @@
 #include <iostream>
 #include <pangolin/utils/file_utils.h>
-#include <cilantro/io.hpp>
-
+#include <cilantro/point_cloud.hpp>
 
 int main(int argc, char **argv) {
     cilantro::PointCloud3f cloud;
@@ -11,7 +10,7 @@ int main(int argc, char **argv) {
     if (argc < 3) {
         std::cout << "No input path provided. Using default test cloud location." << std::endl;
         fileInPath = "../examples/test_clouds/test.ply";
-        fileOutPath = "./kustas_copy.ply";
+        fileOutPath = "./test_copy.ply";
     } else {
         fileInPath = std::string(argv[1]);
         fileOutPath = std::string(argv[2]);
@@ -27,7 +26,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    readPointCloudFromPLYFile(fileInPath, cloud);
+    cloud.fromPLYFile(fileInPath);
     std::cout << cloud.points.cols() << " points read" << std::endl;
     std::cout << cloud.normals.cols() << " normals read" << std::endl;
     std::cout << cloud.colors.cols() << " colors read" << std::endl;
@@ -46,7 +45,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    writePointCloudToPLYFile(fileOutPath, pc);
+    pc.toPLYFile(fileOutPath);
     std::cout << pc.points.cols() << " points written" << std::endl;
     std::cout << pc.normals.cols() << " normals written" << std::endl;
     std::cout << pc.colors.cols() << " colors written" << std::endl;

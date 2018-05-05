@@ -1,5 +1,5 @@
 #include <cilantro/icp_common_instances.hpp>
-#include <cilantro/io.hpp>
+#include <cilantro/point_cloud.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
 
@@ -8,13 +8,17 @@ void callback(bool &proceed) {
 }
 
 int main(int argc, char ** argv) {
-    cilantro::PointCloud3f dst, src;
-    cilantro::readPointCloudFromPLYFile(argv[1], dst);
+    if (argc < 2) {
+        std::cout << "Please provide path to PLY file" << std::endl;
+        return 0;
+    }
+
+    cilantro::PointCloud3f dst(argv[1]);
 
     dst.gridDownsample(0.005f);
 
     // Create a distorted and transformed version of the point cloud
-    src = dst;
+    cilantro::PointCloud3f src(dst);
     for (size_t i = 0; i < src.size(); i++) {
         src.points.col(i) += 0.01f*Eigen::Vector3f::Random();
         src.normals.col(i) += 0.02f*Eigen::Vector3f::Random();

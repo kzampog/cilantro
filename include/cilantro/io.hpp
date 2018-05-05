@@ -1,12 +1,19 @@
 #pragma once
 
-#include <cilantro/point_cloud.hpp>
+#include <cilantro/data_containers.hpp>
 #include <fstream>
 
 namespace cilantro {
-    void readPointCloudFromPLYFile(const std::string &file_name, PointCloud<float,3> &cloud);
+    void readPointCloudFromPLYFile(const std::string &file_name,
+                                   VectorSet<float,3> &points,
+                                   VectorSet<float,3> &normals,
+                                   VectorSet<float,3> &colors);
 
-    void writePointCloudToPLYFile(const std::string &file_name, const PointCloud<float,3> &cloud, bool binary = true);
+    void writePointCloudToPLYFile(const std::string &file_name,
+                                  const ConstVectorSetMatrixMap<float,3> &points,
+                                  const ConstVectorSetMatrixMap<float,3> &normals,
+                                  const ConstVectorSetMatrixMap<float,3> &colors,
+                                  bool binary = true);
 
     template<class Matrix>
     void readEigenMatrixFromFile(const std::string &file_name, Matrix &matrix, bool binary = true) {

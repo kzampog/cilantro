@@ -2,13 +2,17 @@
 #include <cilantro/3rd_party/tinyply/tinyply.h>
 
 namespace cilantro {
-    void readPointCloudFromPLYFile(const std::string &filename, PointCloud<float,3> &cloud) {
+    void readPointCloudFromPLYFile(const std::string &file_name,
+                                   VectorSet<float,3> &points,
+                                   VectorSet<float,3> &normals,
+                                   VectorSet<float,3> &colors)
+    {
         // Data holders
         std::vector<float> vertex_data;
         std::vector<float> normal_data;
         std::vector<uint8_t> color_data;
 
-        std::ifstream ss(filename, std::ios::binary);
+        std::ifstream ss(file_name, std::ios::binary);
         tinyply::PlyFile file(ss);
 
         // Initialize PLY data holders
@@ -20,35 +24,40 @@ namespace cilantro {
         file.read(ss);
 
         // Populate cloud
-        cloud.points = ConstDataMatrixMap<float,3>(vertex_data);
-        cloud.normals = ConstDataMatrixMap<float,3>(normal_data);
-        cloud.colors = ConstDataMatrixMap<uint8_t,3>(color_data).cast<float>()/255.0f;
+        points = ConstDataMatrixMap<float,3>(vertex_data);
+        normals = ConstDataMatrixMap<float,3>(normal_data);
+        colors = ConstDataMatrixMap<uint8_t,3>(color_data).cast<float>()/255.0f;
     }
 
-    void writePointCloudToPLYFile(const std::string &filename, const PointCloud<float,3> &cloud, bool binary) {
+    void writePointCloudToPLYFile(const std::string &file_name,
+                                  const ConstVectorSetMatrixMap<float,3> &points,
+                                  const ConstVectorSetMatrixMap<float,3> &normals,
+                                  const ConstVectorSetMatrixMap<float,3> &colors,
+                                  bool binary)
+    {
         tinyply::PlyFile file;
 
-        std::vector<float> vertex_data(3*cloud.points.cols());
-        std::memcpy(vertex_data.data(), cloud.points.data(), 3*cloud.points.cols()*sizeof(float));
+        std::vector<float> vertex_data(3*points.cols());
+        std::memcpy(vertex_data.data(), points.data(), 3*points.cols()*sizeof(float));
         file.add_properties_to_element("vertex", {"x", "y", "z"}, vertex_data);
 
         std::vector<float> normal_data;
-        if (cloud.hasNormals()) {
-            normal_data.resize(3*cloud.normals.cols());
-            DataMatrixMap<float,3>(normal_data).eigenMap() = cloud.normals;
+        if (normals.cols() == points.cols()) {
+            normal_data.resize(3*normals.cols());
+            DataMatrixMap<float,3>(normal_data).eigenMap() = normals;
             file.add_properties_to_element("vertex", {"nx", "ny", "nz"}, normal_data);
         }
 
         std::vector<uint8_t> color_data;
-        if (cloud.hasColors()) {
-            color_data.resize(3*cloud.colors.cols());
-            DataMatrixMap<uint8_t,3>(color_data).eigenMap() = (255.0f*cloud.colors).cast<uint8_t>();
+        if (colors.cols() == points.cols()) {
+            color_data.resize(3*colors.cols());
+            DataMatrixMap<uint8_t,3>(color_data).eigenMap() = (255.0f*colors).cast<uint8_t>();
             file.add_properties_to_element("vertex", {"red", "green", "blue"}, color_data);
         }
 
         // Write to file
         std::filebuf fb;
-        fb.open(filename, std::ios::out | std::ios::binary);
+        fb.open(file_name, std::ios::out | std::ios::binary);
         std::ostream output_stream(&fb);
         file.write(output_stream, binary);
         fb.close();

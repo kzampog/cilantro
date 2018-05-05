@@ -21,14 +21,14 @@
 - General dimension k-means clustering that supports all distance metrics supported by [nanoflann](https://github.com/jlblancoc/nanoflann)
 - Spectral clustering based on various graph Laplacian types (using bundled [Spectra](https://github.com/yixuan/spectra))
 - Flat kernel mean-shift clustering
-- Connected component based point cloud segmentation, with pairwise similarities capturing any combination of spatial proximity, normal smoothness, and color similarity
+- Connected component based point cloud segmentation that supports generic point-wise similarity functions
 
 #### Model estimation and point set registration:
 - A RANSAC estimator template and instantiations thereof for robust plane estimation and rigid 6DOF point cloud registration
-- Generic Iterative Closest Point implementations for point-to-point and point-to-plane metrics (and combinations thereof) that support arbitrary correspondence types on any kind of point features
+- Fully generic Iterative Closest Point implementations for point-to-point and point-to-plane metrics (and combinations thereof) that support arbitrary correspondence search methods in arbitrary point feature spaces
 
 #### Visualization:
-- A fast, powerful, and easy to use 3D visualizer
+- A powerful, extensible, and easy to use 3D visualizer
 - RGBD images to/from point cloud utility functions
 
 ## Dependencies

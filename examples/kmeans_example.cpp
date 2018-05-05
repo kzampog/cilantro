@@ -1,11 +1,15 @@
 #include <cilantro/kmeans.hpp>
-#include <cilantro/io.hpp>
+#include <cilantro/point_cloud.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
 
 int main(int argc, char ** argv) {
-    cilantro::PointCloud3f cloud;
-    cilantro::readPointCloudFromPLYFile(argv[1], cloud);
+    if (argc < 2) {
+        std::cout << "Please provide path to PLY file" << std::endl;
+        return 0;
+    }
+
+    cilantro::PointCloud3f cloud(argv[1]);
 
     cloud.gridDownsample(0.005f).removeInvalidData();
 

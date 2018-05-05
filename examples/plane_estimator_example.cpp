@@ -9,8 +9,12 @@ void callback(bool &re_estimate) {
 }
 
 int main(int argc, char **argv) {
-    cilantro::PointCloud3f cloud;
-    readPointCloudFromPLYFile(argv[1], cloud);
+    if (argc < 2) {
+        std::cout << "Please provide path to PLY file" << std::endl;
+        return 0;
+    }
+
+    cilantro::PointCloud3f cloud(argv[1]);
 
     cilantro::Visualizer viz("PlaneEstimator example", "disp");
     bool re_estimate = false;

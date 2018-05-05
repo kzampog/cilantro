@@ -22,10 +22,12 @@ void callback(unsigned char key, bool &re_estimate, bool &randomize) {
 }
 
 int main(int argc, char **argv) {
+    if (argc < 2) {
+        std::cout << "Please provide path to PLY file" << std::endl;
+        return 0;
+    }
 
-    cilantro::PointCloud3f dst;
-    readPointCloudFromPLYFile(argv[1], dst);
-
+    cilantro::PointCloud3f dst(argv[1]);
     cilantro::PointCloud3f src(dst);
 
     cilantro::Visualizer viz("RigidTransformationEstimator example", "disp");
