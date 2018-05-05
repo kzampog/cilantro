@@ -2,6 +2,7 @@
 #include <cilantro/rigid_transform_estimator.hpp>
 #include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
+#include <cilantro/common_renderables.hpp>
 
 cilantro::VectorSet<float,3> selectByIndices(const cilantro::VectorSet<float,3> &elements, const std::vector<size_t> &indices) {
     cilantro::VectorSet<float,3> res(3,indices.size());
@@ -36,7 +37,7 @@ int main(int argc, char **argv) {
     std::vector<size_t> dst_ind(100);
     std::vector<size_t> src_ind(100);
 
-    viz.addPointCloud("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
+    viz.addObject<cilantro::PointCloudRenderable>("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
     while (!viz.wasStopped()) {
         if (randomize) {
             randomize = false;
@@ -59,8 +60,8 @@ int main(int argc, char **argv) {
             }
 
             src.transform(tform);
-            viz.addPointCloud("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
-            viz.addPointCorrespondences("corr", selectByIndices(src.points, src_ind), selectByIndices(dst.points, dst_ind), cilantro::RenderingProperties().setOpacity(0.5f));
+            viz.addObject<cilantro::PointCloudRenderable>("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
+            viz.addObject<cilantro::PointCorrespondencesRenderable>("corr", selectByIndices(src.points, src_ind), selectByIndices(dst.points, dst_ind), cilantro::RenderingProperties().setOpacity(0.5f));
 
             std::cout << "Press 'a' for a transform estimate" << std::endl;
         }
@@ -79,7 +80,7 @@ int main(int argc, char **argv) {
 
             src.transform(tform);
 
-            viz.addPointCloud("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
+            viz.addObject<cilantro::PointCloudRenderable>("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
 
             std::cout << "Press 'd' for a new random pose" << std::endl;
         }

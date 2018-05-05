@@ -1,17 +1,40 @@
-#include <cilantro/renderables.hpp>
+#include <cilantro/common_renderables.hpp>
 
 namespace cilantro {
     extern "C" const unsigned char AnonymousPro_ttf[];
 
-    Eigen::Vector3f RenderingProperties::defaultColor = Eigen::Vector3f(1.0f,1.0f,1.0f);
-    Eigen::Vector3f RenderingProperties::noColor = Eigen::Vector3f(-1.0f,-1.0f,-1.0f);
+    PointCloudRenderable::PointCloudRenderable(const ConstVectorSetMatrixMap<float,3> &points,
+                                               const RenderingProperties &rp)
+        : Renderable(rp), points(points)
+    {
+        if (points.cols() > 0) centroid = points.rowwise().mean();
+    }
 
-    void PointCloudRenderable::applyRenderingProperties() {
-        pointBuffer.Reinitialise(pangolin::GlArrayBuffer, points.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-        pointBuffer.Upload(points.data(), sizeof(float)*points.cols()*3);
+    PointCloudRenderable& PointCloudRenderable::setPointNormals(const ConstVectorSetMatrixMap<float,3> &normals) {
+        if (normals.cols() == points.cols()) this->normals = normals;
+        return *this;
+    }
 
-        normalBuffer.Reinitialise(pangolin::GlArrayBuffer, normals.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-        normalBuffer.Upload(normals.data(), sizeof(float)*normals.cols()*3);
+    PointCloudRenderable& PointCloudRenderable::setPointColors(const ConstVectorSetMatrixMap<float,3> &colors) {
+        if (colors.cols() == points.cols()) this->colors = colors;
+        return *this;
+    }
+
+    PointCloudRenderable& PointCloudRenderable::setPointValues(const ConstVectorSetMatrixMap<float,1> &values) {
+        if (values.cols() == points.cols()) this->values = values;
+        return *this;
+    }
+
+    void PointCloudRenderable::setRenderingProperties(GPUBufferObjects &gl_objects) {
+        if (points.cols() == 0) return;
+
+        auto *gl_buffers = static_cast<PointCloudGPUBufferObjects *>(&gl_objects);
+
+        gl_buffers->pointBuffer.Reinitialise(pangolin::GlArrayBuffer, points.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+        gl_buffers->pointBuffer.Upload(points.data(), sizeof(float)*points.cols()*3);
+
+        gl_buffers->normalBuffer.Reinitialise(pangolin::GlArrayBuffer, normals.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+        gl_buffers->normalBuffer.Upload(normals.data(), sizeof(float)*normals.cols()*3);
 
         VectorSet<float,3> line_end_points;
         if (renderingProperties.drawNormals && normals.cols() > 0 && renderingProperties.lineDensityFraction > 0.0f) {
@@ -25,8 +48,8 @@ namespace cilantro {
                 line_end_points.col(k++) = points.col(i) + renderingProperties.normalLength*normals.col(i);
             }
         }
-        normalEndPointBuffer.Reinitialise(pangolin::GlArrayBuffer, line_end_points.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-        normalEndPointBuffer.Upload(line_end_points.data(), sizeof(float)*line_end_points.cols()*3);
+        gl_buffers->normalEndPointBuffer.Reinitialise(pangolin::GlArrayBuffer, line_end_points.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+        gl_buffers->normalEndPointBuffer.Upload(line_end_points.data(), sizeof(float)*line_end_points.cols()*3);
 
         VectorSet<float,4> color_alpha;
         if (renderingProperties.pointColor != RenderingProperties::noColor) {
@@ -34,9 +57,9 @@ namespace cilantro {
             tmp.head(3) = renderingProperties.pointColor;
             tmp(3) = renderingProperties.opacity;
             color_alpha = tmp.replicate(1,points.cols());
-        } else if (pointValues.cols() == points.cols() && renderingProperties.useScalarValueMappedColors) {
-            VectorSet<float,3> color_tmp = colormap<float>(pointValues, renderingProperties.colormapType, renderingProperties.minScalarValue, renderingProperties.maxScalarValue);
-            color_alpha.resize(Eigen::NoChange, pointValues.cols());
+        } else if (values.cols() == points.cols() && renderingProperties.useScalarValueMappedColors) {
+            VectorSet<float,3> color_tmp = colormap<float>(values, renderingProperties.colormapType, renderingProperties.minScalarValue, renderingProperties.maxScalarValue);
+            color_alpha.resize(Eigen::NoChange, values.cols());
             color_alpha.topRows(3) = color_tmp;
             color_alpha.row(3).setConstant(renderingProperties.opacity);
         } else if (colors.cols() == points.cols()) {
@@ -50,35 +73,39 @@ namespace cilantro {
             tmp(3) = renderingProperties.opacity;
             color_alpha = tmp.replicate(1,points.cols());
         }
-        colorBuffer.Reinitialise(pangolin::GlArrayBuffer, color_alpha.cols(), GL_FLOAT, 4, GL_DYNAMIC_DRAW);
-        colorBuffer.Upload(color_alpha.data(), sizeof(float)*color_alpha.cols()*4);
+        gl_buffers->colorBuffer.Reinitialise(pangolin::GlArrayBuffer, color_alpha.cols(), GL_FLOAT, 4, GL_DYNAMIC_DRAW);
+        gl_buffers->colorBuffer.Upload(color_alpha.data(), sizeof(float)*color_alpha.cols()*4);
     }
 
-    void PointCloudRenderable::render() {
+    void PointCloudRenderable::render(GPUBufferObjects &gl_objects) {
+        if (points.cols() == 0) return;
+
+        auto *gl_buffers = static_cast<PointCloudGPUBufferObjects *>(&gl_objects);
+
         glPointSize(renderingProperties.pointSize);
 
         bool use_normals = normals.cols() == points.cols();
         bool use_lighting = use_normals && renderingProperties.useLighting;
 
         if (use_normals) {
-            normalBuffer.Bind();
-            glNormalPointer(normalBuffer.datatype, (GLsizei)(normalBuffer.count_per_element * pangolin::GlDataTypeBytes(normalBuffer.datatype)), NULL);
+            gl_buffers->normalBuffer.Bind();
+            glNormalPointer(gl_buffers->normalBuffer.datatype, (GLsizei)(gl_buffers->normalBuffer.count_per_element * pangolin::GlDataTypeBytes(gl_buffers->normalBuffer.datatype)), NULL);
             glEnableClientState(GL_NORMAL_ARRAY);
         }
         if (use_lighting) {
             glEnable(GL_LIGHTING);
             glEnable(GL_LIGHT0);
             glEnable(GL_COLOR_MATERIAL);
-            pangolin::RenderVboCbo(pointBuffer, colorBuffer, true, GL_POINTS);
+            pangolin::RenderVboCbo(gl_buffers->pointBuffer, gl_buffers->colorBuffer, true, GL_POINTS);
             glDisable(GL_COLOR_MATERIAL);
             glDisable(GL_LIGHT0);
             glDisable(GL_LIGHTING);
         } else {
-            pangolin::RenderVboCbo(pointBuffer, colorBuffer, true, GL_POINTS);
+            pangolin::RenderVboCbo(gl_buffers->pointBuffer, gl_buffers->colorBuffer, true, GL_POINTS);
         }
         if (use_normals) {
             glDisableClientState(GL_NORMAL_ARRAY);
-            normalBuffer.Unbind();
+            gl_buffers->normalBuffer.Unbind();
         }
 
         if (renderingProperties.drawNormals) {
@@ -87,11 +114,25 @@ namespace cilantro {
             else
                 glColor4f(renderingProperties.lineColor(0), renderingProperties.lineColor(1), renderingProperties.lineColor(2), renderingProperties.opacity);
             glLineWidth(renderingProperties.lineWidth);
-            pangolin::RenderVbo(normalEndPointBuffer, GL_LINES);
+            pangolin::RenderVbo(gl_buffers->normalEndPointBuffer, GL_LINES);
         }
     }
 
-    void CorrespondencesRenderable::applyRenderingProperties() {
+    PointCorrespondencesRenderable::PointCorrespondencesRenderable(const ConstVectorSetMatrixMap<float,3> &src_points,
+                                                                   const ConstVectorSetMatrixMap<float,3> &dst_points,
+                                                                   const RenderingProperties &rp)
+            : Renderable(rp), srcPoints(src_points), dstPoints(dst_points)
+    {
+        if (srcPoints.cols() == dstPoints.cols() && srcPoints.cols() > 0) {
+            centroid = 0.5f*(srcPoints + dstPoints).rowwise().mean();
+        }
+    }
+
+    void PointCorrespondencesRenderable::setRenderingProperties(GPUBufferObjects &gl_objects) {
+        if (srcPoints.cols() != dstPoints.cols() || srcPoints.cols() == 0) return;
+
+        auto *gl_buffers = static_cast<PointCorrespondencesGPUBufferObjects *>(&gl_objects);
+
         VectorSet<float,3> line_end_points;
         if (srcPoints.cols() > 0 && renderingProperties.lineDensityFraction > 0.0f) {
             if (renderingProperties.lineDensityFraction > 1.0f) renderingProperties.lineDensityFraction = 1.0;
@@ -104,29 +145,45 @@ namespace cilantro {
                 line_end_points.col(k++) = dstPoints.col(i);
             }
         }
-        lineEndPointBuffer.Reinitialise(pangolin::GlArrayBuffer, line_end_points.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-        lineEndPointBuffer.Upload(line_end_points.data(), sizeof(float)*line_end_points.cols()*3);
+        gl_buffers->lineEndPointBuffer.Reinitialise(pangolin::GlArrayBuffer, line_end_points.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+        gl_buffers->lineEndPointBuffer.Upload(line_end_points.data(), sizeof(float)*line_end_points.cols()*3);
     }
 
-    void CorrespondencesRenderable::render() {
+    void PointCorrespondencesRenderable::render(GPUBufferObjects &gl_objects) {
+        if (srcPoints.cols() != dstPoints.cols() || srcPoints.cols() == 0) return;
+
+        auto *gl_buffers = static_cast<PointCorrespondencesGPUBufferObjects *>(&gl_objects);
+
         if (renderingProperties.lineColor == RenderingProperties::noColor)
             glColor4f(RenderingProperties::defaultColor(0), RenderingProperties::defaultColor(1), RenderingProperties::defaultColor(2), renderingProperties.opacity);
         else
             glColor4f(renderingProperties.lineColor(0), renderingProperties.lineColor(1), renderingProperties.lineColor(2), renderingProperties.opacity);
         glLineWidth(renderingProperties.lineWidth);
-        pangolin::RenderVbo(lineEndPointBuffer, GL_LINES);
+        pangolin::RenderVbo(gl_buffers->lineEndPointBuffer, GL_LINES);
     }
 
-    void CoordinateFrameRenderable::applyRenderingProperties() {}
+    CoordinateFrameRenderable::CoordinateFrameRenderable(const Eigen::Matrix4f &tf, float scale,
+                                                         const RenderingProperties &rp)
+            : Renderable(rp, tf.topRightCorner(3,1)), transform(tf), scale(scale)
+    {}
 
-    void CoordinateFrameRenderable::render() {
+    void CoordinateFrameRenderable::setRenderingProperties(GPUBufferObjects &gl_objects) {}
+
+    void CoordinateFrameRenderable::render(GPUBufferObjects &gl_objects) {
         glLineWidth(renderingProperties.lineWidth);
         pangolin::glDrawAxis<Eigen::Matrix4f,float>(transform, scale);
     }
 
-    void CameraFrustumRenderable::applyRenderingProperties() {}
+    CameraFrustumRenderable::CameraFrustumRenderable(size_t width, size_t height, const Eigen::Matrix3f &intrinsics,
+                                                     const Eigen::Matrix4f &pose, float scale,
+                                                     const RenderingProperties &rp)
+            : Renderable(rp, pose.topRightCorner(3,1)), width(width), height(height),
+              inverseIntrinsics(intrinsics.inverse()), pose(pose), scale(scale)
+    {}
 
-    void CameraFrustumRenderable::render() {
+    void CameraFrustumRenderable::setRenderingProperties(GPUBufferObjects &gl_objects) {}
+
+    void CameraFrustumRenderable::render(GPUBufferObjects &gl_objects) {
         if (renderingProperties.lineColor == RenderingProperties::noColor)
             glColor4f(RenderingProperties::defaultColor(0), RenderingProperties::defaultColor(1), RenderingProperties::defaultColor(2), renderingProperties.opacity);
         else
@@ -135,7 +192,50 @@ namespace cilantro {
         pangolin::glDrawFrustrum(inverseIntrinsics, (int)width, (int)height, pose, scale);
     }
 
-    void TriangleMeshRenderable::applyRenderingProperties() {
+    TriangleMeshRenderable::TriangleMeshRenderable(const ConstVectorSetMatrixMap<float,3> &vertices,
+                                                   const std::vector<std::vector<size_t>> &faces,
+                                                   const RenderingProperties &rp)
+            : Renderable(rp), vertices(vertices), faces(faces)
+    {
+        if (vertices.cols() > 0) centroid = vertices.rowwise().mean();
+        initFaceNormals(vertices, faces);
+    }
+
+    TriangleMeshRenderable& TriangleMeshRenderable::setVertexNormals(const ConstVectorSetMatrixMap<float,3> &vertex_normals) {
+        if (vertex_normals.cols() == vertices.cols()) vertexNormals = vertex_normals;
+        return *this;
+    }
+
+    TriangleMeshRenderable& TriangleMeshRenderable::setFaceNormals(const ConstVectorSetMatrixMap<float,3> &face_normals) {
+        if (face_normals.cols() == faces.size()) faceNormals = face_normals;
+        return *this;
+    }
+
+    TriangleMeshRenderable& TriangleMeshRenderable::setVertexColors(const ConstVectorSetMatrixMap<float,3> &vertex_colors) {
+        if (vertex_colors.cols() == vertices.cols()) vertexColors = vertex_colors;
+        return *this;
+    }
+
+    TriangleMeshRenderable& TriangleMeshRenderable::setFaceColors(const ConstVectorSetMatrixMap<float,3> &face_colors) {
+        if (face_colors.cols() == faces.size()) faceColors = face_colors;
+        return *this;
+    }
+
+    TriangleMeshRenderable& TriangleMeshRenderable::setVertexValues(const ConstVectorSetMatrixMap<float,1> &vertex_values) {
+        if (vertex_values.cols() == vertices.cols()) vertexValues = vertex_values;
+        return *this;
+    }
+
+    TriangleMeshRenderable& TriangleMeshRenderable::setFaceValues(const ConstVectorSetMatrixMap<float,1> &face_values) {
+        if (face_values.cols() == faces.size()) faceValues = face_values;
+        return *this;
+    }
+
+    void TriangleMeshRenderable::setRenderingProperties(GPUBufferObjects &gl_objects) {
+        if (faces.empty()) return;
+
+        auto *gl_buffers = static_cast<TriangleMeshGPUBufferObjects *>(&gl_objects);
+
         // Populate flattened vertices and update centroid
         size_t k = 0;
         VectorSet<float,3> vertices_flat(3, faces.size()*3);
@@ -144,8 +244,8 @@ namespace cilantro {
                 vertices_flat.col(k++) = vertices.col(faces[i][j]);
             }
         }
-        vertexBuffer.Reinitialise(pangolin::GlArrayBuffer, vertices_flat.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-        vertexBuffer.Upload(vertices_flat.data(), sizeof(float)*vertices_flat.cols()*3);
+        gl_buffers->vertexBuffer.Reinitialise(pangolin::GlArrayBuffer, vertices_flat.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+        gl_buffers->vertexBuffer.Upload(vertices_flat.data(), sizeof(float)*vertices_flat.cols()*3);
 
         centroid = vertices_flat.rowwise().mean();
 
@@ -169,8 +269,8 @@ namespace cilantro {
                 }
             }
         }
-        normalBuffer.Reinitialise(pangolin::GlArrayBuffer, normals_flat.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-        normalBuffer.Upload(normals_flat.data(), sizeof(float)*normals_flat.cols()*3);
+        gl_buffers->normalBuffer.Reinitialise(pangolin::GlArrayBuffer, normals_flat.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+        gl_buffers->normalBuffer.Upload(normals_flat.data(), sizeof(float)*normals_flat.cols()*3);
 
         VectorSet<float,3> line_end_points;
         if (renderingProperties.drawNormals && renderingProperties.lineDensityFraction > 0.0f) {
@@ -201,8 +301,8 @@ namespace cilantro {
                 }
             }
         }
-        normalEndPointBuffer.Reinitialise(pangolin::GlArrayBuffer, line_end_points.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
-        normalEndPointBuffer.Upload(line_end_points.data(), sizeof(float)*line_end_points.cols()*3);
+        gl_buffers->normalEndPointBuffer.Reinitialise(pangolin::GlArrayBuffer, line_end_points.cols(), GL_FLOAT, 3, GL_DYNAMIC_DRAW);
+        gl_buffers->normalEndPointBuffer.Upload(line_end_points.data(), sizeof(float)*line_end_points.cols()*3);
 
         // Populate flattened colors
         VectorSet<float,4> colors_flat;
@@ -260,11 +360,15 @@ namespace cilantro {
             tmp(3) = renderingProperties.opacity;
             colors_flat = tmp.replicate(1,faces.size()*3);
         }
-        colorBuffer.Reinitialise(pangolin::GlArrayBuffer, colors_flat.cols(), GL_FLOAT, 4, GL_DYNAMIC_DRAW);
-        colorBuffer.Upload(colors_flat.data(), sizeof(float)*colors_flat.cols()*4);
+        gl_buffers->colorBuffer.Reinitialise(pangolin::GlArrayBuffer, colors_flat.cols(), GL_FLOAT, 4, GL_DYNAMIC_DRAW);
+        gl_buffers->colorBuffer.Upload(colors_flat.data(), sizeof(float)*colors_flat.cols()*4);
     }
 
-    void TriangleMeshRenderable::render() {
+    void TriangleMeshRenderable::render(GPUBufferObjects &gl_objects) {
+        if (faces.empty()) return;
+
+        auto *gl_buffers = static_cast<TriangleMeshGPUBufferObjects *>(&gl_objects);
+
         glPointSize(renderingProperties.pointSize);
         glLineWidth(renderingProperties.lineWidth);
 
@@ -273,30 +377,30 @@ namespace cilantro {
         bool use_lighting = use_normals && renderingProperties.useLighting;
 
         if (use_normals) {
-            normalBuffer.Bind();
-            glNormalPointer(normalBuffer.datatype, (GLsizei)(normalBuffer.count_per_element * pangolin::GlDataTypeBytes(normalBuffer.datatype)), NULL);
+            gl_buffers->normalBuffer.Bind();
+            glNormalPointer(gl_buffers->normalBuffer.datatype, (GLsizei)(gl_buffers->normalBuffer.count_per_element * pangolin::GlDataTypeBytes(gl_buffers->normalBuffer.datatype)), NULL);
             glEnableClientState(GL_NORMAL_ARRAY);
         }
         if (renderingProperties.drawWireframe) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            pangolin::RenderVboCbo(vertexBuffer, colorBuffer, true, GL_TRIANGLES);
+            pangolin::RenderVboCbo(gl_buffers->vertexBuffer, gl_buffers->colorBuffer, true, GL_TRIANGLES);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         } else {
             if (use_lighting) {
                 glEnable(GL_LIGHTING);
                 glEnable(GL_LIGHT0);
                 glEnable(GL_COLOR_MATERIAL);
-                pangolin::RenderVboCbo(vertexBuffer, colorBuffer, true, GL_TRIANGLES);
+                pangolin::RenderVboCbo(gl_buffers->vertexBuffer, gl_buffers->colorBuffer, true, GL_TRIANGLES);
                 glDisable(GL_COLOR_MATERIAL);
                 glDisable(GL_LIGHT0);
                 glDisable(GL_LIGHTING);
             } else {
-                pangolin::RenderVboCbo(vertexBuffer, colorBuffer, true, GL_TRIANGLES);
+                pangolin::RenderVboCbo(gl_buffers->vertexBuffer, gl_buffers->colorBuffer, true, GL_TRIANGLES);
             }
         }
         if (use_normals) {
             glDisableClientState(GL_NORMAL_ARRAY);
-            normalBuffer.Unbind();
+            gl_buffers->normalBuffer.Unbind();
         }
 
         if (renderingProperties.drawNormals) {
@@ -305,16 +409,45 @@ namespace cilantro {
             else
                 glColor4f(renderingProperties.lineColor(0), renderingProperties.lineColor(1), renderingProperties.lineColor(2), renderingProperties.opacity);
             glLineWidth(renderingProperties.lineWidth);
-            pangolin::RenderVbo(normalEndPointBuffer, GL_LINES);
+            pangolin::RenderVbo(gl_buffers->normalEndPointBuffer, GL_LINES);
         }
     }
 
-    void TextRenderable::applyRenderingProperties() {
-        glFont.reset(new pangolin::GlFont(AnonymousPro_ttf, renderingProperties.fontSize));
-        glText = glFont->Text(text);
+    void TriangleMeshRenderable::initFaceNormals(const ConstVectorSetMatrixMap<float,3> &vertices,
+                                                 const std::vector<std::vector<size_t>> &faces)
+    {
+        faceNormals.resize(3, faces.size());
+        for (size_t i = 0; i < faces.size(); i++) {
+            const auto& pt0(vertices.col(faces[i][0]));
+            const auto& pt1(vertices.col(faces[i][1]));
+            const auto& pt2(vertices.col(faces[i][2]));
+            faceNormals.col(i) = ((pt1 - pt0).cross(pt2 - pt0)).normalized();
+        }
     }
 
-    void TextRenderable::render() {
+    TextRenderable::TextRenderable(const std::string &text, const Eigen::Ref<const Eigen::Vector3f> &position,
+                                   const RenderingProperties &rp)
+            : Renderable(rp, position), text(text)
+    {
+        drawLast = true;
+    }
+
+    TextRenderable::TextRenderable(const std::string &text, float pos_x, float pos_y, float pos_z,
+                                   const RenderingProperties &rp)
+            : Renderable(rp, Eigen::Vector3f(pos_x, pos_y, pos_z)), text(text)
+    {
+        drawLast = true;
+    }
+
+    void TextRenderable::setRenderingProperties(GPUBufferObjects &gl_objects) {
+        auto *gl_buffers = static_cast<TextGPUBufferObjects *>(&gl_objects);
+        gl_buffers->glFont.reset(new pangolin::GlFont(AnonymousPro_ttf, renderingProperties.fontSize));
+        gl_buffers->glText = gl_buffers->glFont->Text(text);
+    }
+
+    void TextRenderable::render(GPUBufferObjects &gl_objects) {
+        auto *gl_buffers = static_cast<TextGPUBufferObjects *>(&gl_objects);
+
         if (renderingProperties.pointColor == RenderingProperties::noColor)
             glColor4f(RenderingProperties::defaultColor(0), RenderingProperties::defaultColor(1), RenderingProperties::defaultColor(2), renderingProperties.opacity);
         else
@@ -347,8 +480,8 @@ namespace cilantro {
         glLoadIdentity();
 
         const Eigen::Vector2f& anchor = renderingProperties.textAnchorPoint;
-        glTranslatef((GLfloat)scrn[0]-anchor[0]*glText.Width(), (GLfloat)scrn[1]-anchor[1]*glText.Height(), (GLfloat)scrn[2]);
-        glText.Draw();
+        glTranslatef((GLfloat)scrn[0]-anchor[0]*gl_buffers->glText.Width(), (GLfloat)scrn[1]-anchor[1]*gl_buffers->glText.Height(), (GLfloat)scrn[2]);
+        gl_buffers->glText.Draw();
 
         // Restore viewport
         glViewport(view[0],view[1],view[2],view[3]);

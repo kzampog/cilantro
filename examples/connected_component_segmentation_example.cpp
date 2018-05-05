@@ -2,6 +2,7 @@
 #include <cilantro/connected_component_segmentation.hpp>
 #include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
+#include <cilantro/common_renderables.hpp>
 
 int main(int argc, char ** argv) {
     cilantro::PointCloud3f cloud;
@@ -51,10 +52,10 @@ int main(int argc, char ** argv) {
     pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual).AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2"));
 
     cilantro::Visualizer viz1("ConnectedComponentSegmentation demo", "disp1");
-    viz1.addPointCloud("cloud", cloud);
+    viz1.addObject<cilantro::PointCloudRenderable>("cloud", cloud);
 
     cilantro::Visualizer viz2("ConnectedComponentSegmentation demo", "disp2");
-    viz2.addPointCloud("cloud_seg", cloud_seg);
+    viz2.addObject<cilantro::PointCloudRenderable>("cloud_seg", cloud_seg);
 
     while (!viz1.wasStopped() && !viz2.wasStopped()) {
         viz1.clearRenderArea();

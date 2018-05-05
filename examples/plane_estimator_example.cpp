@@ -2,6 +2,7 @@
 #include <cilantro/plane_estimator.hpp>
 #include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
+#include <cilantro/common_renderables.hpp>
 
 void callback(bool &re_estimate) {
     re_estimate = true;
@@ -17,7 +18,7 @@ int main(int argc, char **argv) {
 
     std::cout << "Press 'a' for a new estimate" << std::endl;
 
-    viz.addPointCloud("cloud", cloud);
+    viz.addObject<cilantro::PointCloudRenderable>("cloud", cloud);
     while (!viz.wasStopped()) {
         if (re_estimate) {
             re_estimate = false;
@@ -29,7 +30,7 @@ int main(int argc, char **argv) {
             std::cout << "RANSAC iterations: " << pe.getPerformedIterationsCount() << ", inlier count: " << pe.getNumberOfInliers() << std::endl;
 
             cilantro::PointCloud3f planar_cloud(cloud, inliers);
-            viz.addPointCloud("plane", planar_cloud.points, cilantro::RenderingProperties().setPointColor(1,0,0).setPointSize(3.0));
+            viz.addObject<cilantro::PointCloudRenderable>("plane", planar_cloud.points, cilantro::RenderingProperties().setPointColor(1,0,0).setPointSize(3.0));
 
             std::cout << "Press 'a' for a new estimate" << std::endl;
         }

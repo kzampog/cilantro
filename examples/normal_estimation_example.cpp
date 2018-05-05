@@ -1,6 +1,7 @@
 #include <cilantro/normal_estimation.hpp>
 #include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
+#include <cilantro/common_renderables.hpp>
 
 int main(int argc, char ** argv) {
     cilantro::PointCloud3f cloud;
@@ -44,7 +45,7 @@ int main(int argc, char ** argv) {
 
     cilantro::Visualizer viz("NormalEstimation example", "disp");
 
-    viz.addPointCloud("cloud_d", cloud, cilantro::RenderingProperties().setDrawNormals(true));
+    viz.addObject<cilantro::PointCloudRenderable>("cloud_d", cloud, cilantro::RenderingProperties().setDrawNormals(true));
 
     std::cout << "Press 'n' to toggle rendering of normals" << std::endl;
     while (!viz.wasStopped()){

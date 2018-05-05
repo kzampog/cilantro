@@ -1,6 +1,7 @@
 #include <cilantro/flat_convex_hull_3d.hpp>
 #include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
+#include <cilantro/common_renderables.hpp>
 
 int main(int argc, char ** argv) {
 //    std::vector<Eigen::Vector3f> points;

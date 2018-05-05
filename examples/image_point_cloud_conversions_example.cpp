@@ -1,6 +1,7 @@
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/image_viewer.hpp>
 #include <cilantro/visualizer.hpp>
+#include <cilantro/common_renderables.hpp>
 
 int main(int argc, char ** argv) {
     // Intrinsics
@@ -43,7 +44,7 @@ int main(int argc, char ** argv) {
 
         rgbv.setImage(rgb_img.ptr, w, h, "RGB24");
         depthv.setImage(depth_img.ptr, w, h, "GRAY16LE");
-        pcdv.addPointCloud("cloud", cloud);
+        pcdv.addObject<cilantro::PointCloudRenderable>("cloud", cloud);
         depthfv.setImage(depthf_img.ptr, w, h, "GRAY32F");
 
         pcdv.clearRenderArea();

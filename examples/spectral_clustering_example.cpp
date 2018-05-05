@@ -2,6 +2,7 @@
 #include <cilantro/spectral_clustering.hpp>
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/visualizer.hpp>
+#include <cilantro/common_renderables.hpp>
 
 struct AffinityEvaluator {
     inline float operator()(size_t i, size_t j, float dist) const {
@@ -75,10 +76,10 @@ int main(int argc, char ** argv) {
     pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual).AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2"));
 
     cilantro::Visualizer viz1("SpectralClustering demo", "disp1");
-    viz1.addPointCloud("cloud", points, cilantro::RenderingProperties().setPointSize(5.0f));
+    viz1.addObject<cilantro::PointCloudRenderable>("cloud", points, cilantro::RenderingProperties().setPointSize(5.0f));
 
     cilantro::Visualizer viz2("SpectralClustering demo", "disp2");
-    viz2.addPointCloud("cloud_seg", points, cilantro::RenderingProperties().setPointSize(5.0f));
+    viz2.addObject<cilantro::PointCloudRenderable>("cloud_seg", points, cilantro::RenderingProperties().setPointSize(5.0f));
     viz2.addPointCloudColors("cloud_seg", cols);
 
     while (!viz1.wasStopped() && !viz2.wasStopped()) {

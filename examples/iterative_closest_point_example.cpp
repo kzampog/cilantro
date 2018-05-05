@@ -1,6 +1,7 @@
 #include <cilantro/icp_common_instances.hpp>
 #include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
+#include <cilantro/common_renderables.hpp>
 
 void callback(bool &proceed) {
     proceed = true;
@@ -55,8 +56,8 @@ int main(int argc, char ** argv) {
     bool proceed = false;
     viz.registerKeyboardCallback('a', std::bind(callback, std::ref(proceed)));
 
-    viz.addPointCloud("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
-    viz.addPointCloud("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
+    viz.addObject<cilantro::PointCloudRenderable>("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
+    viz.addObject<cilantro::PointCloudRenderable>("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
 
     std::cout << "Press 'a' to compute transformation" << std::endl;
     while (!proceed && !viz.wasStopped()) {
@@ -109,8 +110,8 @@ int main(int argc, char ** argv) {
 
     src_trans.transform(tf_est);
 
-    viz.addPointCloud("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
-    viz.addPointCloud("src", src_trans, cilantro::RenderingProperties().setPointColor(1,0,0));
+    viz.addObject<cilantro::PointCloudRenderable>("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
+    viz.addObject<cilantro::PointCloudRenderable>("src", src_trans, cilantro::RenderingProperties().setPointColor(1,0,0));
 
     std::cout << "Press 'a' to compute residuals" << std::endl;
     while (!proceed && !viz.wasStopped()) {
@@ -126,7 +127,9 @@ int main(int argc, char ** argv) {
     std::cout << "Residual computation time: " << elapsed.count() << "ms" << std::endl;
 
     viz.clear();
-    viz.addPointCloud("src", src_trans, cilantro::RenderingProperties().setUseLighting(false)).addPointCloudValues("src", residuals);
+    viz.addObject<cilantro::PointCloudRenderable>("src", src_trans, cilantro::RenderingProperties().setUseLighting(false));
+    viz.getObject<cilantro::PointCloudRenderable>("src")->setPointValues(residuals);
+    viz.setRenderingProperties("src");
 
     while (!proceed && !viz.wasStopped()) {
         if (viz.wasStopped()) return 0;

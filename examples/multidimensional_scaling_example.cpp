@@ -1,5 +1,6 @@
 #include <cilantro/multidimensional_scaling.hpp>
 #include <cilantro/visualizer.hpp>
+#include <cilantro/common_renderables.hpp>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -49,11 +50,11 @@ int main(int argc, char ** argv) {
     pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual).AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2"));
 
     cilantro::Visualizer viz1("MultidimensionalScaling demo", "disp1");
-    viz1.addPointCloud("cloud", points, cilantro::RenderingProperties().setPointSize(3.0f));
+    viz1.addObject<cilantro::PointCloudRenderable>("cloud", points, cilantro::RenderingProperties().setPointSize(3.0f));
     viz1.addPointCloudColors("cloud", colors);
 
     cilantro::Visualizer viz2("MultidimensionalScaling demo", "disp2");
-    viz2.addPointCloud("cloud_reproj", points_reproj, cilantro::RenderingProperties().setPointSize(3.0f));
+    viz2.addObject<cilantro::PointCloudRenderable>("cloud_reproj", points_reproj, cilantro::RenderingProperties().setPointSize(3.0f));
     viz2.addPointCloudColors("cloud_reproj", colors);
 
     // Move camera

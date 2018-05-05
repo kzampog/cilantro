@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cilantro/colormap.hpp>
-#include <pangolin/pangolin.h>
 
 namespace cilantro {
     struct RenderingProperties {
@@ -73,99 +72,59 @@ namespace cilantro {
         inline RenderingProperties& setTextAnchorPoint(float x_fraction, float y_fraction) { textAnchorPoint = Eigen::Vector2f(x_fraction,y_fraction); return *this; }
     };
 
-    struct Renderable {
+    struct GPUBufferObjects {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        inline Renderable() : centroid(Eigen::Vector3f::Zero()), visible(true) {}
+        inline GPUBufferObjects() {}
+        virtual inline ~GPUBufferObjects() {}
+    };
+
+    class Renderable {
+    public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        inline Renderable() : centroid(Eigen::Vector3f::Zero()), visible(true), drawLast(false) {}
+
+        inline Renderable(const RenderingProperties &rp,
+                          const Eigen::Ref<const Eigen::Vector3f> &centroid = Eigen::Vector3f::Zero())
+                : centroid(centroid), renderingProperties(rp), visible(true), drawLast(false)
+        {}
+
         virtual inline ~Renderable() {}
 
-        virtual void applyRenderingProperties() = 0;    // Updates GPU buffers
-        inline void applyRenderingProperties(const RenderingProperties &rp) { renderingProperties = rp; applyRenderingProperties(); }
-        virtual void render() = 0;
+        virtual void render(GPUBufferObjects &gl_objects) = 0;
 
-        Eigen::Vector3f centroid;                       // For render priority...
-        bool visible;
+        inline const Eigen::Vector3f& getCentroid() const { return centroid; }
+
+        inline const RenderingProperties& getRenderingProperties() const { return renderingProperties; }
+
+        inline RenderingProperties& getRenderingProperties() { return renderingProperties; }
+
+        // Update GPU buffers (if applicable)
+        virtual void setRenderingProperties(GPUBufferObjects &gl_objects) = 0;
+
+        inline void setRenderingProperties(const RenderingProperties &rp, GPUBufferObjects &gl_objects) {
+            renderingProperties = rp;
+            setRenderingProperties(gl_objects);
+        }
+
+        inline bool getVisibility() const { return visible; }
+
+        inline bool& getVisibility() { return visible; }
+
+        inline void setVisibility(bool v) { visible = v; }
+
+        inline bool getDrawLast() const { return drawLast; }
+
+        inline bool& getDrawLast() { return drawLast; }
+
+        inline void setDrawLast(bool dl) { drawLast = dl; }
+
+    protected:
+        // For render priority...
+        Eigen::Vector3f centroid;
         RenderingProperties renderingProperties;
-    };
-
-    struct PointCloudRenderable : public Renderable {
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-        void applyRenderingProperties();
-        void render();
-
-        VectorSet<float,3> points;
-        VectorSet<float,3> normals;
-        VectorSet<float,3> colors;
-        VectorSet<float,1> pointValues;
-        pangolin::GlBuffer pointBuffer;
-        pangolin::GlBuffer normalBuffer;
-        pangolin::GlBuffer colorBuffer;
-        pangolin::GlBuffer normalEndPointBuffer;
-    };
-
-    struct CorrespondencesRenderable : public Renderable {
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-        void applyRenderingProperties();
-        void render();
-
-        VectorSet<float,3> srcPoints;
-        VectorSet<float,3> dstPoints;
-        pangolin::GlBuffer lineEndPointBuffer;
-    };
-
-    struct CoordinateFrameRenderable : public Renderable {
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-        void applyRenderingProperties();
-        void render();
-
-        Eigen::Matrix4f transform;
-        float scale;
-    };
-
-    struct CameraFrustumRenderable : public Renderable {
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-        void applyRenderingProperties();
-        void render();
-
-        size_t width;
-        size_t height;
-        Eigen::Matrix3f inverseIntrinsics;
-        Eigen::Matrix4f pose;
-        float scale;
-    };
-
-    struct TriangleMeshRenderable : public Renderable {
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-        void applyRenderingProperties();
-        void render();
-
-        VectorSet<float,3> vertices;
-        std::vector<std::vector<size_t>> faces;
-        VectorSet<float,3> vertexNormals;
-        VectorSet<float,3> faceNormals;
-        VectorSet<float,3> vertexColors;
-        VectorSet<float,3> faceColors;
-        VectorSet<float,1> vertexValues;
-        VectorSet<float,1> faceValues;
-        pangolin::GlBuffer vertexBuffer;
-        pangolin::GlBuffer normalBuffer;
-        pangolin::GlBuffer colorBuffer;
-        pangolin::GlBuffer normalEndPointBuffer;
-    };
-
-    struct TextRenderable : public Renderable {
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-        void applyRenderingProperties();
-        void render();
-
-        std::string text;
-        std::shared_ptr<pangolin::GlFont> glFont;
-        pangolin::GlText glText;
+        bool visible;
+        bool drawLast;
     };
 }
