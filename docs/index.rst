@@ -26,7 +26,7 @@ Supported functionality
 	* General dimension k-means clustering that supports all distance metrics supported by nanoflann
 	* Spectral clustering based on various graph Laplacian types (using bundled Spectra)
 	* Flat kernel mean-shift clustering
-	* Connected component based point cloud segmentation that supports generic point-wise similarity functions
+	* Connected component based point cloud segmentation that supports arbitrary point-wise similarity functions
 
 * **Model estimation and point set registration:**
 	* A RANSAC estimator template and instantiations thereof for robust plane estimation and rigid 6DOF point cloud registration
