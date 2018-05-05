@@ -3,14 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-======================
 cilantro documentation
 ======================
 cilantro is a lean C++ library for working with point cloud data, with emphasis given to the 3D case. It implements a number of common operations, while attempting to minimize the amount of code required by the user.
 
-=====================
-What can cilantro do?
-=====================
+Supported functionality
+=======================
 
 * **Basic operations:**
 	* General dimension kd-trees (using bundled nanoflann_)
@@ -28,27 +26,19 @@ What can cilantro do?
 	* General dimension k-means clustering that supports all distance metrics supported by nanoflann
 	* Spectral clustering based on various graph Laplacian types (using bundled Spectra)
 	* Flat kernel mean-shift clustering
-	* Connected component based point cloud segmentation, with pairwise similarities capturing any combination of spatial proximity, normal smoothness, and color similarity
+	* Connected component based point cloud segmentation that supports generic point-wise similarity functions
 
 * **Model estimation and point set registration:**
 	* A RANSAC estimator template and instantiations thereof for robust plane estimation and rigid 6DOF point cloud registration
-	* Generic Iterative Closest Point implementations for point-to-point and point-to-plane metrics (and combinations thereof) that support arbitrary correspondence types on any kind of point features
+	* Fully generic Iterative Closest Point implementations for point-to-point and point-to-plane metrics (and combinations thereof) that support arbitrary correspondence search methods in arbitrary point feature spaces
 
 * **Visualization:**
-	* A fast, powerful, and easy to use 3D visualizer
+	* A powerful, extensible, and easy to use 3D visualizer
 	* RGBD images to/from point cloud utility functions
 
 .. toctree::
    :maxdepth: 2
-   :caption: Functionality:
-   :name: maintoc
-
-   Basic Operations <basic>
-   Convex Hulls	<convhull>
-   Clustering <clustering>
-   Model Estimation <modelest>
-   Point Set Registration <psetreg>
-   Visualization <vis>
+   :caption: Contents:
 
 
 
