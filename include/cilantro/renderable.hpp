@@ -83,29 +83,36 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        inline Renderable() : centroid(Eigen::Vector3f::Zero()), visible(true), drawLast(false) {}
+        inline Renderable()
+                : centroid(Eigen::Vector3f::Zero()), visible(true), drawLast(false), buffersUpToDate(false)
+        {}
 
         inline Renderable(const RenderingProperties &rp,
                           const Eigen::Ref<const Eigen::Vector3f> &centroid = Eigen::Vector3f::Zero())
-                : centroid(centroid), renderingProperties(rp), visible(true), drawLast(false)
+                : centroid(centroid), renderingProperties(rp), visible(true), drawLast(false), buffersUpToDate(false)
         {}
 
         virtual inline ~Renderable() {}
 
+        virtual void updateGPUBuffers(GPUBufferObjects &gl_objects) = 0;
+
         virtual void render(GPUBufferObjects &gl_objects) = 0;
+
+        inline void updateGPUBuffersAndRender(GPUBufferObjects &gl_objects) {
+            if (!buffersUpToDate) {
+                updateGPUBuffers(gl_objects);
+                buffersUpToDate = true;
+            }
+            render(gl_objects);
+        }
 
         inline const Eigen::Vector3f& getCentroid() const { return centroid; }
 
         inline const RenderingProperties& getRenderingProperties() const { return renderingProperties; }
 
-        inline RenderingProperties& getRenderingProperties() { return renderingProperties; }
-
-        // Update GPU buffers (if applicable)
-        virtual void setRenderingProperties(GPUBufferObjects &gl_objects) = 0;
-
-        inline void setRenderingProperties(const RenderingProperties &rp, GPUBufferObjects &gl_objects) {
+        inline void setRenderingProperties(const RenderingProperties &rp) {
             renderingProperties = rp;
-            setRenderingProperties(gl_objects);
+            buffersUpToDate = false;
         }
 
         inline bool getVisibility() const { return visible; }
@@ -114,6 +121,8 @@ namespace cilantro {
 
         inline void setVisibility(bool v) { visible = v; }
 
+        inline void toggleVisibility() { visible = !visible; }
+
         inline bool getDrawLast() const { return drawLast; }
 
         inline bool& getDrawLast() { return drawLast; }
@@ -121,10 +130,10 @@ namespace cilantro {
         inline void setDrawLast(bool dl) { drawLast = dl; }
 
     protected:
-        // For render priority...
-        Eigen::Vector3f centroid;
+        Eigen::Vector3f centroid;   // For render priority
         RenderingProperties renderingProperties;
         bool visible;
         bool drawLast;
+        bool buffersUpToDate;
     };
 }

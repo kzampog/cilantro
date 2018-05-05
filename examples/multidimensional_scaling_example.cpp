@@ -50,12 +50,12 @@ int main(int argc, char ** argv) {
     pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual).AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2"));
 
     cilantro::Visualizer viz1("MultidimensionalScaling demo", "disp1");
-    viz1.addObject<cilantro::PointCloudRenderable>("cloud", points, cilantro::RenderingProperties().setPointSize(3.0f));
-    viz1.addPointCloudColors("cloud", colors);
+    viz1.addObject<cilantro::PointCloudRenderable>("cloud", points, cilantro::RenderingProperties().setPointSize(3.0f))
+            ->setPointColors(colors);
 
     cilantro::Visualizer viz2("MultidimensionalScaling demo", "disp2");
-    viz2.addObject<cilantro::PointCloudRenderable>("cloud_reproj", points_reproj, cilantro::RenderingProperties().setPointSize(3.0f));
-    viz2.addPointCloudColors("cloud_reproj", colors);
+    viz2.addObject<cilantro::PointCloudRenderable>("cloud_reproj", points_reproj, cilantro::RenderingProperties().setPointSize(3.0f))
+            ->setPointColors(colors);
 
     // Move camera
     Eigen::Matrix3f rot;

@@ -22,25 +22,7 @@ namespace cilantro {
     Visualizer& Visualizer::setRenderingProperties(const std::string &name, const RenderingProperties &rp) {
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
-        gl_context_->MakeCurrent();
-        it->second.first->setRenderingProperties(rp, *(it->second.second));
-        return *this;
-    }
-
-    Visualizer& Visualizer::setRenderingProperties(const std::string &name) {
-        auto it = renderables_.find(name);
-        if (it != renderables_.end()) {
-            gl_context_->MakeCurrent();
-            it->second.first->setRenderingProperties(*(it->second.second));
-        }
-        return *this;
-    }
-
-    Visualizer& Visualizer::updateAllObjects() {
-        gl_context_->MakeCurrent();
-        for (auto it = renderables_.begin(); it != renderables_.end(); ++it) {
-            it->second.first->setRenderingProperties(*(it->second.second));
-        }
+        it->second.first->setRenderingProperties(rp);
         return *this;
     }
 
@@ -60,8 +42,7 @@ namespace cilantro {
     Visualizer& Visualizer::toggleVisibility(const std::string &name) {
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return *this;
-        auto& vis = it->second.first->getVisibility();
-        vis = !vis;
+        it->second.first->toggleVisibility();
         return *this;
     }
 
@@ -113,7 +94,7 @@ namespace cilantro {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         for (size_t i = 0; i < visible_objects.size(); i++) {
-            visible_objects[i]->first->render(*(visible_objects[i]->second));
+            visible_objects[i]->first->updateGPUBuffersAndRender(*(visible_objects[i]->second));
         }
 
         if (video_record_on_render_ && video_recorder_) {

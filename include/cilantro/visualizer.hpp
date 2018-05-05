@@ -18,19 +18,18 @@ namespace cilantro {
         ~Visualizer();
 
         template <class RenderableT>
-        Visualizer& addObject(const std::string &name, std::shared_ptr<RenderableT> obj) {
+        std::shared_ptr<RenderableT> addObject(const std::string &name, std::shared_ptr<RenderableT> obj_ptr) {
             gl_context_->MakeCurrent();
-            auto& mr = (renderables_[name] = ManagedRenderable(obj, std::shared_ptr<typename RenderableT::GPUBuffers>(new typename RenderableT::GPUBuffers())));
-            mr.first->setRenderingProperties(*(renderables_[name].second));
-            return *this;
+            renderables_[name] = ManagedRenderable(obj_ptr, std::shared_ptr<typename RenderableT::GPUBuffers>(new typename RenderableT::GPUBuffers()));
+            return obj_ptr;
         }
 
         template <class RenderableT, class... Args>
-        Visualizer& addObject(const std::string &name, Args... args) {
+        std::shared_ptr<RenderableT> addObject(const std::string &name, Args... args) {
             gl_context_->MakeCurrent();
-            auto& mr = (renderables_[name] = ManagedRenderable(std::shared_ptr<RenderableT>(new RenderableT(args...)), std::shared_ptr<typename RenderableT::GPUBuffers>(new typename RenderableT::GPUBuffers())));
-            mr.first->setRenderingProperties(*(renderables_[name].second));
-            return *this;
+            std::shared_ptr<RenderableT> obj_ptr(new RenderableT(args...));
+            renderables_[name] = ManagedRenderable(obj_ptr, std::shared_ptr<typename RenderableT::GPUBuffers>(new typename RenderableT::GPUBuffers()));
+            return obj_ptr;
         }
 
         template <class RenderableT = Renderable>
@@ -43,12 +42,6 @@ namespace cilantro {
         RenderingProperties getRenderingProperties(const std::string &name) const;
 
         Visualizer& setRenderingProperties(const std::string &name, const RenderingProperties &rp);
-
-        Visualizer& setRenderingProperties(const std::string &name);
-
-        inline Visualizer& updateObject(const std::string &name) { return setRenderingProperties(name); }
-
-        Visualizer& updateAllObjects();
 
         bool getVisibility(const std::string &name) const;
 

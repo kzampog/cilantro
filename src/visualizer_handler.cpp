@@ -39,37 +39,37 @@ namespace cilantro {
             case '+':
                 visualizer->gl_context_->MakeCurrent();
                 for (auto it = visualizer->renderables_.begin(); it != visualizer->renderables_.end(); ++it) {
-                    auto& rp = it->second.first->getRenderingProperties();
+                    RenderingProperties rp = it->second.first->getRenderingProperties();
                     rp.pointSize += pointSizeStep;
                     rp.lineWidth += lineWidthStep;
-                    it->second.first->setRenderingProperties(*(it->second.second));
+                    it->second.first->setRenderingProperties(rp);
                 }
                 break;
             case '-':
                 visualizer->gl_context_->MakeCurrent();
                 for (auto it = visualizer->renderables_.begin(); it != visualizer->renderables_.end(); ++it) {
-                    auto& rp = it->second.first->getRenderingProperties();
+                    RenderingProperties rp = it->second.first->getRenderingProperties();
                     rp.pointSize = std::max(rp.pointSize - pointSizeStep, minPointSize);
                     rp.lineWidth = std::max(rp.lineWidth - lineWidthStep, minLineWidth);
-                    it->second.first->setRenderingProperties(*(it->second.second));
+                    it->second.first->setRenderingProperties(rp);
                 }
                 break;
             case 'n':
             case 'N':
                 visualizer->gl_context_->MakeCurrent();
                 for (auto it = visualizer->renderables_.begin(); it != visualizer->renderables_.end(); ++it) {
-                    auto& rp = it->second.first->getRenderingProperties();
+                    RenderingProperties rp = it->second.first->getRenderingProperties();
                     rp.drawNormals = !rp.drawNormals;
-                    it->second.first->setRenderingProperties(*(it->second.second));
+                    it->second.first->setRenderingProperties(rp);
                 }
                 break;
             case 'w':
             case 'W':
                 visualizer->gl_context_->MakeCurrent();
                 for (auto it = visualizer->renderables_.begin(); it != visualizer->renderables_.end(); ++it) {
-                    auto& rp = it->second.first->getRenderingProperties();
+                    RenderingProperties rp = it->second.first->getRenderingProperties();
                     rp.drawWireframe = !rp.drawWireframe;
-                    it->second.first->setRenderingProperties(*(it->second.second));
+                    it->second.first->setRenderingProperties(rp);
                 }
                 break;
             case 'p':
@@ -86,9 +86,9 @@ namespace cilantro {
             case 'L':
                 visualizer->gl_context_->MakeCurrent();
                 for (auto it = visualizer->renderables_.begin(); it != visualizer->renderables_.end(); ++it) {
-                    auto& rp = it->second.first->getRenderingProperties();
+                    RenderingProperties rp = it->second.first->getRenderingProperties();
                     rp.useLighting = !rp.useLighting;
-                    it->second.first->setRenderingProperties(*(it->second.second));
+                    it->second.first->setRenderingProperties(rp);
                 }
                 break;
             case 'q':

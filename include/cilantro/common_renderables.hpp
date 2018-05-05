@@ -53,7 +53,7 @@ namespace cilantro {
 
         PointCloudRenderable& setPointValues(const ConstVectorSetMatrixMap<float,1> &values);
 
-        void setRenderingProperties(GPUBufferObjects &gl_objects);
+        void updateGPUBuffers(GPUBufferObjects &gl_objects);
 
         void render(GPUBufferObjects &gl_objects);
 
@@ -90,7 +90,7 @@ namespace cilantro {
             }
         }
 
-        void setRenderingProperties(GPUBufferObjects &gl_objects);
+        void updateGPUBuffers(GPUBufferObjects &gl_objects);
 
         void render(GPUBufferObjects &gl_objects);
 
@@ -109,7 +109,7 @@ namespace cilantro {
         CoordinateFrameRenderable(const Eigen::Matrix4f &tf = Eigen::Matrix4f::Identity(), float scale = 1.0f,
                                   const RenderingProperties &rp = RenderingProperties());
 
-        void setRenderingProperties(GPUBufferObjects &gl_objects);
+        void updateGPUBuffers(GPUBufferObjects &gl_objects);
 
         void render(GPUBufferObjects &gl_objects);
 
@@ -129,7 +129,7 @@ namespace cilantro {
                                 float scale = 1.0f,
                                 const RenderingProperties &rp = RenderingProperties());
 
-        void setRenderingProperties(GPUBufferObjects &gl_objects);
+        void updateGPUBuffers(GPUBufferObjects &gl_objects);
 
         void render(GPUBufferObjects &gl_objects);
 
@@ -184,7 +184,7 @@ namespace cilantro {
 
         TriangleMeshRenderable& setFaceValues(const ConstVectorSetMatrixMap<float,1> &face_values);
 
-        void setRenderingProperties(GPUBufferObjects &gl_objects);
+        void updateGPUBuffers(GPUBufferObjects &gl_objects);
 
         void render(GPUBufferObjects &gl_objects);
 
@@ -221,7 +221,7 @@ namespace cilantro {
         TextRenderable(const std::string &text, float pos_x, float pos_y, float pos_z,
                        const RenderingProperties &rp = RenderingProperties());
 
-        void setRenderingProperties(GPUBufferObjects &gl_objects);
+        void updateGPUBuffers(GPUBufferObjects &gl_objects);
 
         void render(GPUBufferObjects &gl_objects);
 

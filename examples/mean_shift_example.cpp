@@ -74,13 +74,11 @@ int main(int argc, char ** argv) {
     viz1.addObject<cilantro::PointCloudRenderable>("cloud", points, cilantro::RenderingProperties().setPointSize(5.0f));
 
     cilantro::Visualizer viz2("MeanShift demo", "disp2");
-    viz2.addObject<cilantro::PointCloudRenderable>("cloud_seg", points, cilantro::RenderingProperties().setPointSize(5.0f));
-    viz2.getObject<cilantro::PointCloudRenderable>("cloud_seg")->setPointColors(cols);
-    viz2.setRenderingProperties("cloud_seg");
+    viz2.addObject<cilantro::PointCloudRenderable>("cloud_seg", points, cilantro::RenderingProperties().setPointSize(5.0f))
+            ->setPointColors(cols);
 
-    viz2.addObject<cilantro::PointCloudRenderable>("modes", ms.getClusterModes(), cilantro::RenderingProperties().setPointSize(20.0f));
-    viz2.getObject<cilantro::PointCloudRenderable>("modes")->setPointColors(color_map);
-    viz2.setRenderingProperties("modes");
+    viz2.addObject<cilantro::PointCloudRenderable>("modes", ms.getClusterModes(), cilantro::RenderingProperties().setPointSize(20.0f))
+            ->setPointColors(color_map);
 
     while (!viz1.wasStopped() && !viz2.wasStopped()) {
         viz1.clearRenderArea();

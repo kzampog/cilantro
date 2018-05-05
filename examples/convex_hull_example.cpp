@@ -75,14 +75,10 @@ int main(int argc, char ** argv) {
 
     cilantro::Visualizer viz1("3D convex hull", "disp");
 
-    viz1.addPointCloud("cloud", cloud, cilantro::RenderingProperties().setOpacity(1.0));
+    viz1.addObject<cilantro::PointCloudRenderable>("cloud", cloud, cilantro::RenderingProperties().setOpacity(1.0));
 
-    viz1.addTriangleMesh("mesh", ch.getVertices(), ch.getFacetVertexIndices());
-    viz1.addTriangleMeshVertexNormals("mesh", hc.normals);
-    viz1.addTriangleMeshVertexColors("mesh", v_colors);
-    viz1.addTriangleMeshFaceColors("mesh", f_colors);
-    viz1.addTriangleMeshVertexValues("mesh", v_vals);
-    viz1.addTriangleMeshFaceValues("mesh", f_vals);
+    viz1.addObject<cilantro::TriangleMeshRenderable>("mesh", ch.getVertices(), ch.getFacetVertexIndices())
+            ->setVertexNormals(hc.normals).setVertexColors(v_colors).setFaceColors(f_colors).setVertexValues(v_vals).setFaceValues(f_vals);
 
     cilantro::RenderingProperties rp = viz1.getRenderingProperties("mesh");
     rp.setUseFaceNormals(true).setUseFaceColors(false).setOpacity(0.8).setColormapType(cilantro::ColormapType::BLUE2RED);
@@ -103,9 +99,9 @@ int main(int argc, char ** argv) {
     }
 
     cilantro::Visualizer viz2("2D convex hull in 3D space", "disp");
-    viz2.addPointCloud("cloud", cloud, cilantro::RenderingProperties().setOpacity(0.5));
-    viz2.addPointCloud("hull_cloud", ch2d.getVertices3D(), cilantro::RenderingProperties().setPointColor(1,0,0).setPointSize(10.0));
-    viz2.addPointCorrespondences("hull_lines", p_src, p_dst, cilantro::RenderingProperties().setLineColor(0,0,1).setLineWidth(5.0).setLineDensityFraction(1.0));
+    viz2.addObject<cilantro::PointCloudRenderable>("cloud", cloud, cilantro::RenderingProperties().setOpacity(0.5));
+    viz2.addObject<cilantro::PointCloudRenderable>("hull_cloud", ch2d.getVertices3D(), cilantro::RenderingProperties().setPointColor(1,0,0).setPointSize(10.0));
+    viz2.addObject<cilantro::PointCorrespondencesRenderable>("hull_lines", p_src, p_dst, cilantro::RenderingProperties().setLineColor(0,0,1).setLineWidth(5.0).setLineDensityFraction(1.0));
 
     while (!viz1.wasStopped() && !viz2.wasStopped()) {
         viz1.spinOnce();

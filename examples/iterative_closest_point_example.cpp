@@ -127,9 +127,8 @@ int main(int argc, char ** argv) {
     std::cout << "Residual computation time: " << elapsed.count() << "ms" << std::endl;
 
     viz.clear();
-    viz.addObject<cilantro::PointCloudRenderable>("src", src_trans, cilantro::RenderingProperties().setUseLighting(false));
-    viz.getObject<cilantro::PointCloudRenderable>("src")->setPointValues(residuals);
-    viz.setRenderingProperties("src");
+    viz.addObject<cilantro::PointCloudRenderable>("src", src_trans, cilantro::RenderingProperties().setUseLighting(false))
+            ->setPointValues(residuals);
 
     while (!proceed && !viz.wasStopped()) {
         if (viz.wasStopped()) return 0;

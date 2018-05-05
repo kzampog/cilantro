@@ -1,9 +1,10 @@
 #include <cilantro/visualizer.hpp>
+#include <cilantro/common_renderables.hpp>
 #include <cilantro/io.hpp>
 
 void callback(cilantro::Visualizer &viz, const std::string &name) {
     std::cout << "Toggling visibility for " << name << std::endl;
-    viz.toggleVisibilityStatus(name);
+    viz.toggleVisibility(name);
 }
 
 int main(int argc, char ** argv) {
@@ -26,10 +27,10 @@ int main(int argc, char ** argv) {
         scalars[i] = cloud.points.col(i).norm();
     }
 
-    viz1.addPointCloud("pcd", cloud, cilantro::RenderingProperties().setColormapType(cilantro::ColormapType::JET).setLineDensityFraction(0.2f).setUseLighting(false));
-    viz1.addPointCloudValues("pcd", scalars);
-    viz1.addCoordinateFrame("axis", Eigen::Matrix4f::Identity(), 0.4f, cilantro::RenderingProperties().setLineWidth(5.0f));
-    viz1.addText("text", "Coordinate Frame", 0, 0, 0, cilantro::RenderingProperties().setFontSize(20.0f).setPointColor(1.0f,1.0f,0.0f).setTextAnchorPoint(0.5f,-1.0f));
+    viz1.addObject<cilantro::PointCloudRenderable>("pcd", cloud, cilantro::RenderingProperties().setColormapType(cilantro::ColormapType::JET).setLineDensityFraction(0.2f).setUseLighting(false))
+            ->setPointValues(scalars);
+    viz1.addObject<cilantro::CoordinateFrameRenderable>("axis", Eigen::Matrix4f::Identity(), 0.4f, cilantro::RenderingProperties().setLineWidth(5.0f));
+    viz1.addObject<cilantro::TextRenderable>("text", "Coordinate Frame", 0, 0, 0, cilantro::RenderingProperties().setFontSize(20.0f).setPointColor(1.0f,1.0f,0.0f).setTextAnchorPoint(0.5f,-1.0f));
 
     // Second
     cilantro::PointCloud3f cloud2(cloud);
@@ -38,10 +39,10 @@ int main(int argc, char ** argv) {
     }
 
     cilantro::Visualizer viz2("Visualizer demo (window 2)", "disp");
-    viz2.addPointCloud("pcd1", cloud, cilantro::RenderingProperties().setPointColor(1.0f,0.0f,0.0f).setOpacity(0.4f));
-    viz2.addPointCloud("pcd2", cloud2, cilantro::RenderingProperties().setPointColor(0.0f,0.0f,1.0f).setOpacity(0.4f));
-    viz2.addPointCorrespondences("correspondences", cloud, cloud2, cilantro::RenderingProperties().setLineDensityFraction(0.005).setOpacity(0.3f));
-    viz2.addCoordinateFrame("axis", Eigen::Matrix4f::Identity(), 0.4f, cilantro::RenderingProperties().setLineWidth(5.0f));
+    viz2.addObject<cilantro::PointCloudRenderable>("pcd1", cloud, cilantro::RenderingProperties().setPointColor(1.0f,0.0f,0.0f).setOpacity(0.4f));
+    viz2.addObject<cilantro::PointCloudRenderable>("pcd2", cloud2, cilantro::RenderingProperties().setPointColor(0.0f,0.0f,1.0f).setOpacity(0.4f));
+    viz2.addObject<cilantro::PointCorrespondencesRenderable>("correspondences", cloud, cloud2, cilantro::RenderingProperties().setLineDensityFraction(0.005).setOpacity(0.3f));
+    viz2.addObject<cilantro::CoordinateFrameRenderable>("axis", Eigen::Matrix4f::Identity(), 0.4f, cilantro::RenderingProperties().setLineWidth(5.0f));
 
     viz2.registerKeyboardCallback('c', std::bind(callback, std::ref(viz2), "correspondences"));
 
