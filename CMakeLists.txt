@@ -33,6 +33,9 @@ file(GLOB lib_src ${CMAKE_SOURCE_DIR}/src/*.cpp)
 add_library(${PROJECT_NAME} SHARED ${3rd_src} ${lib_src})
 target_link_libraries(${PROJECT_NAME} ${Pangolin_LIBRARIES})
 
+# Configure Doxyfile
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+
 # Build examples
 
 option(BUILD_EXAMPLES "Build small example apps" ON)
