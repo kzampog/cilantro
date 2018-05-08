@@ -1,6 +1,5 @@
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/plane_estimator.hpp>
-#include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
 
@@ -28,9 +27,9 @@ int main(int argc, char **argv) {
             re_estimate = false;
 
             cilantro::PlaneEstimator3f pe(cloud.points);
-            pe.setMaxInlierResidual(0.01).setTargetInlierCount((size_t)(0.15*cloud.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
+            pe.setMaxInlierResidual(0.01f).setTargetInlierCount((size_t)(0.15*cloud.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
             cilantro::HomogeneousVector<float,3> plane = pe.getModelParameters();
-            std::vector<size_t> inliers = pe.getModelInliers();
+            std::vector<size_t> inliers = pe.estimateModelParameters().getModelInliers();
             std::cout << "RANSAC iterations: " << pe.getPerformedIterationsCount() << ", inlier count: " << pe.getNumberOfInliers() << std::endl;
 
             cilantro::PointCloud3f planar_cloud(cloud, inliers);

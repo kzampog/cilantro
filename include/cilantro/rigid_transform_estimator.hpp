@@ -2,6 +2,7 @@
 
 #include <cilantro/ransac_base.hpp>
 #include <cilantro/rigid_registration_utilities.hpp>
+#include <cilantro/correspondence.hpp>
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
@@ -15,6 +16,21 @@ namespace cilantro {
                   dst_points_(dst_points),
                   src_points_(src_points)
         {}
+
+        RigidTransformationEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
+                                     const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points,
+                                     const CorrespondenceSet<ScalarT> &corr)
+                : RandomSampleConsensusBase<RigidTransformationEstimator<ScalarT,EigenDim>,RigidTransformation<ScalarT,EigenDim>,ScalarT>(dst_points.rows(), corr.size()/2 + corr.size()%2, 100, 0.01, true),
+                  dst_points_tmp_(dst_points.rows(), corr.size()),
+                  src_points_tmp_(src_points.rows(), corr.size()),
+                  dst_points_(dst_points_tmp_),
+                  src_points_(src_points_tmp_)
+        {
+            for (size_t i = 0; i < corr.size(); i++) {
+                dst_points_tmp_.col(i) = dst_points.col(corr[i].indexInFirst);
+                src_points_tmp_.col(i) = src_points.col(corr[i].indexInSecond);
+            }
+        }
 
         RigidTransformationEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
                                      const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points,
@@ -32,23 +48,22 @@ namespace cilantro {
             }
         }
 
-        inline RigidTransformationEstimator& estimateModelParameters(RigidTransformation<ScalarT,EigenDim> &model_params) {
+        inline RigidTransformationEstimator& fitModelParameters(RigidTransformation<ScalarT,EigenDim> &model_params) {
             estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim>(dst_points_, src_points_, model_params);
             return *this;
         }
 
-        inline RigidTransformation<ScalarT,EigenDim> estimateModelParameters() {
+        inline RigidTransformation<ScalarT,EigenDim> fitModelParameters() {
             RigidTransformation<ScalarT,EigenDim> model_params;
-            estimateModelParameters(model_params);
+            fitModelParameters(model_params);
             return model_params;
         }
 
-        RigidTransformationEstimator& estimateModelParameters(const std::vector<size_t> &sample_ind,
-                                                              RigidTransformation<ScalarT,EigenDim> &model_params)
+        RigidTransformationEstimator& fitModelParameters(const std::vector<size_t> &sample_ind,
+                                                         RigidTransformation<ScalarT,EigenDim> &model_params)
         {
             VectorSet<ScalarT,EigenDim> dst_p(dst_points_.rows(), sample_ind.size());
             VectorSet<ScalarT,EigenDim> src_p(src_points_.rows(), sample_ind.size());
-#pragma omp parallel for
             for (size_t i = 0; i < sample_ind.size(); i++) {
                 dst_p.col(i) = dst_points_.col(sample_ind[i]);
                 src_p.col(i) = src_points_.col(sample_ind[i]);
@@ -57,9 +72,9 @@ namespace cilantro {
             return *this;
         }
 
-        inline RigidTransformation<ScalarT,EigenDim> estimateModelParameters(const std::vector<size_t> &sample_ind) {
+        inline RigidTransformation<ScalarT,EigenDim> fitModelParameters(const std::vector<size_t> &sample_ind) {
             RigidTransformation<ScalarT,EigenDim> model_params;
-            estimateModelParameters(sample_ind, model_params);
+            fitModelParameters(sample_ind, model_params);
             return model_params;
         }
 
@@ -67,7 +82,10 @@ namespace cilantro {
                                                               std::vector<ScalarT> &residuals)
         {
             residuals.resize(dst_points_.cols());
-            Eigen::Map<Eigen::Matrix<ScalarT,1,Eigen::Dynamic> >(residuals.data(),1,residuals.size()) = (model_params*src_points_ - dst_points_).colwise().norm();
+#pragma omp parallel for
+            for (size_t i = 0; i < dst_points_.cols(); i++) {
+                residuals[i] = (model_params*src_points_.col(i) - dst_points_.col(i)).norm();
+            }
             return *this;
         }
 

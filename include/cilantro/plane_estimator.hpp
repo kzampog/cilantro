@@ -14,19 +14,19 @@ namespace cilantro {
                   points_(points)
         {}
 
-        inline PlaneEstimator& estimateModelParameters(HomogeneousVector<ScalarT,EigenDim> &model_params) {
+        inline PlaneEstimator& fitModelParameters(HomogeneousVector<ScalarT,EigenDim> &model_params) {
             estimate_params_(points_, model_params);
             return *this;
         }
 
-        inline HomogeneousVector<ScalarT,EigenDim> estimateModelParameters() {
+        inline HomogeneousVector<ScalarT,EigenDim> fitModelParameters() {
             HomogeneousVector<ScalarT,EigenDim> model_params;
-            estimateModelParameters(model_params);
+            fitModelParameters(model_params);
             return model_params;
         }
 
-        PlaneEstimator& estimateModelParameters(const std::vector<size_t> &sample_ind,
-                                                HomogeneousVector<ScalarT,EigenDim> &model_params)
+        PlaneEstimator& fitModelParameters(const std::vector<size_t> &sample_ind,
+                                           HomogeneousVector<ScalarT,EigenDim> &model_params)
         {
             VectorSet<ScalarT,EigenDim> points(points_.rows(), sample_ind.size());
             for (size_t i = 0; i < sample_ind.size(); i++) {
@@ -36,9 +36,9 @@ namespace cilantro {
             return *this;
         }
 
-        inline HomogeneousVector<ScalarT,EigenDim> estimateModelParameters(const std::vector<size_t> &sample_ind) {
+        inline HomogeneousVector<ScalarT,EigenDim> fitModelParameters(const std::vector<size_t> &sample_ind) {
             HomogeneousVector<ScalarT,EigenDim> model_params;
-            estimateModelParameters(sample_ind, model_params);
+            fitModelParameters(sample_ind, model_params);
             return model_params;
         }
 
@@ -46,9 +46,12 @@ namespace cilantro {
                                                 std::vector<ScalarT> &residuals)
         {
             residuals.resize(points_.cols());
-            Eigen::Matrix<ScalarT,1,EigenDim> n_t = model_params.head(points_.rows()).transpose();
-            ScalarT norm = n_t.norm();
-            Eigen::Map<Eigen::Matrix<ScalarT,1,Eigen::Dynamic> >(residuals.data(),1,residuals.size()) = ((n_t*points_).array() + model_params[points_.rows()]).cwiseAbs()/norm;
+            const ScalarT norm_inv = (ScalarT)(1.0)/model_params.head(points_.rows()).norm();
+            const Eigen::Matrix<ScalarT,1,EigenDim> n = norm_inv*model_params.head(points_.rows());
+            const ScalarT offset = norm_inv*model_params[points_.rows()];
+            for (size_t i = 0; i < points_.cols(); i++) {
+                residuals[i] = std::abs(n.dot(points_.col(i)) + offset);
+            }
             return *this;
         }
 

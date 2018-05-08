@@ -1,6 +1,5 @@
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/rigid_transform_estimator.hpp>
-#include <cilantro/io.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
 
@@ -36,8 +35,7 @@ int main(int argc, char **argv) {
     viz.registerKeyboardCallback('a', std::bind(callback, 'a', std::ref(re_estimate), std::ref(randomize)));
     viz.registerKeyboardCallback('d', std::bind(callback, 'd', std::ref(re_estimate), std::ref(randomize)));
 
-    std::vector<size_t> dst_ind(100);
-    std::vector<size_t> src_ind(100);
+    cilantro::CorrespondenceSet<float> corr(1000);
 
     viz.addObject<cilantro::PointCloudRenderable>("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
     while (!viz.wasStopped()) {
@@ -51,19 +49,22 @@ int main(int argc, char **argv) {
             tform.translation().setRandom();
 
             // Build noisy correspondences
-            for (size_t i = 0; i < dst_ind.size(); i++) {
+            for (size_t i = 0; i < corr.size(); i++) {
                 float p = 0 + static_cast<float>(rand())/(static_cast<float>(RAND_MAX/(1-0)));
-                src_ind[i] = std::rand() % src.size();
-                if (p > 0.4f) {
-                    dst_ind[i] = src_ind[i];
+                corr[i].indexInSecond = std::rand() % src.size();
+                if (p > 0.75f) {
+                    corr[i].indexInFirst = corr[i].indexInSecond;
                 } else {
-                    dst_ind[i] = std::rand() % dst.size();
+                    corr[i].indexInFirst = std::rand() % corr.size();
                 }
             }
 
             src.transform(tform);
             viz.addObject<cilantro::PointCloudRenderable>("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
-            viz.addObject<cilantro::PointCorrespondencesRenderable>("corr", selectByIndices(src.points, src_ind), selectByIndices(dst.points, dst_ind), cilantro::RenderingProperties().setOpacity(0.5f));
+            viz.addObject<cilantro::PointCorrespondencesRenderable>("corr",
+                                                                    cilantro::selectSecondSetCorrespondingPoints<float,3>(corr, src.points),
+                                                                    cilantro::selectFirstSetCorrespondingPoints<float,3>(corr, dst.points),
+                                                                    cilantro::RenderingProperties().setOpacity(0.5f));
 
             std::cout << "Press 'a' for a transform estimate" << std::endl;
         }
@@ -73,9 +74,10 @@ int main(int argc, char **argv) {
 
             viz.remove("corr");
 
-            cilantro::RigidTransformationEstimator3f te(dst.points, src.points, dst_ind, src_ind);
-            te.setMaxInlierResidual(0.01).setTargetInlierCount((size_t)(0.50*dst_ind.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
-            cilantro::RigidTransformation3f tform = te.getModelParameters();
+            cilantro::RigidTransformationEstimator3f te(dst.points, src.points, corr);
+            te.setMaxInlierResidual(0.01f).setTargetInlierCount((size_t)(0.50*corr.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
+            cilantro::RigidTransformation3f tform = te.estimateModelParameters().getModelParameters();
+
             std::vector<size_t> inliers = te.getModelInliers();
 
             std::cout << "RANSAC iterations: " << te.getPerformedIterationsCount() << ", inlier count: " << te.getNumberOfInliers() << std::endl;

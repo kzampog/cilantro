@@ -1,14 +1,10 @@
 #pragma once
 
-#include <Eigen/Dense>
-
 namespace cilantro {
     // CRTP base class
     template <class ICPInstanceT, class TransformT, class CorrespondenceSearchEngineT, class ResidualVectorT>
     class IterativeClosestPointBase {
     public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
         typedef typename TransformT::Scalar PointScalar;
 
         typedef typename CorrespondenceSearchEngineT::SearchResult CorrespondenceSearchResults;
