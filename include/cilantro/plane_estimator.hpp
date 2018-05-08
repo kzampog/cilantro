@@ -25,7 +25,9 @@ namespace cilantro {
             return model_params;
         }
 
-        PlaneEstimator& estimateModelParameters(const std::vector<size_t> &sample_ind, HomogeneousVector<ScalarT,EigenDim> &model_params) {
+        PlaneEstimator& estimateModelParameters(const std::vector<size_t> &sample_ind,
+                                                HomogeneousVector<ScalarT,EigenDim> &model_params)
+        {
             VectorSet<ScalarT,EigenDim> points(points_.rows(), sample_ind.size());
             for (size_t i = 0; i < sample_ind.size(); i++) {
                 points.col(i) = points_.col(sample_ind[i]);
@@ -40,7 +42,9 @@ namespace cilantro {
             return model_params;
         }
 
-        inline PlaneEstimator& computeResiduals(const HomogeneousVector<ScalarT,EigenDim> &model_params, std::vector<ScalarT> &residuals) {
+        inline PlaneEstimator& computeResiduals(const HomogeneousVector<ScalarT,EigenDim> &model_params,
+                                                std::vector<ScalarT> &residuals)
+        {
             residuals.resize(points_.cols());
             Eigen::Matrix<ScalarT,1,EigenDim> n_t = model_params.head(points_.rows()).transpose();
             ScalarT norm = n_t.norm();
@@ -59,7 +63,9 @@ namespace cilantro {
     private:
         ConstVectorSetMatrixMap<ScalarT,EigenDim> points_;
 
-        void estimate_params_(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, HomogeneousVector<ScalarT,EigenDim> &model_params) {
+        void estimate_params_(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
+                              HomogeneousVector<ScalarT,EigenDim> &model_params)
+        {
             PrincipalComponentAnalysis<ScalarT,EigenDim> pca(points);
             const auto& normal = pca.getEigenVectors().col(points_.rows()-1);
             model_params.head(points_.rows()) = normal;

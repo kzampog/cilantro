@@ -12,19 +12,41 @@ namespace cilantro {
         VisualizerHandler(Visualizer *visualizer);
 
         virtual bool ValidWinDepth(pangolin::GLprecision depth);
-        virtual void PixelUnproject(pangolin::View& view, pangolin::GLprecision winx, pangolin::GLprecision winy, pangolin::GLprecision winz, pangolin::GLprecision Pc[3]);
-        virtual void GetPosNormal(pangolin::View& view, int x, int y, pangolin::GLprecision p[3], pangolin::GLprecision Pw[3], pangolin::GLprecision Pc[3], pangolin::GLprecision nw[3], pangolin::GLprecision default_z = 1.0);
+
+        virtual void PixelUnproject(pangolin::View& view,
+                                    pangolin::GLprecision winx, pangolin::GLprecision winy, pangolin::GLprecision winz,
+                                    pangolin::GLprecision Pc[3]);
+
+        virtual void GetPosNormal(pangolin::View& view,
+                                  int x, int y,
+                                  pangolin::GLprecision p[3],
+                                  pangolin::GLprecision Pw[3],
+                                  pangolin::GLprecision Pc[3],
+                                  pangolin::GLprecision nw[3],
+                                  pangolin::GLprecision default_z = 1.0);
 
         void Keyboard(pangolin::View&, unsigned char key, int x, int y, bool pressed);
+
         void Mouse(pangolin::View&, pangolin::MouseButton button, int x, int y, bool pressed, int button_state);
+
         void MouseMotion(pangolin::View&, int x, int y, int button_state);
-        void Special(pangolin::View&, pangolin::InputSpecial inType, float x, float y, float p1, float p2, float p3, float p4, int button_state);
+
+        void Special(pangolin::View&, pangolin::InputSpecial inType,
+                     float x, float y,
+                     float p1, float p2, float p3, float p4,
+                     int button_state);
+
 
         void SetPerspectiveProjectionMatrix(const pangolin::OpenGlMatrix &mat);
-        void SetOrthographicProjectionMatrix(pangolin::GLprecision left, pangolin::GLprecision right, pangolin::GLprecision bottom, pangolin::GLprecision top, pangolin::GLprecision near, pangolin::GLprecision far);
+
+        void SetOrthographicProjectionMatrix(pangolin::GLprecision left, pangolin::GLprecision right,
+                                             pangolin::GLprecision bottom, pangolin::GLprecision top,
+                                             pangolin::GLprecision near, pangolin::GLprecision far);
 
         void EnablePerspectiveProjection();
+
         void EnableOrthographicProjection();
+
         void ToggleProjectionMode();
 
 #ifdef USE_EIGEN

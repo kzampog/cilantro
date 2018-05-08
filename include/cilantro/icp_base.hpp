@@ -27,17 +27,26 @@ namespace cilantro {
 
         inline size_t getMaxNumberOfIterations() const { return max_iterations_; }
 
-        inline ICPInstanceT& setMaxNumberOfIterations(size_t max_iter) { max_iterations_ = max_iter; return *static_cast<ICPInstanceT*>(this); }
+        inline ICPInstanceT& setMaxNumberOfIterations(size_t max_iter) {
+            max_iterations_ = max_iter;
+            return *static_cast<ICPInstanceT*>(this);
+        }
 
         inline size_t getNumberOfPerformedIterations() const { return iterations_; }
 
         inline PointScalar getConvergenceTolerance() const { return convergence_tol_; }
 
-        inline ICPInstanceT& setConvergenceTolerance(PointScalar conv_tol) { convergence_tol_ = conv_tol; return *static_cast<ICPInstanceT*>(this); }
+        inline ICPInstanceT& setConvergenceTolerance(PointScalar conv_tol) {
+            convergence_tol_ = conv_tol;
+            return *static_cast<ICPInstanceT*>(this);
+        }
 
         inline const TransformT& getInitialTransformation() const { return transform_init_; }
 
-        inline ICPInstanceT& setInitialTransformation(const TransformT& tform_init) { transform_init_ = tform_init; return *static_cast<ICPInstanceT*>(this); }
+        inline ICPInstanceT& setInitialTransformation(const TransformT& tform_init) {
+            transform_init_ = tform_init;
+            return *static_cast<ICPInstanceT*>(this);
+        }
 
         inline TransformT& initialTransformation() { return transform_init_; }
 
@@ -72,7 +81,10 @@ namespace cilantro {
 
         inline const TransformT& getTransformation() const { return transform_; }
 
-        inline const ICPInstanceT& getTransformation(TransformT& tform) const { tform = transform_; return *static_cast<const ICPInstanceT*>(this); }
+        inline const ICPInstanceT& getTransformation(TransformT& tform) const {
+            tform = transform_;
+            return *static_cast<const ICPInstanceT*>(this);
+        }
 
         inline ResidualVectorT getResiduals() { return static_cast<ICPInstanceT*>(this)->computeResiduals(); }
 

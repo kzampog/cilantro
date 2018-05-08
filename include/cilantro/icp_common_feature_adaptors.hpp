@@ -18,9 +18,13 @@ namespace cilantro {
                   transformed_data_map_(transformed_data_)
         {}
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatureData() const { return data_map_; }
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatureData() const {
+            return data_map_;
+        }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData() const { return transformed_data_map_; }
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData() const {
+            return transformed_data_map_;
+        }
 
         inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData(const RigidTransformation<ScalarT,EigenDim> &tform) {
 #pragma omp parallel for
@@ -71,9 +75,13 @@ namespace cilantro {
             data_.bottomRows(normals.rows()) = normal_weight*normals;
         }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatureData() const { return data_map_; }
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatureData() const {
+            return data_map_;
+        }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData() const { return transformed_data_map_; }
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData() const {
+            return transformed_data_map_;
+        }
 
         const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData(const RigidTransformation<ScalarT,EigenDim> &tform) {
             size_t dim = data_map_.rows()/2;
@@ -133,9 +141,13 @@ namespace cilantro {
             data_.bottomRows(3) = color_weight*colors.template cast<ScalarT>();
         }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatureData() const { return data_map_; }
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatureData() const {
+            return data_map_;
+        }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData() const { return transformed_data_map_; }
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData() const {
+            return transformed_data_map_;
+        }
 
         const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData(const RigidTransformation<ScalarT,EigenDim> &tform) {
             size_t dim = data_map_.rows() - 3;
@@ -197,9 +209,13 @@ namespace cilantro {
             data_.bottomRows(3) = color_weight*colors.template cast<ScalarT>();
         }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatureData() const { return data_map_; }
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatureData() const {
+            return data_map_;
+        }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData() const { return transformed_data_map_; }
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData() const {
+            return transformed_data_map_;
+        }
 
         const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData(const RigidTransformation<ScalarT,EigenDim> &tform) {
             size_t dim = (data_map_.rows() - 3)/2;

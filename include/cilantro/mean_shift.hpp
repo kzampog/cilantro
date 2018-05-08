@@ -26,7 +26,12 @@ namespace cilantro {
             if (kd_tree_owned_) delete kd_tree_ptr_;
         }
 
-        MeanShift& cluster(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &seeds, ScalarT kernel_radius, size_t max_iter, ScalarT cluster_tol, ScalarT convergence_tol = std::numeric_limits<ScalarT>::epsilon()) {
+        MeanShift& cluster(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &seeds,
+                           ScalarT kernel_radius,
+                           size_t max_iter,
+                           ScalarT cluster_tol,
+                           ScalarT convergence_tol = std::numeric_limits<ScalarT>::epsilon())
+        {
             shifted_seeds_ = seeds;
 
             // Shift points
@@ -93,7 +98,11 @@ namespace cilantro {
             return *this;
         }
 
-        inline MeanShift& cluster(ScalarT kernel_radius, size_t max_iter, ScalarT cluster_tol, ScalarT convergence_tol = std::numeric_limits<ScalarT>::epsilon()) {
+        inline MeanShift& cluster(ScalarT kernel_radius,
+                                  size_t max_iter,
+                                  ScalarT cluster_tol,
+                                  ScalarT convergence_tol = std::numeric_limits<ScalarT>::epsilon())
+        {
             return cluster(data_map_, kernel_radius, max_iter, cluster_tol, convergence_tol);
         }
 

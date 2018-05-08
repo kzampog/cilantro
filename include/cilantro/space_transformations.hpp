@@ -97,7 +97,9 @@ namespace cilantro {
             return *this;
         }
 
-        const RigidTransformationSet& warpPointsNormals(DataMatrixMap<ScalarT,EigenDim> points, DataMatrixMap<ScalarT,EigenDim> normals) const {
+        const RigidTransformationSet& warpPointsNormals(DataMatrixMap<ScalarT,EigenDim> points,
+                                                        DataMatrixMap<ScalarT,EigenDim> normals) const
+        {
 #pragma omp parallel for
             for (size_t i = 0; i < points.cols(); i++) {
                 points.col(i) = (*this)[i]*points.col(i);

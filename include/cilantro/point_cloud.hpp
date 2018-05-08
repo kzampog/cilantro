@@ -235,7 +235,9 @@ namespace cilantro {
             return *this;
         }
 
-        inline PointCloud& estimateNormalsKNN(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree, size_t k) {
+        inline PointCloud& estimateNormalsKNN(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree,
+                                              size_t k)
+        {
             normals = NormalEstimation<ScalarT,EigenDim>(kd_tree).estimateNormalsKNN(k);
             return *this;
         }
@@ -245,7 +247,9 @@ namespace cilantro {
             return *this;
         }
 
-        inline PointCloud& estimateNormalsRadius(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree, ScalarT radius) {
+        inline PointCloud& estimateNormalsRadius(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree,
+                                                 ScalarT radius)
+        {
             normals = NormalEstimation<ScalarT,EigenDim>(kd_tree).estimateNormalsRadius(radius);
             return *this;
         }
@@ -255,7 +259,10 @@ namespace cilantro {
             return *this;
         }
 
-        inline PointCloud& estimateNormalsKNNInRadius(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree, size_t k, ScalarT radius) {
+        inline PointCloud& estimateNormalsKNNInRadius(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree,
+                                                      size_t k,
+                                                      ScalarT radius)
+        {
             normals = NormalEstimation<ScalarT,EigenDim>(kd_tree).estimateNormalsKNNInRadius(k, radius);
             return *this;
         }
@@ -265,18 +272,24 @@ namespace cilantro {
             return *this;
         }
 
-        inline PointCloud& estimateNormals(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree, const NeighborhoodSpecification<ScalarT> &nh) {
+        inline PointCloud& estimateNormals(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree,
+                                           const NeighborhoodSpecification<ScalarT> &nh)
+        {
             normals = NormalEstimation<ScalarT,EigenDim>(kd_tree).estimateNormals(nh);
             return *this;
         }
 
-        inline PointCloud& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rotation, const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation) {
+        inline PointCloud& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rotation,
+                                     const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation)
+        {
             points = (rotation*points).colwise() + translation;
             if (hasNormals()) normals = rotation*normals;
             return *this;
         }
 
-        inline PointCloud transformed(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rotation, const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation) {
+        inline PointCloud transformed(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rotation,
+                                      const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation)
+        {
             PointCloud cloud;
             cloud.points = (rotation*points).colwise() + translation;
             if (hasNormals()) cloud.normals = rotation*normals;

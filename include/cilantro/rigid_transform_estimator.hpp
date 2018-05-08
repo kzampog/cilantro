@@ -43,7 +43,9 @@ namespace cilantro {
             return model_params;
         }
 
-        RigidTransformationEstimator& estimateModelParameters(const std::vector<size_t> &sample_ind, RigidTransformation<ScalarT,EigenDim> &model_params) {
+        RigidTransformationEstimator& estimateModelParameters(const std::vector<size_t> &sample_ind,
+                                                              RigidTransformation<ScalarT,EigenDim> &model_params)
+        {
             VectorSet<ScalarT,EigenDim> dst_p(dst_points_.rows(), sample_ind.size());
             VectorSet<ScalarT,EigenDim> src_p(src_points_.rows(), sample_ind.size());
 #pragma omp parallel for
@@ -61,7 +63,9 @@ namespace cilantro {
             return model_params;
         }
 
-        inline RigidTransformationEstimator& computeResiduals(const RigidTransformation<ScalarT,EigenDim> &model_params, std::vector<ScalarT> &residuals) {
+        inline RigidTransformationEstimator& computeResiduals(const RigidTransformation<ScalarT,EigenDim> &model_params,
+                                                              std::vector<ScalarT> &residuals)
+        {
             residuals.resize(dst_points_.cols());
             Eigen::Map<Eigen::Matrix<ScalarT,1,Eigen::Dynamic> >(residuals.data(),1,residuals.size()) = (model_params*src_points_ - dst_points_).colwise().norm();
             return *this;

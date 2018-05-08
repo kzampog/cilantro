@@ -29,67 +29,101 @@ namespace cilantro {
 
         inline const Vector<ScalarT,EigenDim>& getViewPoint() const { return view_point_; }
 
-        inline NormalEstimation& setViewPoint(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &vp) { view_point_ = vp; return *this; }
+        inline NormalEstimation& setViewPoint(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &vp) {
+            view_point_ = vp;
+            return *this;
+        }
 
-        inline const NormalEstimation& estimateNormalsAndCurvatureKNN(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, size_t k) const {
-            compute_<NeighborhoodType::KNN>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN, k, (ScalarT)0.0));
+        inline const NormalEstimation& estimateNormalsAndCurvatureKNN(VectorSet<ScalarT,EigenDim> &normals,
+                                                                      VectorSet<ScalarT,1> &curvatures,
+                                                                      size_t k) const
+        {
+            compute_<NeighborhoodType::KNN>(normals,
+                                            curvatures,
+                                            NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN, k, (ScalarT)0.0));
             return *this;
         }
 
         inline VectorSet<ScalarT,EigenDim> estimateNormalsKNN(size_t k) const {
             VectorSet<ScalarT,EigenDim> normals;
             VectorSet<ScalarT,1> curvatures;
-            compute_<NeighborhoodType::KNN>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN, k, (ScalarT)0.0));
+            compute_<NeighborhoodType::KNN>(normals,
+                                            curvatures,
+                                            NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN, k, (ScalarT)0.0));
             return normals;
         }
 
         inline VectorSet<ScalarT,1> estimateCurvatureKNN(size_t k) const {
             VectorSet<ScalarT,EigenDim> normals;
             VectorSet<ScalarT,1> curvatures;
-            compute_<NeighborhoodType::KNN>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN, k, (ScalarT)0.0));
+            compute_<NeighborhoodType::KNN>(normals,
+                                            curvatures,
+                                            NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN, k, (ScalarT)0.0));
             return curvatures;
         }
 
-        inline const NormalEstimation& estimateNormalsAndCurvatureRadius(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, ScalarT radius) const {
-            compute_<NeighborhoodType::RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::RADIUS, 0, radius));
+        inline const NormalEstimation& estimateNormalsAndCurvatureRadius(VectorSet<ScalarT,EigenDim> &normals,
+                                                                         VectorSet<ScalarT,1> &curvatures,
+                                                                         ScalarT radius) const
+        {
+            compute_<NeighborhoodType::RADIUS>(normals,
+                                               curvatures,
+                                               NeighborhoodSpecification<ScalarT>(NeighborhoodType::RADIUS, 0, radius));
             return *this;
         }
 
         inline VectorSet<ScalarT,EigenDim> estimateNormalsRadius(ScalarT radius) const {
             VectorSet<ScalarT,EigenDim> normals;
             VectorSet<ScalarT,1> curvatures;
-            compute_<NeighborhoodType::RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::RADIUS, 0, radius));
+            compute_<NeighborhoodType::RADIUS>(normals,
+                                               curvatures,
+                                               NeighborhoodSpecification<ScalarT>(NeighborhoodType::RADIUS, 0, radius));
             return normals;
         }
 
         inline VectorSet<ScalarT,1> estimateCurvatureRadius(ScalarT radius) const {
             VectorSet<ScalarT,EigenDim> normals;
             VectorSet<ScalarT,1> curvatures;
-            compute_<NeighborhoodType::RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::RADIUS, 0, radius));
+            compute_<NeighborhoodType::RADIUS>(normals,
+                                               curvatures,
+                                               NeighborhoodSpecification<ScalarT>(NeighborhoodType::RADIUS, 0, radius));
             return curvatures;
         }
 
-        inline const NormalEstimation& estimateNormalsAndCurvatureKNNInRadius(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, size_t k, ScalarT radius) const {
-            compute_<NeighborhoodType::KNN_IN_RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN_IN_RADIUS, k, radius));
+        inline const NormalEstimation& estimateNormalsAndCurvatureKNNInRadius(VectorSet<ScalarT,EigenDim> &normals,
+                                                                              VectorSet<ScalarT,1> &curvatures,
+                                                                              size_t k,
+                                                                              ScalarT radius) const
+        {
+            compute_<NeighborhoodType::KNN_IN_RADIUS>(normals,
+                                                      curvatures,
+                                                      NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN_IN_RADIUS, k, radius));
             return *this;
         }
 
         inline VectorSet<ScalarT,EigenDim> estimateNormalsKNNInRadius(size_t k, ScalarT radius) const {
             VectorSet<ScalarT,EigenDim> normals;
             VectorSet<ScalarT,1> curvatures;
-            compute_<NeighborhoodType::KNN_IN_RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN_IN_RADIUS, k, radius));
+            compute_<NeighborhoodType::KNN_IN_RADIUS>(normals,
+                                                      curvatures,
+                                                      NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN_IN_RADIUS, k, radius));
             return normals;
         }
 
         inline VectorSet<ScalarT,1> estimateCurvatureKNNInRadius(size_t k, ScalarT radius) const {
             VectorSet<ScalarT,EigenDim> normals;
             VectorSet<ScalarT,1> curvatures;
-            compute_<NeighborhoodType::KNN_IN_RADIUS>(normals, curvatures, NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN_IN_RADIUS, k, radius));
+            compute_<NeighborhoodType::KNN_IN_RADIUS>(normals,
+                                                      curvatures,
+                                                      NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN_IN_RADIUS, k, radius));
             return curvatures;
         }
 
         template <NeighborhoodType NT>
-        inline const NormalEstimation& estimateNormalsAndCurvature(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, const NeighborhoodSpecification<ScalarT> &nh) const {
+        inline const NormalEstimation& estimateNormalsAndCurvature(VectorSet<ScalarT,EigenDim> &normals,
+                                                                   VectorSet<ScalarT,1> &curvatures,
+                                                                   const NeighborhoodSpecification<ScalarT> &nh) const
+        {
             compute_<NT>(normals, curvatures, nh);
             return *this;
         }
@@ -110,7 +144,10 @@ namespace cilantro {
             return curvatures;
         }
 
-        inline const NormalEstimation& estimateNormalsAndCurvature(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, const NeighborhoodSpecification<ScalarT> &nh) const {
+        inline const NormalEstimation& estimateNormalsAndCurvature(VectorSet<ScalarT,EigenDim> &normals,
+                                                                   VectorSet<ScalarT,1> &curvatures,
+                                                                   const NeighborhoodSpecification<ScalarT> &nh) const
+        {
             compute_nh_(normals, curvatures, nh);
             return *this;
         }
@@ -135,7 +172,10 @@ namespace cilantro {
         bool kd_tree_owned_;
         Vector<ScalarT,EigenDim> view_point_;
 
-        void compute_nh_(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, const NeighborhoodSpecification<ScalarT> &nh) const {
+        void compute_nh_(VectorSet<ScalarT,EigenDim> &normals,
+                         VectorSet<ScalarT,1> &curvatures,
+                         const NeighborhoodSpecification<ScalarT> &nh) const
+        {
             switch (nh.type) {
                 case NeighborhoodType::KNN:
                     compute_<NeighborhoodType::KNN>(normals, curvatures, nh);
@@ -150,7 +190,10 @@ namespace cilantro {
         }
 
         template <NeighborhoodType NT>
-        void compute_(VectorSet<ScalarT,EigenDim> &normals, VectorSet<ScalarT,1> &curvatures, const NeighborhoodSpecification<ScalarT> &nh) const {
+        void compute_(VectorSet<ScalarT,EigenDim> &normals,
+                      VectorSet<ScalarT,1> &curvatures,
+                      const NeighborhoodSpecification<ScalarT> &nh) const
+        {
             NeighborhoodSpecification<ScalarT> nh_sq(nh);
             nh_sq.radius = nh_sq.radius*nh_sq.radius;
 

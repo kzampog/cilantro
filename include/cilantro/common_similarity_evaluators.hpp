@@ -58,7 +58,9 @@ namespace cilantro {
                 : colors_(colors), max_color_diff_(dist_thresh*dist_thresh)
         {}
 
-        inline bool operator()(size_t i, size_t j, ScalarT) const { return (colors_.col(i) - colors_.col(j)).squaredNorm() < max_color_diff_; }
+        inline bool operator()(size_t i, size_t j, ScalarT) const {
+            return (colors_.col(i) - colors_.col(j)).squaredNorm() < max_color_diff_;
+        }
 
     private:
         ConstVectorSetMatrixMap<float,3> colors_;

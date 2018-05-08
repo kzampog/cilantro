@@ -23,7 +23,9 @@ namespace cilantro {
 
         typedef KDTree<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor> SearchTree;
 
-        ICPCorrespondenceSearchKDTree(FeatureAdaptorT &dst_features, FeatureAdaptorT &src_features, EvaluatorT &evaluator)
+        ICPCorrespondenceSearchKDTree(FeatureAdaptorT &dst_features,
+                                      FeatureAdaptorT &src_features,
+                                      EvaluatorT &evaluator)
                 : dst_features_adaptor_(dst_features), src_features_adaptor_(src_features), evaluator_(evaluator),
                   search_dir_(CorrespondenceSearchDirection::SECOND_TO_FIRST), max_distance_((CorrespondenceScalar)(0.01*0.01)),
                   inlier_fraction_(1.0), require_reciprocality_(false)
@@ -115,19 +117,31 @@ namespace cilantro {
 
         inline const CorrespondenceSearchDirection& getSearchDirection() const { return search_dir_; }
 
-        inline ICPCorrespondenceSearchKDTree& setSearchDirection(const CorrespondenceSearchDirection &search_dir) { search_dir_ = search_dir; return *this; }
+        inline ICPCorrespondenceSearchKDTree& setSearchDirection(const CorrespondenceSearchDirection &search_dir) {
+            search_dir_ = search_dir;
+            return *this;
+        }
 
         inline CorrespondenceScalar getMaxDistance() const { return max_distance_; }
 
-        inline ICPCorrespondenceSearchKDTree& setMaxDistance(CorrespondenceScalar dist_thresh) { max_distance_ = dist_thresh; return *this; }
+        inline ICPCorrespondenceSearchKDTree& setMaxDistance(CorrespondenceScalar dist_thresh) {
+            max_distance_ = dist_thresh;
+            return *this;
+        }
 
         inline double getInlierFraction() const { return inlier_fraction_; }
 
-        inline ICPCorrespondenceSearchKDTree& setInlierFraction(double fraction) { inlier_fraction_ = fraction; return *this; }
+        inline ICPCorrespondenceSearchKDTree& setInlierFraction(double fraction) {
+            inlier_fraction_ = fraction;
+            return *this;
+        }
 
         inline bool getRequireReciprocality() const { return require_reciprocality_; }
 
-        inline ICPCorrespondenceSearchKDTree& setRequireReciprocality(bool require_reciprocal) { require_reciprocality_ = require_reciprocal; return *this; }
+        inline ICPCorrespondenceSearchKDTree& setRequireReciprocality(bool require_reciprocal) {
+            require_reciprocality_ = require_reciprocal;
+            return *this;
+        }
 
     private:
         FeatureAdaptorT& dst_features_adaptor_;

@@ -87,15 +87,23 @@ namespace cilantro {
         Visualizer& setOrthographicProjectionMatrix(pangolin::GLprecision height,
                                                     pangolin::GLprecision near, pangolin::GLprecision far);
 
-        inline Visualizer& enablePerspectiveProjection() { input_handler_->EnablePerspectiveProjection(); return *this; }
+        inline Visualizer& enablePerspectiveProjection() {
+            input_handler_->EnablePerspectiveProjection();
+            return *this;
+        }
 
-        inline Visualizer& enableOrthographicProjection() { input_handler_->EnableOrthographicProjection(); return *this; }
+        inline Visualizer& enableOrthographicProjection() {
+            input_handler_->EnableOrthographicProjection();
+            return *this;
+        }
 
         inline Visualizer& toggleProjectionMode() { input_handler_->ToggleProjectionMode(); return *this; }
 
         const Visualizer& getCameraPose(Eigen::Ref<Eigen::Matrix4f> pose) const;
 
-        inline const Visualizer& getCameraPose(RigidTransformation3f &pose) const { return getCameraPose(pose.matrix()); }
+        inline const Visualizer& getCameraPose(RigidTransformation3f &pose) const {
+            return getCameraPose(pose.matrix());
+        }
 
         const Visualizer& getCameraPose(Eigen::Vector3f &position,
                                         Eigen::Vector3f &look_at,
@@ -111,11 +119,15 @@ namespace cilantro {
 
         Visualizer& setCameraPose(const Eigen::Ref<const Eigen::Matrix4f> &pose);
 
-        inline Visualizer& setCameraPose(const RigidTransformation3f &pose) { return setCameraPose(pose.matrix()); }
+        inline Visualizer& setCameraPose(const RigidTransformation3f &pose) {
+            return setCameraPose(pose.matrix());
+        }
 
         const Visualizer& getDefaultCameraPose(Eigen::Ref<Eigen::Matrix4f> pose) const;
 
-        inline const Visualizer& getDefaultCameraPose(RigidTransformation3f &pose) const { return getDefaultCameraPose(pose.matrix()); }
+        inline const Visualizer& getDefaultCameraPose(RigidTransformation3f &pose) const {
+            return getDefaultCameraPose(pose.matrix());
+        }
 
         const Visualizer& getDefaultCameraPose(Eigen::Vector3f &position,
                                                Eigen::Vector3f &look_at,
@@ -131,7 +143,9 @@ namespace cilantro {
 
         Visualizer& setDefaultCameraPose(const Eigen::Ref<const Eigen::Matrix4f> &pose);
 
-        inline Visualizer& setDefaultCameraPose(const RigidTransformation3f &pose) { return setDefaultCameraPose(pose.matrix()); }
+        inline Visualizer& setDefaultCameraPose(const RigidTransformation3f &pose) {
+            return setDefaultCameraPose(pose.matrix());
+        }
 
         Visualizer& registerKeyboardCallback(unsigned char key, std::function<void(void)> func);
 

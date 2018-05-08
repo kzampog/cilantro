@@ -8,7 +8,11 @@ namespace cilantro {
     template <class ModelEstimatorT, class ModelParamsT, typename ResidualScalarT>
     class RandomSampleConsensusBase {
     public:
-        RandomSampleConsensusBase(size_t sample_size, size_t inlier_count_thresh, size_t max_iter, ResidualScalarT inlier_dist_thresh, bool re_estimate)
+        RandomSampleConsensusBase(size_t sample_size,
+                                  size_t inlier_count_thresh,
+                                  size_t max_iter,
+                                  ResidualScalarT inlier_dist_thresh,
+                                  bool re_estimate)
                 : sample_size_(sample_size),
                   inlier_count_thresh_(inlier_count_thresh),
                   max_iter_(max_iter),
@@ -18,6 +22,7 @@ namespace cilantro {
         {}
 
         inline size_t getSampleSize() const { return sample_size_; }
+
         inline ModelEstimatorT& setSampleSize(size_t sample_size) {
             iteration_count_ = 0;
             sample_size_ = sample_size;
@@ -25,6 +30,7 @@ namespace cilantro {
         }
 
         inline size_t getTargetInlierCount() const { return inlier_count_thresh_; }
+
         inline ModelEstimatorT& setTargetInlierCount(size_t inlier_count_thres) {
             iteration_count_ = 0;
             inlier_count_thresh_ = inlier_count_thres;
@@ -32,6 +38,7 @@ namespace cilantro {
         }
 
         inline size_t getMaxNumberOfIterations() const { return max_iter_; }
+
         inline ModelEstimatorT& setMaxNumberOfIterations(size_t max_iter) {
             iteration_count_ = 0;
             max_iter_ = max_iter;
@@ -39,6 +46,7 @@ namespace cilantro {
         }
 
         inline ResidualScalarT getMaxInlierResidual() const { return inlier_dist_thresh_; }
+
         inline ModelEstimatorT& setMaxInlierResidual(ResidualScalarT inlier_dist_thresh) {
             iteration_count_ = 0;
             inlier_dist_thresh_ = inlier_dist_thresh;
@@ -46,13 +54,17 @@ namespace cilantro {
         }
 
         inline bool getReEstimationStep() const { return re_estimate_; }
+
         inline ModelEstimatorT& setReEstimationStep(bool re_estimate) {
             iteration_count_ = 0;
             re_estimate_ = re_estimate;
             return *static_cast<ModelEstimatorT*>(this);
         }
 
-        inline ModelEstimatorT& getEstimationResults(ModelParamsT &model_params, std::vector<ResidualScalarT> &model_residuals, std::vector<size_t> &model_inliers) {
+        inline ModelEstimatorT& getEstimationResults(ModelParamsT &model_params,
+                                                     std::vector<ResidualScalarT> &model_residuals,
+                                                     std::vector<size_t> &model_inliers)
+        {
             if (iteration_count_ == 0) estimate_model_();
             model_params = model_params_;
             model_residuals = model_residuals_;
@@ -81,8 +93,12 @@ namespace cilantro {
             return model_inliers_;
         }
 
-        inline bool targetInlierCountAchieved() const { return iteration_count_ > 0 && model_inliers_.size() >= inlier_count_thresh_; }
+        inline bool targetInlierCountAchieved() const {
+            return iteration_count_ > 0 && model_inliers_.size() >= inlier_count_thresh_;
+        }
+
         inline size_t getPerformedIterationsCount() const { return iteration_count_; }
+
         inline size_t getNumberOfInliers() const { return model_inliers_.size(); }
 
     private:

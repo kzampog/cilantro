@@ -31,7 +31,9 @@ namespace cilantro {
 
         inline const Eigen::Matrix<ScalarT,EigenDim,EigenDim>& getEigenVectors() const { return eigenvectors_; }
 
-        inline Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> project(const ConstVectorSetMatrixMap<ScalarT,Eigen::Dynamic> &points, size_t target_dim) const {
+        inline Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> project(const ConstVectorSetMatrixMap<ScalarT,Eigen::Dynamic> &points,
+                                                                            size_t target_dim) const
+        {
             return (eigenvectors_.leftCols(target_dim).transpose()*(points.colwise() - mean_));
         }
 

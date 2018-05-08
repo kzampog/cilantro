@@ -75,7 +75,9 @@ namespace cilantro {
             return *this;
         }
 
-        inline const RigidTransformation<ScalarT,3>& getProjectionExtrinsicMatrix() const { return projection_extrinsics_; }
+        inline const RigidTransformation<ScalarT,3>& getProjectionExtrinsicMatrix() const {
+            return projection_extrinsics_;
+        }
 
         inline ICPCorrespondenceSearchProjective3& setProjectionExtrinsicMatrix(const RigidTransformation<ScalarT,3> &mat) {
             projection_extrinsics_ = mat;
@@ -86,11 +88,17 @@ namespace cilantro {
 
         inline CorrespondenceScalar getMaxDistance() const { return max_distance_; }
 
-        inline ICPCorrespondenceSearchProjective3& setMaxDistance(CorrespondenceScalar dist_thresh) { max_distance_ = dist_thresh; return *this; }
+        inline ICPCorrespondenceSearchProjective3& setMaxDistance(CorrespondenceScalar dist_thresh) {
+            max_distance_ = dist_thresh;
+            return *this;
+        }
 
         inline double getInlierFraction() const { return inlier_fraction_; }
 
-        inline ICPCorrespondenceSearchProjective3& setInlierFraction(double fraction) { inlier_fraction_ = fraction; return *this; }
+        inline ICPCorrespondenceSearchProjective3& setInlierFraction(double fraction) {
+            inlier_fraction_ = fraction;
+            return *this;
+        }
 
     private:
         PointFeaturesAdaptor<ScalarT,3>& dst_points_adaptor_;

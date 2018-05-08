@@ -280,7 +280,9 @@ namespace cilantro {
                                                 size_t max_iter = 1,
                                                 ScalarT convergence_tol = 1e-5)
     {
-        if (src_p.cols() != dst_p.cols() || dst_p.cols() != dst_n.cols() || src_p.cols() < 3 || (point_to_point_weight == (ScalarT)0.0 && point_to_plane_weight == (ScalarT)0.0)) {
+        if (src_p.cols() != dst_p.cols() || dst_p.cols() != dst_n.cols() || src_p.cols() < 3 ||
+            (point_to_point_weight == (ScalarT)0.0 && point_to_plane_weight == (ScalarT)0.0))
+        {
             tform.setIdentity();
             return false;
         }

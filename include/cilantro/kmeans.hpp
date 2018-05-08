@@ -16,13 +16,21 @@ namespace cilantro {
 
         ~KMeans() {}
 
-        KMeans& cluster(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &centroids, size_t max_iter = 100, ScalarT tol = std::numeric_limits<ScalarT>::epsilon(), bool use_kd_tree = false) {
+        KMeans& cluster(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &centroids,
+                        size_t max_iter = 100,
+                        ScalarT tol = std::numeric_limits<ScalarT>::epsilon(),
+                        bool use_kd_tree = false)
+        {
             cluster_centroids_ = centroids;
             cluster_(max_iter, tol, use_kd_tree);
             return *this;
         }
 
-        KMeans& cluster(size_t num_clusters, size_t max_iter = 100, ScalarT tol = std::numeric_limits<ScalarT>::epsilon(), bool use_kd_tree = false) {
+        KMeans& cluster(size_t num_clusters,
+                        size_t max_iter = 100,
+                        ScalarT tol = std::numeric_limits<ScalarT>::epsilon(),
+                        bool use_kd_tree = false)
+        {
             cluster_centroids_.resize(data_map_.rows(), (num_clusters > data_map_.cols()) ? data_map_.cols() : num_clusters);
 
             std::vector<size_t> range(data_map_.cols());

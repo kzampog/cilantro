@@ -25,15 +25,24 @@ namespace cilantro {
 
         inline ScalarT getPointToPointMetricWeight() const { return point_to_point_weight_; }
 
-        inline CombinedMetricRigidICP3& setPointToPointMetricWeight(ScalarT weight) { point_to_point_weight_ = weight; return *this; }
+        inline CombinedMetricRigidICP3& setPointToPointMetricWeight(ScalarT weight) {
+            point_to_point_weight_ = weight;
+            return *this;
+        }
 
         inline ScalarT getPointToPlaneMetricWeight() const { return point_to_plane_weight_; }
 
-        inline CombinedMetricRigidICP3& setPointToPlaneMetricWeight(ScalarT weight) { point_to_plane_weight_ = weight; return *this; }
+        inline CombinedMetricRigidICP3& setPointToPlaneMetricWeight(ScalarT weight) {
+            point_to_plane_weight_ = weight;
+            return *this;
+        }
 
         inline size_t getMaxNumberOfOptimizationStepIterations() const { return max_estimation_iterations_; }
 
-        inline CombinedMetricRigidICP3& setMaxNumberOfOptimizationStepIterations(size_t max_iter) { max_estimation_iterations_ = max_iter; return *this; }
+        inline CombinedMetricRigidICP3& setMaxNumberOfOptimizationStepIterations(size_t max_iter) {
+            max_estimation_iterations_ = max_iter;
+            return *this;
+        }
 
     protected:
         ConstVectorSetMatrixMap<ScalarT,3> dst_points_;

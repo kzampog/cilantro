@@ -32,21 +32,33 @@ namespace cilantro {
         }
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
-        ConvexPolytope(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0)
+        ConvexPolytope(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
+                       bool compute_topology = false,
+                       bool simplicial_facets = false,
+                       double merge_tol = 0.0)
                 : dim_(EigenDim)
         {
             init_points_(points, compute_topology, simplicial_facets, merge_tol);
         }
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
-        ConvexPolytope(const ConstHomogeneousVectorSetMatrixMap<ScalarT,EigenDim> &halfspaces, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0, double dist_tol = std::numeric_limits<ScalarT>::epsilon())
+        ConvexPolytope(const ConstHomogeneousVectorSetMatrixMap<ScalarT,EigenDim> &halfspaces,
+                       bool compute_topology = false,
+                       bool simplicial_facets = false,
+                       double merge_tol = 0.0,
+                       double dist_tol = std::numeric_limits<ScalarT>::epsilon())
                 : dim_(EigenDim)
         {
             init_halfspaces_(halfspaces, compute_topology, simplicial_facets, merge_tol, dist_tol);
         }
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == Eigen::Dynamic>::type>
-        ConvexPolytope(const ConstDataMatrixMap<ScalarT,EigenDim> &input_data, size_t dim, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0, double dist_tol = std::numeric_limits<ScalarT>::epsilon())
+        ConvexPolytope(const ConstDataMatrixMap<ScalarT,EigenDim> &input_data,
+                       size_t dim,
+                       bool compute_topology = false,
+                       bool simplicial_facets = false,
+                       double merge_tol = 0.0,
+                       double dist_tol = std::numeric_limits<ScalarT>::epsilon())
                 : dim_(dim)
         {
             if (dim == input_data.rows()) {
@@ -61,7 +73,12 @@ namespace cilantro {
         ~ConvexPolytope() {}
 
         template <ptrdiff_t Dim = EigenDim>
-        typename std::enable_if<Dim != Eigen::Dynamic, ConvexPolytope>::type intersectionWith(const ConvexPolytope &poly, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0, double dist_tol = std::numeric_limits<ScalarT>::epsilon()) const {
+        typename std::enable_if<Dim != Eigen::Dynamic, ConvexPolytope>::type intersectionWith(const ConvexPolytope &poly,
+                                                                                              bool compute_topology = false,
+                                                                                              bool simplicial_facets = false,
+                                                                                              double merge_tol = 0.0,
+                                                                                              double dist_tol = std::numeric_limits<ScalarT>::epsilon()) const
+        {
             HomogeneousVectorSet<ScalarT,EigenDim> hs_intersection(EigenDim+1, halfspaces_.cols() + poly.halfspaces_.cols());
             hs_intersection.leftCols(halfspaces_.cols()) = halfspaces_;
             hs_intersection.rightCols(poly.halfspaces_.cols()) = poly.halfspaces_;
@@ -69,7 +86,12 @@ namespace cilantro {
         }
 
         template <ptrdiff_t Dim = EigenDim>
-        typename std::enable_if<Dim == Eigen::Dynamic, ConvexPolytope>::type intersectionWith(const ConvexPolytope &poly, bool compute_topology = false, bool simplicial_facets = false, double merge_tol = 0.0, double dist_tol = std::numeric_limits<ScalarT>::epsilon()) const {
+        typename std::enable_if<Dim == Eigen::Dynamic, ConvexPolytope>::type intersectionWith(const ConvexPolytope &poly,
+                                                                                              bool compute_topology = false,
+                                                                                              bool simplicial_facets = false,
+                                                                                              double merge_tol = 0.0,
+                                                                                              double dist_tol = std::numeric_limits<ScalarT>::epsilon()) const
+        {
             HomogeneousVectorSet<ScalarT,EigenDim> hs_intersection(dim_+1, halfspaces_.cols() + poly.halfspaces_.cols());
             hs_intersection.leftCols(halfspaces_.cols()) = halfspaces_;
             hs_intersection.rightCols(poly.halfspaces_.cols()) = poly.halfspaces_;
@@ -103,7 +125,9 @@ namespace cilantro {
             return (halfspaces_.topRows(dim_).transpose()*points).colwise() + halfspaces_.row(dim_).transpose();
         }
 
-        Eigen::Matrix<bool,1,Eigen::Dynamic> getInteriorPointsIndexMask(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, ScalarT offset = 0.0) const {
+        Eigen::Matrix<bool,1,Eigen::Dynamic> getInteriorPointsIndexMask(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
+                                                                        ScalarT offset = 0.0) const
+        {
             Eigen::Matrix<bool,1,Eigen::Dynamic> mask(1,points.cols());
             for (size_t i = 0; i < points.cols(); i++) {
                 mask(i) = containsPoint(points.col(i), offset);
@@ -111,7 +135,9 @@ namespace cilantro {
             return mask;
         }
 
-        std::vector<size_t> getInteriorPointIndices(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, ScalarT offset = 0.0) const {
+        std::vector<size_t> getInteriorPointIndices(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
+                                                    ScalarT offset = 0.0) const
+        {
             std::vector<size_t> indices;
             indices.reserve(points.cols());
             for (size_t i = 0; i < points.cols(); i++) {
@@ -128,7 +154,9 @@ namespace cilantro {
 
         inline const std::vector<size_t>& getVertexPointIndices() const { return vertex_point_indices_; }
 
-        ConvexPolytope& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rotation, const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation) {
+        ConvexPolytope& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rotation,
+                                  const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation)
+        {
             if (is_empty_) return *this;
 
             vertices_ = (rotation*vertices_).colwise() + translation;
