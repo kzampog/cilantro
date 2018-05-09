@@ -1,5 +1,5 @@
 #include <cilantro/point_cloud.hpp>
-#include <cilantro/plane_estimator.hpp>
+#include <cilantro/ransac_hyperplane_estimator.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
 
@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
 
     cilantro::PointCloud3f cloud(argv[1]);
 
-    cilantro::Visualizer viz("PlaneEstimator example", "disp");
+    cilantro::Visualizer viz("HyperplaneRANSACEstimator example", "disp");
     bool re_estimate = false;
     viz.registerKeyboardCallback('a', std::bind(callback, std::ref(re_estimate)));
 
@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
         if (re_estimate) {
             re_estimate = false;
 
-            cilantro::PlaneEstimator3f pe(cloud.points);
+            cilantro::PlaneRANSACEstimator3f pe(cloud.points);
             pe.setMaxInlierResidual(0.01f).setTargetInlierCount((size_t)(0.15*cloud.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
             cilantro::HomogeneousVector<float,3> plane = pe.getModelParameters();
             std::vector<size_t> inliers = pe.estimateModelParameters().getModelInliers();

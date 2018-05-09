@@ -1,5 +1,5 @@
 #include <cilantro/point_cloud.hpp>
-#include <cilantro/rigid_transform_estimator.hpp>
+#include <cilantro/ransac_rigid_transformation_estimator.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
 
@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
     cilantro::PointCloud3f dst(argv[1]);
     cilantro::PointCloud3f src(dst);
 
-    cilantro::Visualizer viz("RigidTransformationEstimator example", "disp");
+    cilantro::Visualizer viz("RigidTransformationRANSACEstimator example", "disp");
     bool re_estimate = false;
     bool randomize = true;
     viz.registerKeyboardCallback('a', std::bind(callback, 'a', std::ref(re_estimate), std::ref(randomize)));
@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
 
             viz.remove("corr");
 
-            cilantro::RigidTransformationEstimator3f te(dst.points, src.points, corr);
+            cilantro::RigidTransformationRANSACEstimator3f te(dst.points, src.points, corr);
             te.setMaxInlierResidual(0.01f).setTargetInlierCount((size_t)(0.50*corr.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
             cilantro::RigidTransformation3f tform = te.estimateModelParameters().getModelParameters();
 

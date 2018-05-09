@@ -5,16 +5,16 @@
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
-    class PlaneEstimator : public RandomSampleConsensusBase<PlaneEstimator<ScalarT,EigenDim>,HomogeneousVector<ScalarT,EigenDim>,ScalarT> {
+    class HyperplaneRANSACEstimator : public RandomSampleConsensusBase<HyperplaneRANSACEstimator<ScalarT,EigenDim>,HomogeneousVector<ScalarT,EigenDim>,ScalarT> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        PlaneEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points)
-                : RandomSampleConsensusBase<PlaneEstimator<ScalarT,EigenDim>,HomogeneousVector<ScalarT,EigenDim>,ScalarT>(points.rows(), points.cols()/2 + points.cols()%2, 100, 0.1, true),
+        HyperplaneRANSACEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points)
+                : RandomSampleConsensusBase<HyperplaneRANSACEstimator<ScalarT,EigenDim>,HomogeneousVector<ScalarT,EigenDim>,ScalarT>(points.rows(), points.cols()/2 + points.cols()%2, 100, 0.1, true),
                   points_(points)
         {}
 
-        inline PlaneEstimator& fitModelParameters(HomogeneousVector<ScalarT,EigenDim> &model_params) {
+        inline HyperplaneRANSACEstimator& fitModelParameters(HomogeneousVector<ScalarT,EigenDim> &model_params) {
             estimate_params_(points_, model_params);
             return *this;
         }
@@ -25,8 +25,8 @@ namespace cilantro {
             return model_params;
         }
 
-        PlaneEstimator& fitModelParameters(const std::vector<size_t> &sample_ind,
-                                           HomogeneousVector<ScalarT,EigenDim> &model_params)
+        HyperplaneRANSACEstimator& fitModelParameters(const std::vector<size_t> &sample_ind,
+                                                      HomogeneousVector<ScalarT,EigenDim> &model_params)
         {
             VectorSet<ScalarT,EigenDim> points(points_.rows(), sample_ind.size());
             for (size_t i = 0; i < sample_ind.size(); i++) {
@@ -42,8 +42,8 @@ namespace cilantro {
             return model_params;
         }
 
-        inline PlaneEstimator& computeResiduals(const HomogeneousVector<ScalarT,EigenDim> &model_params,
-                                                std::vector<ScalarT> &residuals)
+        inline HyperplaneRANSACEstimator& computeResiduals(const HomogeneousVector<ScalarT,EigenDim> &model_params,
+                                                           std::vector<ScalarT> &residuals)
         {
             residuals.resize(points_.cols());
             const ScalarT norm_inv = (ScalarT)(1.0)/model_params.head(points_.rows()).norm();
@@ -76,10 +76,14 @@ namespace cilantro {
         }
     };
 
-    typedef PlaneEstimator<float,2> PlaneEstimator2f;
-    typedef PlaneEstimator<double,2> PlaneEstimator2d;
-    typedef PlaneEstimator<float,3> PlaneEstimator3f;
-    typedef PlaneEstimator<double,3> PlaneEstimator3d;
-    typedef PlaneEstimator<float,Eigen::Dynamic> PlaneEstimatorXf;
-    typedef PlaneEstimator<double,Eigen::Dynamic> PlaneEstimatorXd;
+    typedef HyperplaneRANSACEstimator<float,2> HyperplaneRANSACEstimator2f;
+    typedef HyperplaneRANSACEstimator<float,2> LineRANSACEstimator2f;
+    typedef HyperplaneRANSACEstimator<double,2> HyperplaneRANSACEstimator2d;
+    typedef HyperplaneRANSACEstimator<double,2> LineRANSACEstimator2d;
+    typedef HyperplaneRANSACEstimator<float,3> HyperplaneRANSACEstimator3f;
+    typedef HyperplaneRANSACEstimator<float,3> PlaneRANSACEstimator3f;
+    typedef HyperplaneRANSACEstimator<double,3> HyperplaneRANSACEstimator3d;
+    typedef HyperplaneRANSACEstimator<double,3> PlaneRANSACEstimator3d;
+    typedef HyperplaneRANSACEstimator<float,Eigen::Dynamic> HyperplaneRANSACEstimatorXf;
+    typedef HyperplaneRANSACEstimator<double,Eigen::Dynamic> HyperplaneRANSACEstimatorXd;
 }

@@ -6,21 +6,21 @@
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
-    class RigidTransformationEstimator : public RandomSampleConsensusBase<RigidTransformationEstimator<ScalarT,EigenDim>,RigidTransformation<ScalarT,EigenDim>,ScalarT> {
+    class RigidTransformationRANSACEstimator : public RandomSampleConsensusBase<RigidTransformationRANSACEstimator<ScalarT,EigenDim>,RigidTransformation<ScalarT,EigenDim>,ScalarT> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        RigidTransformationEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
-                                     const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points)
-                : RandomSampleConsensusBase<RigidTransformationEstimator<ScalarT,EigenDim>,RigidTransformation<ScalarT,EigenDim>,ScalarT>(dst_points.rows(), dst_points.cols()/2 + dst_points.cols()%2, 100, 0.01, true),
+        RigidTransformationRANSACEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
+                                           const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points)
+                : RandomSampleConsensusBase<RigidTransformationRANSACEstimator<ScalarT,EigenDim>,RigidTransformation<ScalarT,EigenDim>,ScalarT>(dst_points.rows(), dst_points.cols()/2 + dst_points.cols()%2, 100, 0.01, true),
                   dst_points_(dst_points),
                   src_points_(src_points)
         {}
 
-        RigidTransformationEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
-                                     const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points,
-                                     const CorrespondenceSet<ScalarT> &corr)
-                : RandomSampleConsensusBase<RigidTransformationEstimator<ScalarT,EigenDim>,RigidTransformation<ScalarT,EigenDim>,ScalarT>(dst_points.rows(), corr.size()/2 + corr.size()%2, 100, 0.01, true),
+        RigidTransformationRANSACEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
+                                           const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points,
+                                           const CorrespondenceSet<ScalarT> &corr)
+                : RandomSampleConsensusBase<RigidTransformationRANSACEstimator<ScalarT,EigenDim>,RigidTransformation<ScalarT,EigenDim>,ScalarT>(dst_points.rows(), corr.size()/2 + corr.size()%2, 100, 0.01, true),
                   dst_points_tmp_(dst_points.rows(), corr.size()),
                   src_points_tmp_(src_points.rows(), corr.size()),
                   dst_points_(dst_points_tmp_),
@@ -32,11 +32,11 @@ namespace cilantro {
             }
         }
 
-        RigidTransformationEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
-                                     const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points,
-                                     const std::vector<size_t> &dst_ind,
-                                     const std::vector<size_t> &src_ind)
-                : RandomSampleConsensusBase<RigidTransformationEstimator<ScalarT,EigenDim>,RigidTransformation<ScalarT,EigenDim>,ScalarT>(dst_points.rows(), dst_ind.size()/2 + dst_ind.size()%2, 100, 0.01, true),
+        RigidTransformationRANSACEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
+                                           const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points,
+                                           const std::vector<size_t> &dst_ind,
+                                           const std::vector<size_t> &src_ind)
+                : RandomSampleConsensusBase<RigidTransformationRANSACEstimator<ScalarT,EigenDim>,RigidTransformation<ScalarT,EigenDim>,ScalarT>(dst_points.rows(), dst_ind.size()/2 + dst_ind.size()%2, 100, 0.01, true),
                   dst_points_tmp_(dst_points.rows(), dst_ind.size()),
                   src_points_tmp_(src_points.rows(), src_ind.size()),
                   dst_points_(dst_points_tmp_),
@@ -48,7 +48,7 @@ namespace cilantro {
             }
         }
 
-        inline RigidTransformationEstimator& fitModelParameters(RigidTransformation<ScalarT,EigenDim> &model_params) {
+        inline RigidTransformationRANSACEstimator& fitModelParameters(RigidTransformation<ScalarT,EigenDim> &model_params) {
             estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim>(dst_points_, src_points_, model_params);
             return *this;
         }
@@ -59,8 +59,8 @@ namespace cilantro {
             return model_params;
         }
 
-        RigidTransformationEstimator& fitModelParameters(const std::vector<size_t> &sample_ind,
-                                                         RigidTransformation<ScalarT,EigenDim> &model_params)
+        RigidTransformationRANSACEstimator& fitModelParameters(const std::vector<size_t> &sample_ind,
+                                                               RigidTransformation<ScalarT,EigenDim> &model_params)
         {
             VectorSet<ScalarT,EigenDim> dst_p(dst_points_.rows(), sample_ind.size());
             VectorSet<ScalarT,EigenDim> src_p(src_points_.rows(), sample_ind.size());
@@ -78,8 +78,8 @@ namespace cilantro {
             return model_params;
         }
 
-        inline RigidTransformationEstimator& computeResiduals(const RigidTransformation<ScalarT,EigenDim> &model_params,
-                                                              std::vector<ScalarT> &residuals)
+        inline RigidTransformationRANSACEstimator& computeResiduals(const RigidTransformation<ScalarT,EigenDim> &model_params,
+                                                                    std::vector<ScalarT> &residuals)
         {
             residuals.resize(dst_points_.cols());
 #pragma omp parallel for
@@ -104,8 +104,8 @@ namespace cilantro {
         ConstVectorSetMatrixMap<ScalarT,EigenDim> src_points_;
     };
 
-    typedef RigidTransformationEstimator<float,2> RigidTransformationEstimator2f;
-    typedef RigidTransformationEstimator<double,2> RigidTransformationEstimator2d;
-    typedef RigidTransformationEstimator<float,3> RigidTransformationEstimator3f;
-    typedef RigidTransformationEstimator<double,3> RigidTransformationEstimator3d;
+    typedef RigidTransformationRANSACEstimator<float,2> RigidTransformationRANSACEstimator2f;
+    typedef RigidTransformationRANSACEstimator<double,2> RigidTransformationRANSACEstimator2d;
+    typedef RigidTransformationRANSACEstimator<float,3> RigidTransformationRANSACEstimator3f;
+    typedef RigidTransformationRANSACEstimator<double,3> RigidTransformationRANSACEstimator3d;
 }
