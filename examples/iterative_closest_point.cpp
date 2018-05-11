@@ -2,6 +2,7 @@
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
+#include <cilantro/timer.hpp>
 
 void callback(bool &proceed) {
     proceed = true;
@@ -71,7 +72,8 @@ int main(int argc, char ** argv) {
     proceed = false;
 
     // Perform ICP registration
-    auto start = std::chrono::high_resolution_clock::now();
+    cilantro::Timer timer;
+    timer.start();
 
     // Point features adaptors for correspondence search
 //    cilantro::PointNormalColorFeaturesAdaptor3f dst_feat(dst.points, dst.normals, dst.colors, 0.5, 5.0);
@@ -99,9 +101,9 @@ int main(int argc, char ** argv) {
 
     cilantro::RigidTransformation3f tf_est = icp.estimateTransformation().getTransformation();
 
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> elapsed = end - start;
-    std::cout << "Registration time: " << elapsed.count() << "ms" << std::endl;
+    timer.stop();
+
+    std::cout << "Registration time: " << timer.getElapsedTime() << "ms" << std::endl;
 
     std::cout << "Iterations performed: " << icp.getNumberOfPerformedIterations() << std::endl;
     std::cout << "Has converged: " << icp.hasConverged() << std::endl;
@@ -124,11 +126,10 @@ int main(int argc, char ** argv) {
     }
     proceed = false;
 
-    start = std::chrono::high_resolution_clock::now();
+    timer.start();
     auto residuals = icp.getResiduals();
-    end = std::chrono::high_resolution_clock::now();
-    elapsed = end - start;
-    std::cout << "Residual computation time: " << elapsed.count() << "ms" << std::endl;
+    timer.stop();
+    std::cout << "Residual computation time: " << timer.getElapsedTime() << "ms" << std::endl;
 
     viz.clear();
     viz.addObject<cilantro::PointCloudRenderable>("src", src_trans, cilantro::RenderingProperties().setUseLighting(false))

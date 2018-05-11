@@ -3,6 +3,7 @@
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
+#include <cilantro/timer.hpp>
 
 struct AffinityEvaluator {
     inline float operator()(size_t i, size_t j, float dist) const {
@@ -37,16 +38,16 @@ int main(int argc, char ** argv) {
 
     size_t max_num_clusters = 4;
 
-    auto start = std::chrono::high_resolution_clock::now();
+    cilantro::Timer timer;
+    timer.start();
 
 //    cilantro::SpectralClustering<float,2> sc(data);
 //    cilantro::SpectralClustering<float,Eigen::Dynamic> sc(data, max_num_clusters, true, cilantro::GraphLaplacianType::UNNORMALIZED);
 //    cilantro::SpectralClustering<float,Eigen::Dynamic> sc(data, max_num_clusters, true, cilantro::GraphLaplacianType::NORMALIZED_SYMMETRIC);
     cilantro::SpectralClustering<float> sc(data, max_num_clusters, true, cilantro::GraphLaplacianType::NORMALIZED_RANDOM_WALK);
 
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> elapsed = end - start;
-    std::cout << "Clustering time: " << elapsed.count() << "ms" << std::endl;
+    timer.stop();
+    std::cout << "Clustering time: " << timer.getElapsedTime() << "ms" << std::endl;
     std::cout << "Number of clusters: " << sc.getNumberOfClusters() << std::endl;
     std::cout << "Performed k-means iterations: " << sc.getClusterer().getPerformedIterationsCount() << std::endl;
 

@@ -2,6 +2,7 @@
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
+#include <cilantro/timer.hpp>
 
 void callback(cilantro::Visualizer &viz, int key) {
     if (key == 'a') {
@@ -29,14 +30,14 @@ int main(int argc, char* argv[]) {
     cilantro::SpaceRegion3f sr2(cloud2.points, true, true);
 
     // Compute a spatial expression
-    auto start = std::chrono::high_resolution_clock::now();
+    cilantro::Timer timer;
+    timer.start();
 //    cilantro::SpaceRegion3f sr = sr1.relativeComplement(sr2, true, true);
 //    cilantro::SpaceRegion3f sr = sr1.intersectionWith(sr2, true, true);
 //    cilantro::SpaceRegion3f sr = sr1.intersectionWith(sr2).complement(true, true);
     cilantro::SpaceRegion3f sr = sr1.complement().unionWith(sr2.complement()).complement(true, true);
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> elapsed = end - start;
-    std::cout << "Build time: " << elapsed.count() << "ms" << std::endl;
+    timer.stop();
+    std::cout << "Build time: " << timer.getElapsedTime() << "ms" << std::endl;
 
     std::cout << "Number of polytopes in union: " << sr.getConvexPolytopes().size() << std::endl;
 

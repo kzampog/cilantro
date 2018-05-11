@@ -3,6 +3,7 @@
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
+#include <cilantro/timer.hpp>
 
 int main(int argc, char ** argv) {
     if (argc < 2) {
@@ -15,7 +16,8 @@ int main(int argc, char ** argv) {
     cloud.gridDownsample(0.005f).removeInvalidData();
 
     // Perform segmentation
-    auto start = std::chrono::high_resolution_clock::now();
+    cilantro::Timer timer;
+    timer.start();
 
     cilantro::ConnectedComponentSegmentation ccs;
 
@@ -27,10 +29,9 @@ int main(int argc, char ** argv) {
 //    std::vector<cilantro::NearestNeighborSearchResultSet<float>> nn;
 //    cilantro::KDTree3f(cloud.points).radiusSearch(cloud.points, 0.02f*0.02f, nn);
 //    ccs.segment(nn);
+    timer.stop();
 
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> elapsed = end - start;
-    std::cout << "Segmentation time: " << elapsed.count() << "ms" << std::endl;
+    std::cout << "Segmentation time: " << timer.getElapsedTime() << "ms" << std::endl;
     std::cout << ccs.getComponentPointIndices().size() << " components found" << std::endl;
 
     // Build a color map

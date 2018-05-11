@@ -1,6 +1,7 @@
 #include <cilantro/multidimensional_scaling.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
+#include <cilantro/timer.hpp>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -27,14 +28,14 @@ int main(int argc, char ** argv) {
 
     std::cout << "Number of points: " << points.cols() << std::endl;
 
-    auto start = std::chrono::high_resolution_clock::now();
+    cilantro::Timer timer;
+    timer.start();
 
 //    cilantro::MultidimensionalScaling<float,2> mds(distances);
     cilantro::MultidimensionalScaling<float> mds(distances, 3, true);
 
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> elapsed = end - start;
-    std::cout << "Elapsed time: " << elapsed.count() << "ms" << std::endl;
+    timer.stop();
+    std::cout << "Elapsed time: " << timer.getElapsedTime() << "ms" << std::endl;
     std::cout << "Embedding dimension: " << mds.getEmbeddedPoints().rows() << std::endl;
 
     size_t dim = mds.getEmbeddedPoints().rows();

@@ -2,6 +2,7 @@
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
+#include <cilantro/timer.hpp>
 
 int main(int argc, char ** argv) {
     if (argc < 2) {
@@ -16,14 +17,15 @@ int main(int argc, char ** argv) {
 
     cloud.gridDownsample(0.005f);
 
-    auto start = std::chrono::high_resolution_clock::now();
+    cilantro::Timer tree_timer;
+    tree_timer.start();
     cilantro::KDTree3f tree(cloud.points);
 //    cilantro::NormalEstimation3f ne(tree);
 //    cilantro::NormalEstimation3f ne(cloud.points);
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> kd_tree_time = end - start;
+    tree_timer.stop();
 
-    start = std::chrono::high_resolution_clock::now();
+    cilantro::Timer ne_timer;
+    ne_timer.start();
 
 //    cloud.normals = ne.estimateNormals(cilantro::NeighborhoodSpecification<float>(cilantro::NeighborhoodType::KNN_IN_RADIUS, 7, 0.01f));
 //    cloud.normals = ne.estimateNormalsKNNInRadius(7, 0.01f);
@@ -41,11 +43,10 @@ int main(int argc, char ** argv) {
 //    cloud.estimateNormalsRadius(0.01f);
 //    cloud.estimateNormalsKNN(7);
 
-    end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> estimation_time = end - start;
+    ne_timer.stop();
 
-    std::cout << "kd-tree time: " << kd_tree_time.count() << "ms" << std::endl;
-    std::cout << "Estimation time: " << estimation_time.count() << "ms" << std::endl;
+    std::cout << "kd-tree time: " << tree_timer.getElapsedTime() << "ms" << std::endl;
+    std::cout << "Estimation time: " << ne_timer.getElapsedTime() << "ms" << std::endl;
 
     cilantro::Visualizer viz("NormalEstimation example", "disp");
 

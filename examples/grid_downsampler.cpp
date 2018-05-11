@@ -2,6 +2,7 @@
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
+#include <cilantro/timer.hpp>
 
 int main(int argc, char ** argv) {
     if (argc < 2) {
@@ -11,15 +12,15 @@ int main(int argc, char ** argv) {
 
     cilantro::PointCloud3f cloud(argv[1]);
 
-    auto start = std::chrono::high_resolution_clock::now();
+    cilantro::Timer timer;
+    timer.start();
     cilantro::PointCloud3f cloud_d(cloud.gridDownsampled(0.01f));
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> ds_time = end - start;
+    timer.stop();
 
     std::cout << "Before: " << cloud.size() << std::endl;
     std::cout << "After: " << cloud_d.size() << std::endl;
 
-    std::cout << "Downsampling time: " << ds_time.count() << "ms" << std::endl;
+    std::cout << "Downsampling time: " << timer.getElapsedTime() << "ms" << std::endl;
 
     pangolin::CreateWindowAndBind("VoxelGrid demo",1280,480);
     pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual).AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2"));

@@ -2,6 +2,7 @@
 #include <cilantro/mean_shift.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
+#include <cilantro/timer.hpp>
 
 int main(int argc, char ** argv) {
     // Generate random points
@@ -37,11 +38,11 @@ int main(int argc, char ** argv) {
 
     cilantro::MeanShift3f ms(points);
 
-    auto start = std::chrono::high_resolution_clock::now();
+    cilantro::Timer timer;
+    timer.start();
     ms.cluster(2.0f, 5000, 0.2, 1e-7);
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> elapsed = end - start;
-    std::cout << "Clustering time: " << elapsed.count() << "ms" << std::endl;
+    timer.stop();
+    std::cout << "Clustering time: " << timer.getElapsedTime() << "ms" << std::endl;
     std::cout << "Number of clusters: " << ms.getNumberOfClusters() << std::endl;
     std::cout << "Performed mean shift iterations: " << ms.getPerformedIterationsCount() << std::endl;
 

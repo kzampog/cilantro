@@ -2,6 +2,7 @@
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
+#include <cilantro/timer.hpp>
 
 int main(int argc, char ** argv) {
     if (argc < 2) {
@@ -26,11 +27,12 @@ int main(int argc, char ** argv) {
     float tol = std::numeric_limits<float>::epsilon();
     bool use_kd_tree = true;
 
-    auto start = std::chrono::high_resolution_clock::now();
+    cilantro::Timer timer;
+    timer.start();
     kmc.cluster(k, max_iter, tol, use_kd_tree);
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> elapsed = end - start;
-    std::cout << "Clustering time: " << elapsed.count() << "ms" << std::endl;
+    timer.stop();
+
+    std::cout << "Clustering time: " << timer.getElapsedTime() << "ms" << std::endl;
     std::cout << "Performed iterations: " << kmc.getPerformedIterationsCount() << std::endl;
 
     const std::vector<std::vector<size_t> >& cpi(kmc.getClusterPointIndices());

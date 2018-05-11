@@ -38,5 +38,6 @@
 #include <cilantro/space_region.hpp>
 #include <cilantro/space_transformations.hpp>
 #include <cilantro/spectral_clustering.hpp>
+#include <cilantro/timer.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/visualizer_handler.hpp>
