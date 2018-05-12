@@ -393,6 +393,15 @@ namespace cilantro {
             writePointCloudToPLYFile(file_name, points, normals, colors, binary);
             return *this;
         }
+
+        template <typename NewScalarT>
+        PointCloud<NewScalarT,EigenDim> cast() const {
+            PointCloud<NewScalarT,EigenDim> res;
+            res.points = points.template cast<NewScalarT>();
+            res.normals = normals.template cast<NewScalarT>();
+            res.colors = colors;
+            return res;
+        }
     };
 
     typedef PointCloud<float,2> PointCloud2f;

@@ -8,18 +8,15 @@ void callback(bool &proceed) {
     proceed = true;
 }
 
-int main(int argc, char ** argv) {
-    if (argc < 2) {
-        std::cout << "Please provide path to PLY file" << std::endl;
-        return 0;
-    }
-
-    cilantro::PointCloud3f dst(argv[1]);
-
-    dst.gridDownsample(0.005f);
+void generate_input_data(const std::string &file_name,
+                         cilantro::PointCloud3f &dst,
+                         cilantro::PointCloud3f &src,
+                         cilantro::RigidTransformation3f &tf_ref)
+{
+    dst.fromPLYFile(file_name).gridDownsample(0.005f);
 
     // Create a distorted and transformed version of the point cloud
-    cilantro::PointCloud3f src(dst);
+    src = dst;
     for (size_t i = 0; i < src.size(); i++) {
         src.points.col(i) += 0.01f*Eigen::Vector3f::Random();
         src.normals.col(i) += 0.02f*Eigen::Vector3f::Random();
@@ -46,7 +43,6 @@ int main(int argc, char ** argv) {
 
     dst = dst2;
 
-    cilantro::RigidTransformation3f tf_ref;
     Eigen::Matrix3f tmp;
     tmp = Eigen::AngleAxisf(-0.1f ,Eigen::Vector3f::UnitZ()) *
           Eigen::AngleAxisf(0.1f, Eigen::Vector3f::UnitY()) *
@@ -55,6 +51,17 @@ int main(int argc, char ** argv) {
     tf_ref.translation() = Eigen::Vector3f(-0.20f, -0.05f, 0.10f);
 
     src.transform(tf_ref);
+}
+
+int main(int argc, char ** argv) {
+    if (argc < 2) {
+        std::cout << "Please provide path to PLY file" << std::endl;
+        return 0;
+    }
+
+    cilantro::PointCloud3f dst, src;
+    cilantro::RigidTransformation3f tf_ref;
+    generate_input_data(argv[1], dst, src, tf_ref);
 
     // Visualize initial configuration
     cilantro::Visualizer viz("IterativeClosestPoint example", "disp");
@@ -97,7 +104,7 @@ int main(int argc, char ** argv) {
     icp.setMaxNumberOfOptimizationStepIterations(1).setPointToPointMetricWeight(0.0).setPointToPlaneMetricWeight(1.0);
 
     icp.correspondenceSearchEngine().setMaxDistance(0.1f*0.1f);
-    icp.setConvergenceTolerance(1e-3f).setMaxNumberOfIterations(100);
+    icp.setConvergenceTolerance(1e-4f).setMaxNumberOfIterations(30);
 
     cilantro::RigidTransformation3f tf_est = icp.estimateTransformation().getTransformation();
 
