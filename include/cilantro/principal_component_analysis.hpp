@@ -12,7 +12,8 @@ namespace cilantro {
             mean_ = data.rowwise().mean();
             Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> centered = data.colwise() - mean_;
 
-            Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig((centered*centered.transpose())/(data.cols()-1));
+            const ScalarT scale = (ScalarT)(1.0)/(data.cols()-1);
+            Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(scale*(centered*centered.transpose()));
 
             eigenvectors_ = eig.eigenvectors().rowwise().reverse();
             if (eigenvectors_.determinant() < (ScalarT)0.0) {
