@@ -165,6 +165,21 @@ namespace cilantro {
         ScalarT radius;
     };
 
+    template <typename ScalarT>
+    inline NeighborhoodSpecification<ScalarT> kNNNeighborhood(size_t k) {
+        return NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN, k, (ScalarT)0.0);
+    }
+
+    template <typename ScalarT>
+    inline NeighborhoodSpecification<ScalarT> radiusNeighborhood(ScalarT radius) {
+        return NeighborhoodSpecification<ScalarT>(NeighborhoodType::RADIUS, 0, radius);
+    }
+
+    template <typename ScalarT>
+    inline NeighborhoodSpecification<ScalarT> kNNInRadiusNeighborhood(size_t k, ScalarT radius) {
+        return NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN_IN_RADIUS, k, radius);
+    }
+
     template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
     class KDTree {
     public:
