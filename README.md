@@ -11,6 +11,7 @@
 - General dimension grid-based point cloud resampling
 - Principal Component Analysis
 - Basic I/O utilities for 3D point clouds (in PLY format, using bundled [tinyply](https://github.com/ddiakopoulos/tinyply)) and Eigen matrices
+- RGBD image pair to/from point cloud conversion utilities
 
 #### Convex hulls:
 - A general dimension convex polytope representation that is computed (using bundled [Qhull](http://www.qhull.org/)) from either vertex or half-space intersection input and allows for easy switching between the respective representations
@@ -29,7 +30,6 @@
 #### Visualization:
 - Classical Multidimensional Scaling (using bundled [Spectra](https://github.com/yixuan/spectra) for eigendecompositions)
 - A powerful, extensible, and easy to use 3D visualizer
-- RGBD images to/from point cloud utility functions
 
 ## Dependencies
 - [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) (3.3 or newer)
