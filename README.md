@@ -10,7 +10,6 @@
 - Surface normal and curvature estimation from raw point clouds
 - General dimension grid-based point cloud resampling
 - Principal Component Analysis
-- Classical Multidimensional Scaling (using bundled [Spectra](https://github.com/yixuan/spectra) for eigendecompositions)
 - Basic I/O utilities for 3D point clouds (in PLY format, using bundled [tinyply](https://github.com/ddiakopoulos/tinyply)) and Eigen matrices
 
 #### Convex hulls:
@@ -24,10 +23,11 @@
 - Connected component based point cloud segmentation that supports arbitrary point-wise similarity functions
 
 #### Model estimation and point set registration:
-- A RANSAC estimator template and instantiations thereof for robust plane estimation and rigid 6DOF point cloud registration
+- A RANSAC estimator template and instantiations thereof for robust plane estimation and rigid point cloud registration
 - Fully generic Iterative Closest Point implementations for point-to-point and point-to-plane metrics (and combinations thereof) that support arbitrary correspondence search methods in arbitrary point feature spaces
 
 #### Visualization:
+- Classical Multidimensional Scaling (using bundled [Spectra](https://github.com/yixuan/spectra) for eigendecompositions)
 - A powerful, extensible, and easy to use 3D visualizer
 - RGBD images to/from point cloud utility functions
 
