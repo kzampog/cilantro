@@ -6,7 +6,7 @@
 int main(int argc, char ** argv) {
     // Intrinsics
     Eigen::Matrix3f K;
-    K << 528, 0, 320, 0, 528, 240, 0, 0, 1;
+    K << 525, 0, 319.5, 0, 525, 239.5, 0, 0, 1;
 
 //    std::string uri = "files://[/home/kzampog/Desktop/rgbd_sequences/dok_demo/rgb_*.png,/home/kzampog/Desktop/rgbd_sequences/dok_demo/depth_*.png]";
     std::string uri = "openni2:[img1=rgb,img2=depth_reg,coloursync=true,closerange=true,holefilter=true]//";
@@ -40,7 +40,9 @@ int main(int argc, char ** argv) {
 //        cilantro::RGBDImagesToPointsColors<unsigned short,float>(rgb_img.ptr, depth_img.ptr, w, h, K, cloud.points, cloud.colors, false, cilantro::DepthValueConverter<unsigned short,float>(1000.0f));
 
         // Get a depth map back from the point cloud
-        cilantro::pointsToDepthImage<float,float>(cloud.points, K, depthf_img.ptr, w, h, cilantro::DepthValueConverter<float,float>(1.0f));
+        cilantro::RigidTransformation3f cam_pose;
+        pcdv.getCameraPose(cam_pose);
+        cilantro::pointsToDepthImage<float,float>(cloud.points, cam_pose, K, depthf_img.ptr, w, h, cilantro::DepthValueConverter<float,float>(1.0f));
 
         rgbv.setImage(rgb_img.ptr, w, h, "RGB24");
         depthv.setImage(depth_img.ptr, w, h, "GRAY16LE");

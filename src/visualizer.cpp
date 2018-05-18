@@ -395,7 +395,7 @@ namespace cilantro {
         display_ = &(pangolin::Display(display_name));
         display_->SetAspect(-4.0f/3.0f);
 
-        gl_render_state_.reset(new pangolin::OpenGlRenderState(pangolin::ProjectionMatrix(640, 480, 528, 528, 320, 240, 0.2, 100), pangolin::ModelViewLookAt(0, 0, 0, 0, 0, 1, 0, -1, 0)));
+        gl_render_state_.reset(new pangolin::OpenGlRenderState(pangolin::ProjectionMatrix(640, 480, 525, 525, 319.5, 239.5, 0.1, 100), pangolin::ModelViewLookAt(0, 0, 0, 0, 0, 1, 0, -1, 0)));
         input_handler_.reset(new VisualizerHandler(this));
         display_->SetHandler(input_handler_.get());
 
