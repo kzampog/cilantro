@@ -36,13 +36,15 @@ int main(int argc, char ** argv) {
         dok->GrabNext(img, true);
 
         // Get point cloud from RGBD image pair
-        cloud.template fromRGBDImages<unsigned short>(rgb_img.ptr, depth_img.ptr, w, h, K, false, cilantro::DepthValueConverter<unsigned short,float>(1000.0f));
-//        cilantro::RGBDImagesToPointsColors<unsigned short,float>(rgb_img.ptr, depth_img.ptr, w, h, K, cloud.points, cloud.colors, false, cilantro::DepthValueConverter<unsigned short,float>(1000.0f));
+        cilantro::DepthValueConverter<unsigned short,float> dc1(1000.0f);
+        cloud.fromRGBDImages(rgb_img.ptr, depth_img.ptr, dc1, w, h, K, false);
+//        cilantro::RGBDImagesToPointsColors(rgb_img.ptr, depth_img.ptr, dc1, w, h, K, cloud.points, cloud.colors, false);
 
         // Get a depth map back from the point cloud
         cilantro::RigidTransformation3f cam_pose;
         pcdv.getCameraPose(cam_pose);
-        cilantro::pointsToDepthImage<float,float>(cloud.points, cam_pose, K, depthf_img.ptr, w, h, cilantro::DepthValueConverter<float,float>(1.0f));
+        cilantro::DepthValueConverter<float,float> dc2(1.0f);
+        cilantro::pointsToDepthImage(cloud.points, cam_pose, K, dc2, depthf_img.ptr, w, h);
 
         rgbv.setImage(rgb_img.ptr, w, h, "RGB24");
         depthv.setImage(depth_img.ptr, w, h, "GRAY16LE");

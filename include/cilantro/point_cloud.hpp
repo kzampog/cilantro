@@ -76,6 +76,27 @@ namespace cilantro {
             }
         }
 
+        template <class DepthConverterT, class = typename std::enable_if<EigenDim == 3 && std::is_same<typename DepthConverterT::MetricDepth,ScalarT>::value>::type>
+        PointCloud(const typename DepthConverterT::RawDepth* depth_data,
+                   const DepthConverterT &depth_converter,
+                   size_t image_w, size_t image_h,
+                   const Eigen::Ref<const Eigen::Matrix<ScalarT,3,3>> &intrinsics,
+                   bool keep_invalid = false)
+        {
+            depthImageToPoints<DepthConverterT>(depth_data, depth_converter, image_w, image_h, intrinsics, points, keep_invalid);
+        }
+
+        template <class DepthConverterT, class = typename std::enable_if<EigenDim == 3 && std::is_same<typename DepthConverterT::MetricDepth,ScalarT>::value>::type>
+        PointCloud(unsigned char* rgb_data,
+                   const typename DepthConverterT::RawDepth* depth_data,
+                   const DepthConverterT &depth_converter,
+                   size_t image_w, size_t image_h,
+                   const Eigen::Ref<const Eigen::Matrix<ScalarT,3,3>> &intrinsics,
+                   bool keep_invalid = false)
+        {
+            RGBDImagesToPointsColors<DepthConverterT>(rgb_data, depth_data, depth_converter, image_w, image_h, intrinsics, points, colors, keep_invalid);
+        }
+
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
         PointCloud(const std::string &file_name) {
             readPointCloudFromPLYFile(file_name, points, normals, colors);
@@ -331,55 +352,30 @@ namespace cilantro {
             return cloud;
         }
 
-        template <typename DepthT, class DepthConverterT = DepthValueConverter<DepthT,ScalarT>, ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
-        inline PointCloud& fromDepthImage(const DepthT* depth_data,
+        template <class DepthConverterT, class = typename std::enable_if<EigenDim == 3 && std::is_same<typename DepthConverterT::MetricDepth,ScalarT>::value>::type>
+        inline PointCloud& fromDepthImage(const typename DepthConverterT::RawDepth* depth_data,
+                                          const DepthConverterT &depth_converter,
                                           size_t image_w, size_t image_h,
                                           const Eigen::Ref<const Eigen::Matrix<ScalarT,3,3>> &intrinsics,
-                                          bool keep_invalid = false,
-                                          const DepthConverterT &depth_converter = DepthConverterT())
+                                          bool keep_invalid = false)
         {
             normals.resize(Eigen::NoChange, 0);
             colors.resize(Eigen::NoChange, 0);
-            depthImageToPoints<DepthT,ScalarT,DepthConverterT>(depth_data, image_w, image_h, intrinsics, points, keep_invalid, depth_converter);
+            depthImageToPoints<DepthConverterT>(depth_data, depth_converter, image_w, image_h, intrinsics, points, keep_invalid);
             return *this;
         }
 
-        template <typename DepthT, class DepthConverterT = DepthValueConverter<DepthT,ScalarT>, ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
-        static inline PointCloud createFromDepthImage(const DepthT* depth_data,
-                                                      size_t image_w, size_t image_h,
-                                                      const Eigen::Ref<const Eigen::Matrix<ScalarT,3,3>> &intrinsics,
-                                                      bool keep_invalid = false,
-                                                      const DepthConverterT &depth_converter = DepthConverterT())
-        {
-            PointCloud res;
-            depthImageToPoints<DepthT,ScalarT,DepthConverterT>(depth_data, image_w, image_h, intrinsics, res.points, keep_invalid, depth_converter);
-            return res;
-        }
-
-        template <typename DepthT, class DepthConverterT = DepthValueConverter<DepthT,ScalarT>, ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
+        template <class DepthConverterT, class = typename std::enable_if<EigenDim == 3 && std::is_same<typename DepthConverterT::MetricDepth,ScalarT>::value>::type>
         inline PointCloud& fromRGBDImages(unsigned char* rgb_data,
-                                          const DepthT* depth_data,
+                                          const typename DepthConverterT::RawDepth* depth_data,
+                                          const DepthConverterT &depth_converter,
                                           size_t image_w, size_t image_h,
                                           const Eigen::Ref<const Eigen::Matrix<ScalarT,3,3>> &intrinsics,
-                                          bool keep_invalid = false,
-                                          const DepthConverterT &depth_converter = DepthConverterT())
+                                          bool keep_invalid = false)
         {
             normals.resize(Eigen::NoChange, 0);
-            RGBDImagesToPointsColors<DepthT,ScalarT,DepthConverterT>(rgb_data, depth_data, image_w, image_h, intrinsics, points, colors, keep_invalid, depth_converter);
+            RGBDImagesToPointsColors<DepthConverterT>(rgb_data, depth_data, depth_converter, image_w, image_h, intrinsics, points, colors, keep_invalid);
             return *this;
-        }
-
-        template <typename DepthT, class DepthConverterT = DepthValueConverter<DepthT,ScalarT>, ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
-        static inline PointCloud createFromRGBDImages(unsigned char* rgb_data,
-                                                      const DepthT* depth_data,
-                                                      size_t image_w, size_t image_h,
-                                                      const Eigen::Ref<const Eigen::Matrix<ScalarT,3,3>> &intrinsics,
-                                                      bool keep_invalid = false,
-                                                      const DepthConverterT &depth_converter = DepthConverterT())
-        {
-            PointCloud res;
-            RGBDImagesToPointsColors<DepthT,ScalarT,DepthConverterT>(rgb_data, depth_data, image_w, image_h, intrinsics, res.points, res.colors, keep_invalid, depth_converter);
-            return res;
         }
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
