@@ -44,7 +44,7 @@ int main(int argc, char ** argv) {
         cilantro::RigidTransformation3f cam_pose;
         pcdv.getCameraPose(cam_pose);
         cilantro::DepthValueConverter<float,float> dc2(1.0f);
-        cilantro::pointsToDepthImage(cloud.points, cam_pose, K, dc2, depthf_img.ptr, w, h);
+        cilantro::pointsToDepthImage<decltype(dc2)>(cloud.points, cam_pose, K, dc2, depthf_img.ptr, w, h);
 
         rgbv.setImage(rgb_img.ptr, w, h, "RGB24");
         depthv.setImage(depth_img.ptr, w, h, "GRAY16LE");
