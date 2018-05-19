@@ -50,8 +50,8 @@ namespace cilantro {
         typedef Eigen::Matrix<ptrdiff_t,EigenDim,1> GridPoint;
 
         typedef typename std::conditional<(EigenDim != Eigen::Dynamic && sizeof(GridPoint) % 16 == 0) || (Accumulator::EigenAlign > 0),
-                std::map<GridPoint,Accumulator,EigenVectorComparator<ptrdiff_t,EigenDim>,Eigen::aligned_allocator<std::pair<const GridPoint,Accumulator>>>,
-                std::map<GridPoint,Accumulator,EigenVectorComparator<ptrdiff_t,EigenDim>>>::type GridBinMap;
+                std::map<GridPoint,Accumulator,EigenVectorComparator<typename GridPoint::Scalar,EigenDim>,Eigen::aligned_allocator<std::pair<const GridPoint,Accumulator>>>,
+                std::map<GridPoint,Accumulator,EigenVectorComparator<typename GridPoint::Scalar,EigenDim>>>::type GridBinMap;
 
         GridAccumulator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data,
                         const Eigen::Ref<const Vector<ScalarT,EigenDim>> &bin_size,
