@@ -61,6 +61,8 @@ namespace cilantro {
 
         Visualizer& spinOnce();
 
+        Visualizer& spin();
+
         inline bool wasStopped() const { return gl_context_->quit; }
 
         std::vector<std::string> getObjectNames() const;

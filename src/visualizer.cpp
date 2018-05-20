@@ -119,6 +119,13 @@ namespace cilantro {
         return *this;
     }
 
+    Visualizer& Visualizer::spin() {
+        while (!gl_context_->quit) {
+            spinOnce();
+        }
+        return *this;
+    }
+
     std::vector<std::string> Visualizer::getObjectNames() const {
         std::vector<std::string> res;
         for (auto it = renderables_.begin(); it != renderables_.end(); ++it) {
