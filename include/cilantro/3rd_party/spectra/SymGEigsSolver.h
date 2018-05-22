@@ -178,13 +178,13 @@ public:
     ///
     /// Constructor to create a solver object.
     ///
-    /// \param op_  Pointer to the \f$A\f$ matrix operation object. It
+    /// \param op   Pointer to the \f$A\f$ matrix operation object. It
     ///             should implement the matrix-vector multiplication operation of \f$A\f$:
     ///             calculating \f$Av\f$ for any vector \f$v\f$. Users could either
     ///             create the object from the wrapper classes such as DenseSymMatProd, or
     ///             define their own that impelemnts all the public member functions
     ///             as in DenseSymMatProd.
-    /// \param Bop_ Pointer to the \f$B\f$ matrix operation object. It
+    /// \param Bop  Pointer to the \f$B\f$ matrix operation object. It
     ///             represents a Cholesky decomposition of \f$B\f$, and should
     ///             implement the lower and upper triangular solving operations:
     ///             calculating \f$L^{-1}v\f$ and \f$(L')^{-1}v\f$ for any vector
@@ -192,19 +192,19 @@ public:
     ///             create the object from the wrapper classes such as DenseCholesky, or
     ///             define their own that impelemnts all the public member functions
     ///             as in DenseCholesky.
-    /// \param nev_ Number of eigenvalues requested. This should satisfy \f$1\le nev \le n-1\f$,
+    /// \param nev  Number of eigenvalues requested. This should satisfy \f$1\le nev \le n-1\f$,
     ///             where \f$n\f$ is the size of matrix.
-    /// \param ncv_ Parameter that controls the convergence speed of the algorithm.
-    ///             Typically a larger `ncv_` means faster convergence, but it may
+    /// \param ncv  Parameter that controls the convergence speed of the algorithm.
+    ///             Typically a larger `ncv` means faster convergence, but it may
     ///             also result in greater memory use and more matrix operations
     ///             in each iteration. This parameter must satisfy \f$nev < ncv \le n\f$,
     ///             and is advised to take \f$ncv \ge 2\cdot nev\f$.
     ///
-    SymGEigsSolver(OpType* op_, BOpType* Bop_, int nev_, int ncv_) :
+    SymGEigsSolver(OpType* op, BOpType* Bop, int nev, int ncv) :
         SymEigsSolver< Scalar, SelectionRule, SymGEigsCholeskyOp<Scalar, OpType, BOpType> >(
-            new SymGEigsCholeskyOp<Scalar, OpType, BOpType>(*op_, *Bop_), nev_, ncv_
+            new SymGEigsCholeskyOp<Scalar, OpType, BOpType>(*op, *Bop), nev, ncv
         ),
-        m_Bop(Bop_)
+        m_Bop(Bop)
     {}
 
     /// \cond
@@ -215,7 +215,7 @@ public:
         delete this->m_op;
     }
 
-    Matrix eigenvectors(int nvec)
+    Matrix eigenvectors(int nvec) const
     {
         Matrix res = SymEigsSolver< Scalar, SelectionRule, SymGEigsCholeskyOp<Scalar, OpType, BOpType> >::eigenvectors(nvec);
         Vector tmp(res.rows());
@@ -223,13 +223,13 @@ public:
         for(int i = 0; i < nconv; i++)
         {
             m_Bop->upper_triangular_solve(&res(0, i), tmp.data());
-            res.col(i) = tmp;
+            res.col(i).noalias() = tmp;
         }
 
         return res;
     }
 
-    Matrix eigenvectors()
+    Matrix eigenvectors() const
     {
         return SymGEigsSolver<Scalar, SelectionRule, OpType, BOpType, GEIGS_CHOLESKY>::eigenvectors(this->m_nev);
     }
@@ -322,31 +322,31 @@ public:
     ///
     /// Constructor to create a solver object.
     ///
-    /// \param op_  Pointer to the \f$A\f$ matrix operation object. It
+    /// \param op   Pointer to the \f$A\f$ matrix operation object. It
     ///             should implement the matrix-vector multiplication operation of \f$A\f$:
     ///             calculating \f$Av\f$ for any vector \f$v\f$. Users could either
     ///             create the object from the wrapper classes such as DenseSymMatProd, or
     ///             define their own that impelemnts all the public member functions
     ///             as in DenseSymMatProd.
-    /// \param Bop_ Pointer to the \f$B\f$ matrix operation object. It should
+    /// \param Bop  Pointer to the \f$B\f$ matrix operation object. It should
     ///             implement the multiplication operation \f$Bv\f$ and the linear equation
     ///             solving operation \f$B^{-1}v\f$ for any vector \f$v\f$. Users could either
     ///             create the object from the wrapper class SparseRegularInverse, or
     ///             define their own that impelemnts all the public member functions
     ///             as in SparseRegularInverse.
-    /// \param nev_ Number of eigenvalues requested. This should satisfy \f$1\le nev \le n-1\f$,
+    /// \param nev  Number of eigenvalues requested. This should satisfy \f$1\le nev \le n-1\f$,
     ///             where \f$n\f$ is the size of matrix.
-    /// \param ncv_ Parameter that controls the convergence speed of the algorithm.
-    ///             Typically a larger `ncv_` means faster convergence, but it may
+    /// \param ncv  Parameter that controls the convergence speed of the algorithm.
+    ///             Typically a larger `ncv` means faster convergence, but it may
     ///             also result in greater memory use and more matrix operations
     ///             in each iteration. This parameter must satisfy \f$nev < ncv \le n\f$,
     ///             and is advised to take \f$ncv \ge 2\cdot nev\f$.
     ///
-    SymGEigsSolver(OpType* op_, BOpType* Bop_, int nev_, int ncv_) :
+    SymGEigsSolver(OpType* op, BOpType* Bop, int nev, int ncv) :
         SymEigsSolver< Scalar, SelectionRule, SymGEigsRegInvOp<Scalar, OpType, BOpType> >(
-            new SymGEigsRegInvOp<Scalar, OpType, BOpType>(*op_, *Bop_), nev_, ncv_
+            new SymGEigsRegInvOp<Scalar, OpType, BOpType>(*op, *Bop), nev, ncv
         ),
-        m_Bop(Bop_), m_cache(op_->rows())
+        m_Bop(Bop), m_cache(op->rows())
     {}
 
     /// \cond

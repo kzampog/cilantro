@@ -37,11 +37,11 @@ public:
     ///
     /// Constructor to create the matrix operation object.
     ///
-    /// \param op_  Pointer to the \f$A\f$ matrix operation object.
-    /// \param Bop_ Pointer to the \f$B\f$ matrix operation object.
+    /// \param op   Pointer to the \f$A\f$ matrix operation object.
+    /// \param Bop  Pointer to the \f$B\f$ matrix operation object.
     ///
-    SymGEigsRegInvOp(OpType& op_, BOpType& Bop_) :
-        m_op(op_), m_Bop(Bop_), m_cache(op_.rows())
+    SymGEigsRegInvOp(OpType& op, BOpType& Bop) :
+        m_op(op), m_Bop(Bop), m_cache(op.rows())
     {}
 
     ///

@@ -42,14 +42,14 @@ private:
     typedef std::complex<Scalar> Complex;
     typedef Eigen::Array<Complex, Eigen::Dynamic, 1> ComplexArray;
 
-    Scalar sigma;
+    const Scalar m_sigma;
 
     // First transform back the ritz values, and then sort
     void sort_ritzpair(int sort_rule)
     {
         // The eigenvalus we get from the iteration is nu = 1 / (lambda - sigma)
         // So the eigenvalues of the original problem is lambda = 1 / nu + sigma
-        ComplexArray ritz_val_org = Scalar(1.0) / this->m_ritz_val.head(this->m_nev).array() + sigma;
+        ComplexArray ritz_val_org = Scalar(1.0) / this->m_ritz_val.head(this->m_nev).array() + m_sigma;
         this->m_ritz_val.head(this->m_nev) = ritz_val_org;
         GenEigsSolver<Scalar, SelectionRule, OpType>::sort_ritzpair(sort_rule);
     }
@@ -57,26 +57,26 @@ public:
     ///
     /// Constructor to create a eigen solver object using the shift-and-invert mode.
     ///
-    /// \param op_    Pointer to the matrix operation object. This class should implement
+    /// \param op     Pointer to the matrix operation object. This class should implement
     ///               the shift-solve operation of \f$A\f$: calculating
     ///               \f$(A-\sigma I)^{-1}v\f$ for any vector \f$v\f$. Users could either
     ///               create the object from the wrapper class such as DenseGenRealShiftSolve, or
     ///               define their own that impelemnts all the public member functions
     ///               as in DenseGenRealShiftSolve.
-    /// \param nev_   Number of eigenvalues requested. This should satisfy \f$1\le nev \le n-2\f$,
+    /// \param nev    Number of eigenvalues requested. This should satisfy \f$1\le nev \le n-2\f$,
     ///               where \f$n\f$ is the size of matrix.
-    /// \param ncv_   Parameter that controls the convergence speed of the algorithm.
-    ///               Typically a larger `ncv_` means faster convergence, but it may
+    /// \param ncv    Parameter that controls the convergence speed of the algorithm.
+    ///               Typically a larger `ncv` means faster convergence, but it may
     ///               also result in greater memory use and more matrix operations
     ///               in each iteration. This parameter must satisfy \f$nev+2 \le ncv \le n\f$,
     ///               and is advised to take \f$ncv \ge 2\cdot nev + 1\f$.
-    /// \param sigma_ The real-valued shift.
+    /// \param sigma  The real-valued shift.
     ///
-    GenEigsRealShiftSolver(OpType* op_, int nev_, int ncv_, Scalar sigma_) :
-        GenEigsSolver<Scalar, SelectionRule, OpType>(op_, nev_, ncv_),
-        sigma(sigma_)
+    GenEigsRealShiftSolver(OpType* op, int nev, int ncv, Scalar sigma) :
+        GenEigsSolver<Scalar, SelectionRule, OpType>(op, nev, ncv),
+        m_sigma(sigma)
     {
-        this->m_op->set_shift(sigma);
+        this->m_op->set_shift(m_sigma);
     }
 };
 

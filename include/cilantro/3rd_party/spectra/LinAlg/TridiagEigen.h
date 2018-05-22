@@ -41,6 +41,7 @@ private:
     Matrix m_evecs;         // To store eigenvectors
 
     bool m_computed;
+    const Scalar m_near_0;  // a very small value, ~= 1e-307 for the "double" type
 
     // Adapted from Eigen/src/Eigenvaleus/SelfAdjointEigenSolver.h
     static void tridiagonal_qr_step(RealScalar* diag,
@@ -106,11 +107,13 @@ private:
 
 public:
     TridiagEigen() :
-        m_n(0), m_computed(false)
+        m_n(0), m_computed(false),
+        m_near_0(TypeTraits<Scalar>::min() * Scalar(10))
     {}
 
     TridiagEigen(ConstGenericMatrix& mat) :
-        m_n(mat.rows()), m_computed(false)
+        m_n(mat.rows()), m_computed(false),
+        m_near_0(TypeTraits<Scalar>::min() * Scalar(10))
     {
         compute(mat);
     }
@@ -131,6 +134,16 @@ public:
         // Scale matrix to improve stability
         const Scalar scale = std::max(mat.diagonal().cwiseAbs().maxCoeff(),
                                       mat.diagonal(-1).cwiseAbs().maxCoeff());
+        // If scale=0, mat is a zero matrix, so we can early stop
+        if(scale < m_near_0)
+        {
+            // m_main_diag contains eigenvalues
+            m_main_diag.setZero();
+            // m_evecs has been set identity
+            // m_evecs.setIdentity();
+            m_computed = true;
+            return;
+        }
         m_main_diag.noalias() = mat.diagonal() / scale;
         m_sub_diag.noalias() = mat.diagonal(-1) / scale;
 
