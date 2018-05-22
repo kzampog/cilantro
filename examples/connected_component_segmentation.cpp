@@ -12,8 +12,12 @@ int main(int argc, char ** argv) {
     }
 
     cilantro::PointCloud3f cloud(argv[1]);
-
     cloud.gridDownsample(0.005f).removeInvalidData();
+
+    if (!cloud.hasNormals()) {
+        std::cout << "Input cloud does not have normals!" << std::endl;
+        return 0;
+    }
 
     // Perform segmentation
     cilantro::Timer timer;

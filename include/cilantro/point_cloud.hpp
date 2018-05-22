@@ -99,7 +99,7 @@ namespace cilantro {
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
         PointCloud(const std::string &file_name) {
-            readPointCloudFromPLYFile(file_name, points, normals, colors);
+            readPointCloudFromPLYFile<ScalarT>(file_name, points, normals, colors);
         }
 
         inline size_t size() const { return points.cols(); }
@@ -380,13 +380,13 @@ namespace cilantro {
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
         inline PointCloud& fromPLYFile(const std::string &file_name) {
-            readPointCloudFromPLYFile(file_name, points, normals, colors);
+            readPointCloudFromPLYFile<ScalarT>(file_name, points, normals, colors);
             return *this;
         }
 
-        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
+        template <typename ScalarOutT = ScalarT, ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
         inline PointCloud& toPLYFile(const std::string &file_name, bool binary = true) {
-            writePointCloudToPLYFile(file_name, points, normals, colors, binary);
+            writePointCloudToPLYFile<ScalarT,ScalarOutT>(file_name, points, normals, colors, binary);
             return *this;
         }
 
