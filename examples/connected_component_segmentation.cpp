@@ -40,25 +40,27 @@ int main(int argc, char ** argv) {
 
     // Build a color map
     size_t num_labels = ccs.getComponentPointIndices().size();
-    std::vector<size_t> labels = ccs.getComponentIndexMap();
+    const auto& labels = ccs.getComponentIndexMap();
 
-    std::vector<Eigen::Vector3f> color_map(num_labels+1);
+    cilantro::VectorSet3f color_map(3, num_labels+1);
     for (size_t i = 0; i < num_labels; i++) {
-        color_map[i] = Eigen::Vector3f::Random().array().abs();
+        color_map.col(i) = Eigen::Vector3f::Random().cwiseAbs();
     }
-    color_map[num_labels] = Eigen::Vector3f(0, 0, 0);   // No label
+    // No label
+    color_map.col(num_labels).setZero();
 
-    cilantro::VectorSet<float,3> cols(3,labels.size());
-    for (size_t i = 0; i < cols.cols(); i++) {
-        cols.col(i) = color_map[labels[i]];
+    cilantro::VectorSet3f colors(3, labels.size());
+    for (size_t i = 0; i < colors.cols(); i++) {
+        colors.col(i) = color_map.col(labels[i]);
     }
 
     // Create a new colored cloud
-    cilantro::PointCloud3f cloud_seg(cloud.points, cloud.normals, cols);
+    cilantro::PointCloud3f cloud_seg(cloud.points, cloud.normals, colors);
 
     // Visualize result
     pangolin::CreateWindowAndBind("ConnectedComponentSegmentation demo",1280,480);
-    pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual).AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2"));
+    pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual)
+        .AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2"));
 
     cilantro::Visualizer viz1("ConnectedComponentSegmentation demo", "disp1");
     viz1.addObject<cilantro::PointCloudRenderable>("cloud", cloud);
