@@ -9,11 +9,16 @@ void callback(bool &re_estimate) {
 
 int main(int argc, char **argv) {
     if (argc < 2) {
-        std::cout << "Please provide path to PLY file" << std::endl;
+        std::cout << "Please provide path to PLY file." << std::endl;
         return 0;
     }
 
     cilantro::PointCloud3f cloud(argv[1]);
+
+    if (cloud.isEmpty()) {
+        std::cout << "Input cloud is empty!" << std::endl;
+        return 0;
+    }
 
     cilantro::Visualizer viz("HyperplaneRANSACEstimator example", "disp");
     bool re_estimate = false;

@@ -49,12 +49,17 @@ void run_demo() {
 
 int main(int argc, char ** argv) {
     if (argc < 2) {
-        std::cout << "No input PLY file path provided, running simple demo..." << std::endl;
+        std::cout << "No input PLY file path provided, running simple demo." << std::endl;
         run_demo();
         return 0;
     }
 
     cilantro::PointCloud3f cloud(argv[1]);
+
+    if (cloud.isEmpty()) {
+        std::cout << "Input cloud is empty!" << std::endl;
+        return 0;
+    }
 
     cilantro::ConvexHull3f ch(cloud.points, true, true);
     cilantro::PointCloud3f hull_cloud(cloud, ch.getVertexPointIndices());

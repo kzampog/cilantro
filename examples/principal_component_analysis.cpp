@@ -2,7 +2,6 @@
 #include <iostream>
 
 int main(int argc, char ** argv) {
-
     std::vector<Eigen::Vector3f> points;
     points.emplace_back(0, 0, 0);
     points.emplace_back(1, 0, 0);

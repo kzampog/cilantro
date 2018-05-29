@@ -7,7 +7,7 @@
 
 int main(int argc, char ** argv) {
     if (argc < 2) {
-        std::cout << "Please provide path to PLY file" << std::endl;
+        std::cout << "Please provide path to PLY file." << std::endl;
         return 0;
     }
 

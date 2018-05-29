@@ -11,8 +11,8 @@ struct AffinityEvaluator {
     }
 };
 
-void generate_input_date(cilantro::VectorSet3f &points, Eigen::SparseMatrix<float> &affinities) {
-    points.resize(3, 1700);    
+void generate_input_data(cilantro::VectorSet3f &points, Eigen::SparseMatrix<float> &affinities) {
+    points.resize(3, 1700);
     for (size_t i = 0; i < 1500; i++) {
         points.col(i).setRandom().normalize();
     }
@@ -34,8 +34,8 @@ int main(int argc, char ** argv) {
     // Generate input dataset
     cilantro::VectorSet3f points;
     Eigen::SparseMatrix<float> affinities;
-    generate_input_date(points, affinities);
-    
+    generate_input_data(points, affinities);
+
     std::cout << "Number of points: " << points.cols() << std::endl;
 
     size_t max_num_clusters = 4;

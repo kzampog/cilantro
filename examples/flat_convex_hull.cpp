@@ -5,7 +5,7 @@
 
 int main(int argc, char ** argv) {
     if (argc < 2) {
-        std::cout << "No input PLY file path provided, running simple demo..." << std::endl;
+        std::cout << "Please provide path to PLY file." << std::endl;
         return 0;
     }
 
@@ -13,7 +13,7 @@ int main(int argc, char ** argv) {
     cloud.normals.resize(3, 0);
 
     if (cloud.size() < 3) {
-        std::cout << "Input cloud too small" << std::endl;
+        std::cout << "Input cloud empty or too small!" << std::endl;
         return 0;
     }
 

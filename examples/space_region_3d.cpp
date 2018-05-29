@@ -14,11 +14,16 @@ void callback(cilantro::Visualizer &viz, int key) {
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        std::cout << "Please provide path to PLY file" << std::endl;
+        std::cout << "Please provide path to PLY file." << std::endl;
         return 0;
     }
 
     cilantro::PointCloud3f cloud1(argv[1]);
+
+    if (cloud1.isEmpty()) {
+        std::cout << "Input cloud is empty!" << std::endl;
+        return 0;
+    }
 
     // Shift to the right
     cilantro::PointCloud3f cloud2(cloud1);

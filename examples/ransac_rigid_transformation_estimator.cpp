@@ -22,12 +22,17 @@ void callback(unsigned char key, bool &re_estimate, bool &randomize) {
 
 int main(int argc, char **argv) {
     if (argc < 2) {
-        std::cout << "Please provide path to PLY file" << std::endl;
+        std::cout << "Please provide path to PLY file." << std::endl;
         return 0;
     }
 
     cilantro::PointCloud3f dst(argv[1]);
     cilantro::PointCloud3f src(dst);
+
+    if (dst.isEmpty()) {
+        std::cout << "Input cloud is empty!" << std::endl;
+        return 0;
+    }
 
     cilantro::Visualizer viz("RigidTransformationRANSACEstimator example", "disp");
     bool re_estimate = false;

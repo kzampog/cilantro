@@ -9,16 +9,11 @@ void callback(cilantro::Visualizer &viz, const std::string &name) {
 
 int main(int argc, char ** argv) {
     if (argc < 2) {
-        std::cout << "Please provide path to PLY file" << std::endl;
+        std::cout << "Please provide path to PLY file." << std::endl;
         return 0;
     }
 
     cilantro::PointCloud3f cloud(argv[1]);
-
-//    pangolin::CreateWindowAndBind("VIS_WIN",640,480);
-//    pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual)
-//            .AddDisplay(pangolin::Display("disp1"))
-//            .AddDisplay(pangolin::Display("disp2"));
 
     // First
     cilantro::Visualizer viz1("Visualizer demo (window 1)", "disp");

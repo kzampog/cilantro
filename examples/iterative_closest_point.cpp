@@ -8,12 +8,11 @@ void callback(bool &proceed) {
     proceed = true;
 }
 
-void generate_input_data(const std::string &file_name,
-                         cilantro::PointCloud3f &dst,
+void generate_input_data(cilantro::PointCloud3f &dst,
                          cilantro::PointCloud3f &src,
                          cilantro::RigidTransformation3f &tf_ref)
 {
-    dst.fromPLYFile(file_name).gridDownsample(0.005f);
+    dst.gridDownsample(0.005f);
 
     // Create a distorted and transformed version of the point cloud
     src = dst;
@@ -55,13 +54,19 @@ void generate_input_data(const std::string &file_name,
 
 int main(int argc, char ** argv) {
     if (argc < 2) {
-        std::cout << "Please provide path to PLY file" << std::endl;
+        std::cout << "Please provide path to PLY file." << std::endl;
         return 0;
     }
 
-    cilantro::PointCloud3f dst, src;
+    cilantro::PointCloud3f dst(argv[1]), src;
     cilantro::RigidTransformation3f tf_ref;
-    generate_input_data(argv[1], dst, src, tf_ref);
+
+    if (!dst.hasNormals()) {
+        std::cout << "Input cloud does not have normals!" << std::endl;
+        return 0;
+    }
+
+    generate_input_data(dst, src, tf_ref);
 
     // Visualize initial configuration
     cilantro::Visualizer viz("IterativeClosestPoint example", "disp");
@@ -111,10 +116,8 @@ int main(int argc, char ** argv) {
     timer.stop();
 
     std::cout << "Registration time: " << timer.getElapsedTime() << "ms" << std::endl;
-
     std::cout << "Iterations performed: " << icp.getNumberOfPerformedIterations() << std::endl;
     std::cout << "Has converged: " << icp.hasConverged() << std::endl;
-
     std::cout << "TRUE transformation:" << std::endl << tf_ref.inverse().matrix() << std::endl;
     std::cout << "ESTIMATED transformation R:" << std::endl << tf_est.matrix() << std::endl;
 
