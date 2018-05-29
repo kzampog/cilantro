@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include <cilantro/icp_base.hpp>
 #include <cilantro/rigid_registration_utilities.hpp>
 

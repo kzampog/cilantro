@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstddef>
+#include <limits>
+
 namespace cilantro {
     // CRTP base class
     template <class ICPInstanceT, class TransformT, class CorrespondenceSearchEngineT, class ResidualVectorT>

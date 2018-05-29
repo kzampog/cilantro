@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <algorithm>
-#include <random>
 
 namespace cilantro {
     template <class ModelEstimatorT, class ModelParamsT, typename ResidualScalarT>
