@@ -20,6 +20,20 @@ namespace cilantro {
 
         enum {Dim = EigenDim};
 
+        RigidTransformationSet() {}
+
+        RigidTransformationSet(size_t size)
+            : RigidTransformationSetBase<ScalarT,EigenDim>(size)
+        {}
+
+        RigidTransformationSet(const RigidTransformationSet<Scalar,EigenDim> &other)
+            : RigidTransformationSetBase<ScalarT,EigenDim>(other)
+        {}
+
+        RigidTransformationSet(size_t size, const RigidTransformation<ScalarT,EigenDim> &tform)
+            : RigidTransformationSetBase<ScalarT,EigenDim>(size, tform)
+        {}
+
         RigidTransformationSet& setIdentity() {
 #pragma omp parallel for
             for (size_t i = 0; i < this->size(); i++) (*this)[i].setIdentity();
@@ -32,7 +46,7 @@ namespace cilantro {
             return *this;
         }
 
-        RigidTransformationSet inverse() {
+        RigidTransformationSet inverse() const {
             RigidTransformationSet res(this->size());
 #pragma omp parallel for
             for (size_t i = 0; i < res.size(); i++) res[i] = (*this)[i].inverse();

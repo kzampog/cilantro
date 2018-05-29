@@ -63,11 +63,12 @@ namespace cilantro {
         }
 
         bool updateEstimate() {
-            RigidTransformation<ScalarT,3> tform_iter;
 #pragma omp parallel for
             for (size_t i = 0; i < src_points_.cols(); i++) {
                 src_points_trans_.col(i) = this->transform_*src_points_.col(i);
             }
+            
+            RigidTransformation<ScalarT,3> tform_iter;
             estimateRigidTransformCombinedMetric3D<ScalarT,typename CorrespondenceSearchEngineT::CorrespondenceScalar>(dst_points_, dst_normals_, src_points_trans_, this->correspondences_, point_to_point_weight_, point_to_plane_weight_, tform_iter, max_estimation_iterations_, this->convergence_tol_);
 
             this->transform_ = tform_iter*this->transform_;

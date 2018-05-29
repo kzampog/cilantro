@@ -34,11 +34,12 @@ namespace cilantro {
         }
 
         bool updateEstimate() {
-            RigidTransformation<ScalarT,EigenDim> tform_iter;
 #pragma omp parallel for
             for (size_t i = 0; i < src_points_.cols(); i++) {
                 src_points_trans_.col(i) = this->transform_*src_points_.col(i);
             }
+            
+            RigidTransformation<ScalarT,EigenDim> tform_iter;
             if (estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim,typename CorrespondenceSearchEngineT::CorrespondenceScalar>(dst_points_, src_points_trans_, this->correspondences_, tform_iter)) {
                 this->transform_ = tform_iter*this->transform_;
                 this->transform_.linear() = this->transform_.rotation();
