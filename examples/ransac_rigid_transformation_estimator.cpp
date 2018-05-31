@@ -80,10 +80,11 @@ int main(int argc, char **argv) {
             viz.remove("corr");
 
             cilantro::RigidTransformationRANSACEstimator3f te(dst.points, src.points, corr);
-            te.setMaxInlierResidual(0.01f).setTargetInlierCount((size_t)(0.50*corr.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
-            cilantro::RigidTransformation3f tform = te.estimateModelParameters().getModelParameters();
+            te.setMaxInlierResidual(0.01f).setTargetInlierCount((size_t)(0.50*corr.size()))
+                .setMaxNumberOfIterations(250).setReEstimationStep(true);
 
-            std::vector<size_t> inliers = te.getModelInliers();
+            cilantro::RigidTransformation3f tform = te.estimateModelParameters().getModelParameters();
+            const auto& inliers = te.getModelInliers();
 
             std::cout << "RANSAC iterations: " << te.getPerformedIterationsCount() << ", inlier count: " << te.getNumberOfInliers() << std::endl;
 

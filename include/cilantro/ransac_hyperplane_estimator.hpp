@@ -66,8 +66,8 @@ namespace cilantro {
         void estimate_params_(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
                               Eigen::Hyperplane<ScalarT,EigenDim> &model_params)
         {
+            if (EigenDim == Eigen::Dynamic) model_params.coeffs().resize(points.rows());
             PrincipalComponentAnalysis<ScalarT,EigenDim> pca(points);
-            model_params = Eigen::Hyperplane<ScalarT,EigenDim>(points.cols());
             model_params.normal() = pca.getEigenVectors().col(points_.rows()-1);
             model_params.offset() = -model_params.normal().dot(pca.getDataMean());
         }
