@@ -5,28 +5,28 @@
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
-    class HyperplaneRANSACEstimator : public RandomSampleConsensusBase<HyperplaneRANSACEstimator<ScalarT,EigenDim>,HomogeneousVector<ScalarT,EigenDim>,ScalarT> {
+    class HyperplaneRANSACEstimator : public RandomSampleConsensusBase<HyperplaneRANSACEstimator<ScalarT,EigenDim>,Eigen::Hyperplane<ScalarT,EigenDim>,ScalarT> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         HyperplaneRANSACEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points)
-                : RandomSampleConsensusBase<HyperplaneRANSACEstimator<ScalarT,EigenDim>,HomogeneousVector<ScalarT,EigenDim>,ScalarT>(points.rows(), points.cols()/2 + points.cols()%2, 100, 0.1, true),
+                : RandomSampleConsensusBase<HyperplaneRANSACEstimator<ScalarT,EigenDim>,Eigen::Hyperplane<ScalarT,EigenDim>,ScalarT>(points.rows(), points.cols()/2 + points.cols()%2, 100, 0.1, true),
                   points_(points)
         {}
 
-        inline HyperplaneRANSACEstimator& fitModelParameters(HomogeneousVector<ScalarT,EigenDim> &model_params) {
+        inline HyperplaneRANSACEstimator& fitModelParameters(Eigen::Hyperplane<ScalarT,EigenDim> &model_params) {
             estimate_params_(points_, model_params);
             return *this;
         }
 
-        inline HomogeneousVector<ScalarT,EigenDim> fitModelParameters() {
-            HomogeneousVector<ScalarT,EigenDim> model_params;
+        inline Eigen::Hyperplane<ScalarT,EigenDim> fitModelParameters() {
+            Eigen::Hyperplane<ScalarT,EigenDim> model_params;
             fitModelParameters(model_params);
             return model_params;
         }
 
         HyperplaneRANSACEstimator& fitModelParameters(const std::vector<size_t> &sample_ind,
-                                                      HomogeneousVector<ScalarT,EigenDim> &model_params)
+                                                      Eigen::Hyperplane<ScalarT,EigenDim> &model_params)
         {
             VectorSet<ScalarT,EigenDim> points(points_.rows(), sample_ind.size());
             for (size_t i = 0; i < sample_ind.size(); i++) {
@@ -36,26 +36,23 @@ namespace cilantro {
             return *this;
         }
 
-        inline HomogeneousVector<ScalarT,EigenDim> fitModelParameters(const std::vector<size_t> &sample_ind) {
-            HomogeneousVector<ScalarT,EigenDim> model_params;
+        inline Eigen::Hyperplane<ScalarT,EigenDim> fitModelParameters(const std::vector<size_t> &sample_ind) {
+            Eigen::Hyperplane<ScalarT,EigenDim> model_params;
             fitModelParameters(sample_ind, model_params);
             return model_params;
         }
 
-        inline HyperplaneRANSACEstimator& computeResiduals(const HomogeneousVector<ScalarT,EigenDim> &model_params,
+        inline HyperplaneRANSACEstimator& computeResiduals(const Eigen::Hyperplane<ScalarT,EigenDim> &model_params,
                                                            std::vector<ScalarT> &residuals)
         {
             residuals.resize(points_.cols());
-            const ScalarT norm_inv = (ScalarT)(1.0)/model_params.head(points_.rows()).norm();
-            const Eigen::Matrix<ScalarT,1,EigenDim> n = norm_inv*model_params.head(points_.rows());
-            const ScalarT offset = norm_inv*model_params[points_.rows()];
             for (size_t i = 0; i < points_.cols(); i++) {
-                residuals[i] = std::abs(n.dot(points_.col(i)) + offset);
+                residuals[i] = model_params.absDistance(points_.col(i));
             }
             return *this;
         }
 
-        inline std::vector<ScalarT> computeResiduals(const HomogeneousVector<ScalarT,EigenDim> &model_params) {
+        inline std::vector<ScalarT> computeResiduals(const Eigen::Hyperplane<ScalarT,EigenDim> &model_params) {
             std::vector<ScalarT> residuals;
             computeResiduals(model_params, residuals);
             return residuals;
@@ -67,12 +64,12 @@ namespace cilantro {
         ConstVectorSetMatrixMap<ScalarT,EigenDim> points_;
 
         void estimate_params_(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
-                              HomogeneousVector<ScalarT,EigenDim> &model_params)
+                              Eigen::Hyperplane<ScalarT,EigenDim> &model_params)
         {
             PrincipalComponentAnalysis<ScalarT,EigenDim> pca(points);
-            const auto& normal = pca.getEigenVectors().col(points_.rows()-1);
-            model_params.head(points_.rows()) = normal;
-            model_params[points_.rows()] = -normal.dot(pca.getDataMean());
+            model_params = Eigen::Hyperplane<ScalarT,EigenDim>(points.cols());
+            model_params.normal() = pca.getEigenVectors().col(points_.rows()-1);
+            model_params.offset() = -model_params.normal().dot(pca.getDataMean());
         }
     };
 

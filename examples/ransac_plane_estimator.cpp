@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
 
             cilantro::PlaneRANSACEstimator3f pe(cloud.points);
             pe.setMaxInlierResidual(0.01f).setTargetInlierCount((size_t)(0.15*cloud.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
-            cilantro::HomogeneousVector<float,3> plane = pe.getModelParameters();
+            Eigen::Hyperplane<float,3> plane = pe.getModelParameters();
             std::vector<size_t> inliers = pe.estimateModelParameters().getModelInliers();
             std::cout << "RANSAC iterations: " << pe.getPerformedIterationsCount() << ", inlier count: " << pe.getNumberOfInliers() << std::endl;
 
