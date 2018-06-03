@@ -192,7 +192,7 @@ namespace cilantro {
         else
             glColor4f(renderingProperties.lineColor(0), renderingProperties.lineColor(1), renderingProperties.lineColor(2), renderingProperties.opacity);
         glLineWidth(renderingProperties.lineWidth);
-        pangolin::glDrawFrustrum(inverseIntrinsics, (int)width, (int)height, pose, scale);
+        pangolin::glDrawFrustum(inverseIntrinsics, (int)width, (int)height, pose, scale);
     }
 
     TriangleMeshRenderable::TriangleMeshRenderable(const ConstVectorSetMatrixMap<float,3> &vertices,
