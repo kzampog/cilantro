@@ -8,11 +8,13 @@ namespace cilantro {
     template <class ICPInstanceT, class TransformT, class CorrespondenceSearchEngineT, class ResidualVectorT>
     class IterativeClosestPointBase {
     public:
+        typedef TransformT Transformation;
         typedef typename TransformT::Scalar PointScalar;
-
+        typedef CorrespondenceSearchEngineT CorrespondenceSearchEngine;
         typedef typename CorrespondenceSearchEngineT::SearchResult CorrespondenceSearchResults;
+        typedef ResidualVectorT ResidualVector;
 
-        IterativeClosestPointBase(CorrespondenceSearchEngineT &corr_engine,
+        IterativeClosestPointBase(CorrespondenceSearchEngine &corr_engine,
                                   size_t max_iter = 15,
                                   PointScalar conv_tol = (PointScalar)1e-5)
                 : max_iterations_(max_iter),
@@ -22,7 +24,7 @@ namespace cilantro {
                   correspondence_search_engine_(corr_engine)
         {}
 
-        inline CorrespondenceSearchEngineT& correspondenceSearchEngine() { return correspondence_search_engine_; }
+        inline CorrespondenceSearchEngine& correspondenceSearchEngine() { return correspondence_search_engine_; }
 
         inline size_t getMaxNumberOfIterations() const { return max_iterations_; }
 
@@ -40,14 +42,14 @@ namespace cilantro {
             return *static_cast<ICPInstanceT*>(this);
         }
 
-        inline const TransformT& getInitialTransformation() const { return transform_init_; }
+        inline const Transformation& getInitialTransformation() const { return transform_init_; }
 
-        inline ICPInstanceT& setInitialTransformation(const TransformT& tform_init) {
+        inline ICPInstanceT& setInitialTransformation(const Transformation& tform_init) {
             transform_init_ = tform_init;
             return *static_cast<ICPInstanceT*>(this);
         }
 
-        inline TransformT& initialTransformation() { return transform_init_; }
+        inline Transformation& initialTransformation() { return transform_init_; }
 
         inline PointScalar getLastUpdateNorm() const { return last_delta_norm_; }
 
@@ -78,14 +80,14 @@ namespace cilantro {
 
         inline const CorrespondenceSearchResults& getCorrespondenceSearchResults() const { return correspondences_; }
 
-        inline const TransformT& getTransformation() const { return transform_; }
+        inline const Transformation& getTransformation() const { return transform_; }
 
-        inline const ICPInstanceT& getTransformation(TransformT& tform) const {
+        inline const ICPInstanceT& getTransformation(Transformation& tform) const {
             tform = transform_;
             return *static_cast<const ICPInstanceT*>(this);
         }
 
-        inline ResidualVectorT getResiduals() { return static_cast<ICPInstanceT*>(this)->computeResiduals(); }
+        inline ResidualVector getResiduals() { return static_cast<ICPInstanceT*>(this)->computeResiduals(); }
 
         inline bool hasConverged() const { return last_delta_norm_ < convergence_tol_; }
 
@@ -95,10 +97,10 @@ namespace cilantro {
         PointScalar convergence_tol_;
         PointScalar last_delta_norm_;
 
-        CorrespondenceSearchEngineT& correspondence_search_engine_;
+        CorrespondenceSearchEngine& correspondence_search_engine_;
         CorrespondenceSearchResults correspondences_;
 
-        TransformT transform_init_;
-        TransformT transform_;
+        Transformation transform_init_;
+        Transformation transform_;
     };
 }

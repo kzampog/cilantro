@@ -8,10 +8,14 @@ namespace cilantro {
     template <class ModelEstimatorT, class ModelParamsT, typename ResidualScalarT>
     class RandomSampleConsensusBase {
     public:
+        typedef ModelParamsT ModelParameters;
+        typedef ResidualScalarT ResidualScalar;
+        typedef std::vector<ResidualScalarT> ResidualVector;
+
         RandomSampleConsensusBase(size_t sample_size,
                                   size_t inlier_count_thresh,
                                   size_t max_iter,
-                                  ResidualScalarT inlier_dist_thresh,
+                                  ResidualScalar inlier_dist_thresh,
                                   bool re_estimate = true)
                 : sample_size_(sample_size),
                   inlier_count_thresh_(inlier_count_thresh),
@@ -42,9 +46,9 @@ namespace cilantro {
             return *static_cast<ModelEstimatorT*>(this);
         }
 
-        inline ResidualScalarT getMaxInlierResidual() const { return inlier_dist_thresh_; }
+        inline ResidualScalar getMaxInlierResidual() const { return inlier_dist_thresh_; }
 
-        inline ModelEstimatorT& setMaxInlierResidual(ResidualScalarT inlier_dist_thresh) {
+        inline ModelEstimatorT& setMaxInlierResidual(ResidualScalar inlier_dist_thresh) {
             inlier_dist_thresh_ = inlier_dist_thresh;
             return *static_cast<ModelEstimatorT*>(this);
         }
@@ -72,8 +76,8 @@ namespace cilantro {
             auto sample_start_it = perm.begin();
 
             // Random sample results
-            ModelParamsT curr_params;
-            std::vector<ResidualScalarT> curr_residuals;
+            ModelParameters curr_params;
+            ResidualVector curr_residuals;
             std::vector<size_t> curr_inliers;
 
             iteration_count_ = 0;
@@ -125,7 +129,7 @@ namespace cilantro {
             return estimator;
         }
 
-        inline ModelEstimatorT& estimateModelParameters(ResidualScalarT max_residual,
+        inline ModelEstimatorT& estimateModelParameters(ResidualScalar max_residual,
                                                         size_t target_inlier_count,
                                                         size_t max_iter)
         {
@@ -135,8 +139,8 @@ namespace cilantro {
             return estimateModelParameters();
         }
 
-        inline ModelEstimatorT& getEstimationResults(ModelParamsT &model_params,
-                                                     std::vector<ResidualScalarT> &model_residuals,
+        inline ModelEstimatorT& getEstimationResults(ModelParameters &model_params,
+                                                     ResidualVector &model_residuals,
                                                      std::vector<size_t> &model_inliers)
         {
             model_params = model_params_;
@@ -145,16 +149,16 @@ namespace cilantro {
             return *static_cast<ModelEstimatorT*>(this);
         }
 
-        inline ModelEstimatorT& getModelParameters(ModelParamsT &model_params) {
+        inline ModelEstimatorT& getModelParameters(ModelParameters &model_params) {
             model_params = model_params_;
             return *static_cast<ModelEstimatorT*>(this);
         }
 
-        inline const ModelParamsT& getModelParameters() {
+        inline const ModelParameters& getModelParameters() {
             return model_params_;
         }
 
-        inline const std::vector<ResidualScalarT>& getModelResiduals() {
+        inline const ResidualVector& getModelResiduals() {
             return model_residuals_;
         }
 
@@ -175,13 +179,13 @@ namespace cilantro {
         size_t sample_size_;
         size_t inlier_count_thresh_;
         size_t max_iter_;
-        ResidualScalarT inlier_dist_thresh_;
+        ResidualScalar inlier_dist_thresh_;
         bool re_estimate_;
 
         // Object state and results
         size_t iteration_count_;
-        ModelParamsT model_params_;
-        std::vector<ResidualScalarT> model_residuals_;
+        ModelParameters model_params_;
+        ResidualVector model_residuals_;
         std::vector<size_t> model_inliers_;
     };
 }
