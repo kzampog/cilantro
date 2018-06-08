@@ -6,6 +6,7 @@
 #include <Eigen/Dense>
 
 namespace cilantro {
+    // CRTP base class
     template <class ModelEstimatorT, class ModelParamsT, typename ResidualScalarT>
     class RandomSampleConsensusBase {
     public:

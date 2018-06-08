@@ -91,35 +91,30 @@ int main(int argc, char ** argv) {
 //    // Point features adaptors for correspondence search
 ////    cilantro::PointNormalColorFeaturesAdaptor3f dst_feat(dst.points, dst.normals, dst.colors, 0.5, 5.0);
 ////    cilantro::PointNormalColorFeaturesAdaptor3f src_feat(src.points, src.normals, src.colors, 0.5, 5.0);
-//
 //    cilantro::PointFeaturesAdaptor3f dst_feat(dst.points);
 //    cilantro::PointFeaturesAdaptor3f src_feat(src.points);
 //
 //    cilantro::CorrespondenceDistanceEvaluator<float> eval;
 //    cilantro::ICPCorrespondenceSearchKDTree<decltype(dst_feat)> corr_engine(dst_feat, src_feat, eval);
 //
-//    // Metric optimizers
-////    cilantro::RigidICPPointToPointMetricOptimizer<float,3> metric_opt(dst.points, src.points);
-//    cilantro::RigidICPCombinedMetricOptimizer3<float> metric_opt(dst.points, dst.normals, src.points);
-//
-//    // ICP object
-//    cilantro::IterativeClosestPoint<decltype(metric_opt),decltype(corr_engine)> icp(metric_opt, corr_engine);
+//    // Point-to-point
+////    cilantro::PointToPointMetricRigidICP3f<decltype(corr_engine)> icp(dst.points, src.points, corr_engine);
+//    // Weighted combination of point-to-point and point-to-plane
+//    cilantro::CombinedMetricRigidICP3f<decltype(corr_engine)> icp(dst.points, dst.normals, src.points, corr_engine);
 
-
-    // Common case examples
+    // Common instances
     // Point-to-point
-//    cilantro::PointToPointMetricRigidProjectiveICP3f icp(dst.points, src.points);
-//    cilantro::PointToPointMetricRigidICP3f icp(dst.points, src.points);
+//    cilantro::SimplePointToPointMetricRigidProjectiveICP3f icp(dst.points, src.points);
+//    cilantro::SimplePointToPointMetricRigidICP3f icp(dst.points, src.points);
 
     // Weighted combination of point-to-point and point-to-plane
-//    cilantro::CombinedMetricRigidProjectiveICP3f icp(dst.points, dst.normals, src.points);
-    cilantro::CombinedMetricRigidICP3f icp(dst.points, dst.normals, src.points);
+//    cilantro::SimpleCombinedMetricRigidProjectiveICP3f icp(dst.points, dst.normals, src.points);
+    cilantro::SimpleCombinedMetricRigidICP3f icp(dst.points, dst.normals, src.points);
 
-    // Set parameters
-    icp.setConvergenceTolerance(1e-4f).setMaxNumberOfIterations(30);
-
-    icp.metricOptimizer().setMaxNumberOfOptimizationIterations(1).setPointToPointMetricWeight(0.0).setPointToPlaneMetricWeight(1.0);
+    // Parameter setting
+    icp.setMaxNumberOfOptimizationStepIterations(1).setPointToPointMetricWeight(0.0).setPointToPlaneMetricWeight(1.0);
     icp.correspondenceSearchEngine().setMaxDistance(0.1f*0.1f);
+    icp.setConvergenceTolerance(1e-4f).setMaxNumberOfIterations(30);
 
     cilantro::RigidTransformation3f tf_est = icp.estimateTransformation().getTransformation();
 
