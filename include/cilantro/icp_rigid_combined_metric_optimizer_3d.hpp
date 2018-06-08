@@ -22,12 +22,14 @@ namespace cilantro {
                   point_to_plane_weight_((ScalarT)1.0)
         {}
 
-        void initializeTransformation(Transformation &transform) {
+        template <typename CorrScalarT>
+        void initialize(Transformation &transform, CorrespondenceSet<CorrScalarT> &correspondences) {
             transform.setIdentity();
+            correspondences.reserve(std::max(dst_points_.cols(), src_points_.cols()));
         }
 
         template <typename CorrScalarT>
-        bool refineTransformation(const CorrespondenceSet<CorrScalarT> &correspondences,
+        void refineTransformation(const CorrespondenceSet<CorrScalarT> &correspondences,
                                   Transformation &transform,
                                   ScalarT &delta_norm)
         {
@@ -42,7 +44,6 @@ namespace cilantro {
             transform = tform_iter*transform;
             transform.linear() = transform.rotation();
             delta_norm = std::sqrt((tform_iter.linear() - Eigen::Matrix<ScalarT,3,3>::Identity()).squaredNorm() + tform_iter.translation().squaredNorm());
-            return true;
         }
 
         ResidualVector computeResiduals(const Transformation &transform) {
@@ -88,7 +89,7 @@ namespace cilantro {
             return *this;
         }
 
-    protected:
+    private:
         ConstVectorSetMatrixMap<ScalarT,3> dst_points_;
         ConstVectorSetMatrixMap<ScalarT,3> dst_normals_;
         ConstVectorSetMatrixMap<ScalarT,3> src_points_;

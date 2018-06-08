@@ -31,7 +31,6 @@ namespace cilantro {
                   inlier_fraction_(1.0), require_reciprocality_(false)
         {}
 
-        // Avoid re-building tree for src if transformation is rigid and metric is L2
         template <class TransformT>
         ICPCorrespondenceSearchKDTree& findCorrespondences(const TransformT &tform, SearchResult &correspondences) {
             if (IsIsometry<TransformT>::value && std::is_same<SearchTree,KDTree<FeatureScalar,FeatureAdaptorT::FeatureDimension,KDTreeDistanceAdaptors::L2>>::value) {

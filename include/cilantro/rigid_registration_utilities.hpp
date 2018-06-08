@@ -51,7 +51,7 @@ namespace cilantro {
                                                        const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
                                                        RigidTransformation<ScalarT,3> &tform,
                                                        size_t max_iter = 1,
-                                                       ScalarT convergence_tol = 1e-5)
+                                                       ScalarT convergence_tol = (ScalarT)1e-5)
     {
         if (src_p.cols() != dst_p.cols() || src_p.cols() < 3) {
             tform.setIdentity();
@@ -164,7 +164,7 @@ namespace cilantro {
                                                        const CorrespondenceSet<CorrValueT> &corr,
                                                        RigidTransformation<ScalarT,3> &tform,
                                                        size_t max_iter = 1,
-                                                       ScalarT convergence_tol = 1e-5)
+                                                       ScalarT convergence_tol = (ScalarT)1e-5)
     {
         VectorSet<ScalarT,3> dst_p_corr, src_p_corr;
         selectCorrespondingPoints<ScalarT,3,CorrValueT>(corr, dst_p, src_p, dst_p_corr, src_p_corr);
@@ -178,7 +178,7 @@ namespace cilantro {
                                               const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
                                               RigidTransformation<ScalarT,3> &tform,
                                               size_t max_iter = 1,
-                                              ScalarT convergence_tol = 1e-5)
+                                              ScalarT convergence_tol = (ScalarT)1e-5)
     {
         if (src_p.cols() != dst_p.cols() || dst_p.cols() != dst_n.cols() || src_p.cols() < 6) {
             tform.setIdentity();
@@ -255,7 +255,7 @@ namespace cilantro {
                                               const CorrespondenceSet<CorrValueT> &corr,
                                               RigidTransformation<ScalarT,3> &tform,
                                               size_t max_iter = 1,
-                                              ScalarT convergence_tol = 1e-5)
+                                              ScalarT convergence_tol = (ScalarT)1e-5)
     {
         VectorSet<ScalarT,3> dst_p_corr(3, corr.size());
         VectorSet<ScalarT,3> dst_n_corr(3, corr.size());
@@ -278,7 +278,7 @@ namespace cilantro {
                                                 ScalarT point_to_plane_weight,
                                                 RigidTransformation<ScalarT,3> &tform,
                                                 size_t max_iter = 1,
-                                                ScalarT convergence_tol = 1e-5)
+                                                ScalarT convergence_tol = (ScalarT)1e-5)
     {
         if (src_p.cols() != dst_p.cols() || dst_p.cols() != dst_n.cols() || src_p.cols() < 3 ||
             (point_to_point_weight == (ScalarT)0.0 && point_to_plane_weight == (ScalarT)0.0))
@@ -426,7 +426,7 @@ namespace cilantro {
                                                 ScalarT point_to_plane_weight,
                                                 RigidTransformation<ScalarT,3> &tform,
                                                 size_t max_iter = 1,
-                                                ScalarT convergence_tol = 1e-5)
+                                                ScalarT convergence_tol = (ScalarT)1e-5)
     {
         VectorSet<ScalarT,3> dst_p_corr(3, corr.size());
         VectorSet<ScalarT,3> dst_n_corr(3, corr.size());

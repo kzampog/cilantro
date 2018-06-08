@@ -3,11 +3,14 @@
 #include <vector>
 #include <algorithm>
 #include <random>
+#include <Eigen/Dense>
 
 namespace cilantro {
     template <class ModelEstimatorT, class ModelParamsT, typename ResidualScalarT>
     class RandomSampleConsensusBase {
     public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
         typedef ModelParamsT ModelParameters;
         typedef ResidualScalarT ResidualScalar;
         typedef std::vector<ResidualScalarT> ResidualVector;

@@ -2,11 +2,14 @@
 
 #include <cstddef>
 #include <limits>
+#include <Eigen/Dense>
 
 namespace cilantro {
     template <class MetricOptimizerT, class CorrespondenceSearchEngineT>
     class IterativeClosestPoint {
     public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
         typedef MetricOptimizerT MetricOptimizer;
         typedef typename MetricOptimizer::Transformation Transformation;
         typedef typename MetricOptimizer::ResidualVector ResidualVector;
@@ -25,7 +28,7 @@ namespace cilantro {
                   convergence_tol_(conv_tol),
                   last_delta_norm_(std::numeric_limits<PointScalar>::infinity())
         {
-            metric_optimizer_.initializeTransformation(transform_init_);
+            metric_optimizer_.initialize(transform_init_, correspondences_);
         }
 
         inline MetricOptimizer& metricOptimizer() { return metric_optimizer_; }

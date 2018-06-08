@@ -9,6 +9,8 @@ namespace cilantro {
     struct Correspondence {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        typedef ScalarT Scalar;
+
         Correspondence() {}
 
         Correspondence(size_t i, size_t j, ScalarT val) : indexInFirst(i), indexInSecond(j), value(val) {}
