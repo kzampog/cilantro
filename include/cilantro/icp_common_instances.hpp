@@ -1,81 +1,106 @@
 #pragma once
 
+#include <cilantro/icp_core.hpp>
+#include <cilantro/icp_rigid_point_to_point_metric_optimizer.hpp>
+#include <cilantro/icp_rigid_combined_metric_optimizer_3d.hpp>
 #include <cilantro/icp_common_feature_adaptors.hpp>
 #include <cilantro/icp_correspondence_search_kd_tree.hpp>
 #include <cilantro/icp_correspondence_search_projective.hpp>
-#include <cilantro/icp_rigid_point_to_point.hpp>
-#include <cilantro/icp_rigid_combined_metric_3d.hpp>
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
-    class SimplePointToPointMetricRigidICP : private std::pair<PointFeaturesAdaptor<ScalarT,EigenDim>,PointFeaturesAdaptor<ScalarT,EigenDim>>, private CorrespondenceDistanceEvaluator<ScalarT>, private ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,EigenDim>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>, public PointToPointMetricRigidICP<ScalarT,EigenDim,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,EigenDim>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>> {
+    class PointToPointMetricRigidICP : private RigidICPPointToPointMetricOptimizer<ScalarT,EigenDim>,
+                                       private std::pair<PointFeaturesAdaptor<ScalarT,EigenDim>,PointFeaturesAdaptor<ScalarT,EigenDim>>,
+                                       private CorrespondenceDistanceEvaluator<ScalarT>,
+                                       private ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,EigenDim>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>,
+                                       public IterativeClosestPoint<RigidICPPointToPointMetricOptimizer<ScalarT,EigenDim>,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,EigenDim>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>>
+    {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        SimplePointToPointMetricRigidICP(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
-                                         const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points)
-                : std::pair<PointFeaturesAdaptor<ScalarT,EigenDim>,PointFeaturesAdaptor<ScalarT,EigenDim>>(PointFeaturesAdaptor<ScalarT,EigenDim>(dst_points), PointFeaturesAdaptor<ScalarT,EigenDim>(src_points)),
+        PointToPointMetricRigidICP(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
+                                   const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points)
+                : RigidICPPointToPointMetricOptimizer<ScalarT,EigenDim>(dst_points, src_points),
+                  std::pair<PointFeaturesAdaptor<ScalarT,EigenDim>,PointFeaturesAdaptor<ScalarT,EigenDim>>(PointFeaturesAdaptor<ScalarT,EigenDim>(dst_points), PointFeaturesAdaptor<ScalarT,EigenDim>(src_points)),
                   CorrespondenceDistanceEvaluator<ScalarT>(),
                   ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,EigenDim>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>(this->first, this->second, *this),
-                  PointToPointMetricRigidICP<ScalarT,EigenDim,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,EigenDim>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>>(dst_points, src_points, *this)
+                  IterativeClosestPoint<RigidICPPointToPointMetricOptimizer<ScalarT,EigenDim>,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,EigenDim>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>>(*this, *this)
         {}
     };
 
-    typedef SimplePointToPointMetricRigidICP<float,2> SimplePointToPointMetricRigidICP2f;
-    typedef SimplePointToPointMetricRigidICP<double,2> SimplePointToPointMetricRigidICP2d;
-    typedef SimplePointToPointMetricRigidICP<float,3> SimplePointToPointMetricRigidICP3f;
-    typedef SimplePointToPointMetricRigidICP<double,3> SimplePointToPointMetricRigidICP3d;
+    typedef PointToPointMetricRigidICP<float,2> PointToPointMetricRigidICP2f;
+    typedef PointToPointMetricRigidICP<double,2> PointToPointMetricRigidICP2d;
+    typedef PointToPointMetricRigidICP<float,3> PointToPointMetricRigidICP3f;
+    typedef PointToPointMetricRigidICP<double,3> PointToPointMetricRigidICP3d;
 
     template <typename ScalarT>
-    class SimpleCombinedMetricRigidICP3 : private std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>, private CorrespondenceDistanceEvaluator<ScalarT>, private ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>, public CombinedMetricRigidICP3<ScalarT,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>> {
+    class CombinedMetricRigidICP3 : private RigidICPCombinedMetricOptimizer3<ScalarT>,
+                                    private std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>,
+                                    private CorrespondenceDistanceEvaluator<ScalarT>,
+                                    private ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>,
+                                    public IterativeClosestPoint<RigidICPCombinedMetricOptimizer3<ScalarT>,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>>
+    {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        SimpleCombinedMetricRigidICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_points,
-                                      const ConstVectorSetMatrixMap<ScalarT,3> &dst_normals,
-                                      const ConstVectorSetMatrixMap<ScalarT,3> &src_points)
-                : std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>(PointFeaturesAdaptor<ScalarT,3>(dst_points), PointFeaturesAdaptor<ScalarT,3>(src_points)),
+        CombinedMetricRigidICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_points,
+                                const ConstVectorSetMatrixMap<ScalarT,3> &dst_normals,
+                                const ConstVectorSetMatrixMap<ScalarT,3> &src_points)
+                : RigidICPCombinedMetricOptimizer3<ScalarT>(dst_points, dst_normals, src_points),
+                  std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>(PointFeaturesAdaptor<ScalarT,3>(dst_points), PointFeaturesAdaptor<ScalarT,3>(src_points)),
                   CorrespondenceDistanceEvaluator<ScalarT>(),
                   ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>(this->first, this->second, *this),
-                  CombinedMetricRigidICP3<ScalarT,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>>(dst_points, dst_normals, src_points, *this)
+                  IterativeClosestPoint<RigidICPCombinedMetricOptimizer3<ScalarT>,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>>(*this, *this)
         {}
     };
 
-    typedef SimpleCombinedMetricRigidICP3<float> SimpleCombinedMetricRigidICP3f;
-    typedef SimpleCombinedMetricRigidICP3<double> SimpleCombinedMetricRigidICP3d;
+    typedef CombinedMetricRigidICP3<float> CombinedMetricRigidICP3f;
+    typedef CombinedMetricRigidICP3<double> CombinedMetricRigidICP3d;
 
     template <typename ScalarT>
-    class SimplePointToPointMetricRigidProjectiveICP3 : private std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>, private CorrespondenceDistanceEvaluator<ScalarT>, private ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>, public PointToPointMetricRigidICP<ScalarT,3,ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>> {
+    class PointToPointMetricRigidProjectiveICP3 : private RigidICPPointToPointMetricOptimizer<ScalarT,3>,
+                                                  private std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>,
+                                                  private CorrespondenceDistanceEvaluator<ScalarT>,
+                                                  private ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>,
+                                                  public IterativeClosestPoint<RigidICPPointToPointMetricOptimizer<ScalarT,3>,ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>>
+    {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        SimplePointToPointMetricRigidProjectiveICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_points,
-                                                    const ConstVectorSetMatrixMap<ScalarT,3> &src_points)
-                : std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>(PointFeaturesAdaptor<ScalarT,3>(dst_points), PointFeaturesAdaptor<ScalarT,3>(src_points)),
+        PointToPointMetricRigidProjectiveICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_points,
+                                              const ConstVectorSetMatrixMap<ScalarT,3> &src_points)
+                : RigidICPPointToPointMetricOptimizer<ScalarT,3>(dst_points, src_points),
+                  std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>(PointFeaturesAdaptor<ScalarT,3>(dst_points), PointFeaturesAdaptor<ScalarT,3>(src_points)),
                   CorrespondenceDistanceEvaluator<ScalarT>(),
                   ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>(this->first, this->second, *this),
-                  PointToPointMetricRigidICP<ScalarT,3,ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>>(dst_points, src_points, *this)
+                  IterativeClosestPoint<RigidICPPointToPointMetricOptimizer<ScalarT,3>,ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>>(*this, *this)
         {}
     };
 
-    typedef SimplePointToPointMetricRigidProjectiveICP3<float> SimplePointToPointMetricRigidProjectiveICP3f;
-    typedef SimplePointToPointMetricRigidProjectiveICP3<double> SimplePointToPointMetricRigidProjectiveICP3d;
+    typedef PointToPointMetricRigidProjectiveICP3<float> PointToPointMetricRigidProjectiveICP3f;
+    typedef PointToPointMetricRigidProjectiveICP3<double> PointToPointMetricRigidProjectiveICP3d;
 
     template <typename ScalarT>
-    class SimpleCombinedMetricRigidProjectiveICP3 : private std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>, private CorrespondenceDistanceEvaluator<ScalarT>, private ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>, public CombinedMetricRigidICP3<ScalarT,ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>> {
+    class CombinedMetricRigidProjectiveICP3 : private RigidICPCombinedMetricOptimizer3<ScalarT>,
+                                              private std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>,
+                                              private CorrespondenceDistanceEvaluator<ScalarT>,
+                                              private ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>,
+                                              public IterativeClosestPoint<RigidICPCombinedMetricOptimizer3<ScalarT>,ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>>
+    {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        SimpleCombinedMetricRigidProjectiveICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_points,
-                                                const ConstVectorSetMatrixMap<ScalarT,3> &dst_normals,
-                                                const ConstVectorSetMatrixMap<ScalarT,3> &src_points)
-                : std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>(PointFeaturesAdaptor<ScalarT,3>(dst_points), PointFeaturesAdaptor<ScalarT,3>(src_points)),
+        CombinedMetricRigidProjectiveICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_points,
+                                          const ConstVectorSetMatrixMap<ScalarT,3> &dst_normals,
+                                          const ConstVectorSetMatrixMap<ScalarT,3> &src_points)
+                : RigidICPCombinedMetricOptimizer3<ScalarT>(dst_points, dst_normals, src_points),
+                  std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>(PointFeaturesAdaptor<ScalarT,3>(dst_points), PointFeaturesAdaptor<ScalarT,3>(src_points)),
                   CorrespondenceDistanceEvaluator<ScalarT>(),
                   ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>(this->first, this->second, *this),
-                  CombinedMetricRigidICP3<ScalarT,ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>>(dst_points, dst_normals, src_points, *this)
+                  IterativeClosestPoint<RigidICPCombinedMetricOptimizer3<ScalarT>,ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>>(*this, *this)
         {}
     };
 
-    typedef SimpleCombinedMetricRigidProjectiveICP3<float> SimpleCombinedMetricRigidProjectiveICP3f;
-    typedef SimpleCombinedMetricRigidProjectiveICP3<double> SimpleCombinedMetricRigidProjectiveICP3d;
+    typedef CombinedMetricRigidProjectiveICP3<float> CombinedMetricRigidProjectiveICP3f;
+    typedef CombinedMetricRigidProjectiveICP3<double> CombinedMetricRigidProjectiveICP3d;
 }

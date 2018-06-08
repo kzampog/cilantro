@@ -12,13 +12,13 @@
 #include <cilantro/flat_convex_hull_3d.hpp>
 #include <cilantro/grid_accumulator.hpp>
 #include <cilantro/grid_downsampler.hpp>
-#include <cilantro/icp_base.hpp>
 #include <cilantro/icp_common_feature_adaptors.hpp>
 #include <cilantro/icp_common_instances.hpp>
+#include <cilantro/icp_core.hpp>
 #include <cilantro/icp_correspondence_search_kd_tree.hpp>
 #include <cilantro/icp_correspondence_search_projective.hpp>
-#include <cilantro/icp_rigid_combined_metric_3d.hpp>
-#include <cilantro/icp_rigid_point_to_point.hpp>
+#include <cilantro/icp_rigid_combined_metric_optimizer_3d.hpp>
+#include <cilantro/icp_rigid_point_to_point_metric_optimizer.hpp>
 #include <cilantro/image_point_cloud_conversions.hpp>
 #include <cilantro/image_viewer.hpp>
 #include <cilantro/io.hpp>
