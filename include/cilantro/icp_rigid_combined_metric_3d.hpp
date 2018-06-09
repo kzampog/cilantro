@@ -45,9 +45,9 @@ namespace cilantro {
             return *this;
         }
 
-        inline ScalarT geOptimizationtConvergenceTolerance() const { return optimization_convergence_tol_; }
+        inline ScalarT getOptimizationStepConvergenceTolerance() const { return optimization_convergence_tol_; }
 
-        inline CombinedMetricRigidICP3& setOptimizationConvergenceTolerance(ScalarT conv_tol) {
+        inline CombinedMetricRigidICP3& setOptimizationStepConvergenceTolerance(ScalarT conv_tol) {
             optimization_convergence_tol_ = conv_tol;
             return *this;
         }
