@@ -4,7 +4,8 @@ dist: trusty
 before_install:
   - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
   - sudo apt -qq update && sudo apt install g++-6 libglew-dev
-  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 90
+  - sudo unlink /usr/bin/gcc && sudo ln -s /usr/bin/gcc-6 /usr/bin/gcc
+  - sudo unlink /usr/bin/g++ && sudo ln -s /usr/bin/g++-6 /usr/bin/g++
   - wget https://github.com/eigenteam/eigen-git-mirror/archive/master.zip -O eigen.zip && unzip eigen.zip
   - mkdir -p eigen-git-mirror-master/build && cd eigen-git-mirror-master/build && cmake .. && make -j8 && sudo make install && cd ../..
   - wget https://github.com/stevenlovegrove/Pangolin/archive/master.zip -O Pangolin.zip && unzip Pangolin.zip
