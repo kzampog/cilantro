@@ -59,6 +59,18 @@ namespace cilantro {
 
         inline NearestNeighborSearchResult(size_t ind, ScalarT dist) : index(ind), value(dist) {}
 
+        struct IndexLessComparator {
+            inline bool operator()(const NearestNeighborSearchResult &nn1, const NearestNeighborSearchResult &nn2) const {
+                return nn1.index < nn2.index;
+            }
+        };
+
+        struct IndexGreaterComparator {
+            inline bool operator()(const NearestNeighborSearchResult &nn1, const NearestNeighborSearchResult &nn2) const {
+                return nn1.index > nn2.index;
+            }
+        };
+
         struct ValueLessComparator {
             inline bool operator()(const NearestNeighborSearchResult &nn1, const NearestNeighborSearchResult &nn2) const {
                 return nn1.value < nn2.value;
