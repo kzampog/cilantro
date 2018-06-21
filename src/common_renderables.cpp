@@ -427,9 +427,9 @@ namespace cilantro {
     {
         faceNormals.resize(3, faces.size());
         for (size_t i = 0; i < faces.size(); i++) {
-            const auto& pt0(vertices.col(faces[i][0]));
-            const auto& pt1(vertices.col(faces[i][1]));
-            const auto& pt2(vertices.col(faces[i][2]));
+            const auto pt0(vertices.col(faces[i][0]));
+            const auto pt1(vertices.col(faces[i][1]));
+            const auto pt2(vertices.col(faces[i][2]));
             faceNormals.col(i) = ((pt1 - pt0).cross(pt2 - pt0)).normalized();
         }
     }
