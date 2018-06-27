@@ -42,6 +42,9 @@ namespace cilantro {
 
         // ICP interface
         VectorSet<ScalarT,1> computeResiduals() {
+            if (dst_points_.cols() == 0) {
+                return VectorSet<ScalarT,1>::Constant(1, src_points_.cols(), std::numeric_limits<ScalarT>::quiet_NaN());
+            }
             VectorSet<ScalarT,1> res(1, src_points_.cols());
             KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> dst_tree(dst_points_);
             NearestNeighborSearchResult<ScalarT> nn;

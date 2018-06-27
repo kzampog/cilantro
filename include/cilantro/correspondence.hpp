@@ -131,28 +131,30 @@ namespace cilantro {
                                              CorrValueT max_distance,
                                              const EvaluatorT &evaluator = EvaluatorT())
     {
+        if (ref_tree.getPointsMatrixMap().cols() == 0) {
+            correspondences.clear();
+            return;
+        }
+
         CorrespondenceSet<CorrValueT> corr_tmp(query_pts.cols());
 
         NearestNeighborSearchResult<ScalarT> nn;
-        CorrValueT value;
 
         if (ref_is_first) {
-#pragma omp parallel for shared (correspondences) private (nn, value)
+#pragma omp parallel for shared (correspondences) private (nn)
             for (size_t i = 0; i < corr_tmp.size(); i++) {
                 ref_tree.nearestNeighborSearch(query_pts.col(i), nn);
-                value = evaluator(nn.index, i, nn.value);
                 corr_tmp[i].indexInFirst = nn.index;
                 corr_tmp[i].indexInSecond = i;
-                corr_tmp[i].value = value;
+                corr_tmp[i].value = evaluator(nn.index, i, nn.value);
             }
         } else {
-#pragma omp parallel for shared (correspondences) private (nn, value)
+#pragma omp parallel for shared (correspondences) private (nn)
             for (size_t i = 0; i < corr_tmp.size(); i++) {
                 ref_tree.nearestNeighborSearch(query_pts.col(i), nn);
-                value = evaluator(i, nn.index, nn.value);
                 corr_tmp[i].indexInFirst = i;
                 corr_tmp[i].indexInSecond = nn.index;
-                corr_tmp[i].value = value;
+                corr_tmp[i].value = evaluator(i, nn.index, nn.value);
             }
         }
 

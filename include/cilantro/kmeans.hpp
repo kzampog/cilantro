@@ -31,7 +31,7 @@ namespace cilantro {
                         ScalarT tol = std::numeric_limits<ScalarT>::epsilon(),
                         bool use_kd_tree = false)
         {
-            cluster_centroids_.resize(data_map_.rows(), (num_clusters > data_map_.cols()) ? data_map_.cols() : num_clusters);
+            cluster_centroids_.resize(data_map_.rows(), std::max((size_t)1, std::min(num_clusters, (size_t)data_map_.cols())));
 
             std::vector<size_t> range(data_map_.cols());
             for (size_t i = 0; i < range.size(); i++) range[i] = i;
