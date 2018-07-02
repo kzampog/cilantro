@@ -193,20 +193,10 @@ namespace cilantro {
         void init_(const std::string &window_name, const std::string &display_name);
 
         struct RenderPriorityComparator_ {
-            const Eigen::Matrix3f& rot_mat_;
-            const Eigen::Vector3f& t_vec_;
-
-            inline RenderPriorityComparator_(const Eigen::Matrix3f &R, const Eigen::Vector3f &t)
-                    : rot_mat_(R), t_vec_(t)
-            {}
-
-            inline bool operator()(const ManagedRenderable* o1, const ManagedRenderable* o2) const {
-                return std::make_tuple(!o1->first->getDrawLast(),
-                                       o1->first->getRenderingProperties().opacity == 1.0f,
-                                       (rot_mat_*(o1->first->getCentroid())+t_vec_).squaredNorm()) >
-                       std::make_tuple(!o2->first->getDrawLast(),
-                                       o2->first->getRenderingProperties().opacity == 1.0f,
-                                       (rot_mat_*(o2->first->getCentroid())+t_vec_).squaredNorm());
+            inline bool operator()(const std::pair<std::tuple<bool,bool,float>,ManagedRenderable*> &o1,
+                                   const std::pair<std::tuple<bool,bool,float>,ManagedRenderable*> &o2) const
+            {
+                return o1.first > o2.first;
             }
         };
     };

@@ -77,15 +77,16 @@ namespace cilantro {
         }
         Eigen::Vector3f t(mv(0,3), mv(1,3), mv(2,3));
 
-        std::vector<ManagedRenderable *> visible_objects;
+        std::vector<std::pair<std::tuple<bool,bool,float>,ManagedRenderable*>> visible_objects;
         visible_objects.reserve(renderables_.size());
         for (auto it = renderables_.begin(); it != renderables_.end(); ++it) {
-            if (it->second.first->getVisibility()) {
-                visible_objects.emplace_back(&(it->second));
+            ManagedRenderable* obj = &(it->second);
+            if (obj->first->getVisibility()) {
+                visible_objects.emplace_back(std::make_tuple(!obj->first->getDrawLast(), obj->first->getRenderingProperties().opacity == 1.0f, (R*(obj->first->getCentroid()) + t).squaredNorm()), obj);
             }
         }
 
-        std::sort(visible_objects.begin(), visible_objects.end(), RenderPriorityComparator_(R,t));
+        std::sort(visible_objects.begin(), visible_objects.end(), RenderPriorityComparator_());
 
         gl_context_->MakeCurrent();
         display_->Activate(*gl_render_state_);
@@ -94,7 +95,7 @@ namespace cilantro {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         for (size_t i = 0; i < visible_objects.size(); i++) {
-            visible_objects[i]->first->updateGPUBuffersAndRender(*(visible_objects[i]->second));
+            visible_objects[i].second->first->updateGPUBuffersAndRender(*(visible_objects[i].second->second));
         }
 
         if (video_record_on_render_ && video_recorder_) {
