@@ -12,15 +12,11 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        PointsProximityEvaluator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
-                                 ScalarT dist_thresh)
-                : points_(points), max_distance_(dist_thresh)
-        {}
+        PointsProximityEvaluator(ScalarT dist_thresh) : max_distance_(dist_thresh) {}
 
         inline bool operator()(size_t, size_t, ScalarT dist) const { return dist < max_distance_; }
 
     private:
-        ConstVectorSetMatrixMap<ScalarT,EigenDim> points_;
         ScalarT max_distance_;
     };
 
@@ -72,12 +68,10 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        PointsNormalsProximityEvaluator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
-                                        const ConstVectorSetMatrixMap<ScalarT,EigenDim> &normals,
+        PointsNormalsProximityEvaluator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &normals,
                                         ScalarT dist_thresh,
                                         ScalarT angle_thresh)
-                : points_(points), normals_(normals),
-                  max_distance_(dist_thresh), max_angle_(angle_thresh)
+                : normals_(normals), max_distance_(dist_thresh), max_angle_(angle_thresh)
         {}
 
         inline bool operator()(size_t i, size_t j, ScalarT dist) const {
@@ -91,7 +85,6 @@ namespace cilantro {
         }
 
     private:
-        ConstVectorSetMatrixMap<ScalarT,EigenDim> points_;
         ConstVectorSetMatrixMap<ScalarT,EigenDim> normals_;
         ScalarT max_distance_;
         ScalarT max_angle_;
@@ -102,12 +95,10 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        PointsColorsProximityEvaluator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
-                                       const ConstVectorSetMatrixMap<float,3> &colors,
+        PointsColorsProximityEvaluator(const ConstVectorSetMatrixMap<float,3> &colors,
                                        ScalarT dist_thresh,
                                        float color_thresh)
-                : points_(points), colors_(colors),
-                  max_distance_(dist_thresh), max_color_diff_(color_thresh*color_thresh)
+                : colors_(colors), max_distance_(dist_thresh), max_color_diff_(color_thresh*color_thresh)
         {}
 
         inline bool operator()(size_t i, size_t j, ScalarT dist) const {
@@ -115,7 +106,6 @@ namespace cilantro {
         }
 
     private:
-        ConstVectorSetMatrixMap<ScalarT,EigenDim> points_;
         ConstVectorSetMatrixMap<float,3> colors_;
         ScalarT max_distance_;
         float max_color_diff_;
@@ -156,13 +146,12 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        PointsNormalsColorsProximityEvaluator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
-                                              const ConstVectorSetMatrixMap<ScalarT,EigenDim> &normals,
+        PointsNormalsColorsProximityEvaluator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &normals,
                                               const ConstVectorSetMatrixMap<float,3> &colors,
                                               ScalarT dist_thresh,
                                               ScalarT angle_thresh,
                                               float color_thresh)
-                : points_(points), normals_(normals), colors_(colors),
+                : normals_(normals), colors_(colors),
                   max_distance_(dist_thresh), max_angle_(angle_thresh), max_color_diff_(color_thresh*color_thresh)
         {}
 
@@ -177,7 +166,6 @@ namespace cilantro {
         }
 
     private:
-        ConstVectorSetMatrixMap<ScalarT,EigenDim> points_;
         ConstVectorSetMatrixMap<ScalarT,EigenDim> normals_;
         ConstVectorSetMatrixMap<float,3> colors_;
         ScalarT max_distance_;
