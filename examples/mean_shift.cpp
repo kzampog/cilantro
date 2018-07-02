@@ -50,7 +50,7 @@ int main(int argc, char ** argv) {
     timer.stop();
     std::cout << "Clustering time: " << timer.getElapsedTime() << "ms" << std::endl;
     std::cout << "Number of clusters: " << ms.getNumberOfClusters() << std::endl;
-    std::cout << "Performed mean shift iterations: " << ms.getPerformedIterationsCount() << std::endl;
+    std::cout << "Performed mean shift iterations: " << ms.getNumberOfPerformedIterations() << std::endl;
     
     const auto& cpi = ms.getClusterPointIndices();
     size_t mins = points.cols(), maxs = 0;

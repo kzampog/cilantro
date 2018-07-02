@@ -174,7 +174,7 @@ namespace cilantro {
             return model_inliers_.size() >= inlier_count_thresh_;
         }
 
-        inline size_t getPerformedIterationsCount() const { return iteration_count_; }
+        inline size_t getNumberOfPerformedIterations() const { return iteration_count_; }
 
         inline size_t getNumberOfInliers() const { return model_inliers_.size(); }
 

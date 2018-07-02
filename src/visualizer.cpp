@@ -127,9 +127,10 @@ namespace cilantro {
     }
 
     std::vector<std::string> Visualizer::getObjectNames() const {
-        std::vector<std::string> res;
+        std::vector<std::string> res(renderables_.size());
+        size_t k = 0;
         for (auto it = renderables_.begin(); it != renderables_.end(); ++it) {
-            res.emplace_back(it->first);
+            res[k++] = it->first;
         }
         return res;
     }

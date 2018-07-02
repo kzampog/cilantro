@@ -51,7 +51,7 @@ int main(int argc, char ** argv) {
     timer.stop();
     std::cout << "Clustering time: " << timer.getElapsedTime() << "ms" << std::endl;
     std::cout << "Number of clusters: " << sc.getNumberOfClusters() << std::endl;
-    std::cout << "Performed k-means iterations: " << sc.getClusterer().getPerformedIterationsCount() << std::endl;
+    std::cout << "Performed k-means iterations: " << sc.getClusterer().getNumberOfPerformedIterations() << std::endl;
 
     const auto& cpi = sc.getClusterPointIndices();
     size_t mins = points.cols(), maxs = 0;

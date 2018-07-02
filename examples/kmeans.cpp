@@ -40,7 +40,7 @@ int main(int argc, char ** argv) {
     timer.stop();
 
     std::cout << "Clustering time: " << timer.getElapsedTime() << "ms" << std::endl;
-    std::cout << "Performed iterations: " << kmc.getPerformedIterationsCount() << std::endl;
+    std::cout << "Performed iterations: " << kmc.getNumberOfPerformedIterations() << std::endl;
 
     const std::vector<std::vector<size_t> >& cpi(kmc.getClusterPointIndices());
     size_t mins = cloud.size(), maxs = 0;

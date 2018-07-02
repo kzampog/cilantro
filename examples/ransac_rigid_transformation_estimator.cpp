@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
             cilantro::RigidTransformation3f tform = te.estimateModelParameters().getModelParameters();
             const auto& inliers = te.getModelInliers();
 
-            std::cout << "RANSAC iterations: " << te.getPerformedIterationsCount() << ", inlier count: " << te.getNumberOfInliers() << std::endl;
+            std::cout << "RANSAC iterations: " << te.getNumberOfPerformedIterations() << ", inlier count: " << te.getNumberOfInliers() << std::endl;
 
             src.transform(tform);
 

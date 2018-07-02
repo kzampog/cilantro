@@ -116,7 +116,7 @@ namespace cilantro {
 
         inline size_t getNumberOfClusters() const { return cluster_point_indices_.size(); }
 
-        inline size_t getPerformedIterationsCount() const { return iteration_count_; }
+        inline size_t getNumberOfPerformedIterations() const { return iteration_count_; }
 
     private:
         ConstVectorSetMatrixMap<ScalarT,EigenDim> data_map_;

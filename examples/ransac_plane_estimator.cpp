@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
             Eigen::Hyperplane<float,3> plane = pe.estimateModelParameters().getModelParameters();
             const auto& inliers = pe.getModelInliers();
 
-            std::cout << "RANSAC iterations: " << pe.getPerformedIterationsCount() << ", inlier count: " << pe.getNumberOfInliers() << std::endl;
+            std::cout << "RANSAC iterations: " << pe.getNumberOfPerformedIterations() << ", inlier count: " << pe.getNumberOfInliers() << std::endl;
 
             cilantro::PointCloud3f planar_cloud(cloud, inliers);
             viz.addObject<cilantro::PointCloudRenderable>("plane", planar_cloud.points, cilantro::RenderingProperties().setPointColor(1,0,0).setPointSize(3.0));
