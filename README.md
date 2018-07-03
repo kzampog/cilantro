@@ -1,7 +1,11 @@
 # cilantro
 [![Build Status](https://travis-ci.org/kzampog/cilantro.svg?branch=master)](https://travis-ci.org/kzampog/cilantro) [![Documentation Status](https://readthedocs.org/projects/cilantro/badge/?version=latest)](http://cilantro.readthedocs.io/en/latest/?badge=latest) [![Documentation](https://codedocs.xyz/kzampog/cilantro.svg)](https://codedocs.xyz/kzampog/cilantro/)
 
-`cilantro` is a lean C++ library for working with point cloud data, with emphasis given to the 3D case. It implements a number of common operations, while attempting to minimize the amount of code required by the user.
+`cilantro` is a lean and fast C++ library for working with point cloud data, with emphasis given to the 3D case.
+It includes efficient implementations for a variety of common operations, providing a clean API and attempting to minimize the amount of boilerplate code.
+The library is extensively templated, enabling operations on point data of arbitrary numerical type and dimensionality (where applicable) and featuring a modular/extensible design of the more complex procedures, while, at the same time, providing convenience aliases/wrappers for the most common cases.
+A high-level description of `cilantro` can be found in our [technical report](https://arxiv.org/abs/1807.00399).
+
 
 ## Supported functionality
 
@@ -36,7 +40,7 @@
 - [Pangolin](https://github.com/stevenlovegrove/Pangolin) (built with Eigen enabled)
 
 ## Building
-`cilantro` is developed and tested on Ubuntu 14.04 and 16.04 variants using [CMake](https://cmake.org/).
+`cilantro` is developed and tested on Ubuntu 14.04, 16.04, and 18.04 variants using [CMake](https://cmake.org/).
 Please note that you may have to manually set up a recent version of Eigen on Ubuntu 14.04, as the one provided in the official repos is outdated.
 To clone and build the library (with bundled examples), execute the following in a terminal:
 
@@ -49,6 +53,21 @@ cmake ..
 make -j
 ```
 
-## Usage examples
-Documentation is sparse at the moment, but the short provided examples cover a significant part of the library's functionality.
-Most of them expect a single command-line argument (path to a point cloud file in PLY format). One such input is bundled in `examples/test_clouds` for quick testing.
+## Documentation
+Documentation ([readthedocs.io](http://cilantro.readthedocs.io/en/latest/?badge=latest), [Doxygen API documentation](https://codedocs.xyz/kzampog/cilantro/)) is a work in progress.
+The short provided examples (built by default) cover a significant part of the library's functionality.
+Most of them expect a single command-line argument (path to a point cloud file in PLY format).
+One such input is bundled in `examples/test_clouds` for quick testing.
+
+## License
+The library is released under the [MIT license](https://github.com/kzampog/cilantro/blob/master/LICENSE).
+If you use `cilantro` in your research, please cite our [technical report](https://arxiv.org/abs/1807.00399):
+```
+@article{cilantro,
+    author = {Konstantinos Zampogiannis and Cornelia Ferm{\"u}ller and Yiannis Aloimonos},
+    title = {cilantro: a lean, versatile, and efficient library for point cloud data processing},
+    archivePrefix = "arXiv",
+    eprint = {1807.00399},
+    year = {2018}
+}
+```
