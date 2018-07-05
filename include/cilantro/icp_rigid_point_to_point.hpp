@@ -28,6 +28,7 @@ namespace cilantro {
         // ICP interface
         inline void initializeComputation() {}
 
+        // ICP interface
         inline void updateCorrespondences() {
             this->correspondence_search_engine_.findCorrespondences(this->transform_, this->correspondences_);
         }

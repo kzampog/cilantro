@@ -108,5 +108,8 @@ namespace cilantro {
 
         Transformation transform_init_;
         Transformation transform_;
+
+        // Default implementation
+        inline void initializeComputation() {}
     };
 }
