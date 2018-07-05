@@ -63,6 +63,8 @@ namespace cilantro {
             transform_ = transform_init_;
             iterations_ = 0;
             last_delta_norm_ = std::numeric_limits<PointScalar>::infinity();
+            icp_instance.initializeComputation();
+
             while (iterations_ < max_iterations_) {
                 // Update correspondences_
                 icp_instance.updateCorrespondences();

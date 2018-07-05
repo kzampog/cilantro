@@ -26,6 +26,8 @@ namespace cilantro {
         VectorSet<ScalarT,EigenDim> src_points_trans_;
 
         // ICP interface
+        inline void initializeComputation() {}
+
         inline void updateCorrespondences() {
             this->correspondence_search_engine_.findCorrespondences(this->transform_, this->correspondences_);
         }

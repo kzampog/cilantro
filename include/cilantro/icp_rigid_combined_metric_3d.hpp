@@ -64,6 +64,8 @@ namespace cilantro {
         ScalarT point_to_plane_weight_;
 
         // ICP interface
+        inline void initializeComputation() {}
+
         inline void updateCorrespondences() {
             this->correspondence_search_engine_.findCorrespondences(this->transform_, this->correspondences_);
         }
