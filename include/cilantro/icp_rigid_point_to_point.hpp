@@ -14,15 +14,19 @@ namespace cilantro {
                                    const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src,
                                    CorrespondenceSearchEngineT &corr_engine)
                 : IterativeClosestPointBase<PointToPointMetricRigidICP<ScalarT,EigenDim,CorrespondenceSearchEngineT>,RigidTransformation<ScalarT,EigenDim>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
-                  dst_points_(dst), src_points_(src), src_points_trans_(src_points_.rows(), src_points_.cols())
+                  dst_points_(dst), src_points_(src),
+                  src_points_trans_(src_points_.rows(), src_points_.cols())
         {
             this->transform_init_.setIdentity();
             this->correspondences_.reserve(std::max(dst_points_.cols(), src_points_.cols()));
         }
 
     private:
+        // Data holders
         ConstVectorSetMatrixMap<ScalarT,EigenDim> dst_points_;
         ConstVectorSetMatrixMap<ScalarT,EigenDim> src_points_;
+
+        // Temporaries
         VectorSet<ScalarT,EigenDim> src_points_trans_;
 
         // ICP interface
