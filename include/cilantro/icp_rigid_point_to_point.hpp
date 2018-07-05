@@ -26,6 +26,10 @@ namespace cilantro {
         VectorSet<ScalarT,EigenDim> src_points_trans_;
 
         // ICP interface
+        inline void updateCorrespondences() {
+            this->correspondence_search_engine_.findCorrespondences(this->transform_, this->correspondences_);
+        }
+
         void updateEstimate() {
 #pragma omp parallel for
             for (size_t i = 0; i < src_points_.cols(); i++) {

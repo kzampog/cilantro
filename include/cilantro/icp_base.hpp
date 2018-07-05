@@ -65,9 +65,10 @@ namespace cilantro {
             last_delta_norm_ = std::numeric_limits<PointScalar>::infinity();
             while (iterations_ < max_iterations_) {
                 // Update correspondences_
-                correspondence_search_engine_.findCorrespondences(transform_, correspondences_);
+                icp_instance.updateCorrespondences();
                 // Update transform_ and last_delta_norm_ based on correspondences_
                 icp_instance.updateEstimate();
+
                 iterations_++;
                 if (last_delta_norm_ < convergence_tol_) break;
             }
