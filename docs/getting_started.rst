@@ -10,7 +10,7 @@ Dependencies
 
 How to build
 ============
-**cilantro**  is developed and tested on Ubuntu 14.04, 16.04, and 18.04 variants using [CMake](https://cmake.org/). Please note that you may have to manually set up a recent version of Eigen on Ubuntu 14.04, as the one provided in the official repos is outdated. To clone and build the library (with bundled examples), execute the following in a terminal:
+**cilantro**  is developed and tested on Ubuntu 14.04, 16.04, and 18.04 variants using CMake_. Please note that you may have to manually set up a recent version of Eigen on Ubuntu 14.04, as the one provided in the official repos is outdated. To clone and build the library (with bundled examples), execute the following in a terminal:
 
 .. code-block:: bash
 
