@@ -6,7 +6,6 @@ It includes efficient implementations for a variety of common operations, provid
 The library is extensively templated, enabling operations on point data of arbitrary numerical type and dimensionality (where applicable) and featuring a modular/extensible design of the more complex procedures, while, at the same time, providing convenience aliases/wrappers for the most common cases.
 A high-level description of `cilantro` can be found in our [technical report](https://arxiv.org/abs/1807.00399).
 
-
 ## Supported functionality
 
 #### Basic operations:

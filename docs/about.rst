@@ -4,7 +4,7 @@ About
 
 What is cilantro?
 =================
-**cilantro** is a lean C++ library for working with point cloud data, with emphasis given to the 3D case. It implements a number of common operations, while attempting to minimize the amount of code required by the user.
+**cilantro** is a lean and fast C++ library for working with point cloud data, with emphasis given to the 3D case. It includes efficient implementations for a variety of common operations, providing a clean API and attempting to minimize the amount of boilerplate code. The library is extensively templated, enabling operations on point data of arbitrary numerical type and dimensionality (where applicable) and featuring a modular/extensible design of the more complex procedures, while, at the same time, providing convenience aliases/wrappers for the most common cases. A high-level description of **cilantro** can be found in our `technical report`_.
 
 Features
 ========
@@ -14,8 +14,8 @@ Features
     * Surface normal and curvature estimation from raw point clouds
     * General dimension grid-based point cloud resampling
     * Principal Component Analysis
-    * Classical Multidimensional Scaling (using bundled Spectra_ for eigendecompositions)
     * Basic I/O utilities for 3D point clouds (in PLY format, using bundled tinyply_) and Eigen matrices
+    * RGBD images to/from point cloud utility functions
 
 * **Convex hulls and spatial reasoning tools:**
     * A general dimension convex polytope representation that is computed (using bundled Qhull_) from either vertex or half-space intersection input and allows for easy switching between the respective representations
@@ -32,10 +32,11 @@ Features
     * Fully generic Iterative Closest Point implementations for point-to-point and point-to-plane metrics (and combinations thereof) that support arbitrary correspondence search methods in arbitrary point feature spaces
 
 * **Visualization:**
+    * Classical Multidimensional Scaling (using bundled Spectra_ for eigendecompositions)
     * A powerful, extensible, and easy to use 3D visualizer
-    * RGBD images to/from point cloud utility functions
 
 .. _nanoflann: https://github.com/jlblancoc/nanoflann
 .. _Spectra: https://github.com/yixuan/spectra
 .. _tinyply: https://github.com/ddiakopoulos/tinyply
 .. _Qhull: http://www.qhull.org/
+.. _technical report: https://arxiv.org/abs/1807.00399
