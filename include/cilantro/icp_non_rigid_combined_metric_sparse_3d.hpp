@@ -13,10 +13,10 @@ namespace cilantro {
         SparseCombinedMetricNonRigidICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
                                          const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
                                          const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
-                                         CorrespondenceSearchEngineT &corr_engine,
                                          size_t num_ctrl_nodes,
                                          const std::vector<NearestNeighborSearchResultSet<ScalarT>> &src_to_ctrl_neighborhoods,
-                                         const std::vector<NearestNeighborSearchResultSet<ScalarT>> &ctrl_regularization_neighborhoods)
+                                         const std::vector<NearestNeighborSearchResultSet<ScalarT>> &ctrl_regularization_neighborhoods,
+                                         CorrespondenceSearchEngineT &corr_engine)
                 : IterativeClosestPointBase<SparseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
                   dst_points_(dst_p), dst_normals_(dst_n), src_points_(src_p),
                   num_ctrl_nodes_(num_ctrl_nodes),
