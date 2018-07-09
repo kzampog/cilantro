@@ -349,6 +349,8 @@ namespace cilantro {
 //        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IdentityPreconditioner> solver;
         Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::DiagonalPreconditioner<ScalarT>> solver;
 //        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,BlockDiagonalPreconditioner<ScalarT,6>> solver;
+        solver.setMaxIterations(max_cg_iter);
+        solver.setTolerance(cg_conv_tol);
 
         // Temporaries
         Eigen::Matrix<ScalarT,3,3> rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db, d_rot_coeffs_dc;
@@ -505,8 +507,6 @@ namespace cilantro {
             AtA = At*At.transpose();
             Atb = At*b;
 
-            solver.setMaxIterations(max_cg_iter);
-            solver.setTolerance(cg_conv_tol);
 //            solver.compute(AtA);
             if (iter == 0) solver.analyzePattern(AtA);
             solver.factorize(AtA);
@@ -658,6 +658,8 @@ namespace cilantro {
 //        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IdentityPreconditioner> solver;
         Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::DiagonalPreconditioner<ScalarT>> solver;
 //        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,BlockDiagonalPreconditioner<ScalarT,6>> solver;
+        solver.setMaxIterations(max_cg_iter);
+        solver.setTolerance(cg_conv_tol);
 
         // Temporaries
         Eigen::Matrix<ScalarT,3,3> rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db, d_rot_coeffs_dc;
@@ -858,8 +860,6 @@ namespace cilantro {
             AtA = At*At.transpose();
             Atb = At*b;
 
-            solver.setMaxIterations(max_cg_iter);
-            solver.setTolerance(cg_conv_tol);
 //            solver.compute(AtA);
             if (iter == 0) solver.analyzePattern(AtA);
             solver.factorize(AtA);
