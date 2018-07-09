@@ -14,7 +14,7 @@ void generate_input_data(cilantro::PointCloud3f &dst,
 {
     dst.gridDownsample(0.005f);
 
-    // Create a distorted and transformed version of the point cloud
+    // Create a distorted and transformed version of the dst point cloud
     src = dst;
     for (size_t i = 0; i < src.size(); i++) {
         src.points.col(i) += 0.01f*Eigen::Vector3f::Random();
@@ -69,7 +69,7 @@ int main(int argc, char ** argv) {
     generate_input_data(dst, src, tf_ref);
 
     // Visualize initial configuration
-    cilantro::Visualizer viz("IterativeClosestPoint example", "disp");
+    cilantro::Visualizer viz("Rigid ICP example", "disp");
     bool proceed = false;
     viz.registerKeyboardCallback('a', std::bind(callback, std::ref(proceed)));
 
