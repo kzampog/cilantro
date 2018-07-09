@@ -58,7 +58,7 @@ int main(int argc, char ** argv) {
     cilantro::PointCloud3f cloud_seg(cloud.points, cloud.normals, colors);
 
     // Visualize result
-    pangolin::CreateWindowAndBind("ConnectedComponentSegmentation demo",1280,480);
+    pangolin::CreateWindowAndBind("ConnectedComponentSegmentation demo", 1280, 480);
     pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual)
         .AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2"));
 

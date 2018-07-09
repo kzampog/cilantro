@@ -4,8 +4,21 @@
 #include <cilantro/common_renderables.hpp>
 #include <cilantro/timer.hpp>
 
-void callback(bool &proceed) {
-    proceed = true;
+void color_toggle(cilantro::Visualizer &viz) {
+    cilantro::RenderingProperties rp = viz.getRenderingProperties("dst");
+    if (rp.pointColor == cilantro::RenderingProperties::noColor) {
+        rp.setPointColor(0.0f, 0.0f, 1.0f);
+    } else {
+        rp.setPointColor(cilantro::RenderingProperties::noColor);
+    }
+    viz.setRenderingProperties("dst", rp);
+    rp = viz.getRenderingProperties("src");
+    if (rp.pointColor == cilantro::RenderingProperties::noColor) {
+        rp.setPointColor(1.0f, 0.0f, 0.0f);
+    } else {
+        rp.setPointColor(cilantro::RenderingProperties::noColor);
+    }
+    viz.setRenderingProperties("src", rp);
 }
 
 void generate_input_data(cilantro::PointCloud3f &dst,
@@ -62,26 +75,11 @@ int main(int argc, char ** argv) {
     cilantro::RigidTransformation3f tf_ref;
 
     if (!dst.hasNormals()) {
-        std::cout << "Input cloud does not have normals!" << std::endl;
+        std::cout << "Input cloud is empty or does not have normals!" << std::endl;
         return 0;
     }
 
     generate_input_data(dst, src, tf_ref);
-
-    // Visualize initial configuration
-    cilantro::Visualizer viz("Rigid ICP example", "disp");
-    bool proceed = false;
-    viz.registerKeyboardCallback('a', std::bind(callback, std::ref(proceed)));
-
-    viz.addObject<cilantro::PointCloudRenderable>("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
-    viz.addObject<cilantro::PointCloudRenderable>("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
-
-    std::cout << "Press 'a' to compute transformation" << std::endl;
-    while (!proceed && !viz.wasStopped()) {
-        if (viz.wasStopped()) return 0;
-        viz.spinOnce();
-    }
-    proceed = false;
 
     // Perform ICP registration
     cilantro::Timer timer;
@@ -126,33 +124,44 @@ int main(int argc, char ** argv) {
     std::cout << "TRUE transformation:" << std::endl << tf_ref.inverse().matrix() << std::endl;
     std::cout << "ESTIMATED transformation R:" << std::endl << tf_est.matrix() << std::endl;
 
-    // Visualize registration results
-    cilantro::PointCloud3f src_trans(src);
-
-    src_trans.transform(tf_est);
-
-    viz.addObject<cilantro::PointCloudRenderable>("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
-    viz.addObject<cilantro::PointCloudRenderable>("src", src_trans, cilantro::RenderingProperties().setPointColor(1,0,0));
-
-    std::cout << "Press 'a' to compute residuals" << std::endl;
-    while (!proceed && !viz.wasStopped()) {
-        if (viz.wasStopped()) return 0;
-        viz.spinOnce();
-    }
-    proceed = false;
-
     timer.start();
     auto residuals = icp.getResiduals();
     timer.stop();
     std::cout << "Residual computation time: " << timer.getElapsedTime() << "ms" << std::endl;
 
-    viz.clear();
-    viz.addObject<cilantro::PointCloudRenderable>("src", src_trans, cilantro::RenderingProperties().setUseLighting(false))
+    // Visualization
+    pangolin::CreateWindowAndBind("Rigid ICP example", 1920, 480);
+    pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual)
+            .AddDisplay(pangolin::Display("initial"))
+            .AddDisplay(pangolin::Display("registration"))
+            .AddDisplay(pangolin::Display("residuals"));
+
+    cilantro::Visualizer initial_viz("Rigid ICP example", "initial");
+    cilantro::Visualizer registration_viz("Rigid ICP example", "registration");
+    cilantro::Visualizer residuals_viz("Rigid ICP example", "residuals");
+
+    // Initial state
+    initial_viz.registerKeyboardCallback('c', std::bind(color_toggle, std::ref(initial_viz)));
+    initial_viz.addObject<cilantro::PointCloudRenderable>("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
+    initial_viz.addObject<cilantro::PointCloudRenderable>("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
+
+    // Registration result
+    src.transform(tf_est);
+    registration_viz.registerKeyboardCallback('c', std::bind(color_toggle, std::ref(registration_viz)));
+    registration_viz.addObject<cilantro::PointCloudRenderable>("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
+    registration_viz.addObject<cilantro::PointCloudRenderable>("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
+
+    // Residuals
+    residuals_viz.addObject<cilantro::PointCloudRenderable>("src", src, cilantro::RenderingProperties().setUseLighting(false))
             ->setPointValues(residuals);
 
-    while (!proceed && !viz.wasStopped()) {
-        if (viz.wasStopped()) return 0;
-        viz.spinOnce();
+    std::cout << "Press 'c' to toggle point cloud colors" << std::endl;
+    while (!initial_viz.wasStopped() && !registration_viz.wasStopped() && !residuals_viz.wasStopped()) {
+        initial_viz.clearRenderArea();
+        initial_viz.render();
+        registration_viz.render();
+        residuals_viz.render();
+        pangolin::FinishFrame();
     }
 
     return 0;
