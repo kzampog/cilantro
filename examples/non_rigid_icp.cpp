@@ -47,16 +47,10 @@ int main(int argc, char ** argv) {
         return 0;
     }
 
-    // Parameter values
+    // Neighborhood parameters
     float control_res = 0.025f;
     float src_to_control_sigma = 0.5f*control_res;
-    float regularization_sigma = 2.0f*control_res;
-
-    size_t max_icp_iter = 8;
-    size_t max_gauss_newton_iter = 4;
-    size_t max_conjugate_gradient_iter = 500;
-    float conv_tol = 5e-4f;
-    float stiffness = 200.0f;
+    float regularization_sigma = 3.0f*control_res;
 
     float max_correspondence_dist_sq = 0.02f*0.02f;
 
@@ -71,7 +65,7 @@ int main(int argc, char ** argv) {
 
     // Get regularization neighborhoods for control nodes
     std::vector<cilantro::NearestNeighborSearchResultSet<float>> regularization_nn;
-    control_tree.search(control_points, cilantro::kNNNeighborhood<float>(6), regularization_nn);
+    control_tree.search(control_points, cilantro::kNNNeighborhood<float>(8), regularization_nn);
     distances_to_weights(regularization_nn, regularization_sigma);
 
     // Perform ICP registration
@@ -81,13 +75,14 @@ int main(int argc, char ** argv) {
     cilantro::SimpleSparseCombinedMetricNonRigidICP3f icp(dst.points, dst.normals, src.points, control_points.cols(), src_to_control_nn, regularization_nn);
 
     // Parameter setting
+//    icp.correspondenceSearchEngine().setMaxDistance(max_correspondence_dist_sq).setSearchDirection(cilantro::CorrespondenceSearchDirection::BOTH);
     icp.correspondenceSearchEngine().setMaxDistance(max_correspondence_dist_sq);
 
-    icp.setMaxNumberOfIterations(max_icp_iter).setConvergenceTolerance(5*conv_tol);
-    icp.setMaxNumberOfGaussNewtonIterations(max_gauss_newton_iter).setGaussNewtonConvergenceTolerance(conv_tol);
-    icp.setMaxNumberOfConjugateGradientIterations(max_conjugate_gradient_iter).setConjugateGradientConvergenceTolerance(conv_tol);
-    icp.setPointToPointMetricWeight(0.0f).setPointToPlaneMetricWeight(1.0f).setStiffnessRegularizationWeight(stiffness);
-    icp.setHuberLossBoundary(1e-4f);
+    icp.setMaxNumberOfIterations(15).setConvergenceTolerance(2.5e-3f);
+    icp.setMaxNumberOfGaussNewtonIterations(1).setGaussNewtonConvergenceTolerance(5e-4f);
+    icp.setMaxNumberOfConjugateGradientIterations(500).setConjugateGradientConvergenceTolerance(1e-5f);
+    icp.setPointToPointMetricWeight(0.0f).setPointToPlaneMetricWeight(1.0f).setStiffnessRegularizationWeight(200.0f);
+    icp.setHuberLossBoundary(1e-2f);
 
     auto tf_est = icp.estimateTransformation().getPointTransformations();
 
