@@ -352,6 +352,21 @@ namespace cilantro {
             return cloud;
         }
 
+        inline PointCloud& transform(const RigidTransformationSet<ScalarT,EigenDim> &tforms) {
+            if (hasNormals()) {
+                tforms.warpPointsNormals(points, normals);
+            } else {
+                tforms.warpPoints(points);
+            }
+            return *this;
+        }
+
+        inline PointCloud transformed(const RigidTransformationSet<ScalarT,EigenDim> &tforms) const {
+            PointCloud cloud(*this);
+            cloud.transform(tforms);
+            return cloud;
+        }
+
         template <class DepthConverterT, class = typename std::enable_if<EigenDim == 3 && std::is_same<typename DepthConverterT::MetricDepth,ScalarT>::value>::type>
         inline PointCloud& fromDepthImage(const typename DepthConverterT::RawDepth* depth_data,
                                           const DepthConverterT &depth_converter,
