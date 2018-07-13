@@ -2,6 +2,7 @@
 
 #include <Eigen/Sparse>
 #include <cilantro/space_transformations.hpp>
+#include <cilantro/nearest_neighbors.hpp>
 #include <cilantro/correspondence.hpp>
 
 namespace cilantro {

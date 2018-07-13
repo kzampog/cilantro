@@ -1,9 +1,9 @@
 #pragma once
 
 #include <memory>
-#include <cilantro/kmeans.hpp>
 #include <cilantro/3rd_party/spectra/SymEigsSolver.h>
 #include <cilantro/3rd_party/spectra/SymGEigsSolver.h>
+#include <cilantro/kmeans.hpp>
 
 namespace cilantro {
     template <typename ScalarT>

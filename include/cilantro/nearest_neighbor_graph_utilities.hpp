@@ -1,14 +1,14 @@
 #pragma once
 
 #include <Eigen/Sparse>
-#include <cilantro/kd_tree.hpp>
+#include <cilantro/nearest_neighbors.hpp>
 
 namespace cilantro {
     // Dummy function evaluators for neighboring point pairs
     template <typename ScalarT, typename ValueT>
     struct AdjacencyEvaluator {
         inline ValueT operator()(size_t pt_ind, size_t nn_ind, ScalarT dist) const {
-            return 1;
+            return (ValueT)1;
         }
     };
 
@@ -25,10 +25,12 @@ namespace cilantro {
     {
         std::vector<size_t> deg(adj_list.size());
         if (remove_self) {
+#pragma omp parallel for
             for (size_t i = 0; i < deg.size(); i++) {
                 deg[i] = adj_list[i].size() - 1;
             }
         } else {
+#pragma omp parallel for
             for (size_t i = 0; i < deg.size(); i++) {
                 deg[i] = adj_list[i].size();
             }
@@ -41,6 +43,7 @@ namespace cilantro {
                                    bool remove_self = true)
     {
         size_t max = 0;
+#pragma omp parallel for reduction (max: max)
         for (size_t i = 0; i < adj_list.size(); i++) {
             if (max < adj_list[i].size()) max = adj_list[i].size();
         }
@@ -52,6 +55,7 @@ namespace cilantro {
                                       bool remove_self = true)
     {
         size_t sum = 0;
+#pragma omp parallel for reduction (+: sum)
         for (size_t i = 0; i < adj_list.size(); i++) {
             sum += adj_list[i].size();
         }

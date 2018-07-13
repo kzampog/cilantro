@@ -2,7 +2,6 @@
 
 #include <cilantro/ransac_base.hpp>
 #include <cilantro/rigid_registration_utilities.hpp>
-#include <cilantro/correspondence.hpp>
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>

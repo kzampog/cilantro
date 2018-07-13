@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <cilantro/correspondence.hpp>
+#include <cilantro/correspondence_search_kd_tree.hpp>
 
 namespace cilantro {
     template <typename T, typename = int>
