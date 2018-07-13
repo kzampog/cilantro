@@ -41,7 +41,7 @@ namespace cilantro {
 
             Eigen::Matrix<bool,Eigen::Dynamic,1> has_converged = Eigen::Matrix<bool,Eigen::Dynamic,1>::Constant(shifted_seeds_.cols(), 1, false);
             bool all_converged;
-            NearestNeighborSearchResultSet<ScalarT> nn;
+            NeighborSet<ScalarT> nn;
 
             while (iteration_count_ < max_iter) {
                 all_converged = true;

@@ -25,7 +25,7 @@ void warp_toggle(cilantro::Visualizer &viz) {
     viz.toggleVisibility("corr");
 }
 
-void distances_to_weights(std::vector<cilantro::NearestNeighborSearchResultSet<float>> &nn, float sigma) {
+void distances_to_weights(std::vector<cilantro::NeighborSet<float>> &nn, float sigma) {
     const float sigma_inv_sq = 1.0f/(sigma*sigma);
 #pragma omp parallel for shared (nn)
     for (size_t i = 0; i < nn.size(); i++) {
@@ -59,12 +59,12 @@ int main(int argc, char ** argv) {
     cilantro::KDTree<float,3> control_tree(control_points);
 
     // Find which control nodes affect each point in src
-    std::vector<cilantro::NearestNeighborSearchResultSet<float>> src_to_control_nn;
+    std::vector<cilantro::NeighborSet<float>> src_to_control_nn;
     control_tree.search(src.points, cilantro::kNNNeighborhood<float>(4), src_to_control_nn);
     distances_to_weights(src_to_control_nn, src_to_control_sigma);
 
     // Get regularization neighborhoods for control nodes
-    std::vector<cilantro::NearestNeighborSearchResultSet<float>> regularization_nn;
+    std::vector<cilantro::NeighborSet<float>> regularization_nn;
     control_tree.search(control_points, cilantro::kNNNeighborhood<float>(8), regularization_nn);
     distances_to_weights(regularization_nn, regularization_sigma);
 

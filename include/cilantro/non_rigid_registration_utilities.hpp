@@ -8,7 +8,7 @@ namespace cilantro {
     // Values interpreted as weights
     template <typename ScalarT, ptrdiff_t EigenDim>
     void resampleTransformations(const RigidTransformationSet<ScalarT,EigenDim> &old_transforms,
-                                 const std::vector<NearestNeighborSearchResultSet<ScalarT>> &new_to_old_map,
+                                 const std::vector<NeighborSet<ScalarT>> &new_to_old_map,
                                  RigidTransformationSet<ScalarT,EigenDim> &new_transforms)
     {
         new_transforms.resize(new_to_old_map.size());
@@ -40,7 +40,7 @@ namespace cilantro {
     // Values interpreted as weights
     template <typename ScalarT, ptrdiff_t EigenDim>
     inline RigidTransformationSet<ScalarT,EigenDim> resampleTransformations(const RigidTransformationSet<ScalarT,EigenDim> &old_transforms,
-                                                                            const std::vector<NearestNeighborSearchResultSet<ScalarT>> &new_to_old_map)
+                                                                            const std::vector<NeighborSet<ScalarT>> &new_to_old_map)
     {
         RigidTransformationSet<ScalarT,EigenDim> new_transforms;
         resampleTransformations<ScalarT,EigenDim>(old_transforms, new_to_old_map, new_transforms);
@@ -50,7 +50,7 @@ namespace cilantro {
     // Values interpreted as distances
     template <typename ScalarT, ptrdiff_t EigenDim>
     void resampleTransformations(const RigidTransformationSet<ScalarT,EigenDim> &old_transforms,
-                                 const std::vector<NearestNeighborSearchResultSet<ScalarT>> &new_to_old_map,
+                                 const std::vector<NeighborSet<ScalarT>> &new_to_old_map,
                                  ScalarT distance_sigma,
                                  RigidTransformationSet<ScalarT,EigenDim> &new_transforms)
     {
@@ -85,7 +85,7 @@ namespace cilantro {
     // Values interpreted as distances
     template <typename ScalarT, ptrdiff_t EigenDim>
     inline RigidTransformationSet<ScalarT,EigenDim> resampleTransformations(const RigidTransformationSet<ScalarT,EigenDim> &old_transforms,
-                                                                            const std::vector<NearestNeighborSearchResultSet<ScalarT>> &new_to_old_map,
+                                                                            const std::vector<NeighborSet<ScalarT>> &new_to_old_map,
                                                                             ScalarT distance_sigma)
     {
         RigidTransformationSet<ScalarT,EigenDim> new_transforms;
@@ -104,7 +104,7 @@ namespace cilantro {
         new_transforms.resize(new_support.cols());
         const ScalarT sigma_inv_sq = (ScalarT)(1.0)/(distance_sigma*distance_sigma);
 
-        NearestNeighborSearchResultSet<ScalarT> nn;
+        NeighborSet<ScalarT> nn;
         ScalarT curr_weight, total_weight;
 
 #pragma omp parallel for shared (new_transforms) private (nn, curr_weight, total_weight)
@@ -265,7 +265,7 @@ namespace cilantro {
                                                const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
                                                const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
                                                const CorrespondenceSet<CorrValueT> &correspondences,
-                                               const std::vector<NearestNeighborSearchResultSet<ScalarT>> &regularization_neighborhoods,
+                                               const std::vector<NeighborSet<ScalarT>> &regularization_neighborhoods,
                                                RigidTransformationSet<ScalarT,3> &transforms,
                                                ScalarT point_to_point_weight,
                                                ScalarT point_to_plane_weight,
@@ -550,8 +550,8 @@ namespace cilantro {
                                                 const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
                                                 const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
                                                 size_t num_ctrl_points,
-                                                const std::vector<NearestNeighborSearchResultSet<ScalarT>> &src_to_ctrl_neighborhoods,
-                                                const std::vector<NearestNeighborSearchResultSet<ScalarT>> &regularization_neighborhoods,
+                                                const std::vector<NeighborSet<ScalarT>> &src_to_ctrl_neighborhoods,
+                                                const std::vector<NeighborSet<ScalarT>> &regularization_neighborhoods,
                                                 RigidTransformationSet<ScalarT,3> &transforms,
                                                 ScalarT point_to_point_weight,
                                                 ScalarT point_to_plane_weight,
@@ -614,11 +614,11 @@ namespace cilantro {
         // Values
         ScalarT * const values = At.valuePtr();
         // Outer pointers
-        std::vector<NearestNeighborSearchResultSet<ScalarT>> src_to_ctrl_sorted(src_to_ctrl_neighborhoods);
+        std::vector<NeighborSet<ScalarT>> src_to_ctrl_sorted(src_to_ctrl_neighborhoods);
         typename Eigen::SparseMatrix<ScalarT>::StorageIndex * const outer_ptr = At.outerIndexPtr();
 #pragma omp parallel for
         for (size_t i = 0; i < src_to_ctrl_neighborhoods.size(); i++) {
-            std::sort(src_to_ctrl_sorted[i].begin(), src_to_ctrl_sorted[i].end(), typename NearestNeighborSearchResult<ScalarT>::IndexLessComparator());
+            std::sort(src_to_ctrl_sorted[i].begin(), src_to_ctrl_sorted[i].end(), typename Neighbor<ScalarT>::IndexLessComparator());
             const size_t offset = 6*src_to_ctrl_neighborhoods[i].size();
             outer_ptr[4*i] = nz_coeff_ind[i];
             outer_ptr[4*i + 1] = nz_coeff_ind[i] + offset;
@@ -905,8 +905,8 @@ namespace cilantro {
                                                 const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
                                                 const CorrespondenceSet<CorrValueT> &corr,
                                                 size_t num_ctrl_points,
-                                                const std::vector<NearestNeighborSearchResultSet<ScalarT>> &src_to_ctrl_neighborhoods,
-                                                const std::vector<NearestNeighborSearchResultSet<ScalarT>> &regularization_neighborhoods,
+                                                const std::vector<NeighborSet<ScalarT>> &src_to_ctrl_neighborhoods,
+                                                const std::vector<NeighborSet<ScalarT>> &regularization_neighborhoods,
                                                 RigidTransformationSet<ScalarT,3> &transforms,
                                                 ScalarT point_to_point_weight,
                                                 ScalarT point_to_plane_weight,
@@ -920,7 +920,7 @@ namespace cilantro {
         VectorSet<ScalarT,3> dst_p_corr(3, corr.size());
         VectorSet<ScalarT,3> dst_n_corr(3, corr.size());
         VectorSet<ScalarT,3> src_p_corr(3, corr.size());
-        std::vector<NearestNeighborSearchResultSet<ScalarT>> src_to_ctrl_neighborhoods_corr(corr.size());
+        std::vector<NeighborSet<ScalarT>> src_to_ctrl_neighborhoods_corr(corr.size());
 #pragma omp parallel for
         for (size_t i = 0; i < corr.size(); i++) {
             dst_p_corr.col(i) = dst_p.col(corr[i].indexInFirst);

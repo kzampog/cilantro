@@ -28,9 +28,10 @@ include_directories(${OTHER_INCLUDES})
 # Build library
 
 file(GLOB_RECURSE 3rd_src ${CMAKE_SOURCE_DIR}/src/3rd_party/*.c ${CMAKE_SOURCE_DIR}/src/3rd_party/*.cpp)
+file(GLOB lib_include ${CMAKE_SOURCE_DIR}/include/cilantro/*.hpp)
 file(GLOB lib_src ${CMAKE_SOURCE_DIR}/src/*.cpp)
 
-add_library(${PROJECT_NAME} SHARED ${3rd_src} ${lib_src})
+add_library(${PROJECT_NAME} SHARED ${3rd_src} ${lib_include} ${lib_src})
 target_link_libraries(${PROJECT_NAME} ${Pangolin_LIBRARIES})
 
 # Configure Doxyfile

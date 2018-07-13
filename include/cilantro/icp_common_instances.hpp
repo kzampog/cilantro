@@ -109,7 +109,7 @@ namespace cilantro {
         SimpleDenseCombinedMetricNonRigidICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_points,
                                               const ConstVectorSetMatrixMap<ScalarT,3> &dst_normals,
                                               const ConstVectorSetMatrixMap<ScalarT,3> &src_points,
-                                              const std::vector<NearestNeighborSearchResultSet<ScalarT>> &regularization_neighborhoods)
+                                              const std::vector<NeighborSet<ScalarT>> &regularization_neighborhoods)
                 : std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>(PointFeaturesAdaptor<ScalarT,3>(dst_points), PointFeaturesAdaptor<ScalarT,3>(src_points)),
                   CorrespondenceDistanceEvaluator<ScalarT>(),
                   ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>(this->first, this->second, *this),
@@ -132,7 +132,7 @@ namespace cilantro {
         SimpleDenseCombinedMetricNonRigidProjectiveICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_points,
                                                         const ConstVectorSetMatrixMap<ScalarT,3> &dst_normals,
                                                         const ConstVectorSetMatrixMap<ScalarT,3> &src_points,
-                                                        const std::vector<NearestNeighborSearchResultSet<ScalarT>> &regularization_neighborhoods)
+                                                        const std::vector<NeighborSet<ScalarT>> &regularization_neighborhoods)
                 : std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>(PointFeaturesAdaptor<ScalarT,3>(dst_points), PointFeaturesAdaptor<ScalarT,3>(src_points)),
                   CorrespondenceDistanceEvaluator<ScalarT>(),
                   ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>(this->first, this->second, *this),
@@ -156,8 +156,8 @@ namespace cilantro {
                                                const ConstVectorSetMatrixMap<ScalarT,3> &dst_normals,
                                                const ConstVectorSetMatrixMap<ScalarT,3> &src_points,
                                                size_t num_control_nodes,
-                                               const std::vector<NearestNeighborSearchResultSet<ScalarT>> &src_to_control_neighborhoods,
-                                               const std::vector<NearestNeighborSearchResultSet<ScalarT>> &control_regularization_neighborhoods)
+                                               const std::vector<NeighborSet<ScalarT>> &src_to_control_neighborhoods,
+                                               const std::vector<NeighborSet<ScalarT>> &control_regularization_neighborhoods)
                 : std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>(PointFeaturesAdaptor<ScalarT,3>(dst_points), PointFeaturesAdaptor<ScalarT,3>(src_points)),
                   CorrespondenceDistanceEvaluator<ScalarT>(),
                   ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>(this->first, this->second, *this),
@@ -181,8 +181,8 @@ namespace cilantro {
                                                          const ConstVectorSetMatrixMap<ScalarT,3> &dst_normals,
                                                          const ConstVectorSetMatrixMap<ScalarT,3> &src_points,
                                                          size_t num_control_nodes,
-                                                         const std::vector<NearestNeighborSearchResultSet<ScalarT>> &src_to_control_neighborhoods,
-                                                         const std::vector<NearestNeighborSearchResultSet<ScalarT>> &control_regularization_neighborhoods)
+                                                         const std::vector<NeighborSet<ScalarT>> &src_to_control_neighborhoods,
+                                                         const std::vector<NeighborSet<ScalarT>> &control_regularization_neighborhoods)
                 : std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>(PointFeaturesAdaptor<ScalarT,3>(dst_points), PointFeaturesAdaptor<ScalarT,3>(src_points)),
                   CorrespondenceDistanceEvaluator<ScalarT>(),
                   ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>(this->first, this->second, *this),

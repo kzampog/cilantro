@@ -14,8 +14,8 @@ namespace cilantro {
                                          const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
                                          const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
                                          size_t num_ctrl_nodes,
-                                         const std::vector<NearestNeighborSearchResultSet<ScalarT>> &src_to_ctrl_neighborhoods,
-                                         const std::vector<NearestNeighborSearchResultSet<ScalarT>> &ctrl_regularization_neighborhoods,
+                                         const std::vector<NeighborSet<ScalarT>> &src_to_ctrl_neighborhoods,
+                                         const std::vector<NeighborSet<ScalarT>> &ctrl_regularization_neighborhoods,
                                          CorrespondenceSearchEngineT &corr_engine)
                 : IterativeClosestPointBase<SparseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
                   dst_points_(dst_p), dst_normals_(dst_n), src_points_(src_p),
@@ -99,8 +99,8 @@ namespace cilantro {
         ConstVectorSetMatrixMap<ScalarT,3> dst_normals_;
         ConstVectorSetMatrixMap<ScalarT,3> src_points_;
         size_t num_ctrl_nodes_;
-        const std::vector<NearestNeighborSearchResultSet<ScalarT>>& src_to_ctrl_neighborhoods_;
-        const std::vector<NearestNeighborSearchResultSet<ScalarT>>& ctrl_regularization_neighborhoods_;
+        const std::vector<NeighborSet<ScalarT>>& src_to_ctrl_neighborhoods_;
+        const std::vector<NeighborSet<ScalarT>>& ctrl_regularization_neighborhoods_;
 
         // Parameters
         ScalarT point_to_point_weight_;
@@ -154,7 +154,7 @@ namespace cilantro {
             }
             VectorSet<ScalarT,1> res(1, src_points_.cols());
             KDTree<ScalarT,3,KDTreeDistanceAdaptors::L2> dst_tree(dst_points_);
-            NearestNeighborSearchResult<ScalarT> nn;
+            Neighbor<ScalarT> nn;
             Vector<ScalarT,3> src_p_trans;
 #pragma omp parallel for shared (res) private (nn, src_p_trans)
             for (size_t i = 0; i < src_points_.cols(); i++) {

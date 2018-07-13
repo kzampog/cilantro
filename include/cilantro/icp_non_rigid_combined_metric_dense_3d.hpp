@@ -13,7 +13,7 @@ namespace cilantro {
         DenseCombinedMetricNonRigidICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
                                         const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
                                         const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
-                                        const std::vector<NearestNeighborSearchResultSet<ScalarT>> &regularization_neighborhoods,
+                                        const std::vector<NeighborSet<ScalarT>> &regularization_neighborhoods,
                                         CorrespondenceSearchEngineT &corr_engine)
                 : IterativeClosestPointBase<DenseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
                   dst_points_(dst_p), dst_normals_(dst_n), src_points_(src_p),
@@ -89,7 +89,7 @@ namespace cilantro {
         ConstVectorSetMatrixMap<ScalarT,3> dst_points_;
         ConstVectorSetMatrixMap<ScalarT,3> dst_normals_;
         ConstVectorSetMatrixMap<ScalarT,3> src_points_;
-        const std::vector<NearestNeighborSearchResultSet<ScalarT>>& regularization_neighborhoods_;
+        const std::vector<NeighborSet<ScalarT>>& regularization_neighborhoods_;
 
         // Parameters
         ScalarT point_to_point_weight_;
@@ -139,7 +139,7 @@ namespace cilantro {
             }
             VectorSet<ScalarT,1> res(1, src_points_.cols());
             KDTree<ScalarT,3,KDTreeDistanceAdaptors::L2> dst_tree(dst_points_);
-            NearestNeighborSearchResult<ScalarT> nn;
+            Neighbor<ScalarT> nn;
             Vector<ScalarT,3> src_p_trans;
 #pragma omp parallel for shared (res) private (nn, src_p_trans)
             for (size_t i = 0; i < src_points_.cols(); i++) {

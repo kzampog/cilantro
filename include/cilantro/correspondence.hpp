@@ -138,7 +138,7 @@ namespace cilantro {
 
         CorrespondenceSet<CorrValueT> corr_tmp(query_pts.cols());
 
-        NearestNeighborSearchResult<ScalarT> nn;
+        Neighbor<ScalarT> nn;
 
         if (ref_is_first) {
 #pragma omp parallel for shared (correspondences) private (nn)

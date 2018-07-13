@@ -25,7 +25,7 @@ void generate_input_data(cilantro::VectorSet3f &points, Eigen::SparseMatrix<floa
     // Build neighborhood graph
     // 30 neighbors
     auto nh = cilantro::kNNNeighborhood<float>(30);
-    std::vector<cilantro::NearestNeighborSearchResultSet<float>> nn;
+    std::vector<cilantro::NeighborSet<float>> nn;
     cilantro::KDTree3f(points).search(points, nh, nn);
     affinities = cilantro::getNNGraphFunctionValueSparseMatrix(nn, AffinityEvaluator(), true);
 }
