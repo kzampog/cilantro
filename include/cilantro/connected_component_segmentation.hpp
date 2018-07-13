@@ -274,7 +274,7 @@ namespace cilantro {
             }
 
             component_point_indices_.clear();
-            for (size_t i = seeds_to_merge_with.size()-1; i < -1; i--) {
+            for (size_t i = seeds_to_merge_with.size() - 1; i != static_cast<size_t>(-1); i--) {
                 if (seeds_to_merge_with[i].empty()) continue;
                 size_t min_seed_ind = *seeds_to_merge_with[i].begin();
                 if (min_seed_ind < i) {
@@ -366,7 +366,7 @@ namespace cilantro {
             }
 
             component_point_indices_.clear();
-            for (size_t i = seeds_to_merge_with.size()-1; i < -1; i--) {
+            for (size_t i = seeds_to_merge_with.size() - 1; i != static_cast<size_t>(-1); i--) {
                 if (seeds_to_merge_with[i].empty()) continue;
                 size_t min_seed_ind = *seeds_to_merge_with[i].begin();
                 if (min_seed_ind < i) {

@@ -279,7 +279,7 @@ namespace cilantro {
         {
             this->kNNSearch(query_pt, k, results);
             size_t ind = results.size() - 1;
-            while (ind >= 0 && results[ind].value >= radius) ind--;
+            while (ind != static_cast<size_t>(-1) && results[ind].value >= radius) ind--;
             results.resize(ind+1);
 //            KDTree::radiusSearch(query_pt, radius, neighbors, distances);
 //            if (neighbors.size() > k) {

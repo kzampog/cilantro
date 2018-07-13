@@ -78,7 +78,7 @@ namespace cilantro {
                                                                                            const PairEvaluatorT &evaluator = PairEvaluatorT(),
                                                                                            bool force_symmetry = false)
     {
-        Eigen::Matrix<ValueT,Eigen::Dynamic,Eigen::Dynamic> mat(Eigen::Matrix<ValueT,Eigen::Dynamic,Eigen::Dynamic>::Zero(adj_list.size(),adj_list.size()));
+        Eigen::Matrix<ValueT,Eigen::Dynamic,Eigen::Dynamic> mat(Eigen::Matrix<ValueT,Eigen::Dynamic,Eigen::Dynamic>::Zero(adj_list.size(), adj_list.size()));
         if (force_symmetry) {
             for (size_t i = 0; i < adj_list.size(); i++) {
                 for (size_t j = 0; j < adj_list[i].size(); j++) {
@@ -121,7 +121,7 @@ namespace cilantro {
             }
         }
 
-        Eigen::SparseMatrix<ValueT> mat(adj_list.size(),adj_list.size());
+        Eigen::SparseMatrix<ValueT> mat(adj_list.size(), adj_list.size());
         mat.setFromTriplets(triplet_list.begin(), triplet_list.end());
 
         return mat;
