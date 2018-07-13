@@ -8,6 +8,7 @@
 #include <cilantro/convex_hull_utilities.hpp>
 #include <cilantro/convex_polytope.hpp>
 #include <cilantro/correspondence.hpp>
+#include <cilantro/correspondence_search_kd_tree.hpp>
 #include <cilantro/data_containers.hpp>
 #include <cilantro/flat_convex_hull_3d.hpp>
 #include <cilantro/grid_accumulator.hpp>
@@ -29,6 +30,7 @@
 #include <cilantro/mean_shift.hpp>
 #include <cilantro/multidimensional_scaling.hpp>
 #include <cilantro/nearest_neighbor_graph_utilities.hpp>
+#include <cilantro/nearest_neighbors.hpp>
 #include <cilantro/non_rigid_registration_utilities.hpp>
 #include <cilantro/normal_estimation.hpp>
 #include <cilantro/point_cloud.hpp>
