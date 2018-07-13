@@ -52,6 +52,10 @@ namespace cilantro {
 
     template <typename ScalarT>
     struct Neighbor {
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        typedef ScalarT Scalar;
+
         size_t index;
         ScalarT value;
 

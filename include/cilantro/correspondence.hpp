@@ -11,13 +11,13 @@ namespace cilantro {
 
         typedef ScalarT Scalar;
 
-        Correspondence() {}
-
-        Correspondence(size_t i, size_t j, ScalarT val) : indexInFirst(i), indexInSecond(j), value(val) {}
-
         size_t indexInFirst;
         size_t indexInSecond;
         ScalarT value;
+
+        Correspondence() {}
+
+        Correspondence(size_t i, size_t j, ScalarT val) : indexInFirst(i), indexInSecond(j), value(val) {}
 
         struct ValueLessComparator {
             inline bool operator()(const Correspondence &c1, const Correspondence &c2) const {
