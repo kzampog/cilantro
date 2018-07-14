@@ -44,8 +44,8 @@ int main(int argc, char ** argv) {
     timer.start();
 
 //    cilantro::SpectralClustering<float,2> sc(data);
-//    cilantro::SpectralClustering<float,Eigen::Dynamic> sc(data, max_num_clusters, true, cilantro::GraphLaplacianType::UNNORMALIZED);
-//    cilantro::SpectralClustering<float,Eigen::Dynamic> sc(data, max_num_clusters, true, cilantro::GraphLaplacianType::NORMALIZED_SYMMETRIC);
+//    cilantro::SpectralClustering<float> sc(affinities, max_num_clusters, true, cilantro::GraphLaplacianType::UNNORMALIZED);
+//    cilantro::SpectralClustering<float> sc(affinities, max_num_clusters, true, cilantro::GraphLaplacianType::NORMALIZED_SYMMETRIC);
     cilantro::SpectralClustering<float> sc(affinities, max_num_clusters, true, cilantro::GraphLaplacianType::NORMALIZED_RANDOM_WALK);
 
     timer.stop();
