@@ -78,7 +78,7 @@ namespace cilantro {
         void updateEstimate() {
 #pragma omp parallel for
             for (size_t i = 0; i < src_points_.cols(); i++) {
-                src_points_trans_.col(i) = this->transform_*src_points_.col(i);
+                src_points_trans_.col(i).noalias() = this->transform_*src_points_.col(i);
             }
 
             RigidTransformation<ScalarT,3> tform_iter;
@@ -100,7 +100,7 @@ namespace cilantro {
             Vector<ScalarT,3> src_p_trans;
 #pragma omp parallel for shared (res) private (nn, src_p_trans)
             for (size_t i = 0; i < src_points_.cols(); i++) {
-                src_p_trans = this->transform_*src_points_.col(i);
+                src_p_trans.noalias() = this->transform_*src_points_.col(i);
                 dst_tree.nearestNeighborSearch(src_p_trans, nn);
                 ScalarT point_to_plane_dist = dst_normals_.col(nn.index).dot(dst_points_.col(nn.index) - src_p_trans);
                 res[i] = point_to_point_weight_*(dst_points_.col(nn.index) - src_p_trans).squaredNorm() + point_to_plane_weight_*point_to_plane_dist*point_to_plane_dist;

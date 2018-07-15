@@ -312,8 +312,8 @@ namespace cilantro {
                                       const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation)
         {
             PointCloud cloud;
-            cloud.points = (rotation*points).colwise() + translation;
-            if (hasNormals()) cloud.normals = rotation*normals;
+            cloud.points.noalias() = (rotation*points).colwise() + translation;
+            if (hasNormals()) cloud.normals.noalias() = rotation*normals;
             if (hasColors()) cloud.colors = colors;
             return cloud;
         }
@@ -346,8 +346,8 @@ namespace cilantro {
 
         inline PointCloud transformed(const RigidTransformation<ScalarT,EigenDim> &tform) const {
             PointCloud cloud;
-            cloud.points = tform*points;
-            if (hasNormals()) cloud.normals = tform.linear()*normals;
+            cloud.points.noalias() = tform*points;
+            if (hasNormals()) cloud.normals.noalias() = tform.linear()*normals;
             if (hasColors()) cloud.colors = colors;
             return cloud;
         }

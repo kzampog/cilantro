@@ -131,7 +131,7 @@ namespace cilantro {
         void updateEstimate() {
 #pragma omp parallel for
             for (size_t i = 0; i < src_points_.cols(); i++) {
-                src_points_trans_.col(i) = transform_dense_[i]*src_points_.col(i);
+                src_points_trans_.col(i).noalias() = transform_dense_[i]*src_points_.col(i);
             }
 
             estimateSparseWarpFieldCombinedMetric3<ScalarT,typename CorrespondenceSearchEngineT::CorrespondenceScalar>(dst_points_, dst_normals_, src_points_trans_, this->correspondences_, num_ctrl_nodes_, src_to_ctrl_neighborhoods_, ctrl_regularization_neighborhoods_, transform_iter_, point_to_point_weight_, point_to_plane_weight_, stiffness_weight_, huber_boundary_, max_gauss_newton_iterations_, gauss_newton_convergence_tol_, max_conjugate_gradient_iterations_, conjugate_gradient_convergence_tol_);
@@ -158,7 +158,7 @@ namespace cilantro {
             Vector<ScalarT,3> src_p_trans;
 #pragma omp parallel for shared (res) private (nn, src_p_trans)
             for (size_t i = 0; i < src_points_.cols(); i++) {
-                src_p_trans = transform_dense_[i]*src_points_.col(i);
+                src_p_trans.noalias() = transform_dense_[i]*src_points_.col(i);
                 dst_tree.nearestNeighborSearch(src_p_trans, nn);
                 ScalarT point_to_plane_dist = dst_normals_.col(nn.index).dot(dst_points_.col(nn.index) - src_p_trans);
                 res[i] = point_to_point_weight_*(dst_points_.col(nn.index) - src_p_trans).squaredNorm() + point_to_plane_weight_*point_to_plane_dist*point_to_plane_dist;

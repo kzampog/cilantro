@@ -83,7 +83,7 @@ namespace cilantro {
                 k = y*image_w;
                 for (size_t x = 0; x < image_w; x++) {
                     typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
-                    points.col(k++) = extrinsics*Vector<typename DepthConverterT::MetricDepth,3>((x - intrinsics(0,2))*z/intrinsics(0,0), (y - intrinsics(1,2))*z/intrinsics(1,1), z);
+                    points.col(k++).noalias() = extrinsics*Vector<typename DepthConverterT::MetricDepth,3>((x - intrinsics(0,2))*z/intrinsics(0,0), (y - intrinsics(1,2))*z/intrinsics(1,1), z);
                 }
             }
         } else {
@@ -199,7 +199,7 @@ namespace cilantro {
                 k = y*image_w;
                 for (size_t x = 0; x < image_w; x++) {
                     typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
-                    points.col(k) = extrinsics*Vector<typename DepthConverterT::MetricDepth,3>((x - intrinsics(0,2))*z/intrinsics(0,0), (y - intrinsics(1,2))*z/intrinsics(1,1), z);
+                    points.col(k).noalias() = extrinsics*Vector<typename DepthConverterT::MetricDepth,3>((x - intrinsics(0,2))*z/intrinsics(0,0), (y - intrinsics(1,2))*z/intrinsics(1,1), z);
                     colors(0,k) = color_mult*static_cast<float>(rgb_data[3*k]);
                     colors(1,k) = color_mult*static_cast<float>(rgb_data[3*k + 1]);
                     colors(2,k) = color_mult*static_cast<float>(rgb_data[3*k + 2]);
@@ -286,7 +286,7 @@ namespace cilantro {
         Vector<typename DepthConverterT::MetricDepth,3> pt_cam;
 #pragma omp parallel for private (pt_cam)
         for (size_t i = 0; i < points.cols(); i++) {
-            pt_cam = to_cam*points.col(i);
+            pt_cam.noalias() = to_cam*points.col(i);
             if (pt_cam(2) <= (typename DepthConverterT::MetricDepth)0.0) continue;
             size_t x = (size_t)std::llround(pt_cam(0)*intrinsics(0,0)/pt_cam(2) + intrinsics(0,2));
             size_t y = (size_t)std::llround(pt_cam(1)*intrinsics(1,1)/pt_cam(2) + intrinsics(1,2));
@@ -355,7 +355,7 @@ namespace cilantro {
         Vector<typename DepthConverterT::MetricDepth,3> pt_cam;
 #pragma omp parallel for private (pt_cam)
         for (size_t i = 0; i < points.cols(); i++) {
-            pt_cam = to_cam*points.col(i);
+            pt_cam.noalias() = to_cam*points.col(i);
             if (pt_cam(2) <= (typename DepthConverterT::MetricDepth)0.0) continue;
             size_t x = (size_t)std::llround(pt_cam(0)*intrinsics(0,0)/pt_cam(2) + intrinsics(0,2));
             size_t y = (size_t)std::llround(pt_cam(1)*intrinsics(1,1)/pt_cam(2) + intrinsics(1,2));
@@ -414,7 +414,7 @@ namespace cilantro {
         VectorSet<PointT,3> points_cam(3, points.cols());
 #pragma omp parallel for
         for (size_t i = 0; i < points.cols(); i++) {
-            points_cam.col(i) = to_cam*points.col(i);
+            points_cam.col(i).noalias() = to_cam*points.col(i);
         }
 
 #pragma omp parallel for

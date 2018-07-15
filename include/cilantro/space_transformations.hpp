@@ -78,10 +78,10 @@ namespace cilantro {
         }
 
         VectorSet<ScalarT,EigenDim> getWarpedPoints(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points) const {
-            VectorSet<ScalarT,EigenDim> points_t(points);
+            VectorSet<ScalarT,EigenDim> points_t(points.rows(), points.cols());
 #pragma omp parallel for
             for (size_t i = 0; i < points_t.cols(); i++) {
-                points_t.col(i) = (*this)[i]*points_t.col(i);
+                points_t.col(i).noalias() = (*this)[i]*points.col(i);
             }
             return points_t;
         }
@@ -95,10 +95,10 @@ namespace cilantro {
         }
 
         VectorSet<ScalarT,EigenDim> getWarpedNormals(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &normals) const {
-            VectorSet<ScalarT,EigenDim> normals_t(normals);
+            VectorSet<ScalarT,EigenDim> normals_t(normals.rows(), normals.cols());
 #pragma omp parallel for
             for (size_t i = 0; i < normals_t.cols(); i++) {
-                normals_t.col(i) = (*this)[i].linear()*normals_t.col(i);
+                normals_t.col(i).noalias() = (*this)[i].linear()*normals.col(i);
             }
             return normals_t;
         }

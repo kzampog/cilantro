@@ -57,9 +57,9 @@ namespace cilantro {
             Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> J = Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>::Identity(distances.rows(),distances.cols()) - Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>::Constant(distances.rows(),distances.cols(),(ScalarT)(1.0)/distances.rows());
             Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> B;
             if (distances_are_squared) {
-                B = -J*distances*J/2.0;
+                B.noalias() = -(ScalarT)(0.5)*J*distances*J;
             } else {
-                B = -J*distances.array().square().matrix()*J/2.0;
+                B.noalias() = -(ScalarT)(0.5)*J*distances.array().square().matrix()*J;
             }
 
             Spectra::DenseSymMatProd<ScalarT> op(B);

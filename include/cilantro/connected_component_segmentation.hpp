@@ -229,9 +229,9 @@ namespace cilantro {
             std::vector<size_t> frontier_set;
             frontier_set.reserve(neighbors.size());
 
-//            std::vector<std::set<size_t> > ind_per_seed(seeds_ind.size());
-            std::vector<std::vector<size_t> > ind_per_seed(seeds_ind.size());
-            std::vector<std::set<size_t> > seeds_to_merge_with(seeds_ind.size());
+//            std::vector<std::set<size_t>> ind_per_seed(seeds_ind.size());
+            std::vector<std::vector<size_t>> ind_per_seed(seeds_ind.size());
+            std::vector<std::set<size_t>> seeds_to_merge_with(seeds_ind.size());
 
 #pragma omp parallel for shared (seeds_ind, current_label, ind_per_seed, seeds_to_merge_with) private (frontier_set)
             for (size_t i = 0; i < seeds_ind.size(); i++) {
@@ -319,9 +319,9 @@ namespace cilantro {
             std::vector<size_t> frontier_set;
             frontier_set.reserve(points.cols());
 
-//            std::vector<std::set<size_t> > ind_per_seed(seeds_ind.size());
-            std::vector<std::vector<size_t> > ind_per_seed(seeds_ind.size());
-            std::vector<std::set<size_t> > seeds_to_merge_with(seeds_ind.size());
+//            std::vector<std::set<size_t>> ind_per_seed(seeds_ind.size());
+            std::vector<std::vector<size_t>> ind_per_seed(seeds_ind.size());
+            std::vector<std::set<size_t>> seeds_to_merge_with(seeds_ind.size());
 
             NeighborSet<ScalarT> nn;
 

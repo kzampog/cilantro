@@ -23,8 +23,8 @@ namespace cilantro {
             new_transforms[i].translation().setZero();
             for (size_t j = 0; j < new_to_old_map[i].size(); j++) {
                 total_weight += new_to_old_map[i][j].value;
-                new_transforms[i].linear() += new_to_old_map[i][j].value*old_transforms[new_to_old_map[i][j].index].linear();
-                new_transforms[i].translation() += new_to_old_map[i][j].value*old_transforms[new_to_old_map[i][j].index].translation();
+                new_transforms[i].linear().noalias() += new_to_old_map[i][j].value*old_transforms[new_to_old_map[i][j].index].linear();
+                new_transforms[i].translation().noalias() += new_to_old_map[i][j].value*old_transforms[new_to_old_map[i][j].index].translation();
             }
 
             if (total_weight == (ScalarT)0.0) {
@@ -68,8 +68,8 @@ namespace cilantro {
             for (size_t j = 0; j < new_to_old_map[i].size(); j++) {
                 curr_weight = std::exp(-(ScalarT)(0.5)*new_to_old_map[i][j].value*sigma_inv_sq);
                 total_weight += curr_weight;
-                new_transforms[i].linear() += curr_weight*old_transforms[new_to_old_map[i][j].index].linear();
-                new_transforms[i].translation() += curr_weight*old_transforms[new_to_old_map[i][j].index].translation();
+                new_transforms[i].linear().noalias() += curr_weight*old_transforms[new_to_old_map[i][j].index].linear();
+                new_transforms[i].translation().noalias() += curr_weight*old_transforms[new_to_old_map[i][j].index].translation();
             }
 
             if (total_weight == (ScalarT)0.0) {
@@ -94,89 +94,89 @@ namespace cilantro {
         return new_transforms;
     }
 
-    template <typename ScalarT, ptrdiff_t EigenDim, NeighborhoodType NT>
-    void resampleTransformations(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &old_support_kd_tree,
-                                 const RigidTransformationSet<ScalarT,EigenDim> &old_transforms,
-                                 const ConstVectorSetMatrixMap<ScalarT,EigenDim> &new_support,
-                                 const NeighborhoodSpecification<ScalarT> &nh,
-                                 ScalarT distance_sigma,
-                                 RigidTransformationSet<ScalarT,EigenDim> &new_transforms)
-    {
-        new_transforms.resize(new_support.cols());
-        const ScalarT sigma_inv_sq = (ScalarT)(1.0)/(distance_sigma*distance_sigma);
-
-        NeighborSet<ScalarT> nn;
-        ScalarT curr_weight, total_weight;
-
-#pragma omp parallel for shared (new_transforms) private (nn, curr_weight, total_weight)
-        for (size_t i = 0; i < new_transforms.size(); i++) {
-            old_support_kd_tree.template search<NT>(new_support.col(i), nh, nn);
-
-            total_weight = (ScalarT)0.0;
-            new_transforms[i].linear().setZero();
-            new_transforms[i].translation().setZero();
-            for (size_t j = 0; j < nn.size(); j++) {
-                curr_weight = std::exp(-(ScalarT)(0.5)*nn[j].value*sigma_inv_sq);
-                total_weight += curr_weight;
-                new_transforms[i].linear() += curr_weight*old_transforms[nn[j].index].linear();
-                new_transforms[i].translation() += curr_weight*old_transforms[nn[j].index].translation();
-            }
-
-            if (total_weight == (ScalarT)0.0) {
-                new_transforms[i].setIdentity();
-            } else {
-                total_weight = (ScalarT)(1.0)/total_weight;
-                new_transforms[i].linear() *= total_weight;
-                new_transforms[i].linear() = new_transforms[i].rotation();
-                new_transforms[i].translation() *= total_weight;
-            }
-        }
-    }
-
-    template <typename ScalarT, ptrdiff_t EigenDim, NeighborhoodType NT>
-    inline RigidTransformationSet<ScalarT,EigenDim> resampleTransformations(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &old_support_kd_tree,
-                                                                            const RigidTransformationSet<ScalarT,EigenDim> &old_transforms,
-                                                                            const ConstVectorSetMatrixMap<ScalarT,EigenDim> &new_support,
-                                                                            const NeighborhoodSpecification<ScalarT> &nh,
-                                                                            ScalarT distance_sigma)
-    {
-        RigidTransformationSet<ScalarT,EigenDim> new_transforms;
-        resampleTransformations<ScalarT,EigenDim,NT>(old_support_kd_tree, old_transforms, new_support, nh, distance_sigma, new_transforms);
-        return new_transforms;
-    }
-
-    template <typename ScalarT, ptrdiff_t EigenDim>
-    void resampleTransformations(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &old_support_kd_tree,
-                                 const RigidTransformationSet<ScalarT,EigenDim> &old_transforms,
-                                 const ConstVectorSetMatrixMap<ScalarT,EigenDim> &new_support,
-                                 const NeighborhoodSpecification<ScalarT> &nh,
-                                 ScalarT distance_sigma,
-                                 RigidTransformationSet<ScalarT,EigenDim> &new_transforms)
-    {
-        switch (nh.type) {
-            case NeighborhoodType::KNN:
-                resampleTransformations<ScalarT,EigenDim,NeighborhoodType::KNN>(old_support_kd_tree, old_transforms, new_support, nh, distance_sigma, new_transforms);
-                break;
-            case NeighborhoodType::RADIUS:
-                resampleTransformations<ScalarT,EigenDim,NeighborhoodType::RADIUS>(old_support_kd_tree, old_transforms, new_support, nh, distance_sigma, new_transforms);
-                break;
-            case NeighborhoodType::KNN_IN_RADIUS:
-                resampleTransformations<ScalarT,EigenDim,NeighborhoodType::KNN_IN_RADIUS>(old_support_kd_tree, old_transforms, new_support, nh, distance_sigma, new_transforms);
-                break;
-        }
-    }
-
-    template <typename ScalarT, ptrdiff_t EigenDim>
-    inline RigidTransformationSet<ScalarT,EigenDim> resampleTransformations(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &old_support_kd_tree,
-                                                                            const RigidTransformationSet<ScalarT,EigenDim> &old_transforms,
-                                                                            const ConstVectorSetMatrixMap<ScalarT,EigenDim> &new_support,
-                                                                            const NeighborhoodSpecification<ScalarT> &nh,
-                                                                            ScalarT distance_sigma)
-    {
-        RigidTransformationSet<ScalarT,EigenDim> new_transforms;
-        resampleTransformations<ScalarT,EigenDim>(old_support_kd_tree, old_transforms, new_support, nh, distance_sigma, new_transforms);
-        return new_transforms;
-    }
+//    template <typename ScalarT, ptrdiff_t EigenDim, NeighborhoodType NT>
+//    void resampleTransformations(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &old_support_kd_tree,
+//                                 const RigidTransformationSet<ScalarT,EigenDim> &old_transforms,
+//                                 const ConstVectorSetMatrixMap<ScalarT,EigenDim> &new_support,
+//                                 const NeighborhoodSpecification<ScalarT> &nh,
+//                                 ScalarT distance_sigma,
+//                                 RigidTransformationSet<ScalarT,EigenDim> &new_transforms)
+//    {
+//        new_transforms.resize(new_support.cols());
+//        const ScalarT sigma_inv_sq = (ScalarT)(1.0)/(distance_sigma*distance_sigma);
+//
+//        NeighborSet<ScalarT> nn;
+//        ScalarT curr_weight, total_weight;
+//
+//#pragma omp parallel for shared (new_transforms) private (nn, curr_weight, total_weight)
+//        for (size_t i = 0; i < new_transforms.size(); i++) {
+//            old_support_kd_tree.template search<NT>(new_support.col(i), nh, nn);
+//
+//            total_weight = (ScalarT)0.0;
+//            new_transforms[i].linear().setZero();
+//            new_transforms[i].translation().setZero();
+//            for (size_t j = 0; j < nn.size(); j++) {
+//                curr_weight = std::exp(-(ScalarT)(0.5)*nn[j].value*sigma_inv_sq);
+//                total_weight += curr_weight;
+//                new_transforms[i].linear().noalias() += curr_weight*old_transforms[nn[j].index].linear();
+//                new_transforms[i].translation().noalias() += curr_weight*old_transforms[nn[j].index].translation();
+//            }
+//
+//            if (total_weight == (ScalarT)0.0) {
+//                new_transforms[i].setIdentity();
+//            } else {
+//                total_weight = (ScalarT)(1.0)/total_weight;
+//                new_transforms[i].linear() *= total_weight;
+//                new_transforms[i].linear() = new_transforms[i].rotation();
+//                new_transforms[i].translation() *= total_weight;
+//            }
+//        }
+//    }
+//
+//    template <typename ScalarT, ptrdiff_t EigenDim, NeighborhoodType NT>
+//    inline RigidTransformationSet<ScalarT,EigenDim> resampleTransformations(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &old_support_kd_tree,
+//                                                                            const RigidTransformationSet<ScalarT,EigenDim> &old_transforms,
+//                                                                            const ConstVectorSetMatrixMap<ScalarT,EigenDim> &new_support,
+//                                                                            const NeighborhoodSpecification<ScalarT> &nh,
+//                                                                            ScalarT distance_sigma)
+//    {
+//        RigidTransformationSet<ScalarT,EigenDim> new_transforms;
+//        resampleTransformations<ScalarT,EigenDim,NT>(old_support_kd_tree, old_transforms, new_support, nh, distance_sigma, new_transforms);
+//        return new_transforms;
+//    }
+//
+//    template <typename ScalarT, ptrdiff_t EigenDim>
+//    void resampleTransformations(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &old_support_kd_tree,
+//                                 const RigidTransformationSet<ScalarT,EigenDim> &old_transforms,
+//                                 const ConstVectorSetMatrixMap<ScalarT,EigenDim> &new_support,
+//                                 const NeighborhoodSpecification<ScalarT> &nh,
+//                                 ScalarT distance_sigma,
+//                                 RigidTransformationSet<ScalarT,EigenDim> &new_transforms)
+//    {
+//        switch (nh.type) {
+//            case NeighborhoodType::KNN:
+//                resampleTransformations<ScalarT,EigenDim,NeighborhoodType::KNN>(old_support_kd_tree, old_transforms, new_support, nh, distance_sigma, new_transforms);
+//                break;
+//            case NeighborhoodType::RADIUS:
+//                resampleTransformations<ScalarT,EigenDim,NeighborhoodType::RADIUS>(old_support_kd_tree, old_transforms, new_support, nh, distance_sigma, new_transforms);
+//                break;
+//            case NeighborhoodType::KNN_IN_RADIUS:
+//                resampleTransformations<ScalarT,EigenDim,NeighborhoodType::KNN_IN_RADIUS>(old_support_kd_tree, old_transforms, new_support, nh, distance_sigma, new_transforms);
+//                break;
+//        }
+//    }
+//
+//    template <typename ScalarT, ptrdiff_t EigenDim>
+//    inline RigidTransformationSet<ScalarT,EigenDim> resampleTransformations(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &old_support_kd_tree,
+//                                                                            const RigidTransformationSet<ScalarT,EigenDim> &old_transforms,
+//                                                                            const ConstVectorSetMatrixMap<ScalarT,EigenDim> &new_support,
+//                                                                            const NeighborhoodSpecification<ScalarT> &nh,
+//                                                                            ScalarT distance_sigma)
+//    {
+//        RigidTransformationSet<ScalarT,EigenDim> new_transforms;
+//        resampleTransformations<ScalarT,EigenDim>(old_support_kd_tree, old_transforms, new_support, nh, distance_sigma, new_transforms);
+//        return new_transforms;
+//    }
 
     template <typename ScalarT>
     inline ScalarT sqrtHuberLoss(ScalarT x, ScalarT delta = (ScalarT)1.0) {
@@ -374,10 +374,10 @@ namespace cilantro {
                 computeRotationTerms(tforms_vec[offset], tforms_vec[offset + 1], tforms_vec[offset + 2], rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db, d_rot_coeffs_dc);
                 const auto trans_coeffs = tforms_vec.template segment<3>(offset + 3);
 
-                trans_s = rot_coeffs.transpose()*s + trans_coeffs - d;
-                d_rot_da_s = d_rot_coeffs_da.transpose()*s;
-                d_rot_db_s = d_rot_coeffs_db.transpose()*s;
-                d_rot_dc_s = d_rot_coeffs_dc.transpose()*s;
+                trans_s.noalias() = rot_coeffs.transpose()*s + trans_coeffs - d;
+                d_rot_da_s.noalias() = d_rot_coeffs_da.transpose()*s;
+                d_rot_db_s.noalias() = d_rot_coeffs_db.transpose()*s;
+                d_rot_dc_s.noalias() = d_rot_coeffs_dc.transpose()*s;
 
                 eq_ind = 4*i;
                 nz_ind = 24*i;
@@ -506,7 +506,7 @@ namespace cilantro {
 
             // Solve linear system using CG
             AtA = At*At.transpose();
-            Atb = At*b;
+            Atb.noalias() = At*b;
 
 //            solver.compute(AtA);
             if (iter == 0) solver.analyzePattern(AtA);
@@ -536,9 +536,9 @@ namespace cilantro {
         transforms.resize(src_p.cols());
 #pragma omp parallel for
         for (size_t i = 0; i < transforms.size(); i++) {
-            transforms[i].linear() = (Eigen::AngleAxis<ScalarT>(tforms_vec[6*i + 2],Eigen::Matrix<ScalarT,3,1>::UnitZ()) *
-                                      Eigen::AngleAxis<ScalarT>(tforms_vec[6*i + 1],Eigen::Matrix<ScalarT,3,1>::UnitY()) *
-                                      Eigen::AngleAxis<ScalarT>(tforms_vec[6*i + 0],Eigen::Matrix<ScalarT,3,1>::UnitX())).matrix();
+            transforms[i].linear().noalias() = (Eigen::AngleAxis<ScalarT>(tforms_vec[6*i + 2],Eigen::Matrix<ScalarT,3,1>::UnitZ()) *
+                                                Eigen::AngleAxis<ScalarT>(tforms_vec[6*i + 1],Eigen::Matrix<ScalarT,3,1>::UnitY()) *
+                                                Eigen::AngleAxis<ScalarT>(tforms_vec[6*i + 0],Eigen::Matrix<ScalarT,3,1>::UnitX())).matrix();
             transforms[i].linear() = transforms[i].rotation();
             transforms[i].translation() = tforms_vec.template segment<3>(6*i + 3);
         }
@@ -681,8 +681,8 @@ namespace cilantro {
                 trans_curr.setZero();
                 for (size_t j = 0; j < src_to_ctrl_sorted[i].size(); j++) {
                     const size_t offset = 6*src_to_ctrl_sorted[i][j].index;
-                    angles_curr += src_to_ctrl_sorted[i][j].value*tforms_vec.template segment<3>(offset);
-                    trans_curr += src_to_ctrl_sorted[i][j].value*tforms_vec.template segment<3>(offset + 3);
+                    angles_curr.noalias() += src_to_ctrl_sorted[i][j].value*tforms_vec.template segment<3>(offset);
+                    trans_curr.noalias() += src_to_ctrl_sorted[i][j].value*tforms_vec.template segment<3>(offset + 3);
                 }
                 if (total_weight[i] != (ScalarT)0.0) {
                     weight = (ScalarT)(1.0)/total_weight[i];
@@ -696,10 +696,10 @@ namespace cilantro {
 
                 computeRotationTerms(angles_curr[0], angles_curr[1], angles_curr[2], rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db, d_rot_coeffs_dc);
 
-                trans_s = rot_coeffs.transpose()*s + trans_curr - d;
-                d_rot_da_s = d_rot_coeffs_da.transpose()*s;
-                d_rot_db_s = d_rot_coeffs_db.transpose()*s;
-                d_rot_dc_s = d_rot_coeffs_dc.transpose()*s;
+                trans_s.noalias() = rot_coeffs.transpose()*s + trans_curr - d;
+                d_rot_da_s.noalias() = d_rot_coeffs_da.transpose()*s;
+                d_rot_db_s.noalias() = d_rot_coeffs_db.transpose()*s;
+                d_rot_dc_s.noalias() = d_rot_coeffs_dc.transpose()*s;
 
                 eq_ind = 4*i;
 
@@ -859,7 +859,7 @@ namespace cilantro {
 
             // Solve linear system using CG
             AtA = At*At.transpose();
-            Atb = At*b;
+            Atb.noalias() = At*b;
 
 //            solver.compute(AtA);
             if (iter == 0) solver.analyzePattern(AtA);
@@ -890,9 +890,9 @@ namespace cilantro {
         transforms.resize(num_ctrl_points);
 #pragma omp parallel for
         for (size_t i = 0; i < transforms.size(); i++) {
-            transforms[i].linear() = (Eigen::AngleAxis<ScalarT>(tforms_vec[6*i + 2],Eigen::Matrix<ScalarT,3,1>::UnitZ()) *
-                                      Eigen::AngleAxis<ScalarT>(tforms_vec[6*i + 1],Eigen::Matrix<ScalarT,3,1>::UnitY()) *
-                                      Eigen::AngleAxis<ScalarT>(tforms_vec[6*i + 0],Eigen::Matrix<ScalarT,3,1>::UnitX())).matrix();
+            transforms[i].linear().noalias() = (Eigen::AngleAxis<ScalarT>(tforms_vec[6*i + 2],Eigen::Matrix<ScalarT,3,1>::UnitZ()) *
+                                                Eigen::AngleAxis<ScalarT>(tforms_vec[6*i + 1],Eigen::Matrix<ScalarT,3,1>::UnitY()) *
+                                                Eigen::AngleAxis<ScalarT>(tforms_vec[6*i + 0],Eigen::Matrix<ScalarT,3,1>::UnitX())).matrix();
             transforms[i].linear() = transforms[i].rotation();
             transforms[i].translation() = tforms_vec.template segment<3>(6*i + 3);
         }

@@ -25,11 +25,11 @@ namespace cilantro {
         if ((svd.matrixU()*svd.matrixV()).determinant() < (ScalarT)0.0) {
             Eigen::Matrix<ScalarT,EigenDim,EigenDim> U(svd.matrixU());
             U.col(dst.rows()-1) *= (ScalarT)(-1.0);
-            tform.linear() = U*svd.matrixV().transpose();
+            tform.linear().noalias() = U*svd.matrixV().transpose();
         } else {
-            tform.linear() = svd.matrixU()*svd.matrixV().transpose();
+            tform.linear().noalias() = svd.matrixU()*svd.matrixV().transpose();
         }
-        tform.translation() = mu_dst - tform.linear()*mu_src;
+        tform.translation().noalias() = mu_dst - tform.linear()*mu_src;
 
         return true;
     }
@@ -76,7 +76,7 @@ namespace cilantro {
 #pragma omp parallel for shared (At, b) private (s, eq_ind)
                 for (size_t i = 0; i < dst_p.cols(); i++) {
                     const auto d = dst_p.col(i);
-                    s = tform*src_p.col(i);
+                    s.noalias() = tform*src_p.col(i);
 
                     eq_ind = 3*i;
 
@@ -138,12 +138,12 @@ namespace cilantro {
                 }
             }
 
-            d_theta = (At*At.transpose()).ldlt().solve(At*b);
+            d_theta.noalias() = (At*At.transpose()).ldlt().solve(At*b);
 
             // Update estimate
-            rot_mat_iter = Eigen::AngleAxis<ScalarT>(d_theta[2], Eigen::Matrix<ScalarT,3,1>::UnitZ()) *
-                           Eigen::AngleAxis<ScalarT>(d_theta[1], Eigen::Matrix<ScalarT,3,1>::UnitY()) *
-                           Eigen::AngleAxis<ScalarT>(d_theta[0], Eigen::Matrix<ScalarT,3,1>::UnitX());
+            rot_mat_iter.noalias() = (Eigen::AngleAxis<ScalarT>(d_theta[2], Eigen::Matrix<ScalarT,3,1>::UnitZ()) *
+                                      Eigen::AngleAxis<ScalarT>(d_theta[1], Eigen::Matrix<ScalarT,3,1>::UnitY()) *
+                                      Eigen::AngleAxis<ScalarT>(d_theta[0], Eigen::Matrix<ScalarT,3,1>::UnitX())).matrix();
 
             tform.linear() = rot_mat_iter*tform.linear();
             tform.linear() = tform.rotation();
@@ -201,7 +201,7 @@ namespace cilantro {
                 for (size_t i = 0; i < dst_p.cols(); i++) {
                     const auto d = dst_p.col(i);
                     const auto n = dst_n.col(i);
-                    s = tform*src_p.col(i);
+                    s.noalias() = tform*src_p.col(i);
 
                     At(0,i) = n[2]*s[1] - n[1]*s[2];
                     At(1,i) = n[0]*s[2] - n[2]*s[0];
@@ -228,12 +228,12 @@ namespace cilantro {
                 }
             }
 
-            d_theta = (At*At.transpose()).ldlt().solve(At*b);
+            d_theta.noalias() = (At*At.transpose()).ldlt().solve(At*b);
 
             // Update estimate
-            rot_mat_iter = Eigen::AngleAxis<ScalarT>(d_theta[2], Eigen::Matrix<ScalarT,3,1>::UnitZ()) *
-                           Eigen::AngleAxis<ScalarT>(d_theta[1], Eigen::Matrix<ScalarT,3,1>::UnitY()) *
-                           Eigen::AngleAxis<ScalarT>(d_theta[0], Eigen::Matrix<ScalarT,3,1>::UnitX());
+            rot_mat_iter.noalias() = (Eigen::AngleAxis<ScalarT>(d_theta[2], Eigen::Matrix<ScalarT,3,1>::UnitZ()) *
+                                      Eigen::AngleAxis<ScalarT>(d_theta[1], Eigen::Matrix<ScalarT,3,1>::UnitY()) *
+                                      Eigen::AngleAxis<ScalarT>(d_theta[0], Eigen::Matrix<ScalarT,3,1>::UnitX())).matrix();
 
             tform.linear() = rot_mat_iter*tform.linear();
             tform.linear() = tform.rotation();
@@ -318,7 +318,7 @@ namespace cilantro {
                 for (size_t i = 0; i < dst_p.cols(); i++) {
                     const auto d = dst_p.col(i);
                     const auto n = dst_n.col(i);
-                    s = tform*src_p.col(i);
+                    s.noalias() = tform*src_p.col(i);
 
                     eq_ind = 4*i;
 
@@ -397,12 +397,12 @@ namespace cilantro {
                 }
             }
 
-            d_theta = (At*At.transpose()).ldlt().solve(At*b);
+            d_theta.noalias() = (At*At.transpose()).ldlt().solve(At*b);
 
             // Update estimate
-            rot_mat_iter = Eigen::AngleAxis<ScalarT>(d_theta[2], Eigen::Matrix<ScalarT,3,1>::UnitZ()) *
-                           Eigen::AngleAxis<ScalarT>(d_theta[1], Eigen::Matrix<ScalarT,3,1>::UnitY()) *
-                           Eigen::AngleAxis<ScalarT>(d_theta[0], Eigen::Matrix<ScalarT,3,1>::UnitX());
+            rot_mat_iter.noalias() = (Eigen::AngleAxis<ScalarT>(d_theta[2], Eigen::Matrix<ScalarT,3,1>::UnitZ()) *
+                                      Eigen::AngleAxis<ScalarT>(d_theta[1], Eigen::Matrix<ScalarT,3,1>::UnitY()) *
+                                      Eigen::AngleAxis<ScalarT>(d_theta[0], Eigen::Matrix<ScalarT,3,1>::UnitX())).matrix();
 
             tform.linear() = rot_mat_iter*tform.linear();
             tform.linear() = tform.rotation();

@@ -29,7 +29,7 @@ namespace cilantro {
         inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData(const RigidTransformation<ScalarT,EigenDim> &tform) {
 #pragma omp parallel for
             for (size_t i = 0; i < data_map_.cols(); i++) {
-                transformed_data_.col(i) = tform*data_map_.col(i);
+                transformed_data_.col(i).noalias() = tform*data_map_.col(i);
             }
             return transformed_data_map_;
         }
@@ -37,7 +37,7 @@ namespace cilantro {
         const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData(const RigidTransformationSet<ScalarT,EigenDim> &tforms) {
 #pragma omp parallel for
             for (size_t i = 0; i < data_map_.cols(); i++) {
-                transformed_data_.col(i) = tforms[i]*data_map_.col(i);
+                transformed_data_.col(i).noalias() = tforms[i]*data_map_.col(i);
             }
             return transformed_data_map_;
         }
@@ -84,25 +84,25 @@ namespace cilantro {
         }
 
         const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData(const RigidTransformation<ScalarT,EigenDim> &tform) {
-            size_t dim = data_map_.rows()/2;
+            const size_t dim = data_map_.rows()/2;
 #pragma omp parallel for
             for (size_t i = 0; i < data_map_.cols(); i++) {
                 auto res_col = transformed_data_.col(i);
                 auto data_col = data_map_.col(i);
-                res_col.head(dim) = tform.linear()*data_col.head(dim) + tform.translation();
-                res_col.tail(dim) = tform.linear()*data_col.tail(dim);
+                res_col.head(dim).noalias() = tform.linear()*data_col.head(dim) + tform.translation();
+                res_col.tail(dim).noalias() = tform.linear()*data_col.tail(dim);
             }
             return transformed_data_map_;
         }
 
         const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData(const RigidTransformationSet<ScalarT,EigenDim> &tforms) {
-            size_t dim = data_map_.rows()/2;
+            const size_t dim = data_map_.rows()/2;
 #pragma omp parallel for
             for (size_t i = 0; i < data_map_.cols(); i++) {
                 auto res_col = transformed_data_.col(i);
                 auto data_col = data_map_.col(i);
-                res_col.head(dim) = tforms[i].linear()*data_col.head(dim) + tforms[i].translation();
-                res_col.tail(dim) = tforms[i].linear()*data_col.tail(dim);
+                res_col.head(dim).noalias() = tforms[i].linear()*data_col.head(dim) + tforms[i].translation();
+                res_col.tail(dim).noalias() = tforms[i].linear()*data_col.tail(dim);
             }
             return transformed_data_map_;
         }
@@ -150,24 +150,24 @@ namespace cilantro {
         }
 
         const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData(const RigidTransformation<ScalarT,EigenDim> &tform) {
-            size_t dim = data_map_.rows() - 3;
+            const size_t dim = data_map_.rows() - 3;
 #pragma omp parallel for
             for (size_t i = 0; i < data_map_.cols(); i++) {
                 auto res_col = transformed_data_.col(i);
                 auto data_col = data_map_.col(i);
-                res_col.head(dim) = tform.linear()*data_col.head(dim) + tform.translation();
+                res_col.head(dim).noalias() = tform.linear()*data_col.head(dim) + tform.translation();
                 res_col.tail(3) = data_col.tail(3);
             }
             return transformed_data_map_;
         }
 
         const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData(const RigidTransformationSet<ScalarT,EigenDim> &tforms) {
-            size_t dim = data_map_.rows() - 3;
+            const size_t dim = data_map_.rows() - 3;
 #pragma omp parallel for
             for (size_t i = 0; i < data_map_.cols(); i++) {
                 auto res_col = transformed_data_.col(i);
                 auto data_col = data_map_.col(i);
-                res_col.head(dim) = tforms[i].linear()*data_col.head(dim) + tforms[i].translation();
+                res_col.head(dim).noalias() = tforms[i].linear()*data_col.head(dim) + tforms[i].translation();
                 res_col.tail(3) = data_col.tail(3);
             }
             return transformed_data_map_;
@@ -218,26 +218,26 @@ namespace cilantro {
         }
 
         const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData(const RigidTransformation<ScalarT,EigenDim> &tform) {
-            size_t dim = (data_map_.rows() - 3)/2;
+            const size_t dim = (data_map_.rows() - 3)/2;
 #pragma omp parallel for
             for (size_t i = 0; i < data_map_.cols(); i++) {
                 auto res_col = transformed_data_.col(i);
                 auto data_col = data_map_.col(i);
-                res_col.head(dim) = tform.linear()*data_col.head(dim) + tform.translation();
-                res_col.segment(dim,dim) = tform.linear()*data_col.segment(dim,dim);
+                res_col.head(dim).noalias() = tform.linear()*data_col.head(dim) + tform.translation();
+                res_col.segment(dim,dim).noalias() = tform.linear()*data_col.segment(dim,dim);
                 res_col.tail(3) = data_col.tail(3);
             }
             return transformed_data_map_;
         }
 
         const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData(const RigidTransformationSet<ScalarT,EigenDim> &tforms) {
-            size_t dim = (data_map_.rows() - 3)/2;
+            const size_t dim = (data_map_.rows() - 3)/2;
 #pragma omp parallel for
             for (size_t i = 0; i < data_map_.cols(); i++) {
                 auto res_col = transformed_data_.col(i);
                 auto data_col = data_map_.col(i);
-                res_col.head(dim) = tforms[i].linear()*data_col.head(dim) + tforms[i].translation();
-                res_col.segment(dim,dim) = tforms[i].linear()*data_col.segment(dim,dim);
+                res_col.head(dim).noalias() = tforms[i].linear()*data_col.head(dim) + tforms[i].translation();
+                res_col.segment(dim,dim).noalias() = tforms[i].linear()*data_col.segment(dim,dim);
                 res_col.tail(3) = data_col.tail(3);
             }
             return transformed_data_map_;
