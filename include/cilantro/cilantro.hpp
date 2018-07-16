@@ -46,3 +46,4 @@
 #include <cilantro/timer.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/visualizer_handler.hpp>
+#include <cilantro/warp_field_utilities.hpp>

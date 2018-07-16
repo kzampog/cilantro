@@ -2,6 +2,7 @@
 
 #include <cilantro/icp_base.hpp>
 #include <cilantro/non_rigid_registration_utilities.hpp>
+#include <cilantro/kd_tree.hpp>
 
 namespace cilantro {
     template <typename ScalarT, class CorrespondenceSearchEngineT>
