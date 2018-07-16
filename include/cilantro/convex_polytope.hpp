@@ -164,7 +164,7 @@ namespace cilantro {
 
             typename std::conditional<EigenDim == Eigen::Dynamic, Eigen::Matrix<ScalarT,EigenDim,EigenDim>, Eigen::Matrix<ScalarT,EigenDim+1,EigenDim+1>>::type hs_tform(dim_+1,dim_+1);
             hs_tform.topLeftCorner(dim_,dim_) = rotation;
-            hs_tform.block(dim_,0,1,dim_) = -translation.transpose()*rotation;
+            hs_tform.block(dim_,0,1,dim_).noalias() = -translation.transpose()*rotation;
             hs_tform.col(dim_).setZero();
             hs_tform(dim_,dim_) = 1.0;
 

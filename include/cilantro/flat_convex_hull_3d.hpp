@@ -43,7 +43,7 @@ namespace cilantro {
 
             Eigen::Matrix<ScalarT,3,4> proj_mat;
             proj_mat.topLeftCorner(2,3) = this->eigenvectors_.leftCols(2).transpose();
-            proj_mat.topRightCorner(2,1) = -this->eigenvectors_.leftCols(2).transpose()*this->mean_;
+            proj_mat.topRightCorner(2,1).noalias() = -this->eigenvectors_.leftCols(2).transpose()*this->mean_;
             proj_mat.row(2).setZero();
             proj_mat(2,3) = 1.0;
 
