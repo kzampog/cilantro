@@ -7,6 +7,46 @@
 #endif
 
 namespace cilantro {
+    // Weight evaluators (return a scalar weight)
+
+    template <typename ValueT, typename WeightT = ValueT>
+    class UnityWeightEvaluator {
+    public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        inline const WeightT operator()(size_t, size_t, ValueT) const { return (WeightT)1.0; }
+    };
+
+    template <typename ValueT, typename WeightT = ValueT, bool distances_are_squared = true>
+    class RBFKernelWeightEvaluator {
+    public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        RBFKernelWeightEvaluator() : coeff_(-(WeightT)(0.5)) {}
+
+        RBFKernelWeightEvaluator(ValueT sigma) : coeff_(-(WeightT)(0.5)/(sigma*sigma)) {}
+
+        inline RBFKernelWeightEvaluator& setSigma(ValueT sigma) {
+            coeff_ = -(WeightT)(0.5)/(sigma*sigma);
+            return *this;
+        }
+
+        template <bool dist_sq = distances_are_squared>
+        inline typename std::enable_if<dist_sq,WeightT>::type operator()(size_t, size_t, ValueT dist) const {
+            return std::exp(coeff_*static_cast<WeightT>(dist));
+        }
+
+        template <bool dist_sq = distances_are_squared>
+        inline typename std::enable_if<!dist_sq,WeightT>::type operator()(size_t, size_t, ValueT dist) const {
+            return std::exp(coeff_*static_cast<WeightT>(dist*dist));
+        }
+
+    private:
+        WeightT coeff_;
+    };
+
+    // Proximity evaluators (return bool)
+
     template <typename ScalarT, ptrdiff_t EigenDim>
     class PointsProximityEvaluator {
     public:

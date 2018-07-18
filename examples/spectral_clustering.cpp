@@ -1,15 +1,10 @@
 #include <cilantro/nearest_neighbor_graph_utilities.hpp>
+#include <cilantro/common_pair_evaluators.hpp>
 #include <cilantro/spectral_clustering.hpp>
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
 #include <cilantro/timer.hpp>
-
-struct AffinityEvaluator {
-    inline float operator()(size_t i, size_t j, float dist) const {
-        return std::exp(-dist/2.0f);
-    }
-};
 
 void generate_input_data(cilantro::VectorSet3f &points, Eigen::SparseMatrix<float> &affinities) {
     points.resize(3, 1700);
@@ -27,7 +22,7 @@ void generate_input_data(cilantro::VectorSet3f &points, Eigen::SparseMatrix<floa
     auto nh = cilantro::kNNNeighborhood<float>(30);
     std::vector<cilantro::NeighborSet<float>> nn;
     cilantro::KDTree3f(points).search(points, nh, nn);
-    affinities = cilantro::getNNGraphFunctionValueSparseMatrix(nn, AffinityEvaluator(), true);
+    affinities = cilantro::getNNGraphFunctionValueSparseMatrix(nn, cilantro::RBFKernelWeightEvaluator<float>(), true);
 }
 
 int main(int argc, char ** argv) {
