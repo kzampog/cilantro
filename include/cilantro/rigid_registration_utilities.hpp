@@ -2,6 +2,7 @@
 
 #include <cilantro/space_transformations.hpp>
 #include <cilantro/correspondence.hpp>
+#include <cilantro/common_pair_evaluators.hpp>
 
 namespace cilantro {
     // Point-to-point (closed form, SVD)
@@ -45,355 +46,103 @@ namespace cilantro {
         return estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim>(dst_corr, src_corr, tform);
     }
 
-    // Point-to-point (iterative)
-    template <typename ScalarT>
-    bool estimateRigidTransformPointToPoint3DIterative(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
-                                                       const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
-                                                       RigidTransformation<ScalarT,3> &tform,
-                                                       size_t max_iter = 1,
-                                                       ScalarT convergence_tol = (ScalarT)1e-5)
+    template <typename ScalarT, typename PointCorrValueT = ScalarT, typename PlaneCorrValueT = PointCorrValueT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<PointCorrValueT,ScalarT>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<PlaneCorrValueT,ScalarT>>
+    bool estimateRigidTransformCombinedMetric3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
+                                               const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
+                                               const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
+                                               const CorrespondenceSet<PointCorrValueT> &point_to_point_correspondences,
+                                               const CorrespondenceSet<PlaneCorrValueT> &point_to_plane_correspondences,
+                                               RigidTransformation<ScalarT,3> &tform,
+                                               ScalarT point_to_point_weight = (ScalarT)0.0,
+                                               ScalarT point_to_plane_weight = (ScalarT)1.0,
+                                               size_t max_iter = 1,
+                                               ScalarT convergence_tol = (ScalarT)1e-5,
+                                               const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
+                                               const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT())
     {
-        if (src_p.cols() != dst_p.cols() || src_p.cols() < 3) {
-            tform.setIdentity();
-            return false;
-        }
-
-        const size_t num_eq = 3*dst_p.cols();
-
-        Eigen::Matrix<ScalarT,3,3> rot_mat_iter;
-        Eigen::Matrix<ScalarT,6,1> d_theta;
         tform.setIdentity();
-        Vector<ScalarT,3> s;
-
-        Eigen::Matrix<ScalarT,6,Eigen::Dynamic> At(6, num_eq);
-        Eigen::Matrix<ScalarT,Eigen::Dynamic,1> b(num_eq, 1);
-
-        size_t eq_ind;
-        size_t iter = 0;
-        while (iter < max_iter) {
-            // Compute differential
-            if (iter > 0) {
-#pragma omp parallel for shared (At, b) private (s, eq_ind)
-                for (size_t i = 0; i < dst_p.cols(); i++) {
-                    const auto d = dst_p.col(i);
-                    s.noalias() = tform*src_p.col(i);
-
-                    eq_ind = 3*i;
-
-                    At(0,eq_ind) = (ScalarT)0.0;
-                    At(1,eq_ind) = s[2];
-                    At(2,eq_ind) = -s[1];
-                    At(3,eq_ind) = (ScalarT)1.0;
-                    At(4,eq_ind) = (ScalarT)0.0;
-                    At(5,eq_ind) = (ScalarT)0.0;
-                    b[eq_ind++] = d[0] - s[0];
-
-                    At(0,eq_ind) = -s[2];
-                    At(1,eq_ind) = (ScalarT)0.0;
-                    At(2,eq_ind) = s[0];
-                    At(3,eq_ind) = (ScalarT)0.0;
-                    At(4,eq_ind) = (ScalarT)1.0;
-                    At(5,eq_ind) = (ScalarT)0.0;
-                    b[eq_ind++] = d[1] - s[1];
-
-                    At(0,eq_ind) = s[1];
-                    At(1,eq_ind) = -s[0];
-                    At(2,eq_ind) = (ScalarT)0.0;
-                    At(3,eq_ind) = (ScalarT)0.0;
-                    At(4,eq_ind) = (ScalarT)0.0;
-                    At(5,eq_ind) = (ScalarT)1.0;
-                    b[eq_ind++] = d[2] - s[2];
-                }
-            } else {
-#pragma omp parallel for shared (At, b) private (eq_ind)
-                for (size_t i = 0; i < dst_p.cols(); i++) {
-                    const auto d = dst_p.col(i);
-                    const auto s = src_p.col(i);
-
-                    eq_ind = 3*i;
-
-                    At(0,eq_ind) = (ScalarT)0.0;
-                    At(1,eq_ind) = s[2];
-                    At(2,eq_ind) = -s[1];
-                    At(3,eq_ind) = (ScalarT)1.0;
-                    At(4,eq_ind) = (ScalarT)0.0;
-                    At(5,eq_ind) = (ScalarT)0.0;
-                    b[eq_ind++] = d[0] - s[0];
-
-                    At(0,eq_ind) = -s[2];
-                    At(1,eq_ind) = (ScalarT)0.0;
-                    At(2,eq_ind) = s[0];
-                    At(3,eq_ind) = (ScalarT)0.0;
-                    At(4,eq_ind) = (ScalarT)1.0;
-                    At(5,eq_ind) = (ScalarT)0.0;
-                    b[eq_ind++] = d[1] - s[1];
-
-                    At(0,eq_ind) = s[1];
-                    At(1,eq_ind) = -s[0];
-                    At(2,eq_ind) = (ScalarT)0.0;
-                    At(3,eq_ind) = (ScalarT)0.0;
-                    At(4,eq_ind) = (ScalarT)0.0;
-                    At(5,eq_ind) = (ScalarT)1.0;
-                    b[eq_ind++] = d[2] - s[2];
-                }
-            }
-
-            d_theta.noalias() = (At*At.transpose()).ldlt().solve(At*b);
-
-            // Update estimate
-            rot_mat_iter.noalias() = (Eigen::AngleAxis<ScalarT>(d_theta[2], Eigen::Matrix<ScalarT,3,1>::UnitZ()) *
-                                      Eigen::AngleAxis<ScalarT>(d_theta[1], Eigen::Matrix<ScalarT,3,1>::UnitY()) *
-                                      Eigen::AngleAxis<ScalarT>(d_theta[0], Eigen::Matrix<ScalarT,3,1>::UnitX())).matrix();
-
-            tform.linear() = rot_mat_iter*tform.linear();
-            tform.linear() = tform.rotation();
-            tform.translation() = rot_mat_iter*tform.translation() + d_theta.tail(3);
-
-            iter++;
-
-            // Check for convergence
-            if (d_theta.norm() < convergence_tol) return true;
-        }
-
-        return false;
-    }
-
-    template <typename ScalarT, typename CorrValueT = ScalarT>
-    bool estimateRigidTransformPointToPoint3DIterative(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
-                                                       const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
-                                                       const CorrespondenceSet<CorrValueT> &corr,
-                                                       RigidTransformation<ScalarT,3> &tform,
-                                                       size_t max_iter = 1,
-                                                       ScalarT convergence_tol = (ScalarT)1e-5)
-    {
-        VectorSet<ScalarT,3> dst_p_corr, src_p_corr;
-        selectCorrespondingPoints<ScalarT,3,CorrValueT>(corr, dst_p, src_p, dst_p_corr, src_p_corr);
-        return estimateRigidTransformPointToPoint3DIterative<ScalarT>(dst_p_corr, src_p_corr, tform, max_iter, convergence_tol);
-    }
-
-    // Point-to-plane
-    template <typename ScalarT>
-    bool estimateRigidTransformPointToPlane3D(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
-                                              const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
-                                              const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
-                                              RigidTransformation<ScalarT,3> &tform,
-                                              size_t max_iter = 1,
-                                              ScalarT convergence_tol = (ScalarT)1e-5)
-    {
-        if (src_p.cols() != dst_p.cols() || dst_p.cols() != dst_n.cols() || src_p.cols() < 6) {
-            tform.setIdentity();
-            return false;
-        }
-
-        Eigen::Matrix<ScalarT,3,3> rot_mat_iter;
-        Eigen::Matrix<ScalarT,6,1> d_theta;
-        tform.setIdentity();
-        Vector<ScalarT,3> s;
-
-        Eigen::Matrix<ScalarT,6,Eigen::Dynamic> At(6,dst_p.cols());
-        Eigen::Matrix<ScalarT,Eigen::Dynamic,1> b(dst_p.cols(),1);
-
-        size_t iter = 0;
-        while (iter < max_iter) {
-            // Compute differential
-            if (iter > 0) {
-#pragma omp parallel for shared (At, b) private (s)
-                for (size_t i = 0; i < dst_p.cols(); i++) {
-                    const auto d = dst_p.col(i);
-                    const auto n = dst_n.col(i);
-                    s.noalias() = tform*src_p.col(i);
-
-                    At(0,i) = n[2]*s[1] - n[1]*s[2];
-                    At(1,i) = n[0]*s[2] - n[2]*s[0];
-                    At(2,i) = n[1]*s[0] - n[0]*s[1];
-                    At(3,i) = n[0];
-                    At(4,i) = n[1];
-                    At(5,i) = n[2];
-                    b[i] = n[0]*d[0] + n[1]*d[1] + n[2]*d[2] - n[0]*s[0] - n[1]*s[1] - n[2]*s[2];
-                }
-            } else {
-#pragma omp parallel for shared (At, b)
-                for (size_t i = 0; i < dst_p.cols(); i++) {
-                    const auto d = dst_p.col(i);
-                    const auto n = dst_n.col(i);
-                    const auto s = src_p.col(i);
-
-                    At(0,i) = n[2]*s[1] - n[1]*s[2];
-                    At(1,i) = n[0]*s[2] - n[2]*s[0];
-                    At(2,i) = n[1]*s[0] - n[0]*s[1];
-                    At(3,i) = n[0];
-                    At(4,i) = n[1];
-                    At(5,i) = n[2];
-                    b[i] = n[0]*d[0] + n[1]*d[1] + n[2]*d[2] - n[0]*s[0] - n[1]*s[1] - n[2]*s[2];
-                }
-            }
-
-            d_theta.noalias() = (At*At.transpose()).ldlt().solve(At*b);
-
-            // Update estimate
-            rot_mat_iter.noalias() = (Eigen::AngleAxis<ScalarT>(d_theta[2], Eigen::Matrix<ScalarT,3,1>::UnitZ()) *
-                                      Eigen::AngleAxis<ScalarT>(d_theta[1], Eigen::Matrix<ScalarT,3,1>::UnitY()) *
-                                      Eigen::AngleAxis<ScalarT>(d_theta[0], Eigen::Matrix<ScalarT,3,1>::UnitX())).matrix();
-
-            tform.linear() = rot_mat_iter*tform.linear();
-            tform.linear() = tform.rotation();
-            tform.translation() = rot_mat_iter*tform.translation() + d_theta.tail(3);
-
-            iter++;
-
-            // Check for convergence
-            if (d_theta.norm() < convergence_tol) return true;
-        }
-
-        return false;
-    }
-
-    template <typename ScalarT, typename CorrValueT = ScalarT>
-    bool estimateRigidTransformPointToPlane3D(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
-                                              const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
-                                              const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
-                                              const CorrespondenceSet<CorrValueT> &corr,
-                                              RigidTransformation<ScalarT,3> &tform,
-                                              size_t max_iter = 1,
-                                              ScalarT convergence_tol = (ScalarT)1e-5)
-    {
-        VectorSet<ScalarT,3> dst_p_corr(3, corr.size());
-        VectorSet<ScalarT,3> dst_n_corr(3, corr.size());
-        VectorSet<ScalarT,3> src_p_corr(3, corr.size());
-#pragma omp parallel for
-        for (size_t i = 0; i < corr.size(); i++) {
-            dst_p_corr.col(i) = dst_p.col(corr[i].indexInFirst);
-            dst_n_corr.col(i) = dst_n.col(corr[i].indexInFirst);
-            src_p_corr.col(i) = src_p.col(corr[i].indexInSecond);
-        }
-        return estimateRigidTransformPointToPlane3D<ScalarT>(dst_p_corr, dst_n_corr, src_p_corr, tform, max_iter, convergence_tol);
-    }
-
-    // Point-to-point and point-to-plane combination
-    template <typename ScalarT>
-    bool estimateRigidTransformCombinedMetric3D(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
-                                                const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
-                                                const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
-                                                ScalarT point_to_point_weight,
-                                                ScalarT point_to_plane_weight,
-                                                RigidTransformation<ScalarT,3> &tform,
-                                                size_t max_iter = 1,
-                                                ScalarT convergence_tol = (ScalarT)1e-5)
-    {
-        if (src_p.cols() != dst_p.cols() || dst_p.cols() != dst_n.cols() || src_p.cols() < 3 ||
+        if (point_to_point_correspondences.size() + point_to_plane_correspondences.size() < 3 || dst_p.cols() != dst_n.cols() ||
             (point_to_point_weight == (ScalarT)0.0 && point_to_plane_weight == (ScalarT)0.0))
         {
-            tform.setIdentity();
             return false;
         }
 
-        if (point_to_point_weight == (ScalarT)0.0) {
-            // Do point-to-plane
-            return estimateRigidTransformPointToPlane3D<ScalarT>(dst_p, dst_n, src_p, tform, max_iter, convergence_tol);
-        }
+        const bool has_point_to_point_terms = !point_to_point_correspondences.empty() && (point_to_point_weight > (ScalarT)0.0);
+        const bool has_point_to_plane_terms = !point_to_plane_correspondences.empty() && (point_to_plane_weight > (ScalarT)0.0);
 
-        if (point_to_plane_weight == (ScalarT)0.0) {
-            // Do point-to-point
-            return estimateRigidTransformPointToPoint3DIterative<ScalarT>(dst_p, src_p, tform, max_iter, convergence_tol);
-        }
+        const size_t num_point_to_point_equations = 3*has_point_to_point_terms*point_to_point_correspondences.size();
+        const size_t num_point_to_plane_equations = has_point_to_plane_terms*point_to_plane_correspondences.size();
+        const size_t num_equations = num_point_to_point_equations + num_point_to_plane_equations;
 
-        Eigen::Matrix<ScalarT,3,3> rot_mat_iter;
-        Eigen::Matrix<ScalarT,6,1> d_theta;
-        tform.setIdentity();
-        Vector<ScalarT,3> s;
+        Eigen::Matrix<ScalarT,6,Eigen::Dynamic> At(6, num_equations);
+        Eigen::Matrix<ScalarT,Eigen::Dynamic,1> b(num_equations, 1);
 
         const ScalarT point_to_point_weight_sqrt = std::sqrt(point_to_point_weight);
         const ScalarT point_to_plane_weight_sqrt = std::sqrt(point_to_plane_weight);
-        const size_t num_eq = 4*dst_p.cols();
-
-        Eigen::Matrix<ScalarT,6,Eigen::Dynamic> At(6, num_eq);
-        Eigen::Matrix<ScalarT,Eigen::Dynamic,1> b(num_eq, 1);
-
+        Eigen::Matrix<ScalarT,3,3> rot_mat_iter;
+        Eigen::Matrix<ScalarT,6,1> d_theta;
+        Vector<ScalarT,3> s;
         size_t eq_ind;
+
         size_t iter = 0;
         while (iter < max_iter) {
             // Compute differential
-            if (iter > 0) {
-#pragma omp parallel for shared (At, b) private (s, eq_ind)
-                for (size_t i = 0; i < dst_p.cols(); i++) {
-                    const auto d = dst_p.col(i);
-                    const auto n = dst_n.col(i);
-                    s.noalias() = tform*src_p.col(i);
+#pragma omp parallel shared (At, b) private (s, eq_ind)
+            {
+                if (has_point_to_point_terms) {
+#pragma omp for nowait
+                    for (size_t i = 0; i < point_to_point_correspondences.size(); i++) {
+                        const auto& corr = point_to_point_correspondences[i];
+                        const auto d = dst_p.col(corr.indexInFirst);
+                        const ScalarT weight = point_to_point_weight_sqrt*std::sqrt(point_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value));
+                        s.noalias() = tform*src_p.col(corr.indexInSecond);
 
-                    eq_ind = 4*i;
+                        eq_ind = 3*i;
 
-                    At(0,eq_ind) = (n[2]*s[1] - n[1]*s[2])*point_to_plane_weight_sqrt;
-                    At(1,eq_ind) = (n[0]*s[2] - n[2]*s[0])*point_to_plane_weight_sqrt;
-                    At(2,eq_ind) = (n[1]*s[0] - n[0]*s[1])*point_to_plane_weight_sqrt;
-                    At(3,eq_ind) = n[0]*point_to_plane_weight_sqrt;
-                    At(4,eq_ind) = n[1]*point_to_plane_weight_sqrt;
-                    At(5,eq_ind) = n[2]*point_to_plane_weight_sqrt;
-                    b[eq_ind++] = (n[0]*d[0] + n[1]*d[1] + n[2]*d[2] - n[0]*s[0] - n[1]*s[1] - n[2]*s[2])*point_to_plane_weight_sqrt;
+                        At(0,eq_ind) = (ScalarT)0.0;
+                        At(1,eq_ind) = s[2]*weight;
+                        At(2,eq_ind) = -s[1]*weight;
+                        At(3,eq_ind) = weight;
+                        At(4,eq_ind) = (ScalarT)0.0;
+                        At(5,eq_ind) = (ScalarT)0.0;
+                        b[eq_ind++] = (d[0] - s[0])*weight;
 
-                    At(0,eq_ind) = (ScalarT)0.0;
-                    At(1,eq_ind) = s[2]*point_to_point_weight_sqrt;
-                    At(2,eq_ind) = -s[1]*point_to_point_weight_sqrt;
-                    At(3,eq_ind) = point_to_point_weight_sqrt;
-                    At(4,eq_ind) = (ScalarT)0.0;
-                    At(5,eq_ind) = (ScalarT)0.0;
-                    b[eq_ind++] = (d[0] - s[0])*point_to_point_weight_sqrt;
+                        At(0,eq_ind) = -s[2]*weight;
+                        At(1,eq_ind) = (ScalarT)0.0;
+                        At(2,eq_ind) = s[0]*weight;
+                        At(3,eq_ind) = (ScalarT)0.0;
+                        At(4,eq_ind) = weight;
+                        At(5,eq_ind) = (ScalarT)0.0;
+                        b[eq_ind++] = (d[1] - s[1])*weight;
 
-                    At(0,eq_ind) = -s[2]*point_to_point_weight_sqrt;
-                    At(1,eq_ind) = (ScalarT)0.0;
-                    At(2,eq_ind) = s[0]*point_to_point_weight_sqrt;
-                    At(3,eq_ind) = (ScalarT)0.0;
-                    At(4,eq_ind) = point_to_point_weight_sqrt;
-                    At(5,eq_ind) = (ScalarT)0.0;
-                    b[eq_ind++] = (d[1] - s[1])*point_to_point_weight_sqrt;
-
-                    At(0,eq_ind) = s[1]*point_to_point_weight_sqrt;
-                    At(1,eq_ind) = -s[0]*point_to_point_weight_sqrt;
-                    At(2,eq_ind) = (ScalarT)0.0;
-                    At(3,eq_ind) = (ScalarT)0.0;
-                    At(4,eq_ind) = (ScalarT)0.0;
-                    At(5,eq_ind) = point_to_point_weight_sqrt;
-                    b[eq_ind++] = (d[2] - s[2])*point_to_point_weight_sqrt;
+                        At(0,eq_ind) = s[1]*weight;
+                        At(1,eq_ind) = -s[0]*weight;
+                        At(2,eq_ind) = (ScalarT)0.0;
+                        At(3,eq_ind) = (ScalarT)0.0;
+                        At(4,eq_ind) = (ScalarT)0.0;
+                        At(5,eq_ind) = weight;
+                        b[eq_ind] = (d[2] - s[2])*weight;
+                    }
                 }
-            } else {
-#pragma omp parallel for shared (At, b) private (eq_ind)
-                for (size_t i = 0; i < dst_p.cols(); i++) {
-                    const auto d = dst_p.col(i);
-                    const auto n = dst_n.col(i);
-                    const auto s = src_p.col(i);
+                if (has_point_to_plane_terms) {
+#pragma omp for nowait
+                    for (size_t i = 0; i < point_to_plane_correspondences.size(); i++) {
+                        const auto& corr = point_to_plane_correspondences[i];
+                        const auto d = dst_p.col(corr.indexInFirst);
+                        const auto n = dst_n.col(corr.indexInFirst);
+                        const ScalarT weight = point_to_plane_weight_sqrt*std::sqrt(plane_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value));
+                        s.noalias() = tform*src_p.col(corr.indexInSecond);
 
-                    eq_ind = 4*i;
+                        eq_ind = num_point_to_point_equations + i;
 
-                    At(0,eq_ind) = (n[2]*s[1] - n[1]*s[2])*point_to_plane_weight_sqrt;
-                    At(1,eq_ind) = (n[0]*s[2] - n[2]*s[0])*point_to_plane_weight_sqrt;
-                    At(2,eq_ind) = (n[1]*s[0] - n[0]*s[1])*point_to_plane_weight_sqrt;
-                    At(3,eq_ind) = n[0]*point_to_plane_weight_sqrt;
-                    At(4,eq_ind) = n[1]*point_to_plane_weight_sqrt;
-                    At(5,eq_ind) = n[2]*point_to_plane_weight_sqrt;
-                    b[eq_ind++] = (n[0]*d[0] + n[1]*d[1] + n[2]*d[2] - n[0]*s[0] - n[1]*s[1] - n[2]*s[2])*point_to_plane_weight_sqrt;
-
-                    At(0,eq_ind) = (ScalarT)0.0;
-                    At(1,eq_ind) = s[2]*point_to_point_weight_sqrt;
-                    At(2,eq_ind) = -s[1]*point_to_point_weight_sqrt;
-                    At(3,eq_ind) = point_to_point_weight_sqrt;
-                    At(4,eq_ind) = (ScalarT)0.0;
-                    At(5,eq_ind) = (ScalarT)0.0;
-                    b[eq_ind++] = (d[0] - s[0])*point_to_point_weight_sqrt;
-
-                    At(0,eq_ind) = -s[2]*point_to_point_weight_sqrt;
-                    At(1,eq_ind) = (ScalarT)0.0;
-                    At(2,eq_ind) = s[0]*point_to_point_weight_sqrt;
-                    At(3,eq_ind) = (ScalarT)0.0;
-                    At(4,eq_ind) = point_to_point_weight_sqrt;
-                    At(5,eq_ind) = (ScalarT)0.0;
-                    b[eq_ind++] = (d[1] - s[1])*point_to_point_weight_sqrt;
-
-                    At(0,eq_ind) = s[1]*point_to_point_weight_sqrt;
-                    At(1,eq_ind) = -s[0]*point_to_point_weight_sqrt;
-                    At(2,eq_ind) = (ScalarT)0.0;
-                    At(3,eq_ind) = (ScalarT)0.0;
-                    At(4,eq_ind) = (ScalarT)0.0;
-                    At(5,eq_ind) = point_to_point_weight_sqrt;
-                    b[eq_ind++] = (d[2] - s[2])*point_to_point_weight_sqrt;
+                        At(0,eq_ind) = (n[2]*s[1] - n[1]*s[2])*weight;
+                        At(1,eq_ind) = (n[0]*s[2] - n[2]*s[0])*weight;
+                        At(2,eq_ind) = (n[1]*s[0] - n[0]*s[1])*weight;
+                        At(3,eq_ind) = n[0]*weight;
+                        At(4,eq_ind) = n[1]*weight;
+                        At(5,eq_ind) = n[2]*weight;
+                        b[eq_ind] = (n[0]*d[0] + n[1]*d[1] + n[2]*d[2] - n[0]*s[0] - n[1]*s[1] - n[2]*s[2])*weight;
+                    }
                 }
             }
 
@@ -415,29 +164,5 @@ namespace cilantro {
         }
 
         return false;
-    }
-
-    template <typename ScalarT, typename CorrValueT = ScalarT>
-    bool estimateRigidTransformCombinedMetric3D(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
-                                                const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
-                                                const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
-                                                const CorrespondenceSet<CorrValueT> &corr,
-                                                ScalarT point_to_point_weight,
-                                                ScalarT point_to_plane_weight,
-                                                RigidTransformation<ScalarT,3> &tform,
-                                                size_t max_iter = 1,
-                                                ScalarT convergence_tol = (ScalarT)1e-5)
-    {
-        VectorSet<ScalarT,3> dst_p_corr(3, corr.size());
-        VectorSet<ScalarT,3> dst_n_corr(3, corr.size());
-        VectorSet<ScalarT,3> src_p_corr(3, corr.size());
-#pragma omp parallel for
-        for (size_t i = 0; i < corr.size(); i++) {
-            dst_p_corr.col(i) = dst_p.col(corr[i].indexInFirst);
-            dst_n_corr.col(i) = dst_n.col(corr[i].indexInFirst);
-            src_p_corr.col(i) = src_p.col(corr[i].indexInSecond);
-        }
-
-        return estimateRigidTransformCombinedMetric3D<ScalarT>(dst_p_corr, dst_n_corr, src_p_corr, point_to_point_weight, point_to_plane_weight, tform, max_iter, convergence_tol);
     }
 }
