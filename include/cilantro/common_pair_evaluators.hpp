@@ -10,6 +10,14 @@ namespace cilantro {
     // Weight evaluators (return a scalar weight)
 
     template <typename ValueT, typename WeightT = ValueT>
+    class IdentityWeightEvaluator {
+    public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        inline WeightT operator()(size_t, size_t, ValueT val) const { return static_cast<WeightT>(val); }
+    };
+
+    template <typename ValueT, typename WeightT = ValueT>
     class UnityWeightEvaluator {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW

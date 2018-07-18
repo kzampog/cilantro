@@ -18,7 +18,7 @@ namespace cilantro {
                 : IterativeClosestPointBase<CombinedMetricRigidICP3<ScalarT,CorrespondenceSearchEngineT>,RigidTransformation<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
                   dst_points_(dst_p), dst_normals_(dst_n), src_points_(src_p),
                   max_optimization_iterations_(1), optimization_convergence_tol_((ScalarT)1e-5),
-                  point_to_point_weight_((ScalarT)0.1), point_to_plane_weight_((ScalarT)1.0),
+                  point_to_point_weight_((ScalarT)0.0), point_to_plane_weight_((ScalarT)1.0),
                   src_points_trans_(src_points_.rows(), src_points_.cols())
         {
             this->transform_init_.setIdentity();
