@@ -110,7 +110,7 @@ namespace cilantro {
                                                const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT(),
                                                const RegWeightEvaluatorT &reg_evaluator = RegWeightEvaluatorT())
     {
-        if (point_to_point_correspondences.empty() || point_to_plane_correspondences.empty() || dst_p.cols() != dst_n.cols() ||
+        if ((point_to_point_correspondences.empty() && point_to_plane_correspondences.empty()) || dst_p.cols() != dst_n.cols() ||
             (point_to_point_weight == (ScalarT)0.0 && point_to_plane_weight == (ScalarT)0.0))
         {
             transforms.resize(src_p.cols());
