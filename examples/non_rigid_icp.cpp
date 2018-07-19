@@ -47,6 +47,8 @@ int main(int argc, char ** argv) {
         return 0;
     }
 
+
+    // Example 1: Compute a sparsely supported warp field (compute transformations for a sparse set of control nodes)
     // Neighborhood parameters
     float control_res = 0.025f;
     float src_to_control_sigma = 0.5f*control_res;
@@ -75,7 +77,6 @@ int main(int argc, char ** argv) {
     cilantro::SimpleSparseCombinedMetricNonRigidICP3f icp(dst.points, dst.normals, src.points, control_points.cols(), src_to_control_nn, regularization_nn);
 
     // Parameter setting
-//    icp.correspondenceSearchEngine().setMaxDistance(max_correspondence_dist_sq).setSearchDirection(cilantro::CorrespondenceSearchDirection::BOTH);
     icp.correspondenceSearchEngine().setMaxDistance(max_correspondence_dist_sq);
 
     icp.setMaxNumberOfIterations(15).setConvergenceTolerance(2.5e-3f);
@@ -87,6 +88,39 @@ int main(int argc, char ** argv) {
     auto tf_est = icp.estimateTransformation().getPointTransformations();
 
     timer.stop();
+
+
+//    // Example 2: Compute a densely supported warp field (each point has its own local transformation)
+//    float res = 0.005f;
+//    float regularization_sigma = 3.0f*res;
+//
+//    dst.gridDownsample(res).removeInvalidData();
+//    src.gridDownsample(res).removeInvalidData();
+//
+//    float max_correspondence_dist_sq = 0.04f*0.04f;
+//
+//    std::vector<cilantro::NeighborSet<float>> regularization_nn;
+//    cilantro::KDTree3f(src.points).search(src.points, cilantro::kNNNeighborhood<float>(12), regularization_nn);
+//
+//    // Perform ICP registration
+//    cilantro::Timer timer;
+//    timer.start();
+//
+//    cilantro::SimpleDenseCombinedMetricNonRigidICP3f icp(dst.points, dst.normals, src.points, regularization_nn);
+//
+//    // Parameter setting
+//    icp.correspondenceSearchEngine().setMaxDistance(max_correspondence_dist_sq);
+//
+//    icp.setMaxNumberOfIterations(15).setConvergenceTolerance(2.5e-3f);
+//    icp.setMaxNumberOfGaussNewtonIterations(1).setGaussNewtonConvergenceTolerance(5e-4f);
+//    icp.setMaxNumberOfConjugateGradientIterations(500).setConjugateGradientConvergenceTolerance(1e-5f);
+//    icp.setPointToPointMetricWeight(0.1f).setPointToPlaneMetricWeight(1.0f).setStiffnessRegularizationWeight(200.0f);
+//    icp.setHuberLossBoundary(1e-2f);
+//
+//    auto tf_est = icp.estimateTransformation().getTransformation();
+//
+//    timer.stop();
+
 
     std::cout << "Registration time: " << timer.getElapsedTime() << "ms" << std::endl;
     std::cout << "Iterations performed: " << icp.getNumberOfPerformedIterations() << std::endl;
