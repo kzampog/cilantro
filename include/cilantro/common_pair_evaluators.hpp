@@ -14,6 +14,9 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        typedef ValueT InputScalar;
+        typedef WeightT OutputScalar;
+
         inline WeightT operator()(size_t, size_t, ValueT val) const { return static_cast<WeightT>(val); }
     };
 
@@ -22,6 +25,9 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        typedef ValueT InputScalar;
+        typedef WeightT OutputScalar;
+
         inline const WeightT operator()(size_t, size_t, ValueT) const { return (WeightT)1.0; }
     };
 
@@ -29,6 +35,9 @@ namespace cilantro {
     class RBFKernelWeightEvaluator {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        typedef ValueT InputScalar;
+        typedef WeightT OutputScalar;
 
         RBFKernelWeightEvaluator() : coeff_(-(WeightT)(0.5)) {}
 
@@ -60,6 +69,9 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        typedef ScalarT InputScalar;
+        typedef bool OutputScalar;
+
         PointsProximityEvaluator(ScalarT dist_thresh) : max_distance_(dist_thresh) {}
 
         inline bool operator()(size_t, size_t, ScalarT dist) const { return dist < max_distance_; }
@@ -72,6 +84,9 @@ namespace cilantro {
     class NormalsProximityEvaluator {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        typedef ScalarT InputScalar;
+        typedef bool OutputScalar;
 
         NormalsProximityEvaluator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &normals,
                                   ScalarT angle_thresh)
@@ -97,6 +112,9 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        typedef ScalarT InputScalar;
+        typedef bool OutputScalar;
+
         ColorsProximityEvaluator(const ConstVectorSetMatrixMap<float,3> &colors,
                                  float dist_thresh)
                 : colors_(colors), max_color_diff_(dist_thresh*dist_thresh)
@@ -115,6 +133,9 @@ namespace cilantro {
     class PointsNormalsProximityEvaluator {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        typedef ScalarT InputScalar;
+        typedef bool OutputScalar;
 
         PointsNormalsProximityEvaluator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &normals,
                                         ScalarT dist_thresh,
@@ -143,6 +164,9 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        typedef ScalarT InputScalar;
+        typedef bool OutputScalar;
+
         PointsColorsProximityEvaluator(const ConstVectorSetMatrixMap<float,3> &colors,
                                        ScalarT dist_thresh,
                                        float color_thresh)
@@ -163,6 +187,9 @@ namespace cilantro {
     class NormalsColorsProximityEvaluator {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        typedef ScalarT InputScalar;
+        typedef bool OutputScalar;
 
         NormalsColorsProximityEvaluator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &normals,
                                         const ConstVectorSetMatrixMap<float,3> &colors,
@@ -193,6 +220,9 @@ namespace cilantro {
     class PointsNormalsColorsProximityEvaluator {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        typedef ScalarT InputScalar;
+        typedef bool OutputScalar;
 
         PointsNormalsColorsProximityEvaluator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &normals,
                                               const ConstVectorSetMatrixMap<float,3> &colors,

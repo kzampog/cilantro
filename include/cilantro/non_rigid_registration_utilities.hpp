@@ -90,13 +90,13 @@ namespace cilantro {
         d_rot_coeffs_dc(2,2) = (ScalarT)0.0;
     }
 
-    template <typename ScalarT, typename PointCorrValueT = ScalarT, typename PlaneCorrValueT = PointCorrValueT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<PointCorrValueT,ScalarT>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<PlaneCorrValueT,ScalarT>, class RegWeightEvaluatorT = RBFKernelWeightEvaluator<ScalarT,ScalarT,true>>
+    template <typename ScalarT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>, class RegWeightEvaluatorT = RBFKernelWeightEvaluator<ScalarT,ScalarT,true>>
     bool estimateDenseWarpFieldCombinedMetric3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
                                                const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
                                                const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
-                                               const CorrespondenceSet<PointCorrValueT> &point_to_point_correspondences,
-                                               const CorrespondenceSet<PlaneCorrValueT> &point_to_plane_correspondences,
-                                               const std::vector<NeighborSet<ScalarT>> &regularization_neighborhoods,
+                                               const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                               const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
+                                               const std::vector<NeighborSet<typename RegWeightEvaluatorT::InputScalar>> &regularization_neighborhoods,
                                                RigidTransformationSet<ScalarT,3> &transforms,
                                                ScalarT stiffness_weight = (ScalarT)100.0,
                                                ScalarT point_to_point_weight = (ScalarT)0.0,
@@ -402,7 +402,7 @@ namespace cilantro {
 
         return has_converged;
     }
-    
+
     template <typename ScalarT>
     bool estimateSparseWarpFieldCombinedMetric3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
                                                 const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,

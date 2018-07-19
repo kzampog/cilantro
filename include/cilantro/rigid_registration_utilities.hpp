@@ -46,12 +46,12 @@ namespace cilantro {
         return estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim>(dst_corr, src_corr, tform);
     }
 
-    template <typename ScalarT, typename PointCorrValueT = ScalarT, typename PlaneCorrValueT = PointCorrValueT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<PointCorrValueT,ScalarT>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<PlaneCorrValueT,ScalarT>>
+    template <typename ScalarT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>>
     bool estimateRigidTransformCombinedMetric3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
                                                const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
                                                const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
-                                               const CorrespondenceSet<PointCorrValueT> &point_to_point_correspondences,
-                                               const CorrespondenceSet<PlaneCorrValueT> &point_to_plane_correspondences,
+                                               const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                               const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
                                                RigidTransformation<ScalarT,3> &tform,
                                                ScalarT point_to_point_weight = (ScalarT)0.0,
                                                ScalarT point_to_plane_weight = (ScalarT)1.0,
