@@ -11,7 +11,7 @@ namespace cilantro {
                                                       const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src,
                                                       RigidTransformation<ScalarT,EigenDim> &tform)
     {
-        if (src.cols() != dst.cols() || src.cols() < src.rows()) {
+        if (src.cols() != dst.cols() || src.cols() == 0) {
             tform.setIdentity();
             return false;
         }
@@ -61,14 +61,15 @@ namespace cilantro {
                                                const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT())
     {
         tform.setIdentity();
-        if (point_to_point_correspondences.size() + point_to_plane_correspondences.size() < 3 || dst_p.cols() != dst_n.cols() ||
-            (point_to_point_weight == (ScalarT)0.0 && point_to_plane_weight == (ScalarT)0.0))
-        {
-            return false;
-        }
 
         const bool has_point_to_point_terms = !point_to_point_correspondences.empty() && (point_to_point_weight > (ScalarT)0.0);
         const bool has_point_to_plane_terms = !point_to_plane_correspondences.empty() && (point_to_plane_weight > (ScalarT)0.0);
+
+        if ((!has_point_to_point_terms && !has_point_to_plane_terms) ||
+            (has_point_to_plane_terms && dst_p.cols() != dst_n.cols()))
+        {
+            return false;
+        }
 
         const size_t num_point_to_point_equations = 3*has_point_to_point_terms*point_to_point_correspondences.size();
         const size_t num_point_to_plane_equations = has_point_to_plane_terms*point_to_plane_correspondences.size();
