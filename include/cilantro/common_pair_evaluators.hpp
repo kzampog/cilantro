@@ -28,7 +28,7 @@ namespace cilantro {
         typedef ValueT InputScalar;
         typedef WeightT OutputScalar;
 
-        inline const WeightT operator()(size_t, size_t, ValueT) const { return (WeightT)1.0; }
+        inline const WeightT operator()(size_t, size_t, ValueT) const { return (WeightT)1; }
     };
 
     template <typename ValueT, typename WeightT = ValueT, bool distances_are_squared = true>
@@ -61,6 +61,12 @@ namespace cilantro {
     private:
         WeightT coeff_;
     };
+
+    template <typename ValueT, typename WeightT>
+    using AdjacencyEvaluator = UnityWeightEvaluator<ValueT,WeightT>;
+
+    template <typename ValueT, typename WeightT>
+    using DistanceEvaluator = IdentityWeightEvaluator<ValueT,WeightT>;
 
     // Proximity evaluators (return bool)
 

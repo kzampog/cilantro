@@ -127,6 +127,7 @@ namespace cilantro {
         const size_t num_point_to_plane_equations = has_point_to_plane_terms*point_to_plane_correspondences.size();
         const size_t num_data_term_equations = num_point_to_point_equations + num_point_to_plane_equations;
 
+        // Get regularization equation count and indices
         std::vector<size_t> reg_eq_ind(regularization_neighborhoods.size());
         size_t num_reg_arcs = 0;
         if (!regularization_neighborhoods.empty()) {
@@ -149,13 +150,16 @@ namespace cilantro {
         ScalarT * const values = At.valuePtr();
         // Outer pointers
         typename Eigen::SparseMatrix<ScalarT>::StorageIndex * const outer_ptr = At.outerIndexPtr();
-#pragma omp parallel for
-        for (size_t i = 0; i < num_data_term_equations + 1; i++) {
-            outer_ptr[i] = 6*i;
-        }
-#pragma omp parallel for
-        for (size_t i = 1; i < num_regularization_equations + 1; i++) {
-            outer_ptr[num_data_term_equations + i] = 6*num_data_term_equations + 2*i;
+#pragma omp parallel
+        {
+#pragma omp for nowait
+            for (size_t i = 0; i < num_data_term_equations + 1; i++) {
+                outer_ptr[i] = 6*i;
+            }
+#pragma omp for nowait
+            for (size_t i = 1; i < num_regularization_equations + 1; i++) {
+                outer_ptr[num_data_term_equations + i] = 6*num_data_term_equations + 2*i;
+            }
         }
         // Inner indices
         typename Eigen::SparseMatrix<ScalarT>::StorageIndex * const inner_ind = At.innerIndexPtr();

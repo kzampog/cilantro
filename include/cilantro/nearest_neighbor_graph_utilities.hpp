@@ -2,23 +2,9 @@
 
 #include <Eigen/Sparse>
 #include <cilantro/nearest_neighbors.hpp>
+#include <cilantro/common_pair_evaluators.hpp>
 
 namespace cilantro {
-    // Dummy function evaluators for neighboring point pairs
-    template <typename ScalarT, typename ValueT>
-    struct AdjacencyEvaluator {
-        inline ValueT operator()(size_t pt_ind, size_t nn_ind, ScalarT dist) const {
-            return (ValueT)1;
-        }
-    };
-
-    template <typename ScalarT, typename ValueT>
-    struct DistanceEvaluator {
-        inline ValueT operator()(size_t pt_ind, size_t nn_ind, ScalarT dist) const {
-            return dist;
-        }
-    };
-
     template <typename T>
     std::vector<size_t> getNNGraphNodeDegrees(const std::vector<std::vector<T>> &adj_list,
                                               bool remove_self = true)
