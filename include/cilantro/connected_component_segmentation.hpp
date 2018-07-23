@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cilantro/kd_tree.hpp>
+#include <cilantro/common_pair_evaluators.hpp>
 #include <set>
 
 namespace cilantro {
@@ -14,17 +15,12 @@ namespace cilantro {
         inline bool operator()(const T& obj1, const T& obj2) const { return obj1.size() > obj2.size(); }
     };
 
-    template <typename ScalarT>
-    struct AlwaysTrueSimilarityEvaluator {
-        inline bool operator()(size_t, size_t, ScalarT) const { return true; }
-    };
-
     class ConnectedComponentSegmentation {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         // Given neighbors and seeds
-        template <typename ScalarT, class PointSimilarityEvaluator = AlwaysTrueSimilarityEvaluator<ScalarT>>
+        template <typename ScalarT, class PointSimilarityEvaluator = AlwaysTrueEvaluator<ScalarT>>
         ConnectedComponentSegmentation& segment(const std::vector<NeighborSet<ScalarT>> &neighbors,
                                                 const std::vector<size_t> &seeds_ind,
                                                 const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
@@ -36,7 +32,7 @@ namespace cilantro {
         }
 
         // Given neighbors, all seeds
-        template <typename ScalarT, class PointSimilarityEvaluator = AlwaysTrueSimilarityEvaluator<ScalarT>>
+        template <typename ScalarT, class PointSimilarityEvaluator = AlwaysTrueEvaluator<ScalarT>>
         ConnectedComponentSegmentation& segment(const std::vector<NeighborSet<ScalarT>> &neighbors,
                                                 const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
                                                 size_t min_segment_size = 0,
@@ -49,7 +45,7 @@ namespace cilantro {
         }
 
         // Given search tree and seeds
-        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor, class PointSimilarityEvaluator = AlwaysTrueSimilarityEvaluator<ScalarT>>
+        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor, class PointSimilarityEvaluator = AlwaysTrueEvaluator<ScalarT>>
         ConnectedComponentSegmentation& segment(const KDTree<ScalarT,EigenDim,DistAdaptor> &tree,
                                                 const NeighborhoodSpecification<ScalarT> &nh,
                                                 const std::vector<size_t> &seeds_ind,
@@ -72,7 +68,7 @@ namespace cilantro {
         }
 
         // Given search tree, all seeds
-        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor, class PointSimilarityEvaluator = AlwaysTrueSimilarityEvaluator<ScalarT>>
+        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor, class PointSimilarityEvaluator = AlwaysTrueEvaluator<ScalarT>>
         ConnectedComponentSegmentation& segment(const KDTree<ScalarT,EigenDim,DistAdaptor> &tree,
                                                 const NeighborhoodSpecification<ScalarT> &nh,
                                                 const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
@@ -96,7 +92,7 @@ namespace cilantro {
         }
 
         // Given points and seeds
-        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class PointSimilarityEvaluator = AlwaysTrueSimilarityEvaluator<ScalarT>>
+        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class PointSimilarityEvaluator = AlwaysTrueEvaluator<ScalarT>>
         ConnectedComponentSegmentation& segment(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
                                                 const NeighborhoodSpecification<ScalarT> &nh,
                                                 const std::vector<size_t> &seeds_ind,
@@ -119,7 +115,7 @@ namespace cilantro {
         }
 
         // Given points, all seeds
-        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class PointSimilarityEvaluator = AlwaysTrueSimilarityEvaluator<ScalarT>>
+        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class PointSimilarityEvaluator = AlwaysTrueEvaluator<ScalarT>>
         ConnectedComponentSegmentation& segment(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
                                                 const NeighborhoodSpecification<ScalarT> &nh,
                                                 const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
@@ -143,7 +139,7 @@ namespace cilantro {
         }
 
 //        // Given search tree and seeds (NeighborhoodType given as template parameter)
-//        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor, NeighborhoodType NT, class PointSimilarityEvaluator = AlwaysTrueSimilarityEvaluator<ScalarT>>
+//        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor, NeighborhoodType NT, class PointSimilarityEvaluator = AlwaysTrueEvaluator<ScalarT>>
 //        ConnectedComponentSegmentation& segment(const KDTree<ScalarT,EigenDim,DistAdaptor> &tree,
 //                                                const NeighborhoodSpecification<ScalarT> &nh,
 //                                                const std::vector<size_t> &seeds_ind,
@@ -156,7 +152,7 @@ namespace cilantro {
 //        }
 //
 //        // Given search tree, all seeds (NeighborhoodType given as template parameter)
-//        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor, NeighborhoodType NT, class PointSimilarityEvaluator = AlwaysTrueSimilarityEvaluator<ScalarT>>
+//        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor, NeighborhoodType NT, class PointSimilarityEvaluator = AlwaysTrueEvaluator<ScalarT>>
 //        ConnectedComponentSegmentation& segment(const KDTree<ScalarT,EigenDim,DistAdaptor> &tree,
 //                                                const NeighborhoodSpecification<ScalarT> &nh,
 //                                                const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
@@ -170,7 +166,7 @@ namespace cilantro {
 //        }
 //
 //        // Given points and seeds (NeighborhoodType given as template parameter)
-//        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor, NeighborhoodType NT, class PointSimilarityEvaluator = AlwaysTrueSimilarityEvaluator<ScalarT>>
+//        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor, NeighborhoodType NT, class PointSimilarityEvaluator = AlwaysTrueEvaluator<ScalarT>>
 //        ConnectedComponentSegmentation& segment(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
 //                                                const NeighborhoodSpecification<ScalarT> &nh,
 //                                                const std::vector<size_t> &seeds_ind,
@@ -183,7 +179,7 @@ namespace cilantro {
 //        }
 //
 //        // Given points, all seeds (NeighborhoodType given as template parameter)
-//        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor, NeighborhoodType NT, class PointSimilarityEvaluator = AlwaysTrueSimilarityEvaluator<ScalarT>>
+//        template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor, NeighborhoodType NT, class PointSimilarityEvaluator = AlwaysTrueEvaluator<ScalarT>>
 //        ConnectedComponentSegmentation& segment(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
 //                                                const NeighborhoodSpecification<ScalarT> &nh,
 //                                                const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),

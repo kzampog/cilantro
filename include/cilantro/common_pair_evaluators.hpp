@@ -68,6 +68,9 @@ namespace cilantro {
     template <typename ValueT, typename WeightT>
     using DistanceEvaluator = IdentityWeightEvaluator<ValueT,WeightT>;
 
+    template <typename ValueT>
+    using AlwaysTrueEvaluator = UnityWeightEvaluator<ValueT,bool>;
+
     // Proximity evaluators (return bool)
 
     template <typename ScalarT, ptrdiff_t EigenDim>

@@ -408,7 +408,7 @@ namespace cilantro {
 
         return has_converged;
     }
-    
+
     template <typename ScalarT>
     bool estimateSparseWarpFieldCombinedMetric3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
                                                 const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
