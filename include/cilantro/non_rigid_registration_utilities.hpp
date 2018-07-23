@@ -121,12 +121,6 @@ namespace cilantro {
             return false;
         }
 
-        // Compute number of equations and unknowns
-        const size_t num_unknowns = 6*src_p.cols();
-        const size_t num_point_to_point_equations = 3*has_point_to_point_terms*point_to_point_correspondences.size();
-        const size_t num_point_to_plane_equations = has_point_to_plane_terms*point_to_plane_correspondences.size();
-        const size_t num_data_term_equations = num_point_to_point_equations + num_point_to_plane_equations;
-
         // Get regularization equation count and indices
         std::vector<size_t> reg_eq_ind(regularization_neighborhoods.size());
         size_t num_reg_arcs = 0;
@@ -138,6 +132,12 @@ namespace cilantro {
             reg_eq_ind[i] = reg_eq_ind[i-1] + 6*std::max((size_t)0, regularization_neighborhoods[i-1].size() - 1);
             num_reg_arcs += std::max((size_t)0, regularization_neighborhoods[i].size() - 1);
         }
+
+        // Compute number of equations and unknowns
+        const size_t num_unknowns = 6*src_p.cols();
+        const size_t num_point_to_point_equations = 3*has_point_to_point_terms*point_to_point_correspondences.size();
+        const size_t num_point_to_plane_equations = has_point_to_plane_terms*point_to_plane_correspondences.size();
+        const size_t num_data_term_equations = num_point_to_point_equations + num_point_to_plane_equations;
 
         const size_t num_regularization_equations = 6*num_reg_arcs;
         const size_t num_equations = num_data_term_equations + num_regularization_equations;
@@ -408,7 +408,7 @@ namespace cilantro {
 
         return has_converged;
     }
-
+    
     template <typename ScalarT>
     bool estimateSparseWarpFieldCombinedMetric3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
                                                 const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
