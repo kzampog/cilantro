@@ -1,11 +1,12 @@
 #pragma once
 
 #include <cilantro/correspondence.hpp>
+#include <cilantro/common_pair_evaluators.hpp>
 #include <cilantro/icp_common_feature_adaptors.hpp>
 #include <cilantro/image_point_cloud_conversions.hpp>
 
 namespace cilantro {
-    template <class ScalarT, class EvaluatorT = CorrespondenceDistanceEvaluator<ScalarT>>
+    template <class ScalarT, class EvaluatorT = DistanceEvaluator<ScalarT,ScalarT>>
     class ICPCorrespondenceSearchProjective3 {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW

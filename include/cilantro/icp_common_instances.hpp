@@ -11,9 +11,9 @@
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
     class SimplePointToPointMetricRigidICP : private std::pair<PointFeaturesAdaptor<ScalarT,EigenDim>,PointFeaturesAdaptor<ScalarT,EigenDim>>,
-                                             private CorrespondenceDistanceEvaluator<ScalarT>,
-                                             private ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,EigenDim>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>,
-                                             public PointToPointMetricRigidICP<ScalarT,EigenDim,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,EigenDim>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>>
+                                             private DistanceEvaluator<ScalarT,ScalarT>,
+                                             private ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,EigenDim>,KDTreeDistanceAdaptors::L2,DistanceEvaluator<ScalarT,ScalarT>>,
+                                             public PointToPointMetricRigidICP<ScalarT,EigenDim,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,EigenDim>,KDTreeDistanceAdaptors::L2,DistanceEvaluator<ScalarT,ScalarT>>>
     {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -21,9 +21,9 @@ namespace cilantro {
         SimplePointToPointMetricRigidICP(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
                                          const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points)
                 : std::pair<PointFeaturesAdaptor<ScalarT,EigenDim>,PointFeaturesAdaptor<ScalarT,EigenDim>>(PointFeaturesAdaptor<ScalarT,EigenDim>(dst_points), PointFeaturesAdaptor<ScalarT,EigenDim>(src_points)),
-                  CorrespondenceDistanceEvaluator<ScalarT>(),
-                  ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,EigenDim>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>(this->first, this->second, *this),
-                  PointToPointMetricRigidICP<ScalarT,EigenDim,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,EigenDim>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>>(dst_points, src_points, *this)
+                  DistanceEvaluator<ScalarT,ScalarT>(),
+                  ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,EigenDim>,KDTreeDistanceAdaptors::L2,DistanceEvaluator<ScalarT,ScalarT>>(this->first, this->second, *this),
+                  PointToPointMetricRigidICP<ScalarT,EigenDim,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,EigenDim>,KDTreeDistanceAdaptors::L2,DistanceEvaluator<ScalarT,ScalarT>>>(dst_points, src_points, *this)
         {}
     };
 
@@ -34,9 +34,9 @@ namespace cilantro {
 
     template <typename ScalarT>
     class SimplePointToPointMetricRigidProjectiveICP3 : private std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>,
-                                                        private CorrespondenceDistanceEvaluator<ScalarT>,
-                                                        private ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>,
-                                                        public PointToPointMetricRigidICP<ScalarT,3,ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>>
+                                                        private DistanceEvaluator<ScalarT,ScalarT>,
+                                                        private ICPCorrespondenceSearchProjective3<ScalarT,DistanceEvaluator<ScalarT,ScalarT>>,
+                                                        public PointToPointMetricRigidICP<ScalarT,3,ICPCorrespondenceSearchProjective3<ScalarT,DistanceEvaluator<ScalarT,ScalarT>>>
     {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -44,9 +44,9 @@ namespace cilantro {
         SimplePointToPointMetricRigidProjectiveICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_points,
                                                     const ConstVectorSetMatrixMap<ScalarT,3> &src_points)
                 : std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>(PointFeaturesAdaptor<ScalarT,3>(dst_points), PointFeaturesAdaptor<ScalarT,3>(src_points)),
-                  CorrespondenceDistanceEvaluator<ScalarT>(),
-                  ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>(this->first, this->second, *this),
-                  PointToPointMetricRigidICP<ScalarT,3,ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>>(dst_points, src_points, *this)
+                  DistanceEvaluator<ScalarT,ScalarT>(),
+                  ICPCorrespondenceSearchProjective3<ScalarT,DistanceEvaluator<ScalarT,ScalarT>>(this->first, this->second, *this),
+                  PointToPointMetricRigidICP<ScalarT,3,ICPCorrespondenceSearchProjective3<ScalarT,DistanceEvaluator<ScalarT,ScalarT>>>(dst_points, src_points, *this)
         {}
     };
 
@@ -55,9 +55,9 @@ namespace cilantro {
 
     template <typename ScalarT>
     class SimpleCombinedMetricRigidICP3 : private std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>,
-                                          private CorrespondenceDistanceEvaluator<ScalarT>,
-                                          private ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>,
-                                          public CombinedMetricRigidICP3<ScalarT,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>>
+                                          private DistanceEvaluator<ScalarT,ScalarT>,
+                                          private ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,DistanceEvaluator<ScalarT,ScalarT>>,
+                                          public CombinedMetricRigidICP3<ScalarT,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,DistanceEvaluator<ScalarT,ScalarT>>>
     {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -66,9 +66,9 @@ namespace cilantro {
                                       const ConstVectorSetMatrixMap<ScalarT,3> &dst_normals,
                                       const ConstVectorSetMatrixMap<ScalarT,3> &src_points)
                 : std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>(PointFeaturesAdaptor<ScalarT,3>(dst_points), PointFeaturesAdaptor<ScalarT,3>(src_points)),
-                  CorrespondenceDistanceEvaluator<ScalarT>(),
-                  ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>(this->first, this->second, *this),
-                  CombinedMetricRigidICP3<ScalarT,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>>(dst_points, dst_normals, src_points, *this)
+                  DistanceEvaluator<ScalarT,ScalarT>(),
+                  ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,DistanceEvaluator<ScalarT,ScalarT>>(this->first, this->second, *this),
+                  CombinedMetricRigidICP3<ScalarT,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,DistanceEvaluator<ScalarT,ScalarT>>>(dst_points, dst_normals, src_points, *this)
         {}
     };
 
@@ -77,9 +77,9 @@ namespace cilantro {
 
     template <typename ScalarT>
     class SimpleCombinedMetricRigidProjectiveICP3 : private std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>,
-                                                    private CorrespondenceDistanceEvaluator<ScalarT>,
-                                                    private ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>,
-                                                    public CombinedMetricRigidICP3<ScalarT,ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>>
+                                                    private DistanceEvaluator<ScalarT,ScalarT>,
+                                                    private ICPCorrespondenceSearchProjective3<ScalarT,DistanceEvaluator<ScalarT,ScalarT>>,
+                                                    public CombinedMetricRigidICP3<ScalarT,ICPCorrespondenceSearchProjective3<ScalarT,DistanceEvaluator<ScalarT,ScalarT>>>
     {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -88,9 +88,9 @@ namespace cilantro {
                                                 const ConstVectorSetMatrixMap<ScalarT,3> &dst_normals,
                                                 const ConstVectorSetMatrixMap<ScalarT,3> &src_points)
                 : std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>(PointFeaturesAdaptor<ScalarT,3>(dst_points), PointFeaturesAdaptor<ScalarT,3>(src_points)),
-                  CorrespondenceDistanceEvaluator<ScalarT>(),
-                  ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>(this->first, this->second, *this),
-                  CombinedMetricRigidICP3<ScalarT,ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>>(dst_points, dst_normals, src_points, *this)
+                  DistanceEvaluator<ScalarT,ScalarT>(),
+                  ICPCorrespondenceSearchProjective3<ScalarT,DistanceEvaluator<ScalarT,ScalarT>>(this->first, this->second, *this),
+                  CombinedMetricRigidICP3<ScalarT,ICPCorrespondenceSearchProjective3<ScalarT,DistanceEvaluator<ScalarT,ScalarT>>>(dst_points, dst_normals, src_points, *this)
         {}
     };
 
@@ -99,9 +99,9 @@ namespace cilantro {
 
     template <typename ScalarT>
     class SimpleDenseCombinedMetricNonRigidICP3 : private std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>,
-                                                  private CorrespondenceDistanceEvaluator<ScalarT>,
-                                                  private ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>,
-                                                  public DenseCombinedMetricNonRigidICP3<ScalarT,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>>
+                                                  private DistanceEvaluator<ScalarT,ScalarT>,
+                                                  private ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,DistanceEvaluator<ScalarT,ScalarT>>,
+                                                  public DenseCombinedMetricNonRigidICP3<ScalarT,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,DistanceEvaluator<ScalarT,ScalarT>>>
     {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -111,9 +111,9 @@ namespace cilantro {
                                               const ConstVectorSetMatrixMap<ScalarT,3> &src_points,
                                               const std::vector<NeighborSet<ScalarT>> &regularization_neighborhoods)
                 : std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>(PointFeaturesAdaptor<ScalarT,3>(dst_points), PointFeaturesAdaptor<ScalarT,3>(src_points)),
-                  CorrespondenceDistanceEvaluator<ScalarT>(),
-                  ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>(this->first, this->second, *this),
-                  DenseCombinedMetricNonRigidICP3<ScalarT,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>>(dst_points, dst_normals, src_points, regularization_neighborhoods, *this)
+                  DistanceEvaluator<ScalarT,ScalarT>(),
+                  ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,DistanceEvaluator<ScalarT,ScalarT>>(this->first, this->second, *this),
+                  DenseCombinedMetricNonRigidICP3<ScalarT,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,DistanceEvaluator<ScalarT,ScalarT>>>(dst_points, dst_normals, src_points, regularization_neighborhoods, *this)
         {}
     };
 
@@ -122,9 +122,9 @@ namespace cilantro {
 
     template <typename ScalarT>
     class SimpleDenseCombinedMetricNonRigidProjectiveICP3 : private std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>,
-                                                            private CorrespondenceDistanceEvaluator<ScalarT>,
-                                                            private ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>,
-                                                            public DenseCombinedMetricNonRigidICP3<ScalarT,ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>>
+                                                            private DistanceEvaluator<ScalarT,ScalarT>,
+                                                            private ICPCorrespondenceSearchProjective3<ScalarT,DistanceEvaluator<ScalarT,ScalarT>>,
+                                                            public DenseCombinedMetricNonRigidICP3<ScalarT,ICPCorrespondenceSearchProjective3<ScalarT,DistanceEvaluator<ScalarT,ScalarT>>>
     {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -134,9 +134,9 @@ namespace cilantro {
                                                         const ConstVectorSetMatrixMap<ScalarT,3> &src_points,
                                                         const std::vector<NeighborSet<ScalarT>> &regularization_neighborhoods)
                 : std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>(PointFeaturesAdaptor<ScalarT,3>(dst_points), PointFeaturesAdaptor<ScalarT,3>(src_points)),
-                  CorrespondenceDistanceEvaluator<ScalarT>(),
-                  ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>(this->first, this->second, *this),
-                  DenseCombinedMetricNonRigidICP3<ScalarT,ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>>(dst_points, dst_normals, src_points, regularization_neighborhoods, *this)
+                  DistanceEvaluator<ScalarT,ScalarT>(),
+                  ICPCorrespondenceSearchProjective3<ScalarT,DistanceEvaluator<ScalarT,ScalarT>>(this->first, this->second, *this),
+                  DenseCombinedMetricNonRigidICP3<ScalarT,ICPCorrespondenceSearchProjective3<ScalarT,DistanceEvaluator<ScalarT,ScalarT>>>(dst_points, dst_normals, src_points, regularization_neighborhoods, *this)
         {}
     };
 
@@ -145,9 +145,9 @@ namespace cilantro {
 
     template <typename ScalarT>
     class SimpleSparseCombinedMetricNonRigidICP3 : private std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>,
-                                                   private CorrespondenceDistanceEvaluator<ScalarT>,
-                                                   private ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>,
-                                                   public SparseCombinedMetricNonRigidICP3<ScalarT,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>>
+                                                   private DistanceEvaluator<ScalarT,ScalarT>,
+                                                   private ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,DistanceEvaluator<ScalarT,ScalarT>>,
+                                                   public SparseCombinedMetricNonRigidICP3<ScalarT,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,DistanceEvaluator<ScalarT,ScalarT>>>
     {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -159,9 +159,9 @@ namespace cilantro {
                                                const std::vector<NeighborSet<ScalarT>> &src_to_control_neighborhoods,
                                                const std::vector<NeighborSet<ScalarT>> &control_regularization_neighborhoods)
                 : std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>(PointFeaturesAdaptor<ScalarT,3>(dst_points), PointFeaturesAdaptor<ScalarT,3>(src_points)),
-                  CorrespondenceDistanceEvaluator<ScalarT>(),
-                  ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>(this->first, this->second, *this),
-                  SparseCombinedMetricNonRigidICP3<ScalarT,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,CorrespondenceDistanceEvaluator<ScalarT>>>(dst_points, dst_normals, src_points, num_control_nodes, src_to_control_neighborhoods, control_regularization_neighborhoods, *this)
+                  DistanceEvaluator<ScalarT,ScalarT>(),
+                  ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,DistanceEvaluator<ScalarT,ScalarT>>(this->first, this->second, *this),
+                  SparseCombinedMetricNonRigidICP3<ScalarT,ICPCorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,3>,KDTreeDistanceAdaptors::L2,DistanceEvaluator<ScalarT,ScalarT>>>(dst_points, dst_normals, src_points, num_control_nodes, src_to_control_neighborhoods, control_regularization_neighborhoods, *this)
         {}
     };
 
@@ -170,9 +170,9 @@ namespace cilantro {
 
     template <typename ScalarT>
     class SimpleSparseCombinedMetricNonRigidProjectiveICP3 : private std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>,
-                                                             private CorrespondenceDistanceEvaluator<ScalarT>,
-                                                             private ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>,
-                                                             public SparseCombinedMetricNonRigidICP3<ScalarT,ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>>
+                                                             private DistanceEvaluator<ScalarT,ScalarT>,
+                                                             private ICPCorrespondenceSearchProjective3<ScalarT,DistanceEvaluator<ScalarT,ScalarT>>,
+                                                             public SparseCombinedMetricNonRigidICP3<ScalarT,ICPCorrespondenceSearchProjective3<ScalarT,DistanceEvaluator<ScalarT,ScalarT>>>
     {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -184,9 +184,9 @@ namespace cilantro {
                                                          const std::vector<NeighborSet<ScalarT>> &src_to_control_neighborhoods,
                                                          const std::vector<NeighborSet<ScalarT>> &control_regularization_neighborhoods)
                 : std::pair<PointFeaturesAdaptor<ScalarT,3>,PointFeaturesAdaptor<ScalarT,3>>(PointFeaturesAdaptor<ScalarT,3>(dst_points), PointFeaturesAdaptor<ScalarT,3>(src_points)),
-                  CorrespondenceDistanceEvaluator<ScalarT>(),
-                  ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>(this->first, this->second, *this),
-                  SparseCombinedMetricNonRigidICP3<ScalarT,ICPCorrespondenceSearchProjective3<ScalarT,CorrespondenceDistanceEvaluator<ScalarT>>>(dst_points, dst_normals, src_points, num_control_nodes, src_to_control_neighborhoods, control_regularization_neighborhoods, *this)
+                  DistanceEvaluator<ScalarT,ScalarT>(),
+                  ICPCorrespondenceSearchProjective3<ScalarT,DistanceEvaluator<ScalarT,ScalarT>>(this->first, this->second, *this),
+                  SparseCombinedMetricNonRigidICP3<ScalarT,ICPCorrespondenceSearchProjective3<ScalarT,DistanceEvaluator<ScalarT,ScalarT>>>(dst_points, dst_normals, src_points, num_control_nodes, src_to_control_neighborhoods, control_regularization_neighborhoods, *this)
         {}
     };
 

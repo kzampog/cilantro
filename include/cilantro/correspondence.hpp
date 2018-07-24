@@ -50,13 +50,6 @@ namespace cilantro {
         }
     }
 
-    template <typename ScalarT>
-    struct CorrespondenceDistanceEvaluator {
-        inline ScalarT operator()(size_t first_ind, size_t second_ind, ScalarT dist) const {
-            return dist;
-        }
-    };
-
     template <typename ScalarT, ptrdiff_t EigenDim, typename CorrValueT = ScalarT>
     void selectFirstSetCorrespondingPoints(const CorrespondenceSet<CorrValueT> &correspondences,
                                            const ConstVectorSetMatrixMap<ScalarT,EigenDim> &first,

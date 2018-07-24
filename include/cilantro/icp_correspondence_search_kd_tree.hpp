@@ -10,7 +10,7 @@ namespace cilantro {
     template <typename T>
     struct IsIsometry<T, decltype((void) T::Mode, 0)> : std::conditional<T::Mode == Eigen::Isometry, std::true_type, std::false_type>::type {};
 
-    template <class FeatureAdaptorT, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = CorrespondenceDistanceEvaluator<typename FeatureAdaptorT::Scalar>>
+    template <class FeatureAdaptorT, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = DistanceEvaluator<typename FeatureAdaptorT::Scalar, typename FeatureAdaptorT::Scalar>>
     class ICPCorrespondenceSearchKDTree {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
