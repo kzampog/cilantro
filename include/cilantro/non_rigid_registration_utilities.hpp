@@ -6,9 +6,6 @@
 #include <cilantro/correspondence.hpp>
 #include <cilantro/common_pair_evaluators.hpp>
 
-#include <iostream>
-
-
 namespace cilantro {
     template <typename ScalarT>
     inline ScalarT sqrtHuberLoss(ScalarT x, ScalarT delta = (ScalarT)1.0) {
