@@ -19,15 +19,14 @@ namespace cilantro {
             return VectorSet<float,3>::Zero(3, scalars.cols());
         }
 
-        const ValueT scalar_range = scalar_max_used - scalar_min_used;
-        float scalar_normalized;
+        const ValueT scalar_range = (scalar_max_used == scalar_min_used) ? (ValueT)1.0 : (scalar_max_used - scalar_min_used);
 
         VectorSet<float,3> colors(3, scalars.cols());
         switch (colormap_type) {
             case ColormapType::JET:
-#pragma omp parallel for private (scalar_normalized)
+#pragma omp parallel for
                 for (size_t i = 0; i < scalars.cols(); i++) {
-                    scalar_normalized = (scalars[i] - scalar_min_used)/scalar_range;
+                    const float scalar_normalized = (scalars[i] - scalar_min_used)/scalar_range;
                     if (scalar_normalized < 0.7f)
                         colors(0,i) = std::max(std::min(4.0f*scalar_normalized - 1.5f, 1.0f), 0.0f);
                     else
@@ -43,26 +42,25 @@ namespace cilantro {
                 }
                 break;
             case ColormapType::GRAY:
-#pragma omp parallel for private (scalar_normalized)
+#pragma omp parallel for
                 for (size_t i = 0; i < scalars.cols(); i++) {
-                    scalar_normalized = (scalars[i] - scalar_min_used)/scalar_range;
-                    colors(0,i) = std::max(std::min(scalar_normalized, 1.0f), 0.0f);
-                    colors(1,i) = std::max(std::min(scalar_normalized, 1.0f), 0.0f);
-                    colors(2,i) = std::max(std::min(scalar_normalized, 1.0f), 0.0f);
+                    colors.col(i).setConstant(std::max(std::min((scalars[i] - scalar_min_used)/scalar_range, 1.0f), 0.0f));
                 }
                 break;
             case ColormapType::BLUE2RED:
-#pragma omp parallel for private (scalar_normalized)
+#pragma omp parallel for
                 for (size_t i = 0; i < scalars.cols(); i++) {
-                    scalar_normalized = (scalars[i] - scalar_min_used)/scalar_range;
+                    const float scalar_normalized = (scalars[i] - scalar_min_used)/scalar_range;
                     if (scalar_normalized < 0.5f) {
-                        colors(0,i) = std::max(std::min(2.0f*scalar_normalized, 1.0f), 0.0f);
-                        colors(1,i) = std::max(std::min(2.0f*scalar_normalized, 1.0f), 0.0f);
+                        const float val = std::max(std::min(2.0f*scalar_normalized, 1.0f), 0.0f);
+                        colors(0,i) = val;
+                        colors(1,i) = val;
                         colors(2,i) = 1.0f;
                     } else {
+                        const float val = std::max(std::min(2.0f*(1.0f - scalar_normalized), 1.0f), 0.0f);
                         colors(0,i) = 1.0f;
-                        colors(1,i) = std::max(std::min(2.0f*(1.0f - scalar_normalized), 1.0f), 0.0f);
-                        colors(2,i) = std::max(std::min(2.0f*(1.0f - scalar_normalized), 1.0f), 0.0f);
+                        colors(1,i) = val;
+                        colors(2,i) = val;
                     }
                 }
                 break;

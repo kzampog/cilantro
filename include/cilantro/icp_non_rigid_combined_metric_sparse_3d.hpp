@@ -135,7 +135,7 @@ namespace cilantro {
                 src_points_trans_.col(i).noalias() = transform_dense_[i]*src_points_.col(i);
             }
 
-            estimateSparseWarpFieldCombinedMetric3<ScalarT,typename CorrespondenceSearchEngineT::CorrespondenceScalar>(dst_points_, dst_normals_, src_points_trans_, this->correspondences_, num_ctrl_nodes_, src_to_ctrl_neighborhoods_, ctrl_regularization_neighborhoods_, transform_iter_, point_to_point_weight_, point_to_plane_weight_, stiffness_weight_, huber_boundary_, max_gauss_newton_iterations_, gauss_newton_convergence_tol_, max_conjugate_gradient_iterations_, conjugate_gradient_convergence_tol_);
+            estimateSparseWarpFieldCombinedMetric3<ScalarT>(dst_points_, dst_normals_, src_points_trans_, this->correspondences_, point_to_point_weight_, this->correspondences_, point_to_plane_weight_, src_to_ctrl_neighborhoods_, num_ctrl_nodes_, ctrl_regularization_neighborhoods_, stiffness_weight_, transform_iter_, huber_boundary_, max_gauss_newton_iterations_, gauss_newton_convergence_tol_, max_conjugate_gradient_iterations_, conjugate_gradient_convergence_tol_);
             this->transform_.preApply(transform_iter_);
             resampleTransformations(this->transform_, src_to_ctrl_neighborhoods_, transform_dense_);
 
