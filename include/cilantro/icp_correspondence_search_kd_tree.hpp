@@ -10,14 +10,14 @@ namespace cilantro {
     template <typename T>
     struct IsIsometry<T, decltype((void) T::Mode, 0)> : std::conditional<T::Mode == Eigen::Isometry, std::true_type, std::false_type>::type {};
 
-    template <class FeatureAdaptorT, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = DistanceEvaluator<typename FeatureAdaptorT::Scalar, typename FeatureAdaptorT::Scalar>>
+    template <class FeatureAdaptorT, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = DistanceEvaluator<typename FeatureAdaptorT::Scalar,typename FeatureAdaptorT::Scalar>>
     class ICPCorrespondenceSearchKDTree {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         typedef typename FeatureAdaptorT::Scalar FeatureScalar;
 
-        typedef decltype(std::declval<EvaluatorT>().operator()((size_t)0,(size_t)0,(FeatureScalar)0)) CorrespondenceScalar;
+        typedef typename EvaluatorT::OutputScalar CorrespondenceScalar;
 
         typedef CorrespondenceSet<CorrespondenceScalar> SearchResult;
 
@@ -32,24 +32,24 @@ namespace cilantro {
         {}
 
         template <class TransformT>
-        ICPCorrespondenceSearchKDTree& findCorrespondences(const TransformT &tform, SearchResult &correspondences) {
+        ICPCorrespondenceSearchKDTree& findCorrespondences(const TransformT &tform) {
             if (IsIsometry<TransformT>::value && std::is_same<SearchTree,KDTree<FeatureScalar,FeatureAdaptorT::FeatureDimension,KDTreeDistanceAdaptors::L2>>::value) {
                 // Avoid re-building tree for src if transformation is rigid and metric is L2
                 switch (search_dir_) {
                     case CorrespondenceSearchDirection::FIRST_TO_SECOND: {
                         if (!src_tree_ptr_) src_tree_ptr_.reset(new SearchTree(src_features_adaptor_.getFeatureData()));
-                        findNNCorrespondencesUnidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(dst_features_adaptor_.getTransformedFeatureData(tform.inverse()), *src_tree_ptr_, false, correspondences, max_distance_, evaluator_);
+                        findNNCorrespondencesUnidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(dst_features_adaptor_.getTransformedFeatureData(tform.inverse()), *src_tree_ptr_, false, correspondences_, max_distance_, evaluator_);
                         break;
                     }
                     case CorrespondenceSearchDirection::SECOND_TO_FIRST: {
                         if (!dst_tree_ptr_) dst_tree_ptr_.reset(new SearchTree(dst_features_adaptor_.getFeatureData()));
-                        findNNCorrespondencesUnidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(src_features_adaptor_.getTransformedFeatureData(tform), *dst_tree_ptr_, true, correspondences, max_distance_, evaluator_);
+                        findNNCorrespondencesUnidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(src_features_adaptor_.getTransformedFeatureData(tform), *dst_tree_ptr_, true, correspondences_, max_distance_, evaluator_);
                         break;
                     }
                     case CorrespondenceSearchDirection::BOTH: {
                         if (!dst_tree_ptr_) dst_tree_ptr_.reset(new SearchTree(dst_features_adaptor_.getFeatureData()));
                         if (!src_tree_ptr_) src_tree_ptr_.reset(new SearchTree(src_features_adaptor_.getFeatureData()));
-                        findNNCorrespondencesBidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(dst_features_adaptor_.getTransformedFeatureData(tform.inverse()), src_features_adaptor_.getTransformedFeatureData(tform), *dst_tree_ptr_, *src_tree_ptr_, correspondences, max_distance_, require_reciprocality_, evaluator_);
+                        findNNCorrespondencesBidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(dst_features_adaptor_.getTransformedFeatureData(tform.inverse()), src_features_adaptor_.getTransformedFeatureData(tform), *dst_tree_ptr_, *src_tree_ptr_, correspondences_, max_distance_, require_reciprocality_, evaluator_);
                         break;
                     }
                 }
@@ -58,61 +58,50 @@ namespace cilantro {
                 switch (search_dir_) {
                     case CorrespondenceSearchDirection::FIRST_TO_SECOND: {
                         src_trans_tree_ptr_.reset(new SearchTree(src_features_adaptor_.getTransformedFeatureData(tform)));
-                        findNNCorrespondencesUnidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(dst_features_adaptor_.getFeatureData(), *src_trans_tree_ptr_, false, correspondences, max_distance_, evaluator_);
+                        findNNCorrespondencesUnidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(dst_features_adaptor_.getFeatureData(), *src_trans_tree_ptr_, false, correspondences_, max_distance_, evaluator_);
                         break;
                     }
                     case CorrespondenceSearchDirection::SECOND_TO_FIRST: {
                         if (!dst_tree_ptr_) dst_tree_ptr_.reset(new SearchTree(dst_features_adaptor_.getFeatureData()));
-                        findNNCorrespondencesUnidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(src_features_adaptor_.getTransformedFeatureData(tform), *dst_tree_ptr_, true, correspondences, max_distance_, evaluator_);
+                        findNNCorrespondencesUnidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(src_features_adaptor_.getTransformedFeatureData(tform), *dst_tree_ptr_, true, correspondences_, max_distance_, evaluator_);
                         break;
                     }
                     case CorrespondenceSearchDirection::BOTH: {
                         if (!dst_tree_ptr_) dst_tree_ptr_.reset(new SearchTree(dst_features_adaptor_.getFeatureData()));
                         src_trans_tree_ptr_.reset(new SearchTree(src_features_adaptor_.getTransformedFeatureData(tform)));
-                        findNNCorrespondencesBidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(dst_features_adaptor_.getFeatureData(), src_features_adaptor_.getTransformedFeatureData(), *dst_tree_ptr_, *src_trans_tree_ptr_, correspondences, max_distance_, require_reciprocality_, evaluator_);
+                        findNNCorrespondencesBidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(dst_features_adaptor_.getFeatureData(), src_features_adaptor_.getTransformedFeatureData(), *dst_tree_ptr_, *src_trans_tree_ptr_, correspondences_, max_distance_, require_reciprocality_, evaluator_);
                         break;
                     }
                 }
             }
-            filterCorrespondencesFraction(correspondences, inlier_fraction_);
+            filterCorrespondencesFraction(correspondences_, inlier_fraction_);
             return *this;
         }
 
-        template <class TransformT>
-        inline SearchResult findCorrespondences(const TransformT &tform) {
-            SearchResult correspondences;
-            findCorrespondences<TransformT>(tform, correspondences);
-            return correspondences;
-        }
-
-        ICPCorrespondenceSearchKDTree& findCorrespondences(SearchResult &correspondences) {
+        ICPCorrespondenceSearchKDTree& findCorrespondences() {
             switch (search_dir_) {
                 case CorrespondenceSearchDirection::FIRST_TO_SECOND: {
                     if (!src_tree_ptr_) src_tree_ptr_.reset(new SearchTree(src_features_adaptor_.getFeatureData()));
-                    findNNCorrespondencesUnidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(dst_features_adaptor_.getFeatureData(), *src_tree_ptr_, false, correspondences, max_distance_, evaluator_);
+                    findNNCorrespondencesUnidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(dst_features_adaptor_.getFeatureData(), *src_tree_ptr_, false, correspondences_, max_distance_, evaluator_);
                     break;
                 }
                 case CorrespondenceSearchDirection::SECOND_TO_FIRST: {
                     if (!dst_tree_ptr_) dst_tree_ptr_.reset(new SearchTree(dst_features_adaptor_.getFeatureData()));
-                    findNNCorrespondencesUnidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(src_features_adaptor_.getFeatureData(), *dst_tree_ptr_, true, correspondences, max_distance_, evaluator_);
+                    findNNCorrespondencesUnidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(src_features_adaptor_.getFeatureData(), *dst_tree_ptr_, true, correspondences_, max_distance_, evaluator_);
                     break;
                 }
                 case CorrespondenceSearchDirection::BOTH: {
                     if (!dst_tree_ptr_) dst_tree_ptr_.reset(new SearchTree(dst_features_adaptor_.getFeatureData()));
                     if (!src_tree_ptr_) src_tree_ptr_.reset(new SearchTree(src_features_adaptor_.getFeatureData()));
-                    findNNCorrespondencesBidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(dst_features_adaptor_.getFeatureData(), src_features_adaptor_.getFeatureData(), *dst_tree_ptr_, *src_tree_ptr_, correspondences, max_distance_, require_reciprocality_, evaluator_);
+                    findNNCorrespondencesBidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(dst_features_adaptor_.getFeatureData(), src_features_adaptor_.getFeatureData(), *dst_tree_ptr_, *src_tree_ptr_, correspondences_, max_distance_, require_reciprocality_, evaluator_);
                     break;
                 }
             }
-            filterCorrespondencesFraction(correspondences, inlier_fraction_);
+            filterCorrespondencesFraction(correspondences_, inlier_fraction_);
             return *this;
         }
 
-        inline SearchResult findCorrespondences() {
-            SearchResult correspondences;
-            findCorrespondences(correspondences);
-            return correspondences;
-        }
+        inline const SearchResult& getCorrespondences() const { return correspondences_; }
 
         inline const CorrespondenceSearchDirection& getSearchDirection() const { return search_dir_; }
 
@@ -155,5 +144,7 @@ namespace cilantro {
         CorrespondenceScalar max_distance_;
         double inlier_fraction_;
         bool require_reciprocality_;
+
+        SearchResult correspondences_;
     };
 }

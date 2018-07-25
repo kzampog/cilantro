@@ -19,7 +19,6 @@ namespace cilantro {
                   src_points_trans_(src_points_.rows(), src_points_.cols())
         {
             this->transform_init_.setIdentity();
-            this->correspondences_.reserve(std::max(dst_points_.cols(), src_points_.cols()));
         }
 
     private:
@@ -35,7 +34,7 @@ namespace cilantro {
 
         // ICP interface
         inline void updateCorrespondences() {
-            this->correspondence_search_engine_.findCorrespondences(this->transform_, this->correspondences_);
+            this->correspondence_search_engine_.findCorrespondences(this->transform_);
         }
 
         void updateEstimate() {
@@ -45,7 +44,7 @@ namespace cilantro {
             }
 
             RigidTransformation<ScalarT,EigenDim> tform_iter;
-            estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim,typename CorrespondenceSearchEngineT::CorrespondenceScalar>(dst_points_, src_points_trans_, this->correspondences_, tform_iter);
+            estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim,typename CorrespondenceSearchEngineT::CorrespondenceScalar>(dst_points_, src_points_trans_, this->correspondence_search_engine_.getCorrespondences(), tform_iter);
 
             this->transform_ = tform_iter*this->transform_;
             this->transform_.linear() = this->transform_.rotation();

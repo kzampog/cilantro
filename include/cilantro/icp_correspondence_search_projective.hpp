@@ -11,7 +11,7 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        typedef decltype(std::declval<EvaluatorT>().operator()((size_t)0,(size_t)0,(ScalarT)0)) CorrespondenceScalar;
+        typedef typename EvaluatorT::OutputScalar CorrespondenceScalar;
 
         typedef CorrespondenceSet<CorrespondenceScalar> SearchResult;
 
@@ -29,28 +29,17 @@ namespace cilantro {
         }
 
         template <class TransformT>
-        inline ICPCorrespondenceSearchProjective3& findCorrespondences(const TransformT &tform, SearchResult &correspondences) {
-            find_correspondences_(src_points_adaptor_.getTransformedFeatureData(tform), correspondences);
+        inline ICPCorrespondenceSearchProjective3& findCorrespondences(const TransformT &tform) {
+            find_correspondences_(src_points_adaptor_.getTransformedFeatureData(tform), correspondences_);
             return *this;
         }
 
-        template <class TransformT>
-        inline SearchResult findCorrespondences(const TransformT &tform) {
-            SearchResult correspondences;
-            findCorrespondences<TransformT>(tform, correspondences);
-            return correspondences;
-        }
-
-        inline ICPCorrespondenceSearchProjective3& findCorrespondences(SearchResult &correspondences) {
-            find_correspondences_(src_points_adaptor_.getFeatureData(), correspondences);
+        inline ICPCorrespondenceSearchProjective3& findCorrespondences() {
+            find_correspondences_(src_points_adaptor_.getFeatureData(), correspondences_);
             return *this;
         }
 
-        inline SearchResult findCorrespondences() {
-            SearchResult correspondences;
-            findCorrespondences(correspondences);
-            return correspondences;
-        }
+        inline const SearchResult& getCorrespondences() const { return correspondences_; }
 
         inline const Eigen::Matrix<ScalarT,3,3>& getProjectionIntrinsicMatrix() const { return projection_intrinsics_; }
 
@@ -116,6 +105,8 @@ namespace cilantro {
 
         CorrespondenceScalar max_distance_;
         double inlier_fraction_;
+
+        SearchResult correspondences_;
 
         void find_correspondences_(const ConstVectorSetMatrixMap<ScalarT,3>& src_points_trans, SearchResult &correspondences) {
             const ConstVectorSetMatrixMap<ScalarT,3>& dst_points(dst_points_adaptor_.getFeatureData());

@@ -26,7 +26,6 @@ namespace cilantro {
         {
             this->transform_init_.resize(src_p.cols());
             this->transform_init_.setIdentity();
-            this->correspondences_.reserve(std::max(dst_points_.cols(), src_points_.cols()));
         }
 
         inline ScalarT getPointToPointMetricWeight() const { return point_to_point_weight_; }
@@ -111,7 +110,7 @@ namespace cilantro {
 
         // ICP interface
         inline void updateCorrespondences() {
-            this->correspondence_search_engine_.findCorrespondences(this->transform_, this->correspondences_);
+            this->correspondence_search_engine_.findCorrespondences(this->transform_);
         }
 
         // ICP interface
@@ -121,7 +120,7 @@ namespace cilantro {
                 src_points_trans_.col(i).noalias() = this->transform_[i]*src_points_.col(i);
             }
 
-            estimateDenseWarpFieldCombinedMetric3<ScalarT>(dst_points_, dst_normals_, src_points_trans_, this->correspondences_, point_to_point_weight_, this->correspondences_, point_to_plane_weight_, regularization_neighborhoods_, stiffness_weight_, tforms_iter_, huber_boundary_, max_gauss_newton_iterations_, gauss_newton_convergence_tol_, max_conjugate_gradient_iterations_, conjugate_gradient_convergence_tol_);
+            estimateDenseWarpFieldCombinedMetric3<ScalarT>(dst_points_, dst_normals_, src_points_trans_, this->correspondence_search_engine_.getCorrespondences(), point_to_point_weight_, this->correspondence_search_engine_.getCorrespondences(), point_to_plane_weight_, regularization_neighborhoods_, stiffness_weight_, tforms_iter_, huber_boundary_, max_gauss_newton_iterations_, gauss_newton_convergence_tol_, max_conjugate_gradient_iterations_, conjugate_gradient_convergence_tol_);
             this->transform_.preApply(tforms_iter_);
 
             ScalarT max_delta_norm_sq = (ScalarT)0.0;

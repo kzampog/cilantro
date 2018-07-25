@@ -14,7 +14,6 @@ namespace cilantro {
         typedef TransformT Transformation;
         typedef typename TransformT::Scalar PointScalar;
         typedef CorrespondenceSearchEngineT CorrespondenceSearchEngine;
-        typedef typename CorrespondenceSearchEngineT::SearchResult CorrespondenceSearchResults;
         typedef ResidualVectorT ResidualVector;
 
         IterativeClosestPointBase(CorrespondenceSearchEngine &corr_engine,
@@ -84,8 +83,6 @@ namespace cilantro {
             return estimateTransformation();
         }
 
-        inline const CorrespondenceSearchResults& getCorrespondenceSearchResults() const { return correspondences_; }
-
         inline const Transformation& getTransformation() const { return transform_; }
 
         inline const ICPInstanceT& getTransformation(Transformation& tform) const {
@@ -104,7 +101,6 @@ namespace cilantro {
         PointScalar last_delta_norm_;
 
         CorrespondenceSearchEngine& correspondence_search_engine_;
-        CorrespondenceSearchResults correspondences_;
 
         Transformation transform_init_;
         Transformation transform_;

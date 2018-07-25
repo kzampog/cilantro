@@ -22,7 +22,6 @@ namespace cilantro {
                   src_points_trans_(src_points_.rows(), src_points_.cols())
         {
             this->transform_init_.setIdentity();
-            this->correspondences_.reserve(std::max(dst_points_.cols(), src_points_.cols()));
         }
 
         inline ScalarT getPointToPointMetricWeight() const { return point_to_point_weight_; }
@@ -73,7 +72,7 @@ namespace cilantro {
 
         // ICP interface
         inline void updateCorrespondences() {
-            this->correspondence_search_engine_.findCorrespondences(this->transform_, this->correspondences_);
+            this->correspondence_search_engine_.findCorrespondences(this->transform_);
         }
 
         void updateEstimate() {
@@ -83,7 +82,7 @@ namespace cilantro {
             }
 
             RigidTransformation<ScalarT,3> tform_iter;
-            estimateRigidTransformCombinedMetric3<ScalarT>(dst_points_, dst_normals_, src_points_trans_, this->correspondences_, this->correspondences_, tform_iter, point_to_point_weight_, point_to_plane_weight_, max_optimization_iterations_, optimization_convergence_tol_);
+            estimateRigidTransformCombinedMetric3<ScalarT>(dst_points_, dst_normals_, src_points_trans_, this->correspondence_search_engine_.getCorrespondences(), point_to_point_weight_, this->correspondence_search_engine_.getCorrespondences(), point_to_plane_weight_, tform_iter, max_optimization_iterations_, optimization_convergence_tol_);
 
             this->transform_ = tform_iter*this->transform_;
             this->transform_.linear() = this->transform_.rotation();
