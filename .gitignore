@@ -33,6 +33,7 @@ build/*
 .idea/*
 cmake-build-release/*
 cmake-build-debug/*
+*.kdev4*
 
 # ReadTheDocs
 docs/_build/*
