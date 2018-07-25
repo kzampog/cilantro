@@ -62,10 +62,10 @@ namespace cilantro {
         WeightT coeff_;
     };
 
-    template <typename ValueT, typename WeightT>
+    template <typename ValueT, typename WeightT = ValueT>
     using AdjacencyEvaluator = UnityWeightEvaluator<ValueT,WeightT>;
 
-    template <typename ValueT, typename WeightT>
+    template <typename ValueT, typename WeightT = ValueT>
     using DistanceEvaluator = IdentityWeightEvaluator<ValueT,WeightT>;
 
     template <typename ValueT>
