@@ -11,6 +11,8 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        typedef EvaluatorT Evaluator;
+
         typedef typename EvaluatorT::OutputScalar CorrespondenceScalar;
 
         typedef CorrespondenceSet<CorrespondenceScalar> SearchResult;
@@ -40,6 +42,8 @@ namespace cilantro {
         }
 
         inline const SearchResult& getCorrespondences() const { return correspondences_; }
+
+        inline Evaluator& evaluator() { return evaluator_; }
 
         inline const Eigen::Matrix<ScalarT,3,3>& getProjectionIntrinsicMatrix() const { return projection_intrinsics_; }
 
@@ -93,7 +97,7 @@ namespace cilantro {
     private:
         PointFeaturesAdaptor<ScalarT,3>& dst_points_adaptor_;
         PointFeaturesAdaptor<ScalarT,3>& src_points_adaptor_;
-        EvaluatorT& evaluator_;
+        Evaluator& evaluator_;
 
         Eigen::Matrix<size_t,Eigen::Dynamic,Eigen::Dynamic> index_map_;
 

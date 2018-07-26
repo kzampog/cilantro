@@ -125,6 +125,10 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        typedef ScalarT Scalar;
+
+        enum { Dimension = EigenDim };
+
         KDTree(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data, size_t max_leaf_size = 10)
                 : data_map_(data),
                   mat_to_kd_(data_map_),

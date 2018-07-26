@@ -10,7 +10,7 @@ namespace cilantro {
 
         typedef ScalarT Scalar;
 
-        enum {FeatureDimension = EigenDim};
+        enum { FeatureDimension = EigenDim };
 
         PointFeaturesAdaptor(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points)
                 : data_map_(points),
@@ -55,7 +55,7 @@ namespace cilantro {
 
         typedef ScalarT Scalar;
 
-        enum {FeatureDimension = (EigenDim == Eigen::Dynamic) ? Eigen::Dynamic : 2*EigenDim};
+        enum { FeatureDimension = (EigenDim == Eigen::Dynamic) ? Eigen::Dynamic : 2*EigenDim };
 
         PointNormalFeaturesAdaptor(const ConstVectorSetMatrixMap<ScalarT,FeatureDimension> &data)
                 : data_map_(data),
@@ -121,7 +121,7 @@ namespace cilantro {
 
         typedef ScalarT Scalar;
 
-        enum {FeatureDimension = (EigenDim == Eigen::Dynamic) ? Eigen::Dynamic : EigenDim + 3};
+        enum { FeatureDimension = (EigenDim == Eigen::Dynamic) ? Eigen::Dynamic : EigenDim + 3 };
 
         PointColorFeaturesAdaptor(const ConstVectorSetMatrixMap<ScalarT,FeatureDimension> &data)
                 : data_map_(data),
@@ -187,7 +187,7 @@ namespace cilantro {
 
         typedef ScalarT Scalar;
 
-        enum {FeatureDimension = (EigenDim == Eigen::Dynamic) ? Eigen::Dynamic : 2*EigenDim + 3};
+        enum { FeatureDimension = (EigenDim == Eigen::Dynamic) ? Eigen::Dynamic : 2*EigenDim + 3 };
 
         PointNormalColorFeaturesAdaptor(const ConstVectorSetMatrixMap<ScalarT,FeatureDimension> &data)
                 : data_map_(data),

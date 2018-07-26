@@ -17,6 +17,8 @@ namespace cilantro {
 
         typedef typename FeatureAdaptorT::Scalar FeatureScalar;
 
+        typedef EvaluatorT Evaluator;
+
         typedef typename EvaluatorT::OutputScalar CorrespondenceScalar;
 
         typedef CorrespondenceSet<CorrespondenceScalar> SearchResult;
@@ -103,6 +105,8 @@ namespace cilantro {
 
         inline const SearchResult& getCorrespondences() const { return correspondences_; }
 
+        inline Evaluator& evaluator() { return evaluator_; }
+
         inline const CorrespondenceSearchDirection& getSearchDirection() const { return search_dir_; }
 
         inline ICPCorrespondenceSearchKDTree& setSearchDirection(const CorrespondenceSearchDirection &search_dir) {
@@ -134,7 +138,7 @@ namespace cilantro {
     private:
         FeatureAdaptorT& dst_features_adaptor_;
         FeatureAdaptorT& src_features_adaptor_;
-        EvaluatorT& evaluator_;
+        Evaluator& evaluator_;
 
         std::shared_ptr<SearchTree> dst_tree_ptr_;
         std::shared_ptr<SearchTree> src_tree_ptr_;
