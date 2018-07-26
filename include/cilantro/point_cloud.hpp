@@ -400,7 +400,7 @@ namespace cilantro {
         }
 
         template <typename ScalarOutT = ScalarT, ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
-        inline PointCloud& toPLYFile(const std::string &file_name, bool binary = true) {
+        inline const PointCloud& toPLYFile(const std::string &file_name, bool binary = true) const {
             writePointCloudToPLYFile<ScalarT,ScalarOutT>(file_name, points, normals, colors, binary);
             return *this;
         }
