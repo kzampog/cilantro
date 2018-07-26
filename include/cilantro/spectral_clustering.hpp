@@ -152,7 +152,8 @@ namespace cilantro {
 
             switch (laplacian_type) {
                 case GraphLaplacianType::UNNORMALIZED: {
-                    Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> L = affinities.colwise().sum().asDiagonal() - affinities;
+                    Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> L = affinities.colwise().sum().asDiagonal();
+                    L -=  affinities;
 
                     Spectra::DenseSymMatProd<ScalarT> op(L);
                     Spectra::SymEigsSolver<ScalarT, Spectra::SMALLEST_MAGN, Spectra::DenseSymMatProd<ScalarT>> eig(&op, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
@@ -176,7 +177,7 @@ namespace cilantro {
                     break;
                 }
                 case GraphLaplacianType::NORMALIZED_SYMMETRIC: {
-                    auto Dtm12 = affinities.colwise().sum().array().rsqrt().matrix().asDiagonal();
+                    Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> Dtm12 = affinities.colwise().sum().array().rsqrt().matrix().asDiagonal();
                     Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> L = Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>::Identity(affinities.rows(),affinities.cols()) - Dtm12*affinities*Dtm12;
 
                     Spectra::DenseSymMatProd<ScalarT> op(L);
