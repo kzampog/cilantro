@@ -48,7 +48,7 @@ namespace cilantro {
         return (remove_self) ? sum - adj_list.size() : sum;
     }
 
-    template <typename ScalarT, class PairEvaluatorT, typename ValueT = decltype(std::declval<PairEvaluatorT>().operator()((size_t)0,(size_t)0,(ScalarT)0))>
+    template <typename ScalarT, class PairEvaluatorT, typename ValueT = typename PairEvaluatorT::OutputScalar>
     std::vector<std::vector<ValueT>> getNNGraphFunctionValueList(const std::vector<std::vector<Neighbor<ScalarT>>> &adj_list,
                                                                  const PairEvaluatorT &evaluator = PairEvaluatorT())
     {
@@ -63,7 +63,7 @@ namespace cilantro {
         return f_values;
     }
 
-    template <typename ScalarT, class PairEvaluatorT, typename ValueT = decltype(std::declval<PairEvaluatorT>().operator()((size_t)0,(size_t)0,(ScalarT)0))>
+    template <typename ScalarT, class PairEvaluatorT, typename ValueT = typename PairEvaluatorT::OutputScalar>
     Eigen::Matrix<ValueT,Eigen::Dynamic,Eigen::Dynamic> getNNGraphFunctionValueDenseMatrix(const std::vector<std::vector<Neighbor<ScalarT>>> &adj_list,
                                                                                            const PairEvaluatorT &evaluator = PairEvaluatorT(),
                                                                                            bool force_symmetry = false)
@@ -87,7 +87,7 @@ namespace cilantro {
         return mat;
     }
 
-    template <typename ScalarT, class PairEvaluatorT, typename ValueT = decltype(std::declval<PairEvaluatorT>().operator()((size_t)0,(size_t)0,(ScalarT)0))>
+    template <typename ScalarT, class PairEvaluatorT, typename ValueT = typename PairEvaluatorT::OutputScalar>
     Eigen::SparseMatrix<ValueT> getNNGraphFunctionValueSparseMatrix(const std::vector<std::vector<Neighbor<ScalarT>>> &adj_list,
                                                                     const PairEvaluatorT &evaluator = PairEvaluatorT(),
                                                                     bool force_symmetry = false)
