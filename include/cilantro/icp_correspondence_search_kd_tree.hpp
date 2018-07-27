@@ -33,6 +33,30 @@ namespace cilantro {
                   inlier_fraction_(1.0), require_reciprocality_(false)
         {}
 
+        ICPCorrespondenceSearchKDTree& findCorrespondences() {
+            switch (search_dir_) {
+                case CorrespondenceSearchDirection::FIRST_TO_SECOND: {
+                    if (!src_tree_ptr_) src_tree_ptr_.reset(new SearchTree(src_features_adaptor_.getFeatureData()));
+                    findNNCorrespondencesUnidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(dst_features_adaptor_.getFeatureData(), *src_tree_ptr_, false, correspondences_, max_distance_, evaluator_);
+                    break;
+                }
+                case CorrespondenceSearchDirection::SECOND_TO_FIRST: {
+                    if (!dst_tree_ptr_) dst_tree_ptr_.reset(new SearchTree(dst_features_adaptor_.getFeatureData()));
+                    findNNCorrespondencesUnidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(src_features_adaptor_.getFeatureData(), *dst_tree_ptr_, true, correspondences_, max_distance_, evaluator_);
+                    break;
+                }
+                case CorrespondenceSearchDirection::BOTH: {
+                    if (!dst_tree_ptr_) dst_tree_ptr_.reset(new SearchTree(dst_features_adaptor_.getFeatureData()));
+                    if (!src_tree_ptr_) src_tree_ptr_.reset(new SearchTree(src_features_adaptor_.getFeatureData()));
+                    findNNCorrespondencesBidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(dst_features_adaptor_.getFeatureData(), src_features_adaptor_.getFeatureData(), *dst_tree_ptr_, *src_tree_ptr_, correspondences_, max_distance_, require_reciprocality_, evaluator_);
+                    break;
+                }
+            }
+            filterCorrespondencesFraction(correspondences_, inlier_fraction_);
+            return *this;
+        }
+
+        // Interface for ICP use
         template <class TransformT>
         ICPCorrespondenceSearchKDTree& findCorrespondences(const TransformT &tform) {
             if (IsIsometry<TransformT>::value && std::is_same<SearchTree,KDTree<FeatureScalar,FeatureAdaptorT::FeatureDimension,KDTreeDistanceAdaptors::L2>>::value) {
@@ -80,29 +104,7 @@ namespace cilantro {
             return *this;
         }
 
-        ICPCorrespondenceSearchKDTree& findCorrespondences() {
-            switch (search_dir_) {
-                case CorrespondenceSearchDirection::FIRST_TO_SECOND: {
-                    if (!src_tree_ptr_) src_tree_ptr_.reset(new SearchTree(src_features_adaptor_.getFeatureData()));
-                    findNNCorrespondencesUnidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(dst_features_adaptor_.getFeatureData(), *src_tree_ptr_, false, correspondences_, max_distance_, evaluator_);
-                    break;
-                }
-                case CorrespondenceSearchDirection::SECOND_TO_FIRST: {
-                    if (!dst_tree_ptr_) dst_tree_ptr_.reset(new SearchTree(dst_features_adaptor_.getFeatureData()));
-                    findNNCorrespondencesUnidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(src_features_adaptor_.getFeatureData(), *dst_tree_ptr_, true, correspondences_, max_distance_, evaluator_);
-                    break;
-                }
-                case CorrespondenceSearchDirection::BOTH: {
-                    if (!dst_tree_ptr_) dst_tree_ptr_.reset(new SearchTree(dst_features_adaptor_.getFeatureData()));
-                    if (!src_tree_ptr_) src_tree_ptr_.reset(new SearchTree(src_features_adaptor_.getFeatureData()));
-                    findNNCorrespondencesBidirectional<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor,EvaluatorT>(dst_features_adaptor_.getFeatureData(), src_features_adaptor_.getFeatureData(), *dst_tree_ptr_, *src_tree_ptr_, correspondences_, max_distance_, require_reciprocality_, evaluator_);
-                    break;
-                }
-            }
-            filterCorrespondencesFraction(correspondences_, inlier_fraction_);
-            return *this;
-        }
-
+        // Interface for ICP use
         inline const SearchResult& getCorrespondences() const { return correspondences_; }
 
         inline Evaluator& evaluator() { return evaluator_; }

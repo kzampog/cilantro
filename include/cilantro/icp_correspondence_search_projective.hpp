@@ -30,17 +30,19 @@ namespace cilantro {
             projection_intrinsics_ << 528, 0, 320, 0, 528, 240, 0, 0, 1;
         }
 
+        inline ICPCorrespondenceSearchProjective3& findCorrespondences() {
+            find_correspondences_(src_points_adaptor_.getFeatureData(), correspondences_);
+            return *this;
+        }
+
+        // Interface for ICP use
         template <class TransformT>
         inline ICPCorrespondenceSearchProjective3& findCorrespondences(const TransformT &tform) {
             find_correspondences_(src_points_adaptor_.getTransformedFeatureData(tform), correspondences_);
             return *this;
         }
 
-        inline ICPCorrespondenceSearchProjective3& findCorrespondences() {
-            find_correspondences_(src_points_adaptor_.getFeatureData(), correspondences_);
-            return *this;
-        }
-
+        // Interface for ICP use
         inline const SearchResult& getCorrespondences() const { return correspondences_; }
 
         inline Evaluator& evaluator() { return evaluator_; }

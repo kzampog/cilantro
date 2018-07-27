@@ -19,7 +19,8 @@ namespace cilantro {
                 : IterativeClosestPointBase<DenseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
                   dst_points_(dst_p), dst_normals_(dst_n), src_points_(src_p),
                   regularization_neighborhoods_(regularization_neighborhoods),
-                  point_to_point_weight_(0.1), point_to_plane_weight_(1.0), stiffness_weight_(1.0), huber_boundary_((ScalarT)1e-6),
+                  point_to_point_weight_((ScalarT)0.0), point_to_plane_weight_((ScalarT)1.0),
+                  stiffness_weight_((ScalarT)1.0), huber_boundary_((ScalarT)1e-4),
                   max_gauss_newton_iterations_(10), gauss_newton_convergence_tol_((ScalarT)1e-5),
                   max_conjugate_gradient_iterations_(1000), conjugate_gradient_convergence_tol_((ScalarT)1e-5),
                   src_points_trans_(src_points_.rows(), src_points_.cols()), tforms_iter_(src_points_.cols())
