@@ -45,6 +45,10 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        typedef ScalarT Scalar;
+
+        enum { Dimension = EigenDim };
+
         typedef typename AccumulatorProxy::Accumulator Accumulator;
 
         typedef Eigen::Matrix<ptrdiff_t,EigenDim,1> GridPoint;

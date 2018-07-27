@@ -9,6 +9,10 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        typedef ScalarT Scalar;
+
+        enum { Dimension = EigenDim };
+
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
         ConvexPolytope() : dim_(EigenDim), is_empty_(true), is_bounded_(true), area_(0.0), volume_(0.0) {
             halfspaces_.resize(EigenDim+1, 2);

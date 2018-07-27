@@ -8,6 +8,10 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        typedef ScalarT Scalar;
+
+        enum { Dimension = EigenDim };
+
         typedef typename std::conditional<EigenDim != Eigen::Dynamic && sizeof(Eigen::Matrix<ptrdiff_t,EigenDim,1>) % 16 == 0,
                 std::vector<ConvexPolytope<ScalarT,EigenDim>,Eigen::aligned_allocator<ConvexPolytope<ScalarT,EigenDim>>>,
                 std::vector<ConvexPolytope<ScalarT,EigenDim>>>::type ConvexPolytopeVector;

@@ -18,7 +18,9 @@ namespace cilantro {
 
         typedef ScalarT Scalar;
 
-        enum {Dim = EigenDim};
+        enum { Dim = EigenDim };
+
+        enum { Dimension = EigenDim };
 
         RigidTransformationSet() {}
 
@@ -26,7 +28,7 @@ namespace cilantro {
             : RigidTransformationSetBase<ScalarT,EigenDim>(size)
         {}
 
-        RigidTransformationSet(const RigidTransformationSet<Scalar,EigenDim> &other)
+        RigidTransformationSet(const RigidTransformationSet<ScalarT,EigenDim> &other)
             : RigidTransformationSetBase<ScalarT,EigenDim>(other)
         {}
 

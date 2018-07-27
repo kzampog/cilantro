@@ -9,6 +9,10 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        typedef ScalarT Scalar;
+
+        enum { Dimension = EigenDim };
+
         KMeans(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data)
                 : data_map_(data),
                   iteration_count_(0)

@@ -13,6 +13,10 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        typedef ScalarT Scalar;
+
+        enum { Dimension = EigenDim };
+
         VectorSet<ScalarT,EigenDim> points;
         VectorSet<ScalarT,EigenDim> normals;
         VectorSet<float,3> colors;

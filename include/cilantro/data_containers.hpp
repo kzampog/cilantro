@@ -9,6 +9,10 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        typedef ScalarT Scalar;
+
+        enum { Dimension = EigenDim };
+
         DataMatrixMap(Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> &data)
                 : Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>(data.data(), data.rows(), data.cols())
         {}
@@ -64,6 +68,10 @@ namespace cilantro {
     class ConstDataMatrixMap : public Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        typedef ScalarT Scalar;
+
+        enum { Dimension = EigenDim };
 
         ConstDataMatrixMap(const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> &data)
                 : Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>(data.data(), data.rows(), data.cols())
