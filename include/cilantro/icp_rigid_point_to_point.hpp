@@ -44,7 +44,7 @@ namespace cilantro {
             }
 
             RigidTransformation<ScalarT,EigenDim> tform_iter;
-            estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim,typename CorrespondenceSearchEngineT::CorrespondenceScalar>(dst_points_, src_points_trans_, this->correspondence_search_engine_.getCorrespondences(), tform_iter);
+            estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim,typename CorrespondenceSearchEngineT::CorrespondenceScalar>(dst_points_, src_points_trans_, this->correspondence_search_engine_.getPointToPointCorrespondences(), tform_iter);
 
             this->transform_ = tform_iter*this->transform_;
             this->transform_.linear() = this->transform_.rotation();

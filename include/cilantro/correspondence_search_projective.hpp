@@ -2,12 +2,12 @@
 
 #include <cilantro/correspondence.hpp>
 #include <cilantro/common_pair_evaluators.hpp>
-#include <cilantro/icp_common_feature_adaptors.hpp>
+#include <cilantro/common_transformable_feature_adaptors.hpp>
 #include <cilantro/image_point_cloud_conversions.hpp>
 
 namespace cilantro {
     template <class ScalarT, class EvaluatorT = DistanceEvaluator<ScalarT,ScalarT>>
-    class ICPCorrespondenceSearchProjective3 {
+    class CorrespondenceSearchProjective3 {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -17,7 +17,7 @@ namespace cilantro {
 
         typedef CorrespondenceSet<CorrespondenceScalar> SearchResult;
 
-        ICPCorrespondenceSearchProjective3(PointFeaturesAdaptor<ScalarT,3> &dst_points,
+        CorrespondenceSearchProjective3(PointFeaturesAdaptor<ScalarT,3> &dst_points,
                                            PointFeaturesAdaptor<ScalarT,3> &src_points,
                                            EvaluatorT &evaluator)
                 : dst_points_adaptor_(dst_points), src_points_adaptor_(src_points), evaluator_(evaluator),
@@ -30,26 +30,33 @@ namespace cilantro {
             projection_intrinsics_ << 528, 0, 320, 0, 528, 240, 0, 0, 1;
         }
 
-        inline ICPCorrespondenceSearchProjective3& findCorrespondences() {
+        inline CorrespondenceSearchProjective3& findCorrespondences() {
             find_correspondences_(src_points_adaptor_.getFeatureData(), correspondences_);
             return *this;
         }
 
         // Interface for ICP use
         template <class TransformT>
-        inline ICPCorrespondenceSearchProjective3& findCorrespondences(const TransformT &tform) {
+        inline CorrespondenceSearchProjective3& findCorrespondences(const TransformT &tform) {
             find_correspondences_(src_points_adaptor_.getTransformedFeatureData(tform), correspondences_);
             return *this;
         }
 
-        // Interface for ICP use
         inline const SearchResult& getCorrespondences() const { return correspondences_; }
+
+        // Interface for ICP use
+        // Dummy
+        inline const SearchResult& getPointToPointCorrespondences() const { return correspondences_; }
+
+        // Interface for ICP use
+        // Dummy
+        inline const SearchResult& getPointToPlaneCorrespondences() const { return correspondences_; }
 
         inline Evaluator& evaluator() { return evaluator_; }
 
         inline const Eigen::Matrix<ScalarT,3,3>& getProjectionIntrinsicMatrix() const { return projection_intrinsics_; }
 
-        inline ICPCorrespondenceSearchProjective3& setProjectionIntrinsicMatrix(const Eigen::Ref<const Eigen::Matrix<ScalarT,3,3>> &mat) {
+        inline CorrespondenceSearchProjective3& setProjectionIntrinsicMatrix(const Eigen::Ref<const Eigen::Matrix<ScalarT,3,3>> &mat) {
             projection_intrinsics_ = mat;
             index_map_.resize(0,0);
             return *this;
@@ -57,7 +64,7 @@ namespace cilantro {
 
         inline size_t getProjectionImageWidth() const { return projection_image_width_; }
 
-        inline ICPCorrespondenceSearchProjective3& setProjectionImageWidth(size_t w) {
+        inline CorrespondenceSearchProjective3& setProjectionImageWidth(size_t w) {
             projection_image_width_ = w;
             index_map_.resize(0,0);
             return *this;
@@ -65,7 +72,7 @@ namespace cilantro {
 
         inline size_t getProjectionImageHeight() const { return projection_image_height_; }
 
-        inline ICPCorrespondenceSearchProjective3& setProjectionImageHeight(size_t h) {
+        inline CorrespondenceSearchProjective3& setProjectionImageHeight(size_t h) {
             projection_image_height_ = h;
             index_map_.resize(0,0);
             return *this;
@@ -75,7 +82,7 @@ namespace cilantro {
             return projection_extrinsics_;
         }
 
-        inline ICPCorrespondenceSearchProjective3& setProjectionExtrinsicMatrix(const RigidTransformation<ScalarT,3> &mat) {
+        inline CorrespondenceSearchProjective3& setProjectionExtrinsicMatrix(const RigidTransformation<ScalarT,3> &mat) {
             projection_extrinsics_ = mat;
             projection_extrinsics_inv_ = mat.inverse();
             index_map_.resize(0,0);
@@ -84,14 +91,14 @@ namespace cilantro {
 
         inline CorrespondenceScalar getMaxDistance() const { return max_distance_; }
 
-        inline ICPCorrespondenceSearchProjective3& setMaxDistance(CorrespondenceScalar dist_thresh) {
+        inline CorrespondenceSearchProjective3& setMaxDistance(CorrespondenceScalar dist_thresh) {
             max_distance_ = dist_thresh;
             return *this;
         }
 
         inline double getInlierFraction() const { return inlier_fraction_; }
 
-        inline ICPCorrespondenceSearchProjective3& setInlierFraction(double fraction) {
+        inline CorrespondenceSearchProjective3& setInlierFraction(double fraction) {
             inlier_fraction_ = fraction;
             return *this;
         }

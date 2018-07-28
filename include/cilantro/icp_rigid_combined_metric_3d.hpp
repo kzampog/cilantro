@@ -82,7 +82,7 @@ namespace cilantro {
             }
 
             RigidTransformation<ScalarT,3> tform_iter;
-            estimateRigidTransformCombinedMetric3<ScalarT>(dst_points_, dst_normals_, src_points_trans_, this->correspondence_search_engine_.getCorrespondences(), point_to_point_weight_, this->correspondence_search_engine_.getCorrespondences(), point_to_plane_weight_, tform_iter, max_optimization_iterations_, optimization_convergence_tol_);
+            estimateRigidTransformCombinedMetric3<ScalarT>(dst_points_, dst_normals_, src_points_trans_, this->correspondence_search_engine_.getPointToPointCorrespondences(), point_to_point_weight_, this->correspondence_search_engine_.getPointToPlaneCorrespondences(), point_to_plane_weight_, tform_iter, max_optimization_iterations_, optimization_convergence_tol_);
 
             this->transform_ = tform_iter*this->transform_;
             this->transform_.linear() = this->transform_.rotation();
