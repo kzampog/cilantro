@@ -5,20 +5,30 @@
 #include <cilantro/kd_tree.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, class CorrespondenceSearchEngineT>
-    class DenseCombinedMetricNonRigidICP3 : public IterativeClosestPointBase<DenseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>> {
-        friend class IterativeClosestPointBase<DenseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>;
+    template <typename ScalarT, class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT, class PointToPlaneCorrWeightEvaluatorT, class RegularizationWeightEvaluatorT>
+    class DenseCombinedMetricNonRigidICP3 : public IterativeClosestPointBase<DenseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>> {
+        friend class IterativeClosestPointBase<DenseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>;
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        typedef PointToPointCorrWeightEvaluatorT PointToPointCorrespondenceWeightEvaluator;
+
+        typedef PointToPlaneCorrWeightEvaluatorT PointToPlaneCorrespondenceWeightEvaluator;
+
+        typedef RegularizationWeightEvaluatorT RegularizationWeightEvaluator;
 
         DenseCombinedMetricNonRigidICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
                                         const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
                                         const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
+                                        CorrespondenceSearchEngineT &corr_engine,
+                                        PointToPointCorrWeightEvaluatorT &point_corr_eval,
+                                        PointToPlaneCorrWeightEvaluatorT &plane_corr_eval,
                                         const std::vector<NeighborSet<ScalarT>> &regularization_neighborhoods,
-                                        CorrespondenceSearchEngineT &corr_engine)
-                : IterativeClosestPointBase<DenseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
+                                        RegularizationWeightEvaluatorT &reg_eval)
+                : IterativeClosestPointBase<DenseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
                   dst_points_(dst_p), dst_normals_(dst_n), src_points_(src_p),
-                  regularization_neighborhoods_(regularization_neighborhoods),
+                  point_corr_eval_(point_corr_eval), plane_corr_eval_(plane_corr_eval),
+                  regularization_neighborhoods_(regularization_neighborhoods), reg_eval_(reg_eval),
                   point_to_point_weight_((ScalarT)0.0), point_to_plane_weight_((ScalarT)1.0),
                   stiffness_weight_((ScalarT)1.0), huber_boundary_((ScalarT)1e-4),
                   max_gauss_newton_iterations_(10), gauss_newton_convergence_tol_((ScalarT)1e-5),
@@ -28,6 +38,16 @@ namespace cilantro {
             this->transform_init_.resize(src_p.cols());
             this->transform_init_.setIdentity();
         }
+
+        inline PointToPointCorrespondenceWeightEvaluator& pointToPointCorrespondenceWeightEvaluator() {
+            return point_corr_eval_;
+        }
+
+        inline PointToPlaneCorrespondenceWeightEvaluator& pointToPlaneCorrespondenceWeightEvaluator() {
+            return plane_corr_eval_;
+        }
+
+        inline RegularizationWeightEvaluator& regularizationWeightEvaluator() { return reg_eval_; }
 
         inline ScalarT getPointToPointMetricWeight() const { return point_to_point_weight_; }
 
@@ -90,7 +110,12 @@ namespace cilantro {
         ConstVectorSetMatrixMap<ScalarT,3> dst_points_;
         ConstVectorSetMatrixMap<ScalarT,3> dst_normals_;
         ConstVectorSetMatrixMap<ScalarT,3> src_points_;
+
+        PointToPointCorrespondenceWeightEvaluator& point_corr_eval_;
+        PointToPlaneCorrespondenceWeightEvaluator& plane_corr_eval_;
+
         const std::vector<NeighborSet<ScalarT>>& regularization_neighborhoods_;
+        RegularizationWeightEvaluator& reg_eval_;
 
         // Parameters
         ScalarT point_to_point_weight_;
@@ -121,7 +146,7 @@ namespace cilantro {
                 src_points_trans_.col(i).noalias() = this->transform_[i]*src_points_.col(i);
             }
 
-            estimateDenseWarpFieldCombinedMetric3<ScalarT>(dst_points_, dst_normals_, src_points_trans_, this->correspondence_search_engine_.getPointToPointCorrespondences(), point_to_point_weight_, this->correspondence_search_engine_.getPointToPlaneCorrespondences(), point_to_plane_weight_, regularization_neighborhoods_, stiffness_weight_, tforms_iter_, huber_boundary_, max_gauss_newton_iterations_, gauss_newton_convergence_tol_, max_conjugate_gradient_iterations_, conjugate_gradient_convergence_tol_);
+            estimateDenseWarpFieldCombinedMetric3<ScalarT,PointToPointCorrespondenceWeightEvaluator,PointToPlaneCorrespondenceWeightEvaluator,RegularizationWeightEvaluator>(dst_points_, dst_normals_, src_points_trans_, this->correspondence_search_engine_.getPointToPointCorrespondences(), point_to_point_weight_, this->correspondence_search_engine_.getPointToPlaneCorrespondences(), point_to_plane_weight_, regularization_neighborhoods_, stiffness_weight_, tforms_iter_, huber_boundary_, max_gauss_newton_iterations_, gauss_newton_convergence_tol_, max_conjugate_gradient_iterations_, conjugate_gradient_convergence_tol_, point_corr_eval_, plane_corr_eval_, reg_eval_);
             this->transform_.preApply(tforms_iter_);
 
             ScalarT max_delta_norm_sq = (ScalarT)0.0;
@@ -152,4 +177,10 @@ namespace cilantro {
             return res;
         }
     };
+
+    template <class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT, class PointToPlaneCorrWeightEvaluatorT, class RegularizationWeightEvaluatorT>
+    using DenseCombinedMetricNonRigidICP3f = DenseCombinedMetricNonRigidICP3<float,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,RegularizationWeightEvaluatorT>;
+
+    template <class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT, class PointToPlaneCorrWeightEvaluatorT, class RegularizationWeightEvaluatorT>
+    using DenseCombinedMetricNonRigidICP3d = DenseCombinedMetricNonRigidICP3<double,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,RegularizationWeightEvaluatorT>;
 }

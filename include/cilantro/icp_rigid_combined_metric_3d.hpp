@@ -5,23 +5,38 @@
 #include <cilantro/kd_tree.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, class CorrespondenceSearchEngineT>
-    class CombinedMetricRigidICP3 : public IterativeClosestPointBase<CombinedMetricRigidICP3<ScalarT,CorrespondenceSearchEngineT>,RigidTransformation<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>> {
-        friend class IterativeClosestPointBase<CombinedMetricRigidICP3<ScalarT,CorrespondenceSearchEngineT>,RigidTransformation<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>;
+    template <typename ScalarT, class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT, class PointToPlaneCorrWeightEvaluatorT>
+    class CombinedMetricRigidICP3 : public IterativeClosestPointBase<CombinedMetricRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT>,RigidTransformation<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>> {
+        friend class IterativeClosestPointBase<CombinedMetricRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT>,RigidTransformation<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>;
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        typedef PointToPointCorrWeightEvaluatorT PointToPointCorrespondenceWeightEvaluator;
+
+        typedef PointToPlaneCorrWeightEvaluatorT PointToPlaneCorrespondenceWeightEvaluator;
 
         CombinedMetricRigidICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
                                 const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
                                 const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
-                                CorrespondenceSearchEngineT &corr_engine)
-                : IterativeClosestPointBase<CombinedMetricRigidICP3<ScalarT,CorrespondenceSearchEngineT>,RigidTransformation<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
+                                CorrespondenceSearchEngineT &corr_engine,
+                                PointToPointCorrWeightEvaluatorT &point_corr_eval,
+                                PointToPlaneCorrWeightEvaluatorT &plane_corr_eval)
+                : IterativeClosestPointBase<CombinedMetricRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT>,RigidTransformation<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
                   dst_points_(dst_p), dst_normals_(dst_n), src_points_(src_p),
+                  point_corr_eval_(point_corr_eval), plane_corr_eval_(plane_corr_eval),
                   max_optimization_iterations_(1), optimization_convergence_tol_((ScalarT)1e-5),
                   point_to_point_weight_((ScalarT)0.0), point_to_plane_weight_((ScalarT)1.0),
                   src_points_trans_(src_points_.rows(), src_points_.cols())
         {
             this->transform_init_.setIdentity();
+        }
+
+        inline PointToPointCorrespondenceWeightEvaluator& pointToPointCorrespondenceWeightEvaluator() {
+            return point_corr_eval_;
+        }
+
+        inline PointToPlaneCorrespondenceWeightEvaluator& pointToPlaneCorrespondenceWeightEvaluator() {
+            return plane_corr_eval_;
         }
 
         inline ScalarT getPointToPointMetricWeight() const { return point_to_point_weight_; }
@@ -58,6 +73,9 @@ namespace cilantro {
         ConstVectorSetMatrixMap<ScalarT,3> dst_normals_;
         ConstVectorSetMatrixMap<ScalarT,3> src_points_;
 
+        PointToPointCorrespondenceWeightEvaluator& point_corr_eval_;
+        PointToPlaneCorrespondenceWeightEvaluator& plane_corr_eval_;
+
         // Parameters
         size_t max_optimization_iterations_;
         ScalarT optimization_convergence_tol_;
@@ -82,7 +100,7 @@ namespace cilantro {
             }
 
             RigidTransformation<ScalarT,3> tform_iter;
-            estimateRigidTransformCombinedMetric3<ScalarT>(dst_points_, dst_normals_, src_points_trans_, this->correspondence_search_engine_.getPointToPointCorrespondences(), point_to_point_weight_, this->correspondence_search_engine_.getPointToPlaneCorrespondences(), point_to_plane_weight_, tform_iter, max_optimization_iterations_, optimization_convergence_tol_);
+            estimateRigidTransformCombinedMetric3<ScalarT,PointToPointCorrespondenceWeightEvaluator,PointToPlaneCorrespondenceWeightEvaluator>(dst_points_, dst_normals_, src_points_trans_, this->correspondence_search_engine_.getPointToPointCorrespondences(), point_to_point_weight_, this->correspondence_search_engine_.getPointToPlaneCorrespondences(), point_to_plane_weight_, tform_iter, max_optimization_iterations_, optimization_convergence_tol_, point_corr_eval_, plane_corr_eval_);
 
             this->transform_ = tform_iter*this->transform_;
             this->transform_.linear() = this->transform_.rotation();
@@ -109,9 +127,9 @@ namespace cilantro {
         }
     };
 
-    template <class CorrespondenceSearchEngineT>
-    using CombinedMetricRigidICP3f = CombinedMetricRigidICP3<float,CorrespondenceSearchEngineT>;
+    template <class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT, class PointToPlaneCorrWeightEvaluatorT>
+    using CombinedMetricRigidICP3f = CombinedMetricRigidICP3<float,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT>;
 
-    template <class CorrespondenceSearchEngineT>
-    using CombinedMetricRigidICP3d = CombinedMetricRigidICP3<double,CorrespondenceSearchEngineT>;
+    template <class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT, class PointToPlaneCorrWeightEvaluatorT>
+    using CombinedMetricRigidICP3d = CombinedMetricRigidICP3<double,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT>;
 }

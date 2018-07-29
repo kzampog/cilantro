@@ -62,10 +62,12 @@ int main(int argc, char ** argv) {
     cilantro::Timer timer;
     timer.start();
 
-    cilantro::SimpleSparseCombinedMetricNonRigidICP3f icp(dst.points, dst.normals, src.points, control_points.cols(), src_to_control_nn, regularization_nn);
+    cilantro::SimpleSparseCombinedMetricNonRigidICP3f icp(dst.points, dst.normals, src.points, src_to_control_nn, control_points.cols(), regularization_nn);
 
     // Parameter setting
     icp.correspondenceSearchEngine().setMaxDistance(max_correspondence_dist_sq);
+    icp.controlWeightEvaluator().setSigma(src_to_control_sigma);
+    icp.regularizationWeightEvaluator().setSigma(regularization_sigma);
 
     icp.setMaxNumberOfIterations(15).setConvergenceTolerance(2.5e-3f);
     icp.setMaxNumberOfGaussNewtonIterations(1).setGaussNewtonConvergenceTolerance(5e-4f);
@@ -98,6 +100,7 @@ int main(int argc, char ** argv) {
 //
 //    // Parameter setting
 //    icp.correspondenceSearchEngine().setMaxDistance(max_correspondence_dist_sq);
+//    icp.regularizationWeightEvaluator().setSigma(regularization_sigma);
 //
 //    icp.setMaxNumberOfIterations(15).setConvergenceTolerance(2.5e-3f);
 //    icp.setMaxNumberOfGaussNewtonIterations(1).setGaussNewtonConvergenceTolerance(5e-4f);

@@ -26,8 +26,8 @@ namespace cilantro {
         typedef KDTree<FeatureScalar,FeatureAdaptorT::FeatureDimension,DistAdaptor> SearchTree;
 
         CorrespondenceSearchKDTree(FeatureAdaptorT &dst_features,
-                                      FeatureAdaptorT &src_features,
-                                      EvaluatorT &evaluator)
+                                   FeatureAdaptorT &src_features,
+                                   EvaluatorT &evaluator)
                 : dst_features_adaptor_(dst_features), src_features_adaptor_(src_features), evaluator_(evaluator),
                   search_dir_(CorrespondenceSearchDirection::SECOND_TO_FIRST), max_distance_((CorrespondenceScalar)(0.01*0.01)),
                   inlier_fraction_(1.0), require_reciprocality_(false)

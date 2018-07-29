@@ -18,8 +18,8 @@ namespace cilantro {
         typedef CorrespondenceSet<CorrespondenceScalar> SearchResult;
 
         CorrespondenceSearchProjective3(PointFeaturesAdaptor<ScalarT,3> &dst_points,
-                                           PointFeaturesAdaptor<ScalarT,3> &src_points,
-                                           EvaluatorT &evaluator)
+                                        PointFeaturesAdaptor<ScalarT,3> &src_points,
+                                        EvaluatorT &evaluator)
                 : dst_points_adaptor_(dst_points), src_points_adaptor_(src_points), evaluator_(evaluator),
                   projection_image_width_(640), projection_image_height_(480),
                   projection_extrinsics_(RigidTransformation<ScalarT,3>::Identity()),

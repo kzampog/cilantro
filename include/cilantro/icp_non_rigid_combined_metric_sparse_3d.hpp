@@ -5,24 +5,37 @@
 #include <cilantro/warp_field_utilities.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, class CorrespondenceSearchEngineT>
-    class SparseCombinedMetricNonRigidICP3 : public IterativeClosestPointBase<SparseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>> {
-        friend class IterativeClosestPointBase<SparseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>;
+    template <typename ScalarT, class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT, class PointToPlaneCorrWeightEvaluatorT, class ControlWeightEvaluatorT, class RegularizationWeightEvaluatorT>
+    class SparseCombinedMetricNonRigidICP3 : public IterativeClosestPointBase<SparseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,ControlWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>> {
+        friend class IterativeClosestPointBase<SparseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,ControlWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>;
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        typedef PointToPointCorrWeightEvaluatorT PointToPointCorrespondenceWeightEvaluator;
+
+        typedef PointToPlaneCorrWeightEvaluatorT PointToPlaneCorrespondenceWeightEvaluator;
+
+        typedef ControlWeightEvaluatorT ControlWeightEvaluator;
+
+        typedef RegularizationWeightEvaluatorT RegularizationWeightEvaluator;
 
         SparseCombinedMetricNonRigidICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
                                          const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
                                          const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
-                                         size_t num_ctrl_nodes,
+                                         CorrespondenceSearchEngineT &corr_engine,
+                                         PointToPointCorrWeightEvaluatorT &point_corr_eval,
+                                         PointToPlaneCorrWeightEvaluatorT &plane_corr_eval,
                                          const std::vector<NeighborSet<ScalarT>> &src_to_ctrl_neighborhoods,
+                                         size_t num_ctrl_nodes,
+                                         ControlWeightEvaluatorT &control_eval,
                                          const std::vector<NeighborSet<ScalarT>> &ctrl_regularization_neighborhoods,
-                                         CorrespondenceSearchEngineT &corr_engine)
-                : IterativeClosestPointBase<SparseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
+                                         RegularizationWeightEvaluatorT &reg_eval)
+                : IterativeClosestPointBase<SparseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,ControlWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
                   dst_points_(dst_p), dst_normals_(dst_n), src_points_(src_p),
-                  num_ctrl_nodes_(num_ctrl_nodes),
+                  point_corr_eval_(point_corr_eval), plane_corr_eval_(plane_corr_eval),
                   src_to_ctrl_neighborhoods_(src_to_ctrl_neighborhoods),
-                  ctrl_regularization_neighborhoods_(ctrl_regularization_neighborhoods),
+                  num_ctrl_nodes_(num_ctrl_nodes), control_eval_(control_eval),
+                  ctrl_regularization_neighborhoods_(ctrl_regularization_neighborhoods), reg_eval_(reg_eval),
                   point_to_point_weight_((ScalarT)0.0), point_to_plane_weight_((ScalarT)1.0),
                   stiffness_weight_((ScalarT)1.0), huber_boundary_((ScalarT)1e-6),
                   max_gauss_newton_iterations_(10), gauss_newton_convergence_tol_((ScalarT)1e-5),
@@ -33,6 +46,18 @@ namespace cilantro {
             this->transform_init_.resize(num_ctrl_nodes_);
             this->transform_init_.setIdentity();
         }
+
+        inline PointToPointCorrespondenceWeightEvaluator& pointToPointCorrespondenceWeightEvaluator() {
+            return point_corr_eval_;
+        }
+
+        inline PointToPlaneCorrespondenceWeightEvaluator& pointToPlaneCorrespondenceWeightEvaluator() {
+            return plane_corr_eval_;
+        }
+
+        inline ControlWeightEvaluator& controlWeightEvaluator() { return control_eval_; }
+
+        inline RegularizationWeightEvaluator& regularizationWeightEvaluator() { return reg_eval_; }
 
         inline ScalarT getPointToPointMetricWeight() const { return point_to_point_weight_; }
 
@@ -99,9 +124,16 @@ namespace cilantro {
         ConstVectorSetMatrixMap<ScalarT,3> dst_points_;
         ConstVectorSetMatrixMap<ScalarT,3> dst_normals_;
         ConstVectorSetMatrixMap<ScalarT,3> src_points_;
-        size_t num_ctrl_nodes_;
+
+        PointToPointCorrespondenceWeightEvaluator& point_corr_eval_;
+        PointToPlaneCorrespondenceWeightEvaluator& plane_corr_eval_;
+
         const std::vector<NeighborSet<ScalarT>>& src_to_ctrl_neighborhoods_;
+        size_t num_ctrl_nodes_;
+        ControlWeightEvaluator& control_eval_;
+
         const std::vector<NeighborSet<ScalarT>>& ctrl_regularization_neighborhoods_;
+        RegularizationWeightEvaluator& reg_eval_;
 
         // Parameters
         ScalarT point_to_point_weight_;
@@ -135,7 +167,7 @@ namespace cilantro {
                 src_points_trans_.col(i).noalias() = transform_dense_[i]*src_points_.col(i);
             }
 
-            estimateSparseWarpFieldCombinedMetric3<ScalarT>(dst_points_, dst_normals_, src_points_trans_, this->correspondence_search_engine_.getPointToPointCorrespondences(), point_to_point_weight_, this->correspondence_search_engine_.getPointToPlaneCorrespondences(), point_to_plane_weight_, src_to_ctrl_neighborhoods_, num_ctrl_nodes_, ctrl_regularization_neighborhoods_, stiffness_weight_, transform_iter_, huber_boundary_, max_gauss_newton_iterations_, gauss_newton_convergence_tol_, max_conjugate_gradient_iterations_, conjugate_gradient_convergence_tol_);
+            estimateSparseWarpFieldCombinedMetric3<ScalarT,PointToPointCorrespondenceWeightEvaluator,PointToPlaneCorrespondenceWeightEvaluator,ControlWeightEvaluator,RegularizationWeightEvaluator>(dst_points_, dst_normals_, src_points_trans_, this->correspondence_search_engine_.getPointToPointCorrespondences(), point_to_point_weight_, this->correspondence_search_engine_.getPointToPlaneCorrespondences(), point_to_plane_weight_, src_to_ctrl_neighborhoods_, num_ctrl_nodes_, ctrl_regularization_neighborhoods_, stiffness_weight_, transform_iter_, huber_boundary_, max_gauss_newton_iterations_, gauss_newton_convergence_tol_, max_conjugate_gradient_iterations_, conjugate_gradient_convergence_tol_, point_corr_eval_, plane_corr_eval_, control_eval_, reg_eval_);
             this->transform_.preApply(transform_iter_);
             resampleTransformations(this->transform_, src_to_ctrl_neighborhoods_, transform_dense_);
 
@@ -167,4 +199,10 @@ namespace cilantro {
             return res;
         }
     };
+
+    template <class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT, class PointToPlaneCorrWeightEvaluatorT, class ControlWeightEvaluatorT, class RegularizationWeightEvaluatorT>
+    using SparseCombinedMetricNonRigidICP3f = SparseCombinedMetricNonRigidICP3<float,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,ControlWeightEvaluatorT,RegularizationWeightEvaluatorT>;
+
+    template <class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT, class PointToPlaneCorrWeightEvaluatorT, class ControlWeightEvaluatorT, class RegularizationWeightEvaluatorT>
+    using SparseCombinedMetricNonRigidICP3d = SparseCombinedMetricNonRigidICP3<double,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,ControlWeightEvaluatorT,RegularizationWeightEvaluatorT>;
 }
