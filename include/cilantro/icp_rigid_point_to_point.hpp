@@ -22,11 +22,9 @@ namespace cilantro {
         }
 
     private:
-        // Data holders
         ConstVectorSetMatrixMap<ScalarT,EigenDim> dst_points_;
         ConstVectorSetMatrixMap<ScalarT,EigenDim> src_points_;
 
-        // Temporaries
         VectorSet<ScalarT,EigenDim> src_points_trans_;
 
         // ICP interface

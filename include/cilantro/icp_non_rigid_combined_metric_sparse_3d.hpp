@@ -32,14 +32,14 @@ namespace cilantro {
                                          RegularizationWeightEvaluatorT &reg_eval)
                 : IterativeClosestPointBase<SparseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,ControlWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
                   dst_points_(dst_p), dst_normals_(dst_n), src_points_(src_p),
-                  point_corr_eval_(point_corr_eval), plane_corr_eval_(plane_corr_eval),
-                  src_to_ctrl_neighborhoods_(src_to_ctrl_neighborhoods),
-                  num_ctrl_nodes_(num_ctrl_nodes), control_eval_(control_eval),
-                  ctrl_regularization_neighborhoods_(ctrl_regularization_neighborhoods), reg_eval_(reg_eval),
+                  src_to_ctrl_neighborhoods_(src_to_ctrl_neighborhoods), num_ctrl_nodes_(num_ctrl_nodes),
+                  ctrl_regularization_neighborhoods_(ctrl_regularization_neighborhoods),
                   point_to_point_weight_((ScalarT)0.0), point_to_plane_weight_((ScalarT)1.0),
                   stiffness_weight_((ScalarT)1.0), huber_boundary_((ScalarT)1e-6),
                   max_gauss_newton_iterations_(10), gauss_newton_convergence_tol_((ScalarT)1e-5),
                   max_conjugate_gradient_iterations_(1000), conjugate_gradient_convergence_tol_((ScalarT)1e-5),
+                  point_corr_eval_(point_corr_eval), plane_corr_eval_(plane_corr_eval),
+                  control_eval_(control_eval), reg_eval_(reg_eval),
                   src_points_trans_(src_points_.rows(), src_points_.cols()),
                   transform_dense_(src_points_.cols()), transform_iter_(num_ctrl_nodes_)
         {
@@ -120,22 +120,13 @@ namespace cilantro {
         }
 
     private:
-        // Input data holders
         ConstVectorSetMatrixMap<ScalarT,3> dst_points_;
         ConstVectorSetMatrixMap<ScalarT,3> dst_normals_;
         ConstVectorSetMatrixMap<ScalarT,3> src_points_;
-
-        PointToPointCorrespondenceWeightEvaluator& point_corr_eval_;
-        PointToPlaneCorrespondenceWeightEvaluator& plane_corr_eval_;
-
         const std::vector<NeighborSet<ScalarT>>& src_to_ctrl_neighborhoods_;
         size_t num_ctrl_nodes_;
-        ControlWeightEvaluator& control_eval_;
-
         const std::vector<NeighborSet<ScalarT>>& ctrl_regularization_neighborhoods_;
-        RegularizationWeightEvaluator& reg_eval_;
 
-        // Parameters
         ScalarT point_to_point_weight_;
         ScalarT point_to_plane_weight_;
         ScalarT stiffness_weight_;
@@ -145,7 +136,11 @@ namespace cilantro {
         size_t max_conjugate_gradient_iterations_;
         ScalarT conjugate_gradient_convergence_tol_;
 
-        // Temporaries and results
+        PointToPointCorrespondenceWeightEvaluator& point_corr_eval_;
+        PointToPlaneCorrespondenceWeightEvaluator& plane_corr_eval_;
+        ControlWeightEvaluator& control_eval_;
+        RegularizationWeightEvaluator& reg_eval_;
+
         VectorSet<ScalarT,3> src_points_trans_;
         RigidTransformationSet<ScalarT,3> transform_dense_;
         RigidTransformationSet<ScalarT,3> transform_iter_;

@@ -23,9 +23,9 @@ namespace cilantro {
                                 PointToPlaneCorrWeightEvaluatorT &plane_corr_eval)
                 : IterativeClosestPointBase<CombinedMetricRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT>,RigidTransformation<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
                   dst_points_(dst_p), dst_normals_(dst_n), src_points_(src_p),
-                  point_corr_eval_(point_corr_eval), plane_corr_eval_(plane_corr_eval),
                   max_optimization_iterations_(1), optimization_convergence_tol_((ScalarT)1e-5),
                   point_to_point_weight_((ScalarT)0.0), point_to_plane_weight_((ScalarT)1.0),
+                  point_corr_eval_(point_corr_eval), plane_corr_eval_(plane_corr_eval),
                   src_points_trans_(src_points_.rows(), src_points_.cols())
         {
             this->transform_init_.setIdentity();
@@ -68,21 +68,18 @@ namespace cilantro {
         }
 
     private:
-        // Data holders
         ConstVectorSetMatrixMap<ScalarT,3> dst_points_;
         ConstVectorSetMatrixMap<ScalarT,3> dst_normals_;
         ConstVectorSetMatrixMap<ScalarT,3> src_points_;
 
-        PointToPointCorrespondenceWeightEvaluator& point_corr_eval_;
-        PointToPlaneCorrespondenceWeightEvaluator& plane_corr_eval_;
-
-        // Parameters
         size_t max_optimization_iterations_;
         ScalarT optimization_convergence_tol_;
         ScalarT point_to_point_weight_;
         ScalarT point_to_plane_weight_;
 
-        // Temporaries
+        PointToPointCorrespondenceWeightEvaluator& point_corr_eval_;
+        PointToPlaneCorrespondenceWeightEvaluator& plane_corr_eval_;
+
         VectorSet<ScalarT,3> src_points_trans_;
 
         // ICP interface
