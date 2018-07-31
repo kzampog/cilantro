@@ -5,7 +5,7 @@
 #include <cilantro/warp_field_utilities.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT, class PointToPlaneCorrWeightEvaluatorT, class ControlWeightEvaluatorT, class RegularizationWeightEvaluatorT>
+    template <typename ScalarT, class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>, class PointToPlaneCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>, class ControlWeightEvaluatorT = RBFKernelWeightEvaluator<ScalarT,ScalarT,true>, class RegularizationWeightEvaluatorT = RBFKernelWeightEvaluator<ScalarT,ScalarT,true>>
     class SparseCombinedMetricNonRigidICP3 : public IterativeClosestPointBase<SparseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,ControlWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>> {
         friend class IterativeClosestPointBase<SparseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,ControlWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>;
     public:
@@ -195,9 +195,9 @@ namespace cilantro {
         }
     };
 
-    template <class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT, class PointToPlaneCorrWeightEvaluatorT, class ControlWeightEvaluatorT, class RegularizationWeightEvaluatorT>
+    template <class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT = UnityWeightEvaluator<float,float>, class PointToPlaneCorrWeightEvaluatorT = UnityWeightEvaluator<float,float>, class ControlWeightEvaluatorT = RBFKernelWeightEvaluator<float,float,true>, class RegularizationWeightEvaluatorT = RBFKernelWeightEvaluator<float,float,true>>
     using SparseCombinedMetricNonRigidICP3f = SparseCombinedMetricNonRigidICP3<float,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,ControlWeightEvaluatorT,RegularizationWeightEvaluatorT>;
 
-    template <class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT, class PointToPlaneCorrWeightEvaluatorT, class ControlWeightEvaluatorT, class RegularizationWeightEvaluatorT>
+    template <class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT = UnityWeightEvaluator<double,double>, class PointToPlaneCorrWeightEvaluatorT = UnityWeightEvaluator<double,double>, class ControlWeightEvaluatorT = RBFKernelWeightEvaluator<double,double,true>, class RegularizationWeightEvaluatorT = RBFKernelWeightEvaluator<double,double,true>>
     using SparseCombinedMetricNonRigidICP3d = SparseCombinedMetricNonRigidICP3<double,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,ControlWeightEvaluatorT,RegularizationWeightEvaluatorT>;
 }

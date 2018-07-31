@@ -5,7 +5,7 @@
 #include <cilantro/kd_tree.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT, class PointToPlaneCorrWeightEvaluatorT, class RegularizationWeightEvaluatorT>
+    template <typename ScalarT, class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>, class PointToPlaneCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>, class RegularizationWeightEvaluatorT = RBFKernelWeightEvaluator<ScalarT,ScalarT,true>>
     class DenseCombinedMetricNonRigidICP3 : public IterativeClosestPointBase<DenseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>> {
         friend class IterativeClosestPointBase<DenseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>;
     public:
@@ -175,9 +175,9 @@ namespace cilantro {
         }
     };
 
-    template <class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT, class PointToPlaneCorrWeightEvaluatorT, class RegularizationWeightEvaluatorT>
+    template <class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT = UnityWeightEvaluator<float,float>, class PointToPlaneCorrWeightEvaluatorT = UnityWeightEvaluator<float,float>, class RegularizationWeightEvaluatorT = RBFKernelWeightEvaluator<float,float,true>>
     using DenseCombinedMetricNonRigidICP3f = DenseCombinedMetricNonRigidICP3<float,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,RegularizationWeightEvaluatorT>;
 
-    template <class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT, class PointToPlaneCorrWeightEvaluatorT, class RegularizationWeightEvaluatorT>
+    template <class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT = UnityWeightEvaluator<double,double>, class PointToPlaneCorrWeightEvaluatorT = UnityWeightEvaluator<double,double>, class RegularizationWeightEvaluatorT = RBFKernelWeightEvaluator<double,double,true>>
     using DenseCombinedMetricNonRigidICP3d = DenseCombinedMetricNonRigidICP3<double,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,RegularizationWeightEvaluatorT>;
 }

@@ -95,13 +95,12 @@ int main(int argc, char ** argv) {
 //    cilantro::DistanceEvaluator<float> dist_eval;
 //    cilantro::CorrespondenceSearchKDTree<decltype(dst_feat)> corr_engine(dst_feat, src_feat, dist_eval);
 //
-//    cilantro::UnityWeightEvaluator<float> point_corr_eval;
-//    cilantro::UnityWeightEvaluator<float> plane_corr_eval;
+//    cilantro::UnityWeightEvaluator<float> corr_weight_eval;
 //
 //    // Point-to-point
 ////    cilantro::PointToPointMetricRigidICP3f<decltype(corr_engine)> icp(dst.points, src.points, corr_engine);
 //    // Weighted combination of point-to-point and point-to-plane
-//    cilantro::CombinedMetricRigidICP3f<decltype(corr_engine),decltype(point_corr_eval),decltype(plane_corr_eval)> icp(dst.points, dst.normals, src.points, corr_engine, point_corr_eval, plane_corr_eval);
+//    cilantro::CombinedMetricRigidICP3f<decltype(corr_engine)> icp(dst.points, dst.normals, src.points, corr_engine, corr_weight_eval, corr_weight_eval);
 
     // Common instances
     // Point-to-point

@@ -5,7 +5,7 @@
 #include <cilantro/kd_tree.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT, class PointToPlaneCorrWeightEvaluatorT>
+    template <typename ScalarT, class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>, class PointToPlaneCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>>
     class CombinedMetricRigidICP3 : public IterativeClosestPointBase<CombinedMetricRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT>,RigidTransformation<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>> {
         friend class IterativeClosestPointBase<CombinedMetricRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT>,RigidTransformation<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>;
     public:
@@ -124,9 +124,9 @@ namespace cilantro {
         }
     };
 
-    template <class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT, class PointToPlaneCorrWeightEvaluatorT>
+    template <class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT = UnityWeightEvaluator<float,float>, class PointToPlaneCorrWeightEvaluatorT = UnityWeightEvaluator<float,float>>
     using CombinedMetricRigidICP3f = CombinedMetricRigidICP3<float,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT>;
 
-    template <class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT, class PointToPlaneCorrWeightEvaluatorT>
+    template <class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT = UnityWeightEvaluator<double,double>, class PointToPlaneCorrWeightEvaluatorT = UnityWeightEvaluator<double,double>>
     using CombinedMetricRigidICP3d = CombinedMetricRigidICP3<double,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT>;
 }
