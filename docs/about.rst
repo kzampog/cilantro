@@ -27,7 +27,7 @@ Features
 
     - General dimension k-means clustering that supports all distance metrics supported by nanoflann
     - Spectral clustering based on various graph Laplacian types (using bundled Spectra)
-    - Flat kernel mean-shift clustering
+    - Mean-shift clustering with custom kernel support
     - Connected component based point cloud segmentation that supports arbitrary point-wise similarity functions
 
 * **Geometric registration:**

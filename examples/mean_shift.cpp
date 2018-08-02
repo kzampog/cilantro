@@ -46,8 +46,10 @@ int main(int argc, char ** argv) {
 
     cilantro::Timer timer;
     timer.start();
-    ms.cluster(2.0f, 5000, 0.2, 1e-7);
+    // Flat kernel
+    ms.cluster(2.0f, 5000, 0.2, 1e-7, cilantro::UnityWeightEvaluator<float>());
     timer.stop();
+
     std::cout << "Clustering time: " << timer.getElapsedTime() << "ms" << std::endl;
     std::cout << "Number of clusters: " << ms.getNumberOfClusters() << std::endl;
     std::cout << "Performed mean shift iterations: " << ms.getNumberOfPerformedIterations() << std::endl;

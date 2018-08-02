@@ -23,7 +23,7 @@ A high-level description of `cilantro` can be found in our [technical report](ht
 #### Clustering:
 - General dimension k-means clustering that supports all distance metrics supported by [nanoflann](https://github.com/jlblancoc/nanoflann)
 - Spectral clustering based on various graph Laplacian types (using bundled [Spectra](https://github.com/yixuan/spectra))
-- Flat kernel mean-shift clustering
+- Mean-shift clustering with custom kernel support
 - Connected component based point cloud segmentation that supports arbitrary point-wise similarity functions
 
 #### Geometric registration:

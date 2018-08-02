@@ -17,6 +17,11 @@ namespace cilantro {
         typedef ValueT InputScalar;
         typedef WeightT OutputScalar;
 
+        inline WeightT operator()(ValueT val) const { return static_cast<WeightT>(val); }
+
+        template <class PointT>
+        inline WeightT operator()(const PointT&, const PointT&, ValueT val) const { return static_cast<WeightT>(val); }
+
         inline WeightT operator()(size_t, size_t, ValueT val) const { return static_cast<WeightT>(val); }
     };
 
@@ -27,6 +32,11 @@ namespace cilantro {
 
         typedef ValueT InputScalar;
         typedef WeightT OutputScalar;
+
+        inline const WeightT operator()(ValueT) const { return (WeightT)1; }
+
+        template <class PointT>
+        inline WeightT operator()(const PointT&, const PointT&, ValueT) const { return (WeightT)1; }
 
         inline const WeightT operator()(size_t, size_t, ValueT) const { return (WeightT)1; }
     };
@@ -49,6 +59,26 @@ namespace cilantro {
         }
 
         template <bool dist_sq = distances_are_squared>
+        inline typename std::enable_if<dist_sq,WeightT>::type operator()(ValueT dist) const {
+            return std::exp(coeff_*static_cast<WeightT>(dist));
+        }
+
+        template <bool dist_sq = distances_are_squared>
+        inline typename std::enable_if<!dist_sq,WeightT>::type operator()(ValueT dist) const {
+            return std::exp(coeff_*static_cast<WeightT>(dist*dist));
+        }
+
+        template <class PointT, bool dist_sq = distances_are_squared>
+        inline typename std::enable_if<dist_sq,WeightT>::type operator()(const PointT&, const PointT&, ValueT dist) const {
+            return std::exp(coeff_*static_cast<WeightT>(dist));
+        }
+
+        template <class PointT, bool dist_sq = distances_are_squared>
+        inline typename std::enable_if<!dist_sq,WeightT>::type operator()(const PointT&, const PointT&, ValueT dist) const {
+            return std::exp(coeff_*static_cast<WeightT>(dist*dist));
+        }
+
+        template <bool dist_sq = distances_are_squared>
         inline typename std::enable_if<dist_sq,WeightT>::type operator()(size_t, size_t, ValueT dist) const {
             return std::exp(coeff_*static_cast<WeightT>(dist));
         }
@@ -63,10 +93,10 @@ namespace cilantro {
     };
 
     template <typename ValueT, typename WeightT = ValueT>
-    using AdjacencyEvaluator = UnityWeightEvaluator<ValueT,WeightT>;
+    using DistanceEvaluator = IdentityWeightEvaluator<ValueT,WeightT>;
 
     template <typename ValueT, typename WeightT = ValueT>
-    using DistanceEvaluator = IdentityWeightEvaluator<ValueT,WeightT>;
+    using AdjacencyEvaluator = UnityWeightEvaluator<ValueT,WeightT>;
 
     template <typename ValueT>
     using AlwaysTrueEvaluator = UnityWeightEvaluator<ValueT,bool>;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cilantro/kd_tree.hpp>
+#include <cilantro/common_pair_evaluators.hpp>
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
@@ -30,11 +31,13 @@ namespace cilantro {
             if (kd_tree_owned_) delete kd_tree_ptr_;
         }
 
+        template <class KernelEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>>
         MeanShift& cluster(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &seeds,
                            ScalarT kernel_radius,
                            size_t max_iter,
                            ScalarT cluster_tol,
-                           ScalarT convergence_tol = std::numeric_limits<ScalarT>::epsilon())
+                           ScalarT convergence_tol = std::numeric_limits<ScalarT>::epsilon(),
+                           const KernelEvaluatorT &evaluator = KernelEvaluatorT())
         {
             shifted_seeds_ = seeds;
 
@@ -43,24 +46,27 @@ namespace cilantro {
             const ScalarT conv_tol_sq = convergence_tol*convergence_tol;
             iteration_count_ = 0;
 
-            Eigen::Matrix<bool,Eigen::Dynamic,1> has_converged = Eigen::Matrix<bool,Eigen::Dynamic,1>::Constant(shifted_seeds_.cols(), 1, false);
+            std::vector<char> has_converged(shifted_seeds_.cols(), 0);
             bool all_converged;
             NeighborSet<ScalarT> nn;
+            Vector<ScalarT,EigenDim> point_tmp;
 
             while (iteration_count_ < max_iter) {
                 all_converged = true;
-#pragma omp parallel for shared (has_converged, all_converged) private (nn)
+#pragma omp parallel for shared (has_converged, all_converged) private (nn, point_tmp)
                 for (size_t i = 0; i < shifted_seeds_.cols(); i++) {
-                    Vector<ScalarT,EigenDim> point_tmp(shifted_seeds_.rows(), 1);
                     if (has_converged[i]) continue;
                     kd_tree_ptr_->radiusSearch(shifted_seeds_.col(i), radius_sq, nn);
-                    point_tmp.setZero();
+                    point_tmp.setZero(shifted_seeds_.rows(), 1);
+                    ScalarT total_weight = (ScalarT)0;
                     for (size_t j = 0; j < nn.size(); j++) {
-                        point_tmp += data_map_.col(nn[j].index);
+                        const ScalarT weight = evaluator.template operator()<Eigen::Ref<const Vector<ScalarT,EigenDim>>>(shifted_seeds_.col(i), data_map_.col(nn[j].index), nn[j].value);
+                        point_tmp.noalias() += weight*data_map_.col(nn[j].index);
+                        total_weight += weight;
                     }
-                    point_tmp *= (ScalarT)(1.0)/nn.size();
+                    point_tmp *= (ScalarT)(1.0)/total_weight;
                     if ((shifted_seeds_.col(i) - point_tmp).squaredNorm() < conv_tol_sq) {
-                        has_converged[i] = true;
+                        has_converged[i] = 1;
                     } else {
                         all_converged = false;
                     }
@@ -73,7 +79,7 @@ namespace cilantro {
             }
 
             // Cluster
-            ScalarT cluster_tol_sq = cluster_tol*cluster_tol;
+            const ScalarT cluster_tol_sq = cluster_tol*cluster_tol;
 
             for (size_t i = 0; i < shifted_seeds_.cols(); i++) {
                 size_t c;
@@ -102,12 +108,14 @@ namespace cilantro {
             return *this;
         }
 
+        template <class KernelEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>>
         inline MeanShift& cluster(ScalarT kernel_radius,
                                   size_t max_iter,
                                   ScalarT cluster_tol,
-                                  ScalarT convergence_tol = std::numeric_limits<ScalarT>::epsilon())
+                                  ScalarT convergence_tol = std::numeric_limits<ScalarT>::epsilon(),
+                                  const KernelEvaluatorT &evaluator = KernelEvaluatorT())
         {
-            return cluster(data_map_, kernel_radius, max_iter, cluster_tol, convergence_tol);
+            return cluster<KernelEvaluatorT>(data_map_, kernel_radius, max_iter, cluster_tol, convergence_tol, evaluator);
         }
 
         inline const VectorSet<ScalarT,EigenDim>& getShiftedSeeds() const { return shifted_seeds_; }
