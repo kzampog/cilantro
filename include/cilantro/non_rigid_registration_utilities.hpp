@@ -420,7 +420,7 @@ namespace cilantro {
                                                 const std::vector<NeighborSet<typename RegWeightEvaluatorT::InputScalar>> &regularization_neighborhoods,
                                                 ScalarT regularization_weight,
                                                 RigidTransformationSet<ScalarT,3> &transforms,
-                                                ScalarT huber_boundary = (ScalarT)(1e-6),
+                                                ScalarT huber_boundary = (ScalarT)(1e-4),
                                                 size_t max_gn_iter = 10,
                                                 ScalarT gn_conv_tol = (ScalarT)1e-5,
                                                 size_t max_cg_iter = 1000,

@@ -35,7 +35,7 @@ namespace cilantro {
                   src_to_ctrl_neighborhoods_(src_to_ctrl_neighborhoods), num_ctrl_nodes_(num_ctrl_nodes),
                   ctrl_regularization_neighborhoods_(ctrl_regularization_neighborhoods),
                   point_to_point_weight_((ScalarT)0.0), point_to_plane_weight_((ScalarT)1.0),
-                  stiffness_weight_((ScalarT)1.0), huber_boundary_((ScalarT)1e-6),
+                  stiffness_weight_((ScalarT)1.0), huber_boundary_((ScalarT)1e-4),
                   max_gauss_newton_iterations_(10), gauss_newton_convergence_tol_((ScalarT)1e-5),
                   max_conjugate_gradient_iterations_(1000), conjugate_gradient_convergence_tol_((ScalarT)1e-5),
                   point_corr_eval_(point_corr_eval), plane_corr_eval_(plane_corr_eval),
