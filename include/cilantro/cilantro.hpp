@@ -9,6 +9,7 @@
 #include <cilantro/convex_hull_utilities.hpp>
 #include <cilantro/convex_polytope.hpp>
 #include <cilantro/correspondence.hpp>
+#include <cilantro/correspondence_search_combined_metric_proxy.hpp>
 #include <cilantro/correspondence_search_kd_tree.hpp>
 #include <cilantro/correspondence_search_kd_tree_utilities.hpp>
 #include <cilantro/correspondence_search_projective.hpp>

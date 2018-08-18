@@ -106,13 +106,13 @@ namespace cilantro {
 
         inline const SearchResult& getCorrespondences() const { return correspondences_; }
 
-        // Interface for ICP use
-        // Dummy
-        inline const SearchResult& getPointToPointCorrespondences() const { return correspondences_; }
-
-        // Interface for ICP use
-        // Dummy
-        inline const SearchResult& getPointToPlaneCorrespondences() const { return correspondences_; }
+//        // Interface for ICP use
+//        // Dummy
+//        inline const SearchResult& getPointToPointCorrespondences() const { return correspondences_; }
+//
+//        // Interface for ICP use
+//        // Dummy
+//        inline const SearchResult& getPointToPlaneCorrespondences() const { return correspondences_; }
 
         inline Evaluator& evaluator() { return evaluator_; }
 
