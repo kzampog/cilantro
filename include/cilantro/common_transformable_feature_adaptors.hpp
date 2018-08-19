@@ -18,27 +18,35 @@ namespace cilantro {
                   transformed_data_map_(transformed_data_)
         {}
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatureData() const {
-            return data_map_;
+        PointFeaturesAdaptor& transformFeatures() {
+#pragma omp parallel for
+            for (size_t i = 0; i < data_map_.cols(); i++) {
+                transformed_data_.col(i) = data_map_.col(i);
+            }
+            return *this;
         }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData() const {
-            return transformed_data_map_;
-        }
-
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData(const RigidTransformation<ScalarT,EigenDim> &tform) {
+        inline PointFeaturesAdaptor& transformFeatures(const RigidTransformation<ScalarT,EigenDim> &tform) {
 #pragma omp parallel for
             for (size_t i = 0; i < data_map_.cols(); i++) {
                 transformed_data_.col(i).noalias() = tform*data_map_.col(i);
             }
-            return transformed_data_map_;
+            return *this;
         }
 
-        const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData(const RigidTransformationSet<ScalarT,EigenDim> &tforms) {
+        inline PointFeaturesAdaptor& transformFeatures(const RigidTransformationSet<ScalarT,EigenDim> &tforms) {
 #pragma omp parallel for
             for (size_t i = 0; i < data_map_.cols(); i++) {
                 transformed_data_.col(i).noalias() = tforms[i]*data_map_.col(i);
             }
+            return *this;
+        }
+
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatures() const {
+            return data_map_;
+        }
+
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatures() const {
             return transformed_data_map_;
         }
 
@@ -75,15 +83,15 @@ namespace cilantro {
             data_.bottomRows(normals.rows()) = normal_weight*normals;
         }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatureData() const {
-            return data_map_;
+        PointNormalFeaturesAdaptor& transformFeatures() {
+#pragma omp parallel for
+            for (size_t i = 0; i < data_map_.cols(); i++) {
+                transformed_data_.col(i) = data_map_.col(i);
+            }
+            return *this;
         }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData() const {
-            return transformed_data_map_;
-        }
-
-        const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData(const RigidTransformation<ScalarT,EigenDim> &tform) {
+        PointNormalFeaturesAdaptor& transformFeatures(const RigidTransformation<ScalarT,EigenDim> &tform) {
             const size_t dim = data_map_.rows()/2;
 #pragma omp parallel for
             for (size_t i = 0; i < data_map_.cols(); i++) {
@@ -92,10 +100,10 @@ namespace cilantro {
                 res_col.head(dim).noalias() = tform.linear()*data_col.head(dim) + tform.translation();
                 res_col.tail(dim).noalias() = tform.linear()*data_col.tail(dim);
             }
-            return transformed_data_map_;
+            return *this;
         }
 
-        const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData(const RigidTransformationSet<ScalarT,EigenDim> &tforms) {
+        PointNormalFeaturesAdaptor& transformFeatures(const RigidTransformationSet<ScalarT,EigenDim> &tforms) {
             const size_t dim = data_map_.rows()/2;
 #pragma omp parallel for
             for (size_t i = 0; i < data_map_.cols(); i++) {
@@ -104,6 +112,14 @@ namespace cilantro {
                 res_col.head(dim).noalias() = tforms[i].linear()*data_col.head(dim) + tforms[i].translation();
                 res_col.tail(dim).noalias() = tforms[i].linear()*data_col.tail(dim);
             }
+            return *this;
+        }
+
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatures() const {
+            return data_map_;
+        }
+
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatures() const {
             return transformed_data_map_;
         }
 
@@ -141,15 +157,15 @@ namespace cilantro {
             data_.bottomRows(3) = color_weight*colors.template cast<ScalarT>();
         }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatureData() const {
-            return data_map_;
+        PointColorFeaturesAdaptor& transformFeatures() {
+#pragma omp parallel for
+            for (size_t i = 0; i < data_map_.cols(); i++) {
+                transformed_data_.col(i) = data_map_.col(i);
+            }
+            return *this;
         }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData() const {
-            return transformed_data_map_;
-        }
-
-        const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData(const RigidTransformation<ScalarT,EigenDim> &tform) {
+        PointColorFeaturesAdaptor& transformFeatures(const RigidTransformation<ScalarT,EigenDim> &tform) {
             const size_t dim = data_map_.rows() - 3;
 #pragma omp parallel for
             for (size_t i = 0; i < data_map_.cols(); i++) {
@@ -158,10 +174,10 @@ namespace cilantro {
                 res_col.head(dim).noalias() = tform.linear()*data_col.head(dim) + tform.translation();
                 res_col.tail(3) = data_col.tail(3);
             }
-            return transformed_data_map_;
+            return *this;
         }
 
-        const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData(const RigidTransformationSet<ScalarT,EigenDim> &tforms) {
+        PointColorFeaturesAdaptor& transformFeatures(const RigidTransformationSet<ScalarT,EigenDim> &tforms) {
             const size_t dim = data_map_.rows() - 3;
 #pragma omp parallel for
             for (size_t i = 0; i < data_map_.cols(); i++) {
@@ -170,6 +186,14 @@ namespace cilantro {
                 res_col.head(dim).noalias() = tforms[i].linear()*data_col.head(dim) + tforms[i].translation();
                 res_col.tail(3) = data_col.tail(3);
             }
+            return *this;
+        }
+
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatures() const {
+            return data_map_;
+        }
+
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatures() const {
             return transformed_data_map_;
         }
 
@@ -209,15 +233,15 @@ namespace cilantro {
             data_.bottomRows(3) = color_weight*colors.template cast<ScalarT>();
         }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatureData() const {
-            return data_map_;
+        PointNormalColorFeaturesAdaptor& transformFeatures() {
+#pragma omp parallel for
+            for (size_t i = 0; i < data_map_.cols(); i++) {
+                transformed_data_.col(i) = data_map_.col(i);
+            }
+            return *this;
         }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData() const {
-            return transformed_data_map_;
-        }
-
-        const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData(const RigidTransformation<ScalarT,EigenDim> &tform) {
+        PointNormalColorFeaturesAdaptor& transformFeatures(const RigidTransformation<ScalarT,EigenDim> &tform) {
             const size_t dim = (data_map_.rows() - 3)/2;
 #pragma omp parallel for
             for (size_t i = 0; i < data_map_.cols(); i++) {
@@ -227,10 +251,10 @@ namespace cilantro {
                 res_col.segment(dim,dim).noalias() = tform.linear()*data_col.segment(dim,dim);
                 res_col.tail(3) = data_col.tail(3);
             }
-            return transformed_data_map_;
+            return *this;
         }
 
-        const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatureData(const RigidTransformationSet<ScalarT,EigenDim> &tforms) {
+        PointNormalColorFeaturesAdaptor& transformFeatures(const RigidTransformationSet<ScalarT,EigenDim> &tforms) {
             const size_t dim = (data_map_.rows() - 3)/2;
 #pragma omp parallel for
             for (size_t i = 0; i < data_map_.cols(); i++) {
@@ -240,6 +264,14 @@ namespace cilantro {
                 res_col.segment(dim,dim).noalias() = tforms[i].linear()*data_col.segment(dim,dim);
                 res_col.tail(3) = data_col.tail(3);
             }
+            return *this;
+        }
+
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatures() const {
+            return data_map_;
+        }
+
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatures() const {
             return transformed_data_map_;
         }
 

@@ -31,26 +31,18 @@ namespace cilantro {
         }
 
         inline CorrespondenceSearchProjective3& findCorrespondences() {
-            find_correspondences_(src_points_adaptor_.getFeatureData(), correspondences_);
+            find_correspondences_(src_points_adaptor_.getFeatures(), correspondences_);
             return *this;
         }
 
         // Interface for ICP use
         template <class TransformT>
         inline CorrespondenceSearchProjective3& findCorrespondences(const TransformT &tform) {
-            find_correspondences_(src_points_adaptor_.getTransformedFeatureData(tform), correspondences_);
+            find_correspondences_(src_points_adaptor_.transformFeatures(tform).getTransformedFeatures(), correspondences_);
             return *this;
         }
 
         inline const SearchResult& getCorrespondences() const { return correspondences_; }
-
-//        // Interface for ICP use
-//        // Dummy
-//        inline const SearchResult& getPointToPointCorrespondences() const { return correspondences_; }
-//
-//        // Interface for ICP use
-//        // Dummy
-//        inline const SearchResult& getPointToPlaneCorrespondences() const { return correspondences_; }
 
         inline Evaluator& evaluator() { return evaluator_; }
 
@@ -122,7 +114,7 @@ namespace cilantro {
         SearchResult correspondences_;
 
         void find_correspondences_(const ConstVectorSetMatrixMap<ScalarT,3>& src_points_trans, SearchResult &correspondences) {
-            const ConstVectorSetMatrixMap<ScalarT,3>& dst_points(dst_points_adaptor_.getFeatureData());
+            const ConstVectorSetMatrixMap<ScalarT,3>& dst_points(dst_points_adaptor_.getFeatures());
 
             if (index_map_.rows() != projection_image_width_ || index_map_.cols() != projection_image_height_) {
                 index_map_.resize(projection_image_width_, projection_image_height_);
