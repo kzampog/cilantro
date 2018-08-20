@@ -42,11 +42,11 @@ namespace cilantro {
             return *this;
         }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatures() const {
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeaturesMatrixMap() const {
             return data_map_;
         }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatures() const {
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeaturesMatrixMap() const {
             return transformed_data_map_;
         }
 
@@ -115,11 +115,11 @@ namespace cilantro {
             return *this;
         }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatures() const {
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeaturesMatrixMap() const {
             return data_map_;
         }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatures() const {
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeaturesMatrixMap() const {
             return transformed_data_map_;
         }
 
@@ -189,11 +189,11 @@ namespace cilantro {
             return *this;
         }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatures() const {
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeaturesMatrixMap() const {
             return data_map_;
         }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatures() const {
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeaturesMatrixMap() const {
             return transformed_data_map_;
         }
 
@@ -267,11 +267,11 @@ namespace cilantro {
             return *this;
         }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeatures() const {
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getFeaturesMatrixMap() const {
             return data_map_;
         }
 
-        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeatures() const {
+        inline const ConstVectorSetMatrixMap<ScalarT,FeatureDimension>& getTransformedFeaturesMatrixMap() const {
             return transformed_data_map_;
         }
 
