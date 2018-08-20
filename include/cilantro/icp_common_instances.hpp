@@ -33,10 +33,10 @@ namespace cilantro {
         };
 
         template <typename ScalarT, ptrdiff_t EigenDim>
-        using DefaultKDTreeCorrespondenceSearch = CorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,EigenDim>,KDTreeDistanceAdaptors::L2,DistanceEvaluator<ScalarT,ScalarT>>;
+        using DefaultKDTreeCorrespondenceSearch = CorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,EigenDim>,KDTreeDistanceAdaptors::L2,PointFeaturesAdaptor<ScalarT,EigenDim>,DistanceEvaluator<ScalarT,ScalarT>>;
 
         template <typename ScalarT>
-        using DefaultProjectiveCorrespondenceSearch3 = CorrespondenceSearchProjective3<ScalarT,DistanceEvaluator<ScalarT,ScalarT>>;
+        using DefaultProjectiveCorrespondenceSearch3 = CorrespondenceSearchProjective3<ScalarT,PointFeaturesAdaptor<ScalarT,3>,DistanceEvaluator<ScalarT,ScalarT>>;
     }
 
     template <typename ScalarT, ptrdiff_t EigenDim>

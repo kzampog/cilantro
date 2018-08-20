@@ -6,7 +6,7 @@
 #include <cilantro/image_point_cloud_conversions.hpp>
 
 namespace cilantro {
-    template <class ScalarT, class EvaluatorT = DistanceEvaluator<ScalarT,ScalarT>>
+    template <class ScalarT, class EvaluationFeatureAdaptorT = PointFeaturesAdaptor<ScalarT,3>, class EvaluatorT = DistanceEvaluator<ScalarT,typename EvaluationFeatureAdaptorT::Scalar>>
     class CorrespondenceSearchProjective3 {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -17,10 +17,27 @@ namespace cilantro {
 
         typedef CorrespondenceSet<CorrespondenceScalar> SearchResult;
 
+        template <class EvalFeatAdaptorT = EvaluationFeatureAdaptorT, class = typename std::enable_if<std::is_same<EvalFeatAdaptorT,PointFeaturesAdaptor<ScalarT,3>>::value>::type>
         CorrespondenceSearchProjective3(PointFeaturesAdaptor<ScalarT,3> &dst_points,
                                         PointFeaturesAdaptor<ScalarT,3> &src_points,
                                         EvaluatorT &evaluator)
-                : dst_points_adaptor_(dst_points), src_points_adaptor_(src_points), evaluator_(evaluator),
+                : dst_search_features_adaptor_(dst_points), src_search_features_adaptor_(src_points),
+                  src_evaluation_features_adaptor_(src_points), evaluator_(evaluator),
+                  projection_image_width_(640), projection_image_height_(480),
+                  projection_extrinsics_(RigidTransformation<ScalarT,3>::Identity()),
+                  projection_extrinsics_inv_(RigidTransformation<ScalarT,3>::Identity()),
+                  max_distance_((CorrespondenceScalar)(0.01*0.01)), inlier_fraction_(1.0)
+        {
+            // "Kinect"-like defaults
+            projection_intrinsics_ << 528, 0, 320, 0, 528, 240, 0, 0, 1;
+        }
+
+        CorrespondenceSearchProjective3(PointFeaturesAdaptor<ScalarT,3> &dst_points,
+                                        PointFeaturesAdaptor<ScalarT,3> &src_points,
+                                        EvaluationFeatureAdaptorT &src_eval_features,
+                                        EvaluatorT &evaluator)
+                : dst_search_features_adaptor_(dst_points), src_search_features_adaptor_(src_points),
+                  src_evaluation_features_adaptor_(src_eval_features), evaluator_(evaluator),
                   projection_image_width_(640), projection_image_height_(480),
                   projection_extrinsics_(RigidTransformation<ScalarT,3>::Identity()),
                   projection_extrinsics_inv_(RigidTransformation<ScalarT,3>::Identity()),
@@ -31,14 +48,19 @@ namespace cilantro {
         }
 
         inline CorrespondenceSearchProjective3& findCorrespondences() {
-            find_correspondences_(src_points_adaptor_.getFeaturesMatrixMap(), correspondences_);
+            find_correspondences_(src_search_features_adaptor_.getFeaturesMatrixMap(), correspondences_);
             return *this;
         }
 
         // Interface for ICP use
         template <class TransformT>
         inline CorrespondenceSearchProjective3& findCorrespondences(const TransformT &tform) {
-            find_correspondences_(src_points_adaptor_.transformFeatures(tform).getTransformedFeaturesMatrixMap(), correspondences_);
+            if (!std::is_same<PointFeaturesAdaptor<ScalarT,3>,EvaluationFeatureAdaptorT>::value ||
+                &src_search_features_adaptor_ != static_cast<PointFeaturesAdaptor<ScalarT,3> *>(&src_evaluation_features_adaptor_))
+            {
+                src_evaluation_features_adaptor_.transformFeatures(tform);
+            }
+            find_correspondences_(src_search_features_adaptor_.transformFeatures(tform).getTransformedFeaturesMatrixMap(), correspondences_);
             return *this;
         }
 
@@ -96,8 +118,11 @@ namespace cilantro {
         }
 
     private:
-        PointFeaturesAdaptor<ScalarT,3>& dst_points_adaptor_;
-        PointFeaturesAdaptor<ScalarT,3>& src_points_adaptor_;
+        PointFeaturesAdaptor<ScalarT,3>& dst_search_features_adaptor_;
+        PointFeaturesAdaptor<ScalarT,3>& src_search_features_adaptor_;
+
+        EvaluationFeatureAdaptorT& src_evaluation_features_adaptor_;
+
         Evaluator& evaluator_;
 
         Eigen::Matrix<size_t,Eigen::Dynamic,Eigen::Dynamic> index_map_;
@@ -114,7 +139,7 @@ namespace cilantro {
         SearchResult correspondences_;
 
         void find_correspondences_(const ConstVectorSetMatrixMap<ScalarT,3>& src_points_trans, SearchResult &correspondences) {
-            const ConstVectorSetMatrixMap<ScalarT,3>& dst_points(dst_points_adaptor_.getFeaturesMatrixMap());
+            const ConstVectorSetMatrixMap<ScalarT,3>& dst_points(dst_search_features_adaptor_.getFeaturesMatrixMap());
 
             if (index_map_.rows() != projection_image_width_ || index_map_.cols() != projection_image_height_) {
                 index_map_.resize(projection_image_width_, projection_image_height_);
