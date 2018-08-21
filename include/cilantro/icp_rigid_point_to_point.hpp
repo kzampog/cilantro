@@ -2,7 +2,7 @@
 
 #include <cilantro/icp_base.hpp>
 #include <cilantro/rigid_registration_utilities.hpp>
-#include <cilantro/correspondence_search_combined_metric_proxy.hpp>
+#include <cilantro/correspondence_search_combined_metric_adaptor.hpp>
 #include <cilantro/kd_tree.hpp>
 
 namespace cilantro {
@@ -42,9 +42,9 @@ namespace cilantro {
                 src_points_trans_.col(i).noalias() = this->transform_*src_points_.col(i);
             }
 
-            CorrespondenceSearchCombinedMetricProxy<CorrespondenceSearchEngineT> corr_getter_proxy(this->correspondence_search_engine_);
+            CorrespondenceSearchCombinedMetricAdaptor<CorrespondenceSearchEngineT> corr_getter_proxy(this->correspondence_search_engine_);
             RigidTransformation<ScalarT,EigenDim> tform_iter;
-            estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim,typename CorrespondenceSearchEngineT::CorrespondenceScalar>(dst_points_, src_points_trans_, corr_getter_proxy.getPointToPointCorrespondences(), tform_iter);
+            estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim,typename CorrespondenceSearchCombinedMetricAdaptor<CorrespondenceSearchEngineT>::PointToPointCorrespondenceScalar>(dst_points_, src_points_trans_, corr_getter_proxy.getPointToPointCorrespondences(), tform_iter);
 
             this->transform_ = tform_iter*this->transform_;
             this->transform_.linear() = this->transform_.rotation();
