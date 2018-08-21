@@ -120,7 +120,7 @@ namespace cilantro {
 //            }
 
             if (!std::is_same<SearchFeatureAdaptorT,EvaluationFeatureAdaptorT>::value ||
-                &src_search_features_adaptor_ != static_cast<SearchFeatureAdaptorT *>(&src_evaluation_features_adaptor_))
+                &src_search_features_adaptor_ != (SearchFeatureAdaptorT *)(&src_evaluation_features_adaptor_))
             {
                 src_evaluation_features_adaptor_.transformFeatures(tform);
             }

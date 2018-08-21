@@ -56,7 +56,7 @@ namespace cilantro {
         template <class TransformT>
         inline CorrespondenceSearchProjective3& findCorrespondences(const TransformT &tform) {
             if (!std::is_same<PointFeaturesAdaptor<ScalarT,3>,EvaluationFeatureAdaptorT>::value ||
-                &src_search_features_adaptor_ != static_cast<PointFeaturesAdaptor<ScalarT,3> *>(&src_evaluation_features_adaptor_))
+                &src_search_features_adaptor_ != (PointFeaturesAdaptor<ScalarT,3> *)(&src_evaluation_features_adaptor_))
             {
                 src_evaluation_features_adaptor_.transformFeatures(tform);
             }
