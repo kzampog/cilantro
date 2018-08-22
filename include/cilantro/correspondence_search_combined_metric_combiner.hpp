@@ -21,8 +21,8 @@ namespace cilantro {
 
         typedef typename CorrespondenceSearchCombinedMetricAdaptor<PointToPlaneCorrespondenceSearchT>::PointToPlaneCorrespondenceSearchResult PointToPlaneCorrespondenceSearchResult;
 
-        CorrespondenceSearchCombinedMetricCombiner(PointToPointCorrespondenceSearch& point_to_point_corr_search,
-                                                   PointToPlaneCorrespondenceSearch& point_to_plane_corr_search)
+        inline CorrespondenceSearchCombinedMetricCombiner(PointToPointCorrespondenceSearch& point_to_point_corr_search,
+                                                          PointToPlaneCorrespondenceSearch& point_to_plane_corr_search)
                 : point_to_point_corr_search_(point_to_point_corr_search),
                   point_to_plane_corr_search_(point_to_plane_corr_search)
         {}

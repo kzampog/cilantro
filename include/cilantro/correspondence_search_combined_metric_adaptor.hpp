@@ -54,7 +54,22 @@ namespace cilantro {
 
         typedef typename internal::PointToPlaneCorrespondenceSearchResult<CorrespondenceSearchT>::SearchResult PointToPlaneCorrespondenceSearchResult;
 
-        CorrespondenceSearchCombinedMetricAdaptor(const CorrespondenceSearchT &corr_engine) : corr_engine_(corr_engine) {}
+        typedef CorrespondenceSearchT BaseCorrespondenceSearch;
+
+        inline CorrespondenceSearchCombinedMetricAdaptor(CorrespondenceSearchT &corr_engine)
+                : corr_engine_(corr_engine)
+        {}
+
+        inline CorrespondenceSearchCombinedMetricAdaptor& findCorrespondences() {
+            corr_engine_.findCorrespondences();
+            return *this;
+        }
+
+        template <class TransformT>
+        inline CorrespondenceSearchCombinedMetricAdaptor& findCorrespondences(const TransformT& tform) {
+            corr_engine_.findCorrespondences(tform);
+            return *this;
+        }
 
         template <class CorrSearchT = CorrespondenceSearchT>
         inline const typename std::enable_if<internal::HasPointToPointCorrespondencesGetter<CorrSearchT>::value,PointToPointCorrespondenceSearchResult>::type& getPointToPointCorrespondences() const {
@@ -76,7 +91,11 @@ namespace cilantro {
             return corr_engine_.getCorrespondences();
         }
 
+        inline BaseCorrespondenceSearch& baseCorrespondenceSearchEngine() {
+            return corr_engine_;
+        }
+
     private:
-        const CorrespondenceSearchT& corr_engine_;
+        CorrespondenceSearchT& corr_engine_;
     };
 }
