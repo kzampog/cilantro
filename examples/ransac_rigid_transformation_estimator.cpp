@@ -3,13 +3,13 @@
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
 
-cilantro::VectorSet<float,3> selectByIndices(const cilantro::VectorSet<float,3> &elements, const std::vector<size_t> &indices) {
-    cilantro::VectorSet<float,3> res(3,indices.size());
-    for (size_t i = 0; i < indices.size(); i++) {
-        res.col(i) = elements.col(indices[i]);
-    }
-    return res;
-}
+//cilantro::VectorSet<float,3> selectByIndices(const cilantro::VectorSet<float,3> &elements, const std::vector<size_t> &indices) {
+//    cilantro::VectorSet<float,3> res(3,indices.size());
+//    for (size_t i = 0; i < indices.size(); i++) {
+//        res.col(i) = elements.col(indices[i]);
+//    }
+//    return res;
+//}
 
 void callback(unsigned char key, bool &re_estimate, bool &randomize) {
     if (key == 'a') {
@@ -66,10 +66,7 @@ int main(int argc, char **argv) {
 
             src.transform(tform);
             viz.addObject<cilantro::PointCloudRenderable>("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
-            viz.addObject<cilantro::PointCorrespondencesRenderable>("corr",
-                                                                    cilantro::selectSecondSetCorrespondingPoints<float,3>(corr, src.points),
-                                                                    cilantro::selectFirstSetCorrespondingPoints<float,3>(corr, dst.points),
-                                                                    cilantro::RenderingProperties().setOpacity(0.5f));
+            viz.addObject<cilantro::PointCorrespondencesRenderable>("corr", dst, src, corr, cilantro::RenderingProperties().setOpacity(0.5f));
 
             std::cout << "Press 'a' for a transform estimate" << std::endl;
         }

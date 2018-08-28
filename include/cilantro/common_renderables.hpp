@@ -76,17 +76,56 @@ namespace cilantro {
 
         typedef PointCloudGPUBufferObjects GPUBuffers;
 
-        PointCorrespondencesRenderable(const ConstVectorSetMatrixMap<float,3> &src_points,
-                                       const ConstVectorSetMatrixMap<float,3> &dst_points,
+        PointCorrespondencesRenderable(const ConstVectorSetMatrixMap<float,3> &dst_points,
+                                       const ConstVectorSetMatrixMap<float,3> &src_points,
                                        const RenderingProperties &rp = RenderingProperties());
 
-        template <class CloudT, class = typename std::enable_if<HasPoints<CloudT>::value>::type>
-        PointCorrespondencesRenderable(const CloudT &src_cloud, const CloudT &dst_cloud,
+        template <class CorrT>
+        PointCorrespondencesRenderable(const ConstVectorSetMatrixMap<float,3> &dst_points,
+                                       const ConstVectorSetMatrixMap<float,3> &src_points,
+                                       const CorrT &correspondences,
                                        const RenderingProperties &rp = RenderingProperties())
-                : Renderable(rp), srcPoints(src_cloud.points), dstPoints(dst_cloud.points)
+                : Renderable(rp)
+        {
+            if (!correspondences.empty()) {
+                dstPoints.resize(3, correspondences.size());
+                srcPoints.resize(3, correspondences.size());
+                Eigen::Vector3f sum(Eigen::Vector3f::Zero());
+                for (size_t i = 0; i < correspondences.size(); i++) {
+                    dstPoints.col(i) = dst_points.col(correspondences[i].indexInFirst);
+                    srcPoints.col(i) = src_points.col(correspondences[i].indexInSecond);
+                    sum += dstPoints.col(i) + srcPoints.col(i);
+                }
+                centroid = sum*(0.5f/(correspondences.size()));
+            }
+        }
+
+        template <class CloudT, class = typename std::enable_if<HasPoints<CloudT>::value>::type>
+        PointCorrespondencesRenderable(const CloudT &dst_cloud, const CloudT &src_cloud,
+                                       const RenderingProperties &rp = RenderingProperties())
+                : Renderable(rp), dstPoints(dst_cloud.points), srcPoints(src_cloud.points)
         {
             if (srcPoints.cols() == dstPoints.cols() && srcPoints.cols() > 0) {
                 centroid = 0.5f*(srcPoints + dstPoints).rowwise().mean();
+            }
+        }
+
+        template <class CloudT, class CorrT, class = typename std::enable_if<HasPoints<CloudT>::value>::type>
+        PointCorrespondencesRenderable(const CloudT &dst_cloud, const CloudT &src_cloud,
+                                       const CorrT &correspondences,
+                                       const RenderingProperties &rp = RenderingProperties())
+                : Renderable(rp)
+        {
+            if (!correspondences.empty()) {
+                dstPoints.resize(3, correspondences.size());
+                srcPoints.resize(3, correspondences.size());
+                Eigen::Vector3f sum(Eigen::Vector3f::Zero());
+                for (size_t i = 0; i < correspondences.size(); i++) {
+                    dstPoints.col(i) = dst_cloud.points.col(correspondences[i].indexInFirst);
+                    srcPoints.col(i) = src_cloud.points.col(correspondences[i].indexInSecond);
+                    sum += dstPoints.col(i) + srcPoints.col(i);
+                }
+                centroid = sum*(0.5f/(correspondences.size()));
             }
         }
 
@@ -95,9 +134,8 @@ namespace cilantro {
         void render(GPUBufferObjects &gl_objects);
 
     private:
-        VectorSet<float,3> srcPoints;
         VectorSet<float,3> dstPoints;
-
+        VectorSet<float,3> srcPoints;
     };
 
     class CoordinateFrameRenderable : public Renderable {

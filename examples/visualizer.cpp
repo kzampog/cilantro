@@ -37,7 +37,7 @@ int main(int argc, char ** argv) {
     cilantro::Visualizer viz2("Visualizer demo (window 2)", "disp");
     viz2.addObject<cilantro::PointCloudRenderable>("pcd1", cloud, cilantro::RenderingProperties().setPointColor(1.0f,0.0f,0.0f).setOpacity(0.4f));
     viz2.addObject<cilantro::PointCloudRenderable>("pcd2", cloud2, cilantro::RenderingProperties().setPointColor(0.0f,0.0f,1.0f).setOpacity(0.4f));
-    viz2.addObject<cilantro::PointCorrespondencesRenderable>("correspondences", cloud, cloud2, cilantro::RenderingProperties().setLineDensityFraction(0.005).setOpacity(0.3f));
+    viz2.addObject<cilantro::PointCorrespondencesRenderable>("correspondences", cloud2, cloud, cilantro::RenderingProperties().setLineDensityFraction(0.005).setOpacity(0.3f));
     viz2.addObject<cilantro::CoordinateFrameRenderable>("axis", Eigen::Matrix4f::Identity(), 0.4f, cilantro::RenderingProperties().setLineWidth(5.0f));
 
     viz2.registerKeyboardCallback('c', std::bind(callback, std::ref(viz2), "correspondences"));

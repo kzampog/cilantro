@@ -121,10 +121,10 @@ namespace cilantro {
         }
     }
 
-    PointCorrespondencesRenderable::PointCorrespondencesRenderable(const ConstVectorSetMatrixMap<float,3> &src_points,
-                                                                   const ConstVectorSetMatrixMap<float,3> &dst_points,
+    PointCorrespondencesRenderable::PointCorrespondencesRenderable(const ConstVectorSetMatrixMap<float,3> &dst_points,
+                                                                   const ConstVectorSetMatrixMap<float,3> &src_points,
                                                                    const RenderingProperties &rp)
-            : Renderable(rp), srcPoints(src_points), dstPoints(dst_points)
+            : Renderable(rp), dstPoints(dst_points), srcPoints(src_points)
     {
         if (srcPoints.cols() == dstPoints.cols() && srcPoints.cols() > 0) {
             centroid = 0.5f*(srcPoints + dstPoints).rowwise().mean();
