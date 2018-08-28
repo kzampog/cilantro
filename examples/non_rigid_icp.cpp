@@ -141,7 +141,7 @@ int main(int argc, char ** argv) {
     initial_and_warp_viz.registerKeyboardCallback('w', std::bind(warp_toggle, std::ref(initial_and_warp_viz)));
     initial_and_warp_viz.addObject<cilantro::PointCloudRenderable>("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
     initial_and_warp_viz.addObject<cilantro::PointCloudRenderable>("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
-    initial_and_warp_viz.addObject<cilantro::PointCorrespondencesRenderable>("corr", src, warped, cilantro::RenderingProperties().setLineWidth(0.1f));
+    initial_and_warp_viz.addObject<cilantro::PointCorrespondencesRenderable>("corr", warped, src, cilantro::RenderingProperties().setLineWidth(0.1f));
 
     // Registration result
     registration_viz.registerKeyboardCallback('c', std::bind(color_toggle, std::ref(registration_viz)));
