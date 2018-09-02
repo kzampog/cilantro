@@ -13,6 +13,7 @@
 #include <cilantro/correspondence_search_combined_metric_combiner.hpp>
 #include <cilantro/correspondence_search_kd_tree.hpp>
 #include <cilantro/correspondence_search_kd_tree_utilities.hpp>
+#include <cilantro/correspondence_search_oracle.hpp>
 #include <cilantro/correspondence_search_projective.hpp>
 #include <cilantro/data_containers.hpp>
 #include <cilantro/flat_convex_hull_3d.hpp>
