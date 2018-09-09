@@ -27,13 +27,11 @@ class DenseGenRealShiftSolve
 private:
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
-    typedef Eigen::Map<const Matrix> MapConstMat;
     typedef Eigen::Map<const Vector> MapConstVec;
     typedef Eigen::Map<Vector> MapVec;
-
     typedef const Eigen::Ref<const Matrix> ConstGenericMatrix;
 
-    const MapConstMat m_mat;
+    ConstGenericMatrix m_mat;
     const int m_n;
     Eigen::PartialPivLU<Matrix> m_solver;
 
@@ -41,16 +39,15 @@ public:
     ///
     /// Constructor to create the matrix operation object.
     ///
-    /// \param mat_ An **Eigen** matrix object, whose type can be
+    /// \param mat An **Eigen** matrix object, whose type can be
     /// `Eigen::Matrix<Scalar, ...>` (e.g. `Eigen::MatrixXd` and
     /// `Eigen::MatrixXf`), or its mapped version
     /// (e.g. `Eigen::Map<Eigen::MatrixXd>`).
     ///
-    DenseGenRealShiftSolve(ConstGenericMatrix& mat_) :
-        m_mat(mat_.data(), mat_.rows(), mat_.cols()),
-        m_n(mat_.rows())
+    DenseGenRealShiftSolve(ConstGenericMatrix& mat) :
+        m_mat(mat), m_n(mat.rows())
     {
-        if(mat_.rows() != mat_.cols())
+        if(mat.rows() != mat.cols())
             throw std::invalid_argument("DenseGenRealShiftSolve: matrix must be square");
     }
 

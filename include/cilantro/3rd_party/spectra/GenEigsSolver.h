@@ -53,7 +53,8 @@ namespace Spectra {
 ///
 /// \code{.cpp}
 /// #include <Eigen/Core>
-/// #include <GenEigsSolver.h>  // Also includes <MatOp/DenseGenMatProd.h>
+/// #include <Spectra/GenEigsSolver.h>
+/// // <Spectra/MatOp/DenseGenMatProd.h> is implicitly included
 /// #include <iostream>
 ///
 /// using namespace Spectra;
@@ -90,8 +91,8 @@ namespace Spectra {
 /// \code{.cpp}
 /// #include <Eigen/Core>
 /// #include <Eigen/SparseCore>
-/// #include <GenEigsSolver.h>
-/// #include <MatOp/SparseGenMatProd.h>
+/// #include <Spectra/GenEigsSolver.h>
+/// #include <Spectra/MatOp/SparseGenMatProd.h>
 /// #include <iostream>
 ///
 /// using namespace Spectra;

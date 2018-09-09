@@ -30,8 +30,9 @@ private:
     typedef Eigen::Map<const Vector> MapConstVec;
     typedef Eigen::Map<Vector> MapVec;
     typedef Eigen::SparseMatrix<Scalar, Flags, StorageIndex> SparseMatrix;
+    typedef const Eigen::Ref<const SparseMatrix> ConstGenericSparseMatrix;
 
-    const SparseMatrix& m_mat;
+    ConstGenericSparseMatrix m_mat;
     const int m_n;
     Eigen::SparseLU<SparseMatrix> m_solver;
 
@@ -39,14 +40,14 @@ public:
     ///
     /// Constructor to create the matrix operation object.
     ///
-    /// \param mat_ An **Eigen** sparse matrix object, whose type is
-    /// `Eigen::SparseMatrix<Scalar, ...>`.
+    /// \param mat An **Eigen** sparse matrix object, whose type can be
+    /// `Eigen::SparseMatrix<Scalar, ...>` or its mapped version
+    /// `Eigen::Map<Eigen::SparseMatrix<Scalar, ...> >`.
     ///
-    SparseGenRealShiftSolve(const SparseMatrix& mat_) :
-        m_mat(mat_),
-        m_n(mat_.rows())
+    SparseGenRealShiftSolve(ConstGenericSparseMatrix& mat) :
+        m_mat(mat), m_n(mat.rows())
     {
-        if(mat_.rows() != mat_.cols())
+        if(mat.rows() != mat.cols())
             throw std::invalid_argument("SparseGenRealShiftSolve: matrix must be square");
     }
 

@@ -32,25 +32,23 @@ class DenseGenMatProd
 private:
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
-    typedef Eigen::Map<const Matrix> MapConstMat;
     typedef Eigen::Map<const Vector> MapConstVec;
     typedef Eigen::Map<Vector> MapVec;
-
     typedef const Eigen::Ref<const Matrix> ConstGenericMatrix;
 
-    const MapConstMat m_mat;
+    ConstGenericMatrix m_mat;
 
 public:
     ///
     /// Constructor to create the matrix operation object.
     ///
-    /// \param mat_ An **Eigen** matrix object, whose type can be
+    /// \param mat An **Eigen** matrix object, whose type can be
     /// `Eigen::Matrix<Scalar, ...>` (e.g. `Eigen::MatrixXd` and
     /// `Eigen::MatrixXf`), or its mapped version
     /// (e.g. `Eigen::Map<Eigen::MatrixXd>`).
     ///
-    DenseGenMatProd(ConstGenericMatrix& mat_) :
-        m_mat(mat_.data(), mat_.rows(), mat_.cols())
+    DenseGenMatProd(ConstGenericMatrix& mat) :
+        m_mat(mat)
     {}
 
     ///

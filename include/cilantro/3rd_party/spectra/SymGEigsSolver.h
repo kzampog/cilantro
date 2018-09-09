@@ -97,9 +97,9 @@ class SymGEigsSolver
 /// #include <Eigen/Core>
 /// #include <Eigen/SparseCore>
 /// #include <Eigen/Eigenvalues>
-/// #include <SymGEigsSolver.h>
-/// #include <MatOp/DenseSymMatProd.h>
-/// #include <MatOp/SparseCholesky.h>
+/// #include <Spectra/SymGEigsSolver.h>
+/// #include <Spectra/MatOp/DenseSymMatProd.h>
+/// #include <Spectra/MatOp/SparseCholesky.h>
 /// #include <iostream>
 ///
 /// using namespace Spectra;

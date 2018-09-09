@@ -31,7 +31,6 @@ private:
     typedef Eigen::Map<const Matrix> MapConstMat;
     typedef Eigen::Map<const Vector> MapConstVec;
     typedef Eigen::Map<Vector> MapVec;
-
     typedef const Eigen::Ref<const Matrix> ConstGenericMatrix;
 
     const int m_n;
@@ -42,19 +41,18 @@ public:
     ///
     /// Constructor to create the matrix operation object.
     ///
-    /// \param mat_ An **Eigen** matrix object, whose type can be
+    /// \param mat An **Eigen** matrix object, whose type can be
     /// `Eigen::Matrix<Scalar, ...>` (e.g. `Eigen::MatrixXd` and
     /// `Eigen::MatrixXf`), or its mapped version
     /// (e.g. `Eigen::Map<Eigen::MatrixXd>`).
     ///
-    DenseCholesky(ConstGenericMatrix& mat_) :
-        m_n(mat_.rows()),
-        m_info(NOT_COMPUTED)
+    DenseCholesky(ConstGenericMatrix& mat) :
+        m_n(mat.rows()), m_info(NOT_COMPUTED)
     {
-        if(mat_.rows() != mat_.cols())
+        if(mat.rows() != mat.cols())
             throw std::invalid_argument("DenseCholesky: matrix must be square");
 
-        m_decomp.compute(mat_);
+        m_decomp.compute(mat);
         m_info = (m_decomp.info() == Eigen::Success) ?
                  SUCCESSFUL :
                  NUMERICAL_ISSUE;

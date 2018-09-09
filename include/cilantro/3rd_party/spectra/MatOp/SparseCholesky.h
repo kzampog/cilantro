@@ -11,7 +11,7 @@
 #include <Eigen/SparseCore>
 #include <Eigen/SparseCholesky>
 #include <stdexcept>
-#include <Util/CompInfo.h>
+#include "../Util/CompInfo.h"
 
 namespace Spectra {
 
@@ -32,6 +32,7 @@ private:
     typedef Eigen::Map<const Vector> MapConstVec;
     typedef Eigen::Map<Vector> MapVec;
     typedef Eigen::SparseMatrix<Scalar, Flags, StorageIndex> SparseMatrix;
+    typedef const Eigen::Ref<const SparseMatrix> ConstGenericSparseMatrix;
 
     const int m_n;
     Eigen::SimplicialLLT<SparseMatrix, Uplo> m_decomp;
@@ -41,16 +42,17 @@ public:
     ///
     /// Constructor to create the matrix operation object.
     ///
-    /// \param mat_ An **Eigen** sparse matrix object, whose type is
-    /// `Eigen::SparseMatrix<Scalar, ...>`.
+    /// \param mat An **Eigen** sparse matrix object, whose type can be
+    /// `Eigen::SparseMatrix<Scalar, ...>` or its mapped version
+    /// `Eigen::Map<Eigen::SparseMatrix<Scalar, ...> >`.
     ///
-    SparseCholesky(const SparseMatrix& mat_) :
-        m_n(mat_.rows())
+    SparseCholesky(ConstGenericSparseMatrix& mat) :
+        m_n(mat.rows())
     {
-        if(mat_.rows() != mat_.cols())
+        if(mat.rows() != mat.cols())
             throw std::invalid_argument("SparseCholesky: matrix must be square");
 
-        m_decomp.compute(mat_);
+        m_decomp.compute(mat);
         m_info = (m_decomp.info() == Eigen::Success) ?
                  SUCCESSFUL :
                  NUMERICAL_ISSUE;

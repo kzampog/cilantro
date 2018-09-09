@@ -76,7 +76,8 @@ namespace Spectra {
 ///
 /// \code{.cpp}
 /// #include <Eigen/Core>
-/// #include <SymEigsSolver.h>  // Also includes <MatOp/DenseSymMatProd.h>
+/// #include <Spectra/SymEigsSolver.h>
+/// // <Spectra/MatOp/DenseSymMatProd.h> is implicitly included
 /// #include <iostream>
 ///
 /// using namespace Spectra;
@@ -112,7 +113,7 @@ namespace Spectra {
 ///
 /// \code{.cpp}
 /// #include <Eigen/Core>
-/// #include <SymEigsSolver.h>
+/// #include <Spectra/SymEigsSolver.h>
 /// #include <iostream>
 ///
 /// using namespace Spectra;

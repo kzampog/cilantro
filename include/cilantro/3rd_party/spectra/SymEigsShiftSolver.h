@@ -69,7 +69,8 @@ namespace Spectra {
 ///
 /// \code{.cpp}
 /// #include <Eigen/Core>
-/// #include <SymEigsShiftSolver.h>  // Also includes <MatOp/DenseSymShiftSolve.h>
+/// #include <Spectra/SymEigsShiftSolver.h>
+/// // <Spectra/MatOp/DenseSymShiftSolve.h> is implicitly included
 /// #include <iostream>
 ///
 /// using namespace Spectra;
@@ -106,7 +107,7 @@ namespace Spectra {
 ///
 /// \code{.cpp}
 /// #include <Eigen/Core>
-/// #include <SymEigsShiftSolver.h>
+/// #include <Spectra/SymEigsShiftSolver.h>
 /// #include <iostream>
 ///
 /// using namespace Spectra;

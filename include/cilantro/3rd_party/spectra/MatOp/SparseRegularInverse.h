@@ -34,25 +34,27 @@ private:
     typedef Eigen::Map<const Vector> MapConstVec;
     typedef Eigen::Map<Vector> MapVec;
     typedef Eigen::SparseMatrix<Scalar, Flags, StorageIndex> SparseMatrix;
+    typedef const Eigen::Ref<const SparseMatrix> ConstGenericSparseMatrix;
 
+    ConstGenericSparseMatrix m_mat;
     const int m_n;
-    const SparseMatrix& m_mat;
     Eigen::ConjugateGradient<SparseMatrix> m_cg;
 
 public:
     ///
     /// Constructor to create the matrix operation object.
     ///
-    /// \param mat_ An **Eigen** sparse matrix object, whose type is
-    /// `Eigen::SparseMatrix<Scalar, ...>`.
+    /// \param mat An **Eigen** sparse matrix object, whose type can be
+    /// `Eigen::SparseMatrix<Scalar, ...>` or its mapped version
+    /// `Eigen::Map<Eigen::SparseMatrix<Scalar, ...> >`.
     ///
-    SparseRegularInverse(const SparseMatrix& mat_) :
-        m_n(mat_.rows()), m_mat(mat_)
+    SparseRegularInverse(ConstGenericSparseMatrix& mat) :
+        m_mat(mat), m_n(mat.rows())
     {
-        if(mat_.rows() != mat_.cols())
+        if(mat.rows() != mat.cols())
             throw std::invalid_argument("SparseRegularInverse: matrix must be square");
 
-        m_cg.compute(mat_);
+        m_cg.compute(mat);
     }
 
     ///

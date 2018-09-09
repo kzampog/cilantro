@@ -29,18 +29,20 @@ private:
     typedef Eigen::Map<const Vector> MapConstVec;
     typedef Eigen::Map<Vector> MapVec;
     typedef Eigen::SparseMatrix<Scalar, Flags, StorageIndex> SparseMatrix;
+    typedef const Eigen::Ref<const SparseMatrix> ConstGenericSparseMatrix;
 
-    const SparseMatrix& m_mat;
+    ConstGenericSparseMatrix m_mat;
 
 public:
     ///
     /// Constructor to create the matrix operation object.
     ///
-    /// \param mat_ An **Eigen** sparse matrix object, whose type is
-    /// `Eigen::SparseMatrix<Scalar, ...>`.
+    /// \param mat An **Eigen** sparse matrix object, whose type can be
+    /// `Eigen::SparseMatrix<Scalar, ...>` or its mapped version
+    /// `Eigen::Map<Eigen::SparseMatrix<Scalar, ...> >`.
     ///
-    SparseGenMatProd(const SparseMatrix& mat_) :
-        m_mat(mat_)
+    SparseGenMatProd(ConstGenericSparseMatrix& mat) :
+        m_mat(mat)
     {}
 
     ///
