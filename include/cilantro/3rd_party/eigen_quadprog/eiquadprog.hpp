@@ -281,7 +281,7 @@ l1:	iter++;
 		iaexcl(i) = 1;
 		sum = CI.col(i).dot(x) + ci0(i);
 		s(i) = sum;
-		psi += std::min(0.0, sum);
+		psi += std::min((double)0.0, sum);
 	}
 #ifdef TRACE_SOLVER
   print_vector("s", s, mi);

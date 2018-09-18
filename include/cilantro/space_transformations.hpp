@@ -7,10 +7,13 @@ namespace cilantro {
     using RigidTransformation = Eigen::Transform<ScalarT,EigenDim,Eigen::Isometry>;
 
     template <typename ScalarT, ptrdiff_t EigenDim>
+#ifdef _MSC_VER
+    using RigidTransformationSetBase = std::vector<RigidTransformation<ScalarT, EigenDim>>;
+#else
     using RigidTransformationSetBase = typename std::conditional<EigenDim != Eigen::Dynamic && sizeof(RigidTransformation<ScalarT,EigenDim>) % 16 == 0,
             std::vector<RigidTransformation<ScalarT,EigenDim>,Eigen::aligned_allocator<RigidTransformation<ScalarT,EigenDim>>>,
             std::vector<RigidTransformation<ScalarT,EigenDim>>>::type;
-
+#endif
     template <typename ScalarT, ptrdiff_t EigenDim>
     class RigidTransformationSet : public RigidTransformationSetBase<ScalarT,EigenDim> {
     public:
