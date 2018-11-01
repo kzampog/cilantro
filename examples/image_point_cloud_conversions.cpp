@@ -32,13 +32,17 @@ int main(int argc, char ** argv) {
     cilantro::Visualizer pcdv(win_name, "disp3");
     cilantro::ImageViewer depthfv(win_name, "disp4");
 
+    cilantro::RenderingProperties rp;
+    rp.setPointColor(0.8f, 0.8f, 0.8f);
+
     while (!pcdv.wasStopped() && !rgbv.wasStopped() && !depthv.wasStopped()) {
         dok->GrabNext(img, true);
 
         // Get point cloud from RGBD image pair
         cilantro::DepthValueConverter<unsigned short,float> dc1(1000.0f);
-        cloud.fromRGBDImages(rgb_img.ptr, depth_img.ptr, dc1, w, h, K, false);
+//        cloud.fromRGBDImages(rgb_img.ptr, depth_img.ptr, dc1, w, h, K, false);
 //        cilantro::RGBDImagesToPointsColors(rgb_img.ptr, depth_img.ptr, dc1, w, h, K, cloud.points, cloud.colors, false);
+        cilantro::depthImageToPointsNormals(depth_img.ptr, dc1, w, h, K, cloud.points, cloud.normals, false);
 
         // Get a depth map back from the point cloud
         cilantro::RigidTransformation3f cam_pose;
@@ -48,7 +52,7 @@ int main(int argc, char ** argv) {
 
         rgbv.setImage(rgb_img.ptr, w, h, "RGB24");
         depthv.setImage(depth_img.ptr, w, h, "GRAY16LE");
-        pcdv.addObject<cilantro::PointCloudRenderable>("cloud", cloud);
+        pcdv.addObject<cilantro::PointCloudRenderable>("cloud", cloud, rp);
         depthfv.setImage(depthf_img.ptr, w, h, "GRAY32F");
 
         pcdv.clearRenderArea();
@@ -57,6 +61,9 @@ int main(int argc, char ** argv) {
         pcdv.render();
         depthfv.render();
         pangolin::FinishFrame();
+
+        // Keep rendering properties on update
+        rp = pcdv.getRenderingProperties("cloud");
     }
 
     delete[] img;
