@@ -85,9 +85,14 @@ namespace cilantro {
                    const DepthConverterT &depth_converter,
                    size_t image_w, size_t image_h,
                    const Eigen::Ref<const Eigen::Matrix<ScalarT,3,3>> &intrinsics,
-                   bool keep_invalid = false)
+                   bool keep_invalid = false,
+                   bool compute_normals = false)
         {
-            depthImageToPoints<DepthConverterT>(depth_data, depth_converter, image_w, image_h, intrinsics, points, keep_invalid);
+            if (compute_normals) {
+                depthImageToPointsNormals<DepthConverterT>(depth_data, depth_converter, image_w, image_h, intrinsics, points, normals, keep_invalid);
+            } else {
+                depthImageToPoints<DepthConverterT>(depth_data, depth_converter, image_w, image_h, intrinsics, points, keep_invalid);
+            }
         }
 
         template <class DepthConverterT, class = typename std::enable_if<EigenDim == 3 && std::is_same<typename DepthConverterT::MetricDepth,ScalarT>::value>::type>
@@ -96,9 +101,14 @@ namespace cilantro {
                    const DepthConverterT &depth_converter,
                    size_t image_w, size_t image_h,
                    const Eigen::Ref<const Eigen::Matrix<ScalarT,3,3>> &intrinsics,
-                   bool keep_invalid = false)
+                   bool keep_invalid = false,
+                   bool compute_normals = false)
         {
-            RGBDImagesToPointsColors<DepthConverterT>(rgb_data, depth_data, depth_converter, image_w, image_h, intrinsics, points, colors, keep_invalid);
+            if (compute_normals) {
+                RGBDImagesToPointsNormalsColors<DepthConverterT>(rgb_data, depth_data, depth_converter, image_w, image_h, intrinsics, points, normals, colors, keep_invalid);
+            } else {
+                RGBDImagesToPointsColors<DepthConverterT>(rgb_data, depth_data, depth_converter, image_w, image_h, intrinsics, points, colors, keep_invalid);
+            }
         }
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
@@ -376,11 +386,16 @@ namespace cilantro {
                                           const DepthConverterT &depth_converter,
                                           size_t image_w, size_t image_h,
                                           const Eigen::Ref<const Eigen::Matrix<ScalarT,3,3>> &intrinsics,
-                                          bool keep_invalid = false)
+                                          bool keep_invalid = false,
+                                          bool compute_normals = false)
         {
-            normals.resize(Eigen::NoChange, 0);
             colors.resize(Eigen::NoChange, 0);
-            depthImageToPoints<DepthConverterT>(depth_data, depth_converter, image_w, image_h, intrinsics, points, keep_invalid);
+            if (compute_normals) {
+                depthImageToPointsNormals<DepthConverterT>(depth_data, depth_converter, image_w, image_h, intrinsics, points, normals, keep_invalid);
+            } else {
+                normals.resize(Eigen::NoChange, 0);
+                depthImageToPoints<DepthConverterT>(depth_data, depth_converter, image_w, image_h, intrinsics, points, keep_invalid);
+            }
             return *this;
         }
 
@@ -390,10 +405,15 @@ namespace cilantro {
                                           const DepthConverterT &depth_converter,
                                           size_t image_w, size_t image_h,
                                           const Eigen::Ref<const Eigen::Matrix<ScalarT,3,3>> &intrinsics,
-                                          bool keep_invalid = false)
+                                          bool keep_invalid = false,
+                                          bool compute_normals = false)
         {
-            normals.resize(Eigen::NoChange, 0);
-            RGBDImagesToPointsColors<DepthConverterT>(rgb_data, depth_data, depth_converter, image_w, image_h, intrinsics, points, colors, keep_invalid);
+            if (compute_normals) {
+                RGBDImagesToPointsNormalsColors<DepthConverterT>(rgb_data, depth_data, depth_converter, image_w, image_h, intrinsics, points, normals, colors, keep_invalid);
+            } else {
+                normals.resize(Eigen::NoChange, 0);
+                RGBDImagesToPointsColors<DepthConverterT>(rgb_data, depth_data, depth_converter, image_w, image_h, intrinsics, points, colors, keep_invalid);
+            }
             return *this;
         }
 

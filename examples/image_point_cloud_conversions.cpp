@@ -3,6 +3,15 @@
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
 
+void color_toggle_callback(cilantro::Visualizer &viz, cilantro::RenderingProperties &rp) {
+    if (rp.pointColor == cilantro::RenderingProperties::noColor) {
+        rp.setPointColor(0.8f, 0.8f, 0.8f);
+    } else {
+        rp.setPointColor(cilantro::RenderingProperties::noColor);
+    }
+    viz.setRenderingProperties("cloud", rp);
+}
+
 int main(int argc, char ** argv) {
     // Intrinsics
     Eigen::Matrix3f K;
@@ -33,16 +42,23 @@ int main(int argc, char ** argv) {
     cilantro::ImageViewer depthfv(win_name, "disp4");
 
     cilantro::RenderingProperties rp;
-    rp.setPointColor(0.8f, 0.8f, 0.8f);
+    pcdv.registerKeyboardCallback('c', std::bind(color_toggle_callback, std::ref(pcdv), std::ref(rp)));
+    rp.setUseLighting(false);
+
+    std::cout << "Press 'l' to toggle lighting" << std::endl;
+    std::cout << "Press 'c' to toggle color" << std::endl;
+    std::cout << "Press 'n' to toggle rendering of normals" << std::endl;
 
     while (!pcdv.wasStopped() && !rgbv.wasStopped() && !depthv.wasStopped()) {
         dok->GrabNext(img, true);
 
         // Get point cloud from RGBD image pair
         cilantro::DepthValueConverter<unsigned short,float> dc1(1000.0f);
-//        cloud.fromRGBDImages(rgb_img.ptr, depth_img.ptr, dc1, w, h, K, false);
+//        cloud.fromDepthImage(depth_img.ptr, dc1, w, h, K, false, true);
+//        cloud.fromRGBDImages(rgb_img.ptr, depth_img.ptr, dc1, w, h, K, false, true);
 //        cilantro::RGBDImagesToPointsColors(rgb_img.ptr, depth_img.ptr, dc1, w, h, K, cloud.points, cloud.colors, false);
-        cilantro::depthImageToPointsNormals(depth_img.ptr, dc1, w, h, K, cloud.points, cloud.normals, false);
+//        cilantro::depthImageToPointsNormals(depth_img.ptr, dc1, w, h, K, cloud.points, cloud.normals, false);
+        cilantro::RGBDImagesToPointsNormalsColors(rgb_img.ptr, depth_img.ptr, dc1, w, h, K, cloud.points, cloud.normals, cloud.colors, false);
 
         // Get a depth map back from the point cloud
         cilantro::RigidTransformation3f cam_pose;
