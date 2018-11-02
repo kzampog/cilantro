@@ -57,9 +57,11 @@ int main(int argc, char ** argv) {
 
     cilantro::RigidTransformation3f cam_pose(cilantro::RigidTransformation3f::Identity());
 
-    float fusion_weight = 0.1f;
-    float fusion_weight_compl = 1.0f - fusion_weight;
-    float fusion_dist_thresh = 0.02f;
+    float max_depth = 1.1f;
+    float fusion_weight = 0.3f;
+    float fusion_dist_thresh = 0.025f;
+    float occlusion_thresh = 2.0f*fusion_dist_thresh;
+    float factor = -0.5f/(100*100);
 
     std::cout << "Press 'a' to initialize model/fuse new view" << std::endl;
     std::cout << "Press 'd' to reinitialize process" << std::endl;
@@ -85,11 +87,18 @@ int main(int argc, char ** argv) {
 
             if (model.isEmpty()) {
                 model.fromRGBDImages(rgb_img.ptr, depth_img.ptr, dc, w, h, K, false, true);
+                std::vector<size_t> remove_ind;
+                remove_ind.reserve(model.size());
+                for (size_t i = 0; i < model.size(); i++) {
+                    if (model.points(2,i) > max_depth) remove_ind.emplace_back(i);
+                }
+                model.remove(remove_ind);
                 cam_pose.setIdentity();
             } else {
                 cilantro::PointCloud3f frame_t(frame.transformed(cam_pose));
                 cilantro::PointCloud3f model_t(model.transformed(cam_pose.inverse()));
 
+                // Project cloud to index image maps
                 pangolin::ManagedImage<size_t> model_index_map(w, h);
                 cilantro::pointsToIndexMap<float>(model_t.points, K, model_index_map.ptr, w, h);
                 pangolin::ManagedImage<size_t> frame_index_map(w, h);
@@ -100,37 +109,58 @@ int main(int argc, char ** argv) {
                 to_append.normals.resize(Eigen::NoChange, w*h);
                 to_append.colors.resize(Eigen::NoChange, w*h);
 
-                size_t app_ind = 0;
-                size_t empty = std::numeric_limits<std::size_t>::max();
+                size_t append_count = 0;
+                std::vector<size_t> remove_ind;
+                remove_ind.reserve(w*h);
+                const size_t empty = std::numeric_limits<std::size_t>::max();
 #pragma omp parallel for
                 for (size_t y = 0; y < frame_index_map.h; y++) {
                     for (size_t x = 0; x < frame_index_map.w; x++) {
-                        if (frame_index_map(x,y) == empty) continue;
-                        if (model_index_map(x,y) != empty) {
-                            float view_depth = frame_t.points(2,frame_index_map(x,y));
-                            float model_depth = model_t.points(2,model_index_map(x,y));
-                            if (std::abs(model_depth - view_depth) < fusion_dist_thresh) {
-#pragma omp critical
-                                {
-                                    model.points.col(model_index_map(x,y)) = fusion_weight_compl*model.points.col(model_index_map(x,y)) + fusion_weight*frame_t.points.col(frame_index_map(x,y));
-                                    model.normals.col(model_index_map(x,y)) = (fusion_weight_compl*model.normals.col(model_index_map(x,y)) + fusion_weight*frame_t.normals.col(frame_index_map(x,y))).normalized();
-                                    model.colors.col(model_index_map(x,y)) = fusion_weight_compl*model.colors.col(model_index_map(x,y)) + fusion_weight*frame_t.colors.col(frame_index_map(x,y));
-                                };
-                            }
-                        } else {
+                        const size_t frame_pt_ind = frame_index_map(x,y);
+                        const size_t model_pt_ind = model_index_map(x,y);
+
+                        if (frame_pt_ind == empty) {
+                            // Nothing to do
+                            continue;
+                        }
+
+                        const float frame_depth = frame_t.points(2,frame_pt_ind);
+                        const float model_depth = (model_pt_ind != empty) ? model_t.points(2,model_pt_ind) : 0.0f;
+
+                        if ((model_pt_ind == empty || frame_depth < model_depth - occlusion_thresh) && frame.points(2,frame_pt_ind) < max_depth) {
+                            // Augment model
 #pragma omp critical
                             {
-                                to_append.points.col(app_ind) = frame_t.points.col(frame_index_map(x,y));
-                                to_append.normals.col(app_ind) = frame_t.normals.col(frame_index_map(x,y));
-                                to_append.colors.col(app_ind) = frame_t.colors.col(frame_index_map(x,y));
-                                app_ind++;
-                            };
+                                to_append.points.col(append_count) = frame_t.points.col(frame_pt_ind);
+                                to_append.normals.col(append_count) = frame_t.normals.col(frame_pt_ind);
+                                to_append.colors.col(append_count) = frame_t.colors.col(frame_pt_ind);
+                                append_count++;
+                            }
+                        }
+
+                        if (model_pt_ind != empty && std::abs(model_depth - frame_depth) < fusion_dist_thresh) {
+                            const float weight = fusion_weight*std::exp(factor*((x - K(0,2))*(x - K(0,2)) + (y - K(1,2))*(y - K(1,2))));
+                            const float weight_compl = 1.0f - weight;
+                            // Fuse
+#pragma omp critical
+                            {
+                                model.points.col(model_pt_ind) = weight_compl*model.points.col(model_pt_ind) + weight*frame_t.points.col(frame_pt_ind);
+                                model.normals.col(model_pt_ind) = (weight_compl*model.normals.col(model_pt_ind) + weight*frame_t.normals.col(frame_pt_ind)).normalized();
+                                model.colors.col(model_pt_ind) = weight_compl*model.colors.col(model_pt_ind) + weight*frame_t.colors.col(frame_pt_ind);
+                            }
+                        }
+
+                        if (model_pt_ind != empty && frame_depth > model_depth + occlusion_thresh) {
+                            // Remove occluded
+#pragma omp critical
+                            remove_ind.emplace_back(model_pt_ind);
                         }
                     }
                 }
-                to_append.points.conservativeResize(Eigen::NoChange, app_ind);
-                to_append.normals.conservativeResize(Eigen::NoChange, app_ind);
-                to_append.colors.conservativeResize(Eigen::NoChange, app_ind);
+                model.remove(remove_ind);
+                to_append.points.conservativeResize(Eigen::NoChange, append_count);
+                to_append.normals.conservativeResize(Eigen::NoChange, append_count);
+                to_append.colors.conservativeResize(Eigen::NoChange, append_count);
                 model.append(to_append);
             }
         }
@@ -138,7 +168,7 @@ int main(int argc, char ** argv) {
         // Visualization
         rgbv.setImage(rgb_img.ptr, w, h, "RGB24");
         pcdv.addObject<cilantro::PointCloudRenderable>("model", model, rp);
-        pcdv.addObject<cilantro::PointCloudRenderable>("frame", frame.transformed(cam_pose), cilantro::RenderingProperties().setOpacity(0.2f));
+        pcdv.addObject<cilantro::PointCloudRenderable>("frame", frame.transformed(cam_pose), cilantro::RenderingProperties().setOpacity(0.2f).setUseLighting(false));
         pcdv.addObject<cilantro::CameraFrustumRenderable>("cam", w, h, K, cam_pose.matrix(), 0.2f, cilantro::RenderingProperties().setLineWidth(2.0f).setLineColor(1.0f,1.0f,0.0f));
 
         pcdv.clearRenderArea();
