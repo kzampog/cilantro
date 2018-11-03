@@ -58,10 +58,9 @@ int main(int argc, char ** argv) {
     cilantro::RigidTransformation3f cam_pose(cilantro::RigidTransformation3f::Identity());
 
     float max_depth = 1.1f;
-    float fusion_weight = 0.3f;
+    float fusion_weight = 0.1f;
     float fusion_dist_thresh = 0.025f;
-    float occlusion_thresh = 2.0f*fusion_dist_thresh;
-    float factor = -0.5f/(100*100);
+    float factor = -0.5f/(200*200);
 
     std::cout << "Press 'a' to initialize model/fuse new view" << std::endl;
     std::cout << "Press 'd' to reinitialize process" << std::endl;
@@ -124,10 +123,17 @@ int main(int argc, char ** argv) {
                             continue;
                         }
 
-                        const float frame_depth = frame_t.points(2,frame_pt_ind);
+                        const float frame_depth = frame.points(2,frame_pt_ind);
                         const float model_depth = (model_pt_ind != empty) ? model_t.points(2,model_pt_ind) : 0.0f;
 
-                        if ((model_pt_ind == empty || frame_depth < model_depth - occlusion_thresh) && frame.points(2,frame_pt_ind) < max_depth) {
+                        if (model_pt_ind != empty && frame_depth > model_depth + fusion_dist_thresh) {
+                            // Remove points in free space
+#pragma omp critical
+                            remove_ind.emplace_back(model_pt_ind);
+                        }
+
+                        if ((model_pt_ind == empty || frame_depth < model_depth - fusion_dist_thresh) && frame.points(2,frame_pt_ind) < max_depth)
+                        {
                             // Augment model
 #pragma omp critical
                             {
@@ -141,6 +147,7 @@ int main(int argc, char ** argv) {
                         if (model_pt_ind != empty && std::abs(model_depth - frame_depth) < fusion_dist_thresh) {
                             const float weight = fusion_weight*std::exp(factor*((x - K(0,2))*(x - K(0,2)) + (y - K(1,2))*(y - K(1,2))));
                             const float weight_compl = 1.0f - weight;
+
                             // Fuse
 #pragma omp critical
                             {
@@ -148,12 +155,6 @@ int main(int argc, char ** argv) {
                                 model.normals.col(model_pt_ind) = (weight_compl*model.normals.col(model_pt_ind) + weight*frame_t.normals.col(frame_pt_ind)).normalized();
                                 model.colors.col(model_pt_ind) = weight_compl*model.colors.col(model_pt_ind) + weight*frame_t.colors.col(frame_pt_ind);
                             }
-                        }
-
-                        if (model_pt_ind != empty && frame_depth > model_depth + occlusion_thresh) {
-                            // Remove occluded
-#pragma omp critical
-                            remove_ind.emplace_back(model_pt_ind);
                         }
                     }
                 }
@@ -170,6 +171,7 @@ int main(int argc, char ** argv) {
         pcdv.addObject<cilantro::PointCloudRenderable>("model", model, rp);
         pcdv.addObject<cilantro::PointCloudRenderable>("frame", frame.transformed(cam_pose), cilantro::RenderingProperties().setOpacity(0.2f).setUseLighting(false));
         pcdv.addObject<cilantro::CameraFrustumRenderable>("cam", w, h, K, cam_pose.matrix(), 0.2f, cilantro::RenderingProperties().setLineWidth(2.0f).setLineColor(1.0f,1.0f,0.0f));
+//        pcdv.setCameraPose(cam_pose);
 
         pcdv.clearRenderArea();
         rgbv.render();
