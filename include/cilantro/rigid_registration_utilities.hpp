@@ -4,6 +4,11 @@
 #include <cilantro/correspondence.hpp>
 #include <cilantro/common_pair_evaluators.hpp>
 
+#pragma omp declare reduction (+: Eigen::Matrix<float,6,1>: omp_out=omp_out+omp_in) initializer(omp_priv=Eigen::Matrix<float,6,1>::Zero())
+#pragma omp declare reduction (+: Eigen::Matrix<float,6,6>: omp_out=omp_out+omp_in) initializer(omp_priv=Eigen::Matrix<float,6,6>::Zero())
+#pragma omp declare reduction (+: Eigen::Matrix<double,6,1>: omp_out=omp_out+omp_in) initializer(omp_priv=Eigen::Matrix<double,6,1>::Zero())
+#pragma omp declare reduction (+: Eigen::Matrix<double,6,6>: omp_out=omp_out+omp_in) initializer(omp_priv=Eigen::Matrix<double,6,6>::Zero())
+
 namespace cilantro {
     // Point-to-point (closed form, SVD)
     template <typename ScalarT, ptrdiff_t EigenDim>
@@ -71,58 +76,55 @@ namespace cilantro {
             return false;
         }
 
-        const size_t num_point_to_point_equations = 3*has_point_to_point_terms*point_to_point_correspondences.size();
-        const size_t num_point_to_plane_equations = has_point_to_plane_terms*point_to_plane_correspondences.size();
-        const size_t num_equations = num_point_to_point_equations + num_point_to_plane_equations;
+        Eigen::Matrix<ScalarT,6,6> AtA;
+        Eigen::Matrix<ScalarT,6,1> Atb;
 
-        Eigen::Matrix<ScalarT,6,Eigen::Dynamic> At(6, num_equations);
-        Eigen::Matrix<ScalarT,Eigen::Dynamic,1> b(num_equations, 1);
-
-        const ScalarT point_to_point_weight_sqrt = std::sqrt(point_to_point_weight);
-        const ScalarT point_to_plane_weight_sqrt = std::sqrt(point_to_plane_weight);
         Eigen::Matrix<ScalarT,3,3> rot_mat_iter;
         Eigen::Matrix<ScalarT,6,1> d_theta;
-        Vector<ScalarT,3> s;
-        size_t eq_ind;
 
         size_t iter = 0;
         while (iter < max_iter) {
             // Compute differential
-#pragma omp parallel shared (At, b) private (s, eq_ind)
+            AtA.setZero();
+            Atb.setZero();
+#pragma omp parallel reduction (+: AtA) reduction (+: Atb)
             {
                 if (has_point_to_point_terms) {
 #pragma omp for nowait
                     for (size_t i = 0; i < point_to_point_correspondences.size(); i++) {
                         const auto& corr = point_to_point_correspondences[i];
                         const auto d = dst_p.col(corr.indexInFirst);
-                        const ScalarT weight = point_to_point_weight_sqrt*std::sqrt(point_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value));
-                        s.noalias() = tform*src_p.col(corr.indexInSecond);
+                        const ScalarT weight = point_to_point_weight*point_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
+                        Vector<ScalarT,3> s = tform*src_p.col(corr.indexInSecond);
 
-                        eq_ind = 3*i;
+                        Eigen::Matrix<ScalarT,6,3> eq_vecs;
 
-                        At(0,eq_ind) = (ScalarT)0.0;
-                        At(1,eq_ind) = s[2]*weight;
-                        At(2,eq_ind) = -s[1]*weight;
-                        At(3,eq_ind) = weight;
-                        At(4,eq_ind) = (ScalarT)0.0;
-                        At(5,eq_ind) = (ScalarT)0.0;
-                        b[eq_ind++] = (d[0] - s[0])*weight;
+                        eq_vecs(0,0) = (ScalarT)0.0;
+                        eq_vecs(1,0) = s[2];
+                        eq_vecs(2,0) = -s[1];
+                        eq_vecs(3,0) = (ScalarT)1.0;
+                        eq_vecs(4,0) = (ScalarT)0.0;
+                        eq_vecs(5,0) = (ScalarT)0.0;
 
-                        At(0,eq_ind) = -s[2]*weight;
-                        At(1,eq_ind) = (ScalarT)0.0;
-                        At(2,eq_ind) = s[0]*weight;
-                        At(3,eq_ind) = (ScalarT)0.0;
-                        At(4,eq_ind) = weight;
-                        At(5,eq_ind) = (ScalarT)0.0;
-                        b[eq_ind++] = (d[1] - s[1])*weight;
+                        eq_vecs(0,1) = -s[2];
+                        eq_vecs(1,1) = (ScalarT)0.0;
+                        eq_vecs(2,1) = s[0];
+                        eq_vecs(3,1) = (ScalarT)0.0;
+                        eq_vecs(4,1) = (ScalarT)1.0;
+                        eq_vecs(5,1) = (ScalarT)0.0;
 
-                        At(0,eq_ind) = s[1]*weight;
-                        At(1,eq_ind) = -s[0]*weight;
-                        At(2,eq_ind) = (ScalarT)0.0;
-                        At(3,eq_ind) = (ScalarT)0.0;
-                        At(4,eq_ind) = (ScalarT)0.0;
-                        At(5,eq_ind) = weight;
-                        b[eq_ind] = (d[2] - s[2])*weight;
+                        eq_vecs(0,2) = s[1];
+                        eq_vecs(1,2) = -s[0];
+                        eq_vecs(2,2) = (ScalarT)0.0;
+                        eq_vecs(3,2) = (ScalarT)0.0;
+                        eq_vecs(4,2) = (ScalarT)0.0;
+                        eq_vecs(5,2) = (ScalarT)1.0;
+
+                        Eigen::Matrix<ScalarT,6,6> AtA_priv((weight*eq_vecs)*eq_vecs.transpose());
+                        Eigen::Matrix<ScalarT,6,1> Atb_priv(eq_vecs*(weight*Eigen::Matrix<ScalarT,3,1>(d[0]-s[0],d[1]-s[1],d[2]-s[2])));
+
+                        AtA += AtA_priv;
+                        Atb += Atb_priv;
                     }
                 }
                 if (has_point_to_plane_terms) {
@@ -131,23 +133,27 @@ namespace cilantro {
                         const auto& corr = point_to_plane_correspondences[i];
                         const auto d = dst_p.col(corr.indexInFirst);
                         const auto n = dst_n.col(corr.indexInFirst);
-                        const ScalarT weight = point_to_plane_weight_sqrt*std::sqrt(plane_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value));
-                        s.noalias() = tform*src_p.col(corr.indexInSecond);
+                        const ScalarT weight = point_to_plane_weight*plane_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
+                        Vector<ScalarT,3> s = tform*src_p.col(corr.indexInSecond);;
 
-                        eq_ind = num_point_to_point_equations + i;
+                        Eigen::Matrix<ScalarT,6,1> eq_vec;
+                        eq_vec(0) = (n[2]*s[1] - n[1]*s[2]);
+                        eq_vec(1) = (n[0]*s[2] - n[2]*s[0]);
+                        eq_vec(2) = (n[1]*s[0] - n[0]*s[1]);
+                        eq_vec(3) = n[0];
+                        eq_vec(4) = n[1];
+                        eq_vec(5) = n[2];
 
-                        At(0,eq_ind) = (n[2]*s[1] - n[1]*s[2])*weight;
-                        At(1,eq_ind) = (n[0]*s[2] - n[2]*s[0])*weight;
-                        At(2,eq_ind) = (n[1]*s[0] - n[0]*s[1])*weight;
-                        At(3,eq_ind) = n[0]*weight;
-                        At(4,eq_ind) = n[1]*weight;
-                        At(5,eq_ind) = n[2]*weight;
-                        b[eq_ind] = (n[0]*d[0] + n[1]*d[1] + n[2]*d[2] - n[0]*s[0] - n[1]*s[1] - n[2]*s[2])*weight;
+                        Eigen::Matrix<ScalarT,6,6> AtA_priv((weight*eq_vec)*eq_vec.transpose());
+                        Eigen::Matrix<ScalarT,6,1> Atb_priv((weight*(n[0]*d[0] + n[1]*d[1] + n[2]*d[2] - n[0]*s[0] - n[1]*s[1] - n[2]*s[2]))*eq_vec);
+
+                        AtA += AtA_priv;
+                        Atb += Atb_priv;
                     }
                 }
             }
 
-            d_theta.noalias() = (At*At.transpose()).ldlt().solve(At*b);
+            d_theta.noalias() = AtA.ldlt().solve(Atb);
 
             // Update estimate
             rot_mat_iter.noalias() = (Eigen::AngleAxis<ScalarT>(d_theta[2], Eigen::Matrix<ScalarT,3,1>::UnitZ()) *
