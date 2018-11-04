@@ -148,12 +148,7 @@ namespace cilantro {
                         points(2,k+image_w) > (typename DepthConverterT::MetricDepth)0.0 &&
                         points(2,k-image_w) > (typename DepthConverterT::MetricDepth)0.0)
                     {
-                        const typename DepthConverterT::MetricDepth dx = points(0,k+1) - points(0,k-1);
-                        const typename DepthConverterT::MetricDepth dy = points(1,k+image_w) - points(1,k-image_w);
-                        normals(0,k) = (points(2,k+1) - points(2,k-1))*dy;
-                        normals(1,k) = (points(2,k+image_w) - points(2,k-image_w))*dx;
-                        normals(2,k) = -dx*dy;
-                        normals.col(k).normalize();
+                        normals.col(k).noalias() = (points.col(k+image_w) - points.col(k-image_w)).cross(points.col(k+1) - points.col(k-1)).normalized();
                     }
                 }
             }
@@ -183,12 +178,7 @@ namespace cilantro {
                         points_tmp(2,k+image_w) > (typename DepthConverterT::MetricDepth)0.0 &&
                         points_tmp(2,k-image_w) > (typename DepthConverterT::MetricDepth)0.0)
                     {
-                        const typename DepthConverterT::MetricDepth dx = points_tmp(0,k+1) - points_tmp(0,k-1);
-                        const typename DepthConverterT::MetricDepth dy = points_tmp(1,k+image_w) - points_tmp(1,k-image_w);
-                        normals_tmp(0,k) = (points_tmp(2,k+1) - points_tmp(2,k-1))*dy;
-                        normals_tmp(1,k) = (points_tmp(2,k+image_w) - points_tmp(2,k-image_w))*dx;
-                        normals_tmp(2,k) = -dx*dy;
-                        normals_tmp.col(k).normalize();
+                        normals_tmp.col(k).noalias() = (points_tmp.col(k+image_w) - points_tmp.col(k-image_w)).cross(points_tmp.col(k+1) - points_tmp.col(k-1)).normalized();
                         valid_count += 1;
                     }
                 }
@@ -241,12 +231,7 @@ namespace cilantro {
                         points(2,k+image_w) > (typename DepthConverterT::MetricDepth)0.0 &&
                         points(2,k-image_w) > (typename DepthConverterT::MetricDepth)0.0)
                     {
-                        const typename DepthConverterT::MetricDepth dx = points(0,k+1) - points(0,k-1);
-                        const typename DepthConverterT::MetricDepth dy = points(1,k+image_w) - points(1,k-image_w);
-                        normals(0,k) = (points(2,k+1) - points(2,k-1))*dy;
-                        normals(1,k) = (points(2,k+image_w) - points(2,k-image_w))*dx;
-                        normals(2,k) = -dx*dy;
-                        normals.col(k).normalize();
+                        normals.col(k).noalias() = (points.col(k+image_w) - points.col(k-image_w)).cross(points.col(k+1) - points.col(k-1)).normalized();
                     }
                 }
             }
@@ -281,12 +266,7 @@ namespace cilantro {
                         points_tmp(2,k+image_w) > (typename DepthConverterT::MetricDepth)0.0 &&
                         points_tmp(2,k-image_w) > (typename DepthConverterT::MetricDepth)0.0)
                     {
-                        const typename DepthConverterT::MetricDepth dx = points_tmp(0,k+1) - points_tmp(0,k-1);
-                        const typename DepthConverterT::MetricDepth dy = points_tmp(1,k+image_w) - points_tmp(1,k-image_w);
-                        normals_tmp(0,k) = (points_tmp(2,k+1) - points_tmp(2,k-1))*dy;
-                        normals_tmp(1,k) = (points_tmp(2,k+image_w) - points_tmp(2,k-image_w))*dx;
-                        normals_tmp(2,k) = -dx*dy;
-                        normals_tmp.col(k).normalize();
+                        normals_tmp.col(k).noalias() = (points_tmp.col(k+image_w) - points_tmp.col(k-image_w)).cross(points_tmp.col(k+1) - points_tmp.col(k-1)).normalized();
                         valid_count += 1;
                     }
                 }
@@ -365,112 +345,6 @@ namespace cilantro {
             for (size_t i = 0; i < points_tmp.cols(); i++) {
                 if (points_tmp(2,i) > (typename DepthConverterT::MetricDepth)0.0) {
                     points.col(k) = points_tmp.col(i);
-                    colors.col(k) = colors_tmp.col(i);
-                    k++;
-                }
-            }
-        }
-    }
-
-    template <class DepthConverterT>
-    void RGBDImagesToPointsNormalsColors(const unsigned char* rgb_data,
-                                         const typename DepthConverterT::RawDepth* depth_data,
-                                         const DepthConverterT &depth_converter,
-                                         size_t image_w, size_t image_h,
-                                         const Eigen::Ref<const Eigen::Matrix<typename DepthConverterT::MetricDepth,3,3>> &intrinsics,
-                                         VectorSet<typename DepthConverterT::MetricDepth,3> &points,
-                                         VectorSet<typename DepthConverterT::MetricDepth,3> &normals,
-                                         VectorSet<float,3> &colors,
-                                         bool keep_invalid = false)
-    {
-        const float color_mult = 1.0f/255.0f;
-
-        if (keep_invalid) {
-            size_t k;
-            points.resize(3, image_w*image_h);
-            colors.resize(3, points.cols());
-#pragma omp parallel for private (k)
-            for (size_t y = 0; y < image_h; y++) {
-                k = y*image_w;
-                for (size_t x = 0; x < image_w; x++) {
-                    typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
-                    points(0,k) = (x - intrinsics(0,2))*z/intrinsics(0,0);
-                    points(1,k) = (y - intrinsics(1,2))*z/intrinsics(1,1);
-                    points(2,k) = z;
-                    colors(0,k) = color_mult*static_cast<float>(rgb_data[3*k]);
-                    colors(1,k) = color_mult*static_cast<float>(rgb_data[3*k + 1]);
-                    colors(2,k) = color_mult*static_cast<float>(rgb_data[3*k + 2]);
-                    k++;
-                }
-            }
-            normals.setConstant(3, points.cols(), std::numeric_limits<typename DepthConverterT::MetricDepth>::quiet_NaN());
-#pragma omp parallel for private (k)
-            for (size_t y = 1; y < image_h - 1; y++) {
-                for (size_t x = 1; x < image_w - 1; x++) {
-                    k = y*image_w + x;
-                    if (points(2,k) > (typename DepthConverterT::MetricDepth)0.0 &&
-                        points(2,k+1) > (typename DepthConverterT::MetricDepth)0.0 &&
-                        points(2,k-1) > (typename DepthConverterT::MetricDepth)0.0 &&
-                        points(2,k+image_w) > (typename DepthConverterT::MetricDepth)0.0 &&
-                        points(2,k-image_w) > (typename DepthConverterT::MetricDepth)0.0)
-                    {
-                        const typename DepthConverterT::MetricDepth dx = points(0,k+1) - points(0,k-1);
-                        const typename DepthConverterT::MetricDepth dy = points(1,k+image_w) - points(1,k-image_w);
-                        normals(0,k) = (points(2,k+1) - points(2,k-1))*dy;
-                        normals(1,k) = (points(2,k+image_w) - points(2,k-image_w))*dx;
-                        normals(2,k) = -dx*dy;
-                        normals.col(k).normalize();
-                    }
-                }
-            }
-        } else {
-            size_t k;
-            VectorSet<typename DepthConverterT::MetricDepth,3> points_tmp(3, image_w*image_h);
-            VectorSet<float,3> colors_tmp(3, points_tmp.cols());
-#pragma omp parallel for private (k)
-            for (size_t y = 0; y < image_h; y++) {
-                k = y*image_w;
-                for (size_t x = 0; x < image_w; x++) {
-                    typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
-                    points_tmp(0,k) = (x - intrinsics(0,2))*z/intrinsics(0,0);
-                    points_tmp(1,k) = (y - intrinsics(1,2))*z/intrinsics(1,1);
-                    points_tmp(2,k) = z;
-                    colors_tmp(0,k) = color_mult*static_cast<float>(rgb_data[3*k]);
-                    colors_tmp(1,k) = color_mult*static_cast<float>(rgb_data[3*k + 1]);
-                    colors_tmp(2,k) = color_mult*static_cast<float>(rgb_data[3*k + 2]);
-                    k++;
-                }
-            }
-            VectorSet<typename DepthConverterT::MetricDepth,3> normals_tmp(VectorSet<typename DepthConverterT::MetricDepth,3>::Constant(3, points_tmp.cols(), std::numeric_limits<typename DepthConverterT::MetricDepth>::quiet_NaN()));
-            size_t valid_count = 0;
-#pragma omp parallel for private (k) reduction (+: valid_count)
-            for (size_t y = 1; y < image_h - 1; y++) {
-                for (size_t x = 1; x < image_w - 1; x++) {
-                    k = y*image_w + x;
-                    if (points_tmp(2,k) > (typename DepthConverterT::MetricDepth)0.0 &&
-                        points_tmp(2,k+1) > (typename DepthConverterT::MetricDepth)0.0 &&
-                        points_tmp(2,k-1) > (typename DepthConverterT::MetricDepth)0.0 &&
-                        points_tmp(2,k+image_w) > (typename DepthConverterT::MetricDepth)0.0 &&
-                        points_tmp(2,k-image_w) > (typename DepthConverterT::MetricDepth)0.0)
-                    {
-                        const typename DepthConverterT::MetricDepth dx = points_tmp(0,k+1) - points_tmp(0,k-1);
-                        const typename DepthConverterT::MetricDepth dy = points_tmp(1,k+image_w) - points_tmp(1,k-image_w);
-                        normals_tmp(0,k) = (points_tmp(2,k+1) - points_tmp(2,k-1))*dy;
-                        normals_tmp(1,k) = (points_tmp(2,k+image_w) - points_tmp(2,k-image_w))*dx;
-                        normals_tmp(2,k) = -dx*dy;
-                        normals_tmp.col(k).normalize();
-                        valid_count += 1;
-                    }
-                }
-            }
-            k = 0;
-            points.resize(3, valid_count);
-            normals.resize(3, valid_count);
-            colors.resize(3, valid_count);
-            for (size_t i = 0; i < points_tmp.cols(); i++) {
-                if (!std::isnan(normals_tmp(0,i))) {
-                    points.col(k) = points_tmp.col(i);
-                    normals.col(k) = normals_tmp.col(i);
                     colors.col(k) = colors_tmp.col(i);
                     k++;
                 }
@@ -550,6 +424,102 @@ namespace cilantro {
                                          const DepthConverterT &depth_converter,
                                          size_t image_w, size_t image_h,
                                          const Eigen::Ref<const Eigen::Matrix<typename DepthConverterT::MetricDepth,3,3>> &intrinsics,
+                                         VectorSet<typename DepthConverterT::MetricDepth,3> &points,
+                                         VectorSet<typename DepthConverterT::MetricDepth,3> &normals,
+                                         VectorSet<float,3> &colors,
+                                         bool keep_invalid = false)
+    {
+        const float color_mult = 1.0f/255.0f;
+
+        if (keep_invalid) {
+            size_t k;
+            points.resize(3, image_w*image_h);
+            colors.resize(3, points.cols());
+#pragma omp parallel for private (k)
+            for (size_t y = 0; y < image_h; y++) {
+                k = y*image_w;
+                for (size_t x = 0; x < image_w; x++) {
+                    typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
+                    points(0,k) = (x - intrinsics(0,2))*z/intrinsics(0,0);
+                    points(1,k) = (y - intrinsics(1,2))*z/intrinsics(1,1);
+                    points(2,k) = z;
+                    colors(0,k) = color_mult*static_cast<float>(rgb_data[3*k]);
+                    colors(1,k) = color_mult*static_cast<float>(rgb_data[3*k + 1]);
+                    colors(2,k) = color_mult*static_cast<float>(rgb_data[3*k + 2]);
+                    k++;
+                }
+            }
+            normals.setConstant(3, points.cols(), std::numeric_limits<typename DepthConverterT::MetricDepth>::quiet_NaN());
+#pragma omp parallel for private (k)
+            for (size_t y = 1; y < image_h - 1; y++) {
+                for (size_t x = 1; x < image_w - 1; x++) {
+                    k = y*image_w + x;
+                    if (points(2,k) > (typename DepthConverterT::MetricDepth)0.0 &&
+                        points(2,k+1) > (typename DepthConverterT::MetricDepth)0.0 &&
+                        points(2,k-1) > (typename DepthConverterT::MetricDepth)0.0 &&
+                        points(2,k+image_w) > (typename DepthConverterT::MetricDepth)0.0 &&
+                        points(2,k-image_w) > (typename DepthConverterT::MetricDepth)0.0)
+                    {
+                        normals.col(k).noalias() = (points.col(k+image_w) - points.col(k-image_w)).cross(points.col(k+1) - points.col(k-1)).normalized();
+                    }
+                }
+            }
+        } else {
+            size_t k;
+            VectorSet<typename DepthConverterT::MetricDepth,3> points_tmp(3, image_w*image_h);
+            VectorSet<float,3> colors_tmp(3, points_tmp.cols());
+#pragma omp parallel for private (k)
+            for (size_t y = 0; y < image_h; y++) {
+                k = y*image_w;
+                for (size_t x = 0; x < image_w; x++) {
+                    typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
+                    points_tmp(0,k) = (x - intrinsics(0,2))*z/intrinsics(0,0);
+                    points_tmp(1,k) = (y - intrinsics(1,2))*z/intrinsics(1,1);
+                    points_tmp(2,k) = z;
+                    colors_tmp(0,k) = color_mult*static_cast<float>(rgb_data[3*k]);
+                    colors_tmp(1,k) = color_mult*static_cast<float>(rgb_data[3*k + 1]);
+                    colors_tmp(2,k) = color_mult*static_cast<float>(rgb_data[3*k + 2]);
+                    k++;
+                }
+            }
+            VectorSet<typename DepthConverterT::MetricDepth,3> normals_tmp(VectorSet<typename DepthConverterT::MetricDepth,3>::Constant(3, points_tmp.cols(), std::numeric_limits<typename DepthConverterT::MetricDepth>::quiet_NaN()));
+            size_t valid_count = 0;
+#pragma omp parallel for private (k) reduction (+: valid_count)
+            for (size_t y = 1; y < image_h - 1; y++) {
+                for (size_t x = 1; x < image_w - 1; x++) {
+                    k = y*image_w + x;
+                    if (points_tmp(2,k) > (typename DepthConverterT::MetricDepth)0.0 &&
+                        points_tmp(2,k+1) > (typename DepthConverterT::MetricDepth)0.0 &&
+                        points_tmp(2,k-1) > (typename DepthConverterT::MetricDepth)0.0 &&
+                        points_tmp(2,k+image_w) > (typename DepthConverterT::MetricDepth)0.0 &&
+                        points_tmp(2,k-image_w) > (typename DepthConverterT::MetricDepth)0.0)
+                    {
+                        normals_tmp.col(k).noalias() = (points_tmp.col(k+image_w) - points_tmp.col(k-image_w)).cross(points_tmp.col(k+1) - points_tmp.col(k-1)).normalized();
+                        valid_count += 1;
+                    }
+                }
+            }
+            k = 0;
+            points.resize(3, valid_count);
+            normals.resize(3, valid_count);
+            colors.resize(3, valid_count);
+            for (size_t i = 0; i < points_tmp.cols(); i++) {
+                if (!std::isnan(normals_tmp(0,i))) {
+                    points.col(k) = points_tmp.col(i);
+                    normals.col(k) = normals_tmp.col(i);
+                    colors.col(k) = colors_tmp.col(i);
+                    k++;
+                }
+            }
+        }
+    }
+
+    template <class DepthConverterT>
+    void RGBDImagesToPointsNormalsColors(const unsigned char* rgb_data,
+                                         const typename DepthConverterT::RawDepth* depth_data,
+                                         const DepthConverterT &depth_converter,
+                                         size_t image_w, size_t image_h,
+                                         const Eigen::Ref<const Eigen::Matrix<typename DepthConverterT::MetricDepth,3,3>> &intrinsics,
                                          const RigidTransformation<typename DepthConverterT::MetricDepth,3> &extrinsics,
                                          VectorSet<typename DepthConverterT::MetricDepth,3> &points,
                                          VectorSet<typename DepthConverterT::MetricDepth,3> &normals,
@@ -587,12 +557,7 @@ namespace cilantro {
                         points(2,k+image_w) > (typename DepthConverterT::MetricDepth)0.0 &&
                         points(2,k-image_w) > (typename DepthConverterT::MetricDepth)0.0)
                     {
-                        const typename DepthConverterT::MetricDepth dx = points(0,k+1) - points(0,k-1);
-                        const typename DepthConverterT::MetricDepth dy = points(1,k+image_w) - points(1,k-image_w);
-                        normals(0,k) = (points(2,k+1) - points(2,k-1))*dy;
-                        normals(1,k) = (points(2,k+image_w) - points(2,k-image_w))*dx;
-                        normals(2,k) = -dx*dy;
-                        normals.col(k).normalize();
+                        normals.col(k).noalias() = (points.col(k+image_w) - points.col(k-image_w)).cross(points.col(k+1) - points.col(k-1)).normalized();
                     }
                 }
             }
@@ -631,12 +596,7 @@ namespace cilantro {
                         points_tmp(2,k+image_w) > (typename DepthConverterT::MetricDepth)0.0 &&
                         points_tmp(2,k-image_w) > (typename DepthConverterT::MetricDepth)0.0)
                     {
-                        const typename DepthConverterT::MetricDepth dx = points_tmp(0,k+1) - points_tmp(0,k-1);
-                        const typename DepthConverterT::MetricDepth dy = points_tmp(1,k+image_w) - points_tmp(1,k-image_w);
-                        normals_tmp(0,k) = (points_tmp(2,k+1) - points_tmp(2,k-1))*dy;
-                        normals_tmp(1,k) = (points_tmp(2,k+image_w) - points_tmp(2,k-image_w))*dx;
-                        normals_tmp(2,k) = -dx*dy;
-                        normals_tmp.col(k).normalize();
+                        normals_tmp.col(k).noalias() = (points_tmp.col(k+image_w) - points_tmp.col(k-image_w)).cross(points_tmp.col(k+1) - points_tmp.col(k-1)).normalized();
                         valid_count += 1;
                     }
                 }

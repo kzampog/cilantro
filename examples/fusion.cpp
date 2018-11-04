@@ -60,7 +60,7 @@ int main(int argc, char ** argv) {
     float max_depth = 1.1f;
     float fusion_weight = 0.1f;
     float fusion_dist_thresh = 0.025f;
-    float factor = -0.5f/(200*200);
+    float factor = -0.5f/(150*150);
 
     std::cout << "Press 'a' to initialize model/fuse new view" << std::endl;
     std::cout << "Press 'd' to reinitialize process" << std::endl;
@@ -73,11 +73,16 @@ int main(int argc, char ** argv) {
 
         // Localize
         if (!model.isEmpty()) {
-            cilantro::SimpleCombinedMetricRigidProjectiveICP3f icp(frame.points, frame.normals, model.points);
-            icp.correspondenceSearchEngine().setMaxDistance(0.1f*0.1f);
-            icp.setInitialTransformation(cam_pose.inverse()).setConvergenceTolerance(5e-4f);
+//            cilantro::SimpleCombinedMetricRigidProjectiveICP3f icp(frame.points, frame.normals, model.points);
+//            icp.correspondenceSearchEngine().setMaxDistance(0.1f*0.1f);
+//            icp.setInitialTransformation(cam_pose.inverse()).setConvergenceTolerance(5e-4f);
+//            icp.setMaxNumberOfIterations(6).setMaxNumberOfOptimizationStepIterations(1);
+//            cam_pose = icp.estimateTransformation().getTransformation().inverse();
+            cilantro::SimpleCombinedMetricRigidProjectiveICP3f icp(model.points, model.normals, frame.points);
+            icp.correspondenceSearchEngine().setProjectionExtrinsicMatrix(cam_pose).setMaxDistance(0.1f*0.1f);
+            icp.setInitialTransformation(cam_pose).setConvergenceTolerance(5e-4f);
             icp.setMaxNumberOfIterations(6).setMaxNumberOfOptimizationStepIterations(1);
-            cam_pose = icp.estimateTransformation().getTransformation().inverse();
+            cam_pose = icp.estimateTransformation().getTransformation();
         }
 
         // Map
@@ -169,7 +174,7 @@ int main(int argc, char ** argv) {
         // Visualization
         rgbv.setImage(rgb_img.ptr, w, h, "RGB24");
         pcdv.addObject<cilantro::PointCloudRenderable>("model", model, rp);
-        pcdv.addObject<cilantro::PointCloudRenderable>("frame", frame.transformed(cam_pose), cilantro::RenderingProperties().setOpacity(0.2f).setUseLighting(false));
+        pcdv.addObject<cilantro::PointCloudRenderable>("frame", frame.transformed(cam_pose), cilantro::RenderingProperties().setOpacity(0.1f).setPointColor(0.8f, 0.8f, 0.8f).setUseLighting(false));
         pcdv.addObject<cilantro::CameraFrustumRenderable>("cam", w, h, K, cam_pose.matrix(), 0.2f, cilantro::RenderingProperties().setLineWidth(2.0f).setLineColor(1.0f,1.0f,0.0f));
 //        pcdv.setCameraPose(cam_pose);
 
