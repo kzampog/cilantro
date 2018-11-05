@@ -20,6 +20,39 @@ namespace cilantro {
         const MetricDepthT inverseScale;
     };
 
+    template <typename RawDepthT, typename MetricDepthT>
+    struct TruncatedDepthValueConverter {
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        typedef RawDepthT RawDepth;
+        typedef MetricDepthT MetricDepth;
+
+        TruncatedDepthValueConverter()
+                : scale((MetricDepthT)(1.0)),
+                  inverseScale((MetricDepthT)(1.0)),
+                  maxDepth(std::numeric_limits<MetricDepthT>::max())
+        {}
+
+        TruncatedDepthValueConverter(MetricDepthT mult, MetricDepthT thresh)
+                : scale(mult),
+                  inverseScale((MetricDepthT)(1.0)/mult),
+                  maxDepth(thresh)
+        {}
+
+        inline MetricDepthT getMetricValue(RawDepthT val) const {
+            MetricDepthT res = inverseScale*static_cast<MetricDepthT>(val);
+            return (res < maxDepth) ? res : (MetricDepthT)0.0;
+        }
+
+        inline RawDepthT getRawValue(MetricDepthT val) const {
+            return (val < maxDepth) ? static_cast<RawDepthT>(scale*val) : (RawDepthT)0;
+        }
+
+        const MetricDepthT scale;
+        const MetricDepthT inverseScale;
+        const MetricDepthT maxDepth;
+    };
+
     template <class DepthConverterT>
     void depthImageToPoints(const typename DepthConverterT::RawDepth* depth_data,
                             const DepthConverterT &depth_converter,

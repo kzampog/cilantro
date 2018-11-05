@@ -52,6 +52,12 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        typedef ScalarT Scalar;
+
+        enum { EmbeddingDimension = EigenDim };
+
+        typedef KMeans<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> Clusterer;
+
         // Dense input
         // Number of clusters (embedding dimension) set at compile time (EigenDim template parameter)
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
@@ -128,12 +134,12 @@ namespace cilantro {
 
         inline size_t getNumberOfClusters() const { return embedded_points_.rows(); }
 
-        inline const KMeans<ScalarT,EigenDim>& getClusterer() const { return *clusterer_; }
+        inline const Clusterer& getClusterer() const { return *clusterer_; }
 
     private:
         Vector<ScalarT,Eigen::Dynamic> eigenvalues_;
         VectorSet<ScalarT,EigenDim> embedded_points_;
-        std::shared_ptr<KMeans<ScalarT,EigenDim>> clusterer_;
+        std::shared_ptr<Clusterer> clusterer_;
 
         void compute_dense_(const Eigen::Ref<const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> &affinities,
                             size_t max_num_clusters,
@@ -235,7 +241,7 @@ namespace cilantro {
                 }
             }
 
-            clusterer_.reset(new KMeans<ScalarT,EigenDim>(embedded_points_));
+            clusterer_.reset(new Clusterer(embedded_points_));
             clusterer_->cluster(num_clusters, kmeans_max_iter, kmeans_conv_tol, kmeans_use_kd_tree);
         }
 
@@ -353,7 +359,7 @@ namespace cilantro {
                 }
             }
 
-            clusterer_.reset(new KMeans<ScalarT,EigenDim>(embedded_points_));
+            clusterer_.reset(new Clusterer(embedded_points_));
             clusterer_->cluster(num_clusters, kmeans_max_iter, kmeans_conv_tol, kmeans_use_kd_tree);
         }
 

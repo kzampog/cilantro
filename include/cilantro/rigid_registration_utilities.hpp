@@ -4,11 +4,6 @@
 #include <cilantro/correspondence.hpp>
 #include <cilantro/common_pair_evaluators.hpp>
 
-#pragma omp declare reduction (+: Eigen::Matrix<float,6,1>: omp_out=omp_out+omp_in) initializer(omp_priv=Eigen::Matrix<float,6,1>::Zero())
-#pragma omp declare reduction (+: Eigen::Matrix<float,6,6>: omp_out=omp_out+omp_in) initializer(omp_priv=Eigen::Matrix<float,6,6>::Zero())
-#pragma omp declare reduction (+: Eigen::Matrix<double,6,1>: omp_out=omp_out+omp_in) initializer(omp_priv=Eigen::Matrix<double,6,1>::Zero())
-#pragma omp declare reduction (+: Eigen::Matrix<double,6,6>: omp_out=omp_out+omp_in) initializer(omp_priv=Eigen::Matrix<double,6,6>::Zero())
-
 namespace cilantro {
     // Point-to-point (closed form, SVD)
     template <typename ScalarT, ptrdiff_t EigenDim>
@@ -81,6 +76,9 @@ namespace cilantro {
 
         Eigen::Matrix<ScalarT,3,3> rot_mat_iter;
         Eigen::Matrix<ScalarT,6,1> d_theta;
+
+#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,6,6>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,6,6>::Zero())
+#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,6,1>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,6,1>::Zero())
 
         size_t iter = 0;
         while (iter < max_iter) {

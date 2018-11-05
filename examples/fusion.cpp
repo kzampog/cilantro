@@ -36,8 +36,6 @@ int main(int argc, char ** argv) {
     pangolin::Image<unsigned char> rgb_img(img, w, h, 3*w*sizeof(unsigned char));
     pangolin::Image<unsigned short> depth_img((unsigned short *)(img+3*w*h), w, h, w*sizeof(unsigned short));
 
-    cilantro::DepthValueConverter<unsigned short,float> dc(1000.0f);
-
     std::string win_name = "Fusion demo";
     pangolin::CreateWindowAndBind(win_name, 2*w, h);
     pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual)
@@ -60,11 +58,16 @@ int main(int argc, char ** argv) {
     float max_depth = 1.1f;
     float fusion_weight = 0.1f;
     float fusion_dist_thresh = 0.025f;
-    float factor = -0.5f/(150*150);
+    float factor = -0.5f/(100*100);
 
-    std::cout << "Press 'a' to initialize model/fuse new view" << std::endl;
-    std::cout << "Press 'd' to reinitialize process" << std::endl;
-    std::cout << "Press 'c' to toggle model color" << std::endl;
+    cilantro::TruncatedDepthValueConverter<unsigned short,float> dc(1000.0f, max_depth);
+
+    if (argc < 2) std::cout << "Note: no output PLY file path provided" << std::endl;
+    std::cout << "Highlight the left viewport and:" << std::endl;
+    std::cout << "\tPress 'a' to initialize model/fuse new view (keep pressed for continuous fusion)" << std::endl;
+    std::cout << "\tPress 'd' to reinitialize process" << std::endl;
+    std::cout << "\tPress 'c' to toggle model color" << std::endl;
+    std::cout << "\tPress 'l' to toggle lighting" << std::endl;
 
     // Main loop
     while (!pangolin::ShouldQuit()) {
@@ -73,11 +76,6 @@ int main(int argc, char ** argv) {
 
         // Localize
         if (!model.isEmpty()) {
-//            cilantro::SimpleCombinedMetricRigidProjectiveICP3f icp(frame.points, frame.normals, model.points);
-//            icp.correspondenceSearchEngine().setMaxDistance(0.1f*0.1f);
-//            icp.setInitialTransformation(cam_pose.inverse()).setConvergenceTolerance(5e-4f);
-//            icp.setMaxNumberOfIterations(6).setMaxNumberOfOptimizationStepIterations(1);
-//            cam_pose = icp.estimateTransformation().getTransformation().inverse();
             cilantro::SimpleCombinedMetricRigidProjectiveICP3f icp(model.points, model.normals, frame.points);
             icp.correspondenceSearchEngine().setProjectionExtrinsicMatrix(cam_pose).setMaxDistance(0.1f*0.1f);
             icp.setInitialTransformation(cam_pose).setConvergenceTolerance(5e-4f);
@@ -90,13 +88,7 @@ int main(int argc, char ** argv) {
             capture = false;
 
             if (model.isEmpty()) {
-                model.fromRGBDImages(rgb_img.ptr, depth_img.ptr, dc, w, h, K, false, true);
-                std::vector<size_t> remove_ind;
-                remove_ind.reserve(model.size());
-                for (size_t i = 0; i < model.size(); i++) {
-                    if (model.points(2,i) > max_depth) remove_ind.emplace_back(i);
-                }
-                model.remove(remove_ind);
+                model = frame;
                 cam_pose.setIdentity();
             } else {
                 cilantro::PointCloud3f frame_t(frame.transformed(cam_pose));
@@ -117,7 +109,7 @@ int main(int argc, char ** argv) {
                 std::vector<size_t> remove_ind;
                 remove_ind.reserve(w*h);
                 const size_t empty = std::numeric_limits<std::size_t>::max();
-#pragma omp parallel for
+
                 for (size_t y = 0; y < frame_index_map.h; y++) {
                     for (size_t x = 0; x < frame_index_map.w; x++) {
                         const size_t frame_pt_ind = frame_index_map(x,y);
@@ -130,18 +122,16 @@ int main(int argc, char ** argv) {
 
                         const float frame_depth = frame.points(2,frame_pt_ind);
                         const float model_depth = (model_pt_ind != empty) ? model_t.points(2,model_pt_ind) : 0.0f;
+                        const float radial_weight = std::exp(factor*((x - K(0,2))*(x - K(0,2)) + (y - K(1,2))*(y - K(1,2))));
 
                         if (model_pt_ind != empty && frame_depth > model_depth + fusion_dist_thresh) {
                             // Remove points in free space
-#pragma omp critical
                             remove_ind.emplace_back(model_pt_ind);
                         }
 
-                        if ((model_pt_ind == empty || frame_depth < model_depth - fusion_dist_thresh) && frame.points(2,frame_pt_ind) < max_depth)
-                        {
+                        if ((model_pt_ind == empty || frame_depth < model_depth - fusion_dist_thresh) && frame.points(2,frame_pt_ind) < max_depth) {
                             // Augment model
-#pragma omp critical
-                            {
+                            if ((rand()%100)/100.0f < radial_weight) {
                                 to_append.points.col(append_count) = frame_t.points.col(frame_pt_ind);
                                 to_append.normals.col(append_count) = frame_t.normals.col(frame_pt_ind);
                                 to_append.colors.col(append_count) = frame_t.colors.col(frame_pt_ind);
@@ -151,14 +141,11 @@ int main(int argc, char ** argv) {
 
                         if (model_pt_ind != empty && std::abs(model_depth - frame_depth) < fusion_dist_thresh) {
                             // Fuse
-                            const float weight = fusion_weight*std::exp(factor*((x - K(0,2))*(x - K(0,2)) + (y - K(1,2))*(y - K(1,2))));
+                            const float weight = fusion_weight*radial_weight;
                             const float weight_compl = 1.0f - weight;
-#pragma omp critical
-                            {
-                                model.points.col(model_pt_ind) = weight_compl*model.points.col(model_pt_ind) + weight*frame_t.points.col(frame_pt_ind);
-                                model.normals.col(model_pt_ind) = (weight_compl*model.normals.col(model_pt_ind) + weight*frame_t.normals.col(frame_pt_ind)).normalized();
-                                model.colors.col(model_pt_ind) = weight_compl*model.colors.col(model_pt_ind) + weight*frame_t.colors.col(frame_pt_ind);
-                            }
+                            model.points.col(model_pt_ind) = weight_compl*model.points.col(model_pt_ind) + weight*frame_t.points.col(frame_pt_ind);
+                            model.normals.col(model_pt_ind) = (weight_compl*model.normals.col(model_pt_ind) + weight*frame_t.normals.col(frame_pt_ind)).normalized();
+                            model.colors.col(model_pt_ind) = weight_compl*model.colors.col(model_pt_ind) + weight*frame_t.colors.col(frame_pt_ind);
                         }
                     }
                 }
