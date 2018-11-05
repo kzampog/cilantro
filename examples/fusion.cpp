@@ -129,7 +129,7 @@ int main(int argc, char ** argv) {
                             remove_ind.emplace_back(model_pt_ind);
                         }
 
-                        if ((model_pt_ind == empty || frame_depth < model_depth - fusion_dist_thresh) && frame.points(2,frame_pt_ind) < max_depth) {
+                        if (model_pt_ind == empty || frame_depth < model_depth - fusion_dist_thresh) {
                             // Augment model
                             if ((rand()%100)/100.0f < radial_weight) {
                                 to_append.points.col(append_count) = frame_t.points.col(frame_pt_ind);
