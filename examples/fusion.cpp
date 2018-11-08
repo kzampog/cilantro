@@ -58,7 +58,7 @@ int main(int argc, char ** argv) {
     float max_depth = 1.1f;
     float fusion_weight = 0.1f;
     float fusion_dist_thresh = 0.025f;
-    float factor = -0.5f/(100*100);
+    float factor = -0.5f/(120*120);
 
     cilantro::TruncatedDepthValueConverter<unsigned short,float> dc(1000.0f, max_depth);
 
@@ -81,80 +81,77 @@ int main(int argc, char ** argv) {
             icp.setInitialTransformation(cam_pose).setConvergenceTolerance(5e-4f);
             icp.setMaxNumberOfIterations(6).setMaxNumberOfOptimizationStepIterations(1);
             cam_pose = icp.estimateTransformation().getTransformation();
+        } else {
+            cam_pose.setIdentity();
         }
 
         // Map
         if (capture) {
             capture = false;
 
-            if (model.isEmpty()) {
-                model = frame;
-                cam_pose.setIdentity();
-            } else {
-                cilantro::PointCloud3f frame_t(frame.transformed(cam_pose));
-                cilantro::PointCloud3f model_t(model.transformed(cam_pose.inverse()));
+            cilantro::PointCloud3f frame_t(frame.transformed(cam_pose));
+            cilantro::PointCloud3f model_t(model.transformed(cam_pose.inverse()));
 
-                // Project cloud to index image maps
-                pangolin::ManagedImage<size_t> model_index_map(w, h);
-                cilantro::pointsToIndexMap<float>(model_t.points, K, model_index_map.ptr, w, h);
-                pangolin::ManagedImage<size_t> frame_index_map(w, h);
-                cilantro::pointsToIndexMap<float>(frame.points, K, frame_index_map.ptr, w, h);
+            // Project cloud to index image maps
+            pangolin::ManagedImage<size_t> model_index_map(w, h);
+            cilantro::pointsToIndexMap<float>(model_t.points, K, model_index_map.ptr, w, h);
+            pangolin::ManagedImage<size_t> frame_index_map(w, h);
+            cilantro::pointsToIndexMap<float>(frame.points, K, frame_index_map.ptr, w, h);
 
-                cilantro::PointCloud3f to_append;
-                to_append.points.resize(Eigen::NoChange, w*h);
-                to_append.normals.resize(Eigen::NoChange, w*h);
-                to_append.colors.resize(Eigen::NoChange, w*h);
+            cilantro::PointCloud3f to_append;
+            to_append.points.resize(Eigen::NoChange, w*h);
+            to_append.normals.resize(Eigen::NoChange, w*h);
+            to_append.colors.resize(Eigen::NoChange, w*h);
 
-                size_t append_count = 0;
-                std::vector<size_t> remove_ind;
-                remove_ind.reserve(w*h);
-                const size_t empty = std::numeric_limits<std::size_t>::max();
+            size_t append_count = 0;
+            std::vector<size_t> remove_ind;
+            remove_ind.reserve(w*h);
+            const size_t empty = std::numeric_limits<std::size_t>::max();
 
-                for (size_t y = 0; y < frame_index_map.h; y++) {
-                    for (size_t x = 0; x < frame_index_map.w; x++) {
-                        const size_t frame_pt_ind = frame_index_map(x,y);
-                        const size_t model_pt_ind = model_index_map(x,y);
+            for (size_t y = 0; y < frame_index_map.h; y++) {
+                for (size_t x = 0; x < frame_index_map.w; x++) {
+                    const size_t frame_pt_ind = frame_index_map(x,y);
+                    const size_t model_pt_ind = model_index_map(x,y);
 
-                        if (frame_pt_ind == empty) {
-                            // Nothing to do
-                            continue;
-                        }
+                    if (frame_pt_ind == empty) {
+                        // Nothing to do
+                        continue;
+                    }
 
-                        const float frame_depth = frame.points(2,frame_pt_ind);
-                        const float model_depth = (model_pt_ind != empty) ? model_t.points(2,model_pt_ind) : 0.0f;
-                        const float radial_weight = std::exp(factor*((x - K(0,2))*(x - K(0,2)) + (y - K(1,2))*(y - K(1,2))));
+                    const float frame_depth = frame.points(2,frame_pt_ind);
+                    const float model_depth = (model_pt_ind != empty) ? model_t.points(2,model_pt_ind) : 0.0f;
+                    const float radial_weight = std::exp(factor*((x - K(0,2))*(x - K(0,2)) + (y - K(1,2))*(y - K(1,2))));
 
-                        if (model_pt_ind != empty && frame_depth > model_depth + fusion_dist_thresh) {
-                            // Remove points in free space
-                            remove_ind.emplace_back(model_pt_ind);
-                        }
+                    if (model_pt_ind != empty && frame_depth > model_depth + fusion_dist_thresh) {
+                        // Remove points in free space
+                        remove_ind.emplace_back(model_pt_ind);
+                    }
 
-                        if (model_pt_ind == empty || frame_depth < model_depth - fusion_dist_thresh) {
-                            // Augment model
-                            if ((rand()%100)/100.0f < radial_weight) {
-                                to_append.points.col(append_count) = frame_t.points.col(frame_pt_ind);
-                                to_append.normals.col(append_count) = frame_t.normals.col(frame_pt_ind);
-                                to_append.colors.col(append_count) = frame_t.colors.col(frame_pt_ind);
-                                append_count++;
-                            }
-                        }
-
-                        if (model_pt_ind != empty && std::abs(model_depth - frame_depth) < fusion_dist_thresh) {
-                            // Fuse
-                            const float weight = fusion_weight*radial_weight;
-                            const float weight_compl = 1.0f - weight;
-                            model.points.col(model_pt_ind) = weight_compl*model.points.col(model_pt_ind) + weight*frame_t.points.col(frame_pt_ind);
-                            model.normals.col(model_pt_ind) = (weight_compl*model.normals.col(model_pt_ind) + weight*frame_t.normals.col(frame_pt_ind)).normalized();
-                            model.colors.col(model_pt_ind) = weight_compl*model.colors.col(model_pt_ind) + weight*frame_t.colors.col(frame_pt_ind);
+                    if (model_pt_ind == empty || frame_depth < model_depth - fusion_dist_thresh) {
+                        // Augment model
+                        if ((rand()%100)/100.0f < radial_weight) {
+                            to_append.points.col(append_count) = frame_t.points.col(frame_pt_ind);
+                            to_append.normals.col(append_count) = frame_t.normals.col(frame_pt_ind);
+                            to_append.colors.col(append_count) = frame_t.colors.col(frame_pt_ind);
+                            append_count++;
                         }
                     }
+
+                    if (model_pt_ind != empty && std::abs(model_depth - frame_depth) < fusion_dist_thresh) {
+                        // Fuse
+                        const float weight = fusion_weight*radial_weight;
+                        const float weight_compl = 1.0f - weight;
+                        model.points.col(model_pt_ind) = weight_compl*model.points.col(model_pt_ind) + weight*frame_t.points.col(frame_pt_ind);
+                        model.normals.col(model_pt_ind) = (weight_compl*model.normals.col(model_pt_ind) + weight*frame_t.normals.col(frame_pt_ind)).normalized();
+                        model.colors.col(model_pt_ind) = weight_compl*model.colors.col(model_pt_ind) + weight*frame_t.colors.col(frame_pt_ind);
+                    }
                 }
-                model.remove(remove_ind);
-                to_append.points.conservativeResize(Eigen::NoChange, append_count);
-                to_append.normals.conservativeResize(Eigen::NoChange, append_count);
-                to_append.colors.conservativeResize(Eigen::NoChange, append_count);
-                model.append(to_append);
             }
+            model.remove(remove_ind);
+            to_append.points.conservativeResize(Eigen::NoChange, append_count);
+            to_append.normals.conservativeResize(Eigen::NoChange, append_count);
+            to_append.colors.conservativeResize(Eigen::NoChange, append_count);
+            model.append(to_append);
         }
 
         // Visualization
@@ -173,7 +170,10 @@ int main(int argc, char ** argv) {
         rp = pcdv.getRenderingProperties("model");
     }
 
-    if (argc > 1) model.toPLYFile(argv[1], true);
+    if (argc > 1) {
+        std::cout << "Saving model to \'" << argv[1] << "\'" << std::endl;
+        model.toPLYFile(argv[1], true);
+    }
 
     delete[] img;
 
