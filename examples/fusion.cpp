@@ -17,8 +17,37 @@ void capture_callback(bool &capture) {
     capture = true;
 }
 
-void clear_callback(cilantro::PointCloud3f &cloud) {
+void clear_callback(cilantro::PointCloud3f &cloud, std::vector<float> &confidence) {
     cloud.clear();
+    confidence.clear();
+}
+
+template <typename T>
+void vec_remove(std::vector<T> &vec, const std::vector<size_t> &indices) {
+    if (indices.empty()) return;
+
+    std::set<size_t> indices_set(indices.begin(), indices.end());
+    if (indices_set.size() >= vec.size()) {
+        vec.clear();
+        return;
+    }
+
+    size_t valid_ind = vec.size() - 1;
+    while (indices_set.find(valid_ind) != indices_set.end()) {
+        valid_ind--;
+    }
+
+    auto ind_it = indices_set.begin();
+    while (ind_it != indices_set.end() && *ind_it < valid_ind) {
+        std::swap(vec[*ind_it], vec[valid_ind]);
+        valid_ind--;
+        while (*ind_it < valid_ind && indices_set.find(valid_ind) != indices_set.end()) {
+            valid_ind--;
+        }
+        ++ind_it;
+    }
+
+    vec.resize(valid_ind + 1);
 }
 
 int main(int argc, char ** argv) {
@@ -45,9 +74,10 @@ int main(int argc, char ** argv) {
     cilantro::ImageViewer rgbv(win_name, "disp2");
 
     cilantro::PointCloud3f model, frame;
+    std::vector<float> confidence;
     bool capture = false;
     pcdv.registerKeyboardCallback('a', std::bind(capture_callback, std::ref(capture)));
-    pcdv.registerKeyboardCallback('d', std::bind(clear_callback, std::ref(model)));
+    pcdv.registerKeyboardCallback('d', std::bind(clear_callback, std::ref(model), std::ref(confidence)));
 
     cilantro::RenderingProperties rp;
     pcdv.registerKeyboardCallback('c', std::bind(color_toggle_callback, std::ref(pcdv), std::ref(rp)));
@@ -56,9 +86,9 @@ int main(int argc, char ** argv) {
     cilantro::RigidTransformation3f cam_pose(cilantro::RigidTransformation3f::Identity());
 
     float max_depth = 1.1f;
-    float fusion_weight = 0.1f;
-    float fusion_dist_thresh = 0.025f;
-    float factor = -0.5f/(120*120);
+    float fusion_dist_thresh = 0.005f;
+    float occlusion_dist_thresh = 0.025f;
+    float radial_factor = -0.5f/(120*120);
 
     cilantro::TruncatedDepthValueConverter<unsigned short,float> dc(1000.0f, max_depth);
 
@@ -68,6 +98,8 @@ int main(int argc, char ** argv) {
     std::cout << "\tPress 'd' to reinitialize process" << std::endl;
     std::cout << "\tPress 'c' to toggle model color" << std::endl;
     std::cout << "\tPress 'l' to toggle lighting" << std::endl;
+
+    size_t frames_fused = 0;
 
     // Main loop
     while (!pangolin::ShouldQuit()) {
@@ -83,6 +115,7 @@ int main(int argc, char ** argv) {
             cam_pose = icp.estimateTransformation().getTransformation();
         } else {
             cam_pose.setIdentity();
+            frames_fused = 0;
         }
 
         // Map
@@ -104,12 +137,14 @@ int main(int argc, char ** argv) {
             to_append.colors.resize(Eigen::NoChange, w*h);
 
             size_t append_count = 0;
+            std::vector<float> to_append_confidence;
+            to_append_confidence.reserve(w*h);
             std::vector<size_t> remove_ind;
             remove_ind.reserve(w*h);
             const size_t empty = std::numeric_limits<std::size_t>::max();
 
-            for (size_t y = 0; y < frame_index_map.h; y++) {
-                for (size_t x = 0; x < frame_index_map.w; x++) {
+            for (size_t y = 1; y < frame_index_map.h - 1; y++) {
+                for (size_t x = 1; x < frame_index_map.w - 1; x++) {
                     const size_t frame_pt_ind = frame_index_map(x,y);
                     const size_t model_pt_ind = model_index_map(x,y);
 
@@ -120,42 +155,58 @@ int main(int argc, char ** argv) {
 
                     const float frame_depth = frame.points(2,frame_pt_ind);
                     const float model_depth = (model_pt_ind != empty) ? model_t.points(2,model_pt_ind) : 0.0f;
-                    const float radial_weight = std::exp(factor*((x - K(0,2))*(x - K(0,2)) + (y - K(1,2))*(y - K(1,2))));
-
-                    if (model_pt_ind != empty && frame_depth > model_depth + fusion_dist_thresh) {
-                        // Remove points in free space
-                        remove_ind.emplace_back(model_pt_ind);
-                    }
-
-                    if (model_pt_ind == empty || frame_depth < model_depth - fusion_dist_thresh) {
-                        // Augment model
-                        if ((rand()%100)/100.0f < radial_weight) {
-                            to_append.points.col(append_count) = frame_t.points.col(frame_pt_ind);
-                            to_append.normals.col(append_count) = frame_t.normals.col(frame_pt_ind);
-                            to_append.colors.col(append_count) = frame_t.colors.col(frame_pt_ind);
-                            append_count++;
-                        }
-                    }
+                    const float radial_weight = std::exp(radial_factor*((x - K(0,2))*(x - K(0,2)) + (y - K(1,2))*(y - K(1,2))));
 
                     if (model_pt_ind != empty && std::abs(model_depth - frame_depth) < fusion_dist_thresh) {
                         // Fuse
-                        const float weight = fusion_weight*radial_weight;
+                        const float weight = radial_weight/(radial_weight + confidence[model_pt_ind]);
                         const float weight_compl = 1.0f - weight;
                         model.points.col(model_pt_ind) = weight_compl*model.points.col(model_pt_ind) + weight*frame_t.points.col(frame_pt_ind);
                         model.normals.col(model_pt_ind) = (weight_compl*model.normals.col(model_pt_ind) + weight*frame_t.normals.col(frame_pt_ind)).normalized();
                         model.colors.col(model_pt_ind) = weight_compl*model.colors.col(model_pt_ind) + weight*frame_t.colors.col(frame_pt_ind);
+                        confidence[model_pt_ind] += weight;
+                    } else if (model_pt_ind == empty &&
+                               model_index_map(x-1,y) == empty && model_index_map(x+1,y) == empty &&
+                               model_index_map(x,y-1) == empty && model_index_map(x,y+1) == empty &&
+                               (rand()%100)/100.0f < radial_weight)
+                    {
+                        // Augment model
+                        to_append.points.col(append_count) = frame_t.points.col(frame_pt_ind);
+                        to_append.normals.col(append_count) = frame_t.normals.col(frame_pt_ind);
+                        to_append.colors.col(append_count) = frame_t.colors.col(frame_pt_ind);
+                        to_append_confidence.emplace_back(radial_weight);
+                        append_count++;
+                    } else if (model_pt_ind != empty && frame_depth > model_depth + occlusion_dist_thresh &&
+                               std::acos(std::min(1.0f, std::max(-1.0f, -model_t.points.col(model_pt_ind).normalized().dot(model_t.normals.col(model_pt_ind))))) < 45.0f*M_PI/180.0f)
+                    {
+                        // Remove points in free space
+                        remove_ind.emplace_back(model_pt_ind);
                     }
                 }
             }
             model.remove(remove_ind);
+            vec_remove(confidence, remove_ind);
             to_append.points.conservativeResize(Eigen::NoChange, append_count);
             to_append.normals.conservativeResize(Eigen::NoChange, append_count);
             to_append.colors.conservativeResize(Eigen::NoChange, append_count);
             model.append(to_append);
+            confidence.insert(confidence.end(), to_append_confidence.begin(), to_append_confidence.end());
+
+//            if (frames_fused%30 == 0) {
+//                remove_ind.clear();
+//                for (size_t i = 0; i < confidence.size(); i++) {
+//                    if (confidence[i] < 0.3f) remove_ind.emplace_back(i);
+//                }
+//                model.remove(remove_ind);
+//                vec_remove(confidence, remove_ind);
+//            }
+
+            frames_fused++;
         }
 
         // Visualization
         rgbv.setImage(rgb_img.ptr, w, h, "RGB24");
+//        pcdv.addObject<cilantro::PointCloudRenderable>("model", model, rp)->setPointValues(confidence);
         pcdv.addObject<cilantro::PointCloudRenderable>("model", model, rp);
         pcdv.addObject<cilantro::CameraFrustumRenderable>("cam", w, h, K, cam_pose.matrix(), 0.1f, cilantro::RenderingProperties().setLineWidth(2.0f).setLineColor(1.0f,1.0f,0.0f));
 //        pcdv.addObject<cilantro::PointCloudRenderable>("frame", frame.transformed(cam_pose), cilantro::RenderingProperties().setOpacity(0.2f).setPointColor(0.8f, 0.8f, 0.8f).setUseLighting(false));
@@ -169,6 +220,8 @@ int main(int argc, char ** argv) {
         // Keep model rendering properties on update
         rp = pcdv.getRenderingProperties("model");
     }
+
+    std::cout << "Fused " << frames_fused << " frames" << std::endl;
 
     if (argc > 1) {
         std::cout << "Saving model to \'" << argv[1] << "\'" << std::endl;
