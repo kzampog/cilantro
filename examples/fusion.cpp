@@ -9,6 +9,11 @@ void vec_remove(std::vector<T> &vec, const std::vector<size_t> &indices) {
     if (indices.empty()) return;
 
     std::set<size_t> indices_set(indices.begin(), indices.end());
+    if (indices_set.size() >= vec.size()) {
+        vec.clear();
+        return;
+    }
+
     size_t valid_ind = vec.size() - 1;
     while (indices_set.find(valid_ind) != indices_set.end()) {
         valid_ind--;
