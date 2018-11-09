@@ -85,11 +85,11 @@ int main(int argc, char ** argv) {
     rp.setPointColor(0.8f, 0.8f, 0.8f);
 
     // Parameters
-    float max_depth = 1.1f;
-    float fusion_dist_thresh = 0.005f;
+    float max_depth = 1.2f;
+    float fusion_dist_thresh = 0.01f;
     float occlusion_dist_thresh = 0.025f;
     float radial_factor = -0.5f/(120*120);
-    float confidence_thresh = 2.5f;
+    float confidence_thresh = 3.0f;
 
     pcdv.registerKeyboardCallback('a', std::bind(capture_callback, std::ref(capture)));
     pcdv.registerKeyboardCallback('s', std::bind(cleanup_callback, std::ref(model), std::ref(confidence), confidence_thresh));
