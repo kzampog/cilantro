@@ -70,6 +70,9 @@ namespace cilantro {
         inline RenderingProperties& setFontSize(float fs) { fontSize = fs; return *this; }
         inline RenderingProperties& setTextAnchorPoint(const Eigen::Vector2f &ap) { textAnchorPoint = ap; return *this; }
         inline RenderingProperties& setTextAnchorPoint(float x_fraction, float y_fraction) { textAnchorPoint = Eigen::Vector2f(x_fraction,y_fraction); return *this; }
+
+        static inline void setDefaultColor(const Eigen::Vector3f &color) { defaultColor = color; }
+        static inline void setDefaultColor(float r, float g, float b) { defaultColor = Eigen::Vector3f(r,g,b); }
     };
 
     struct GPUBufferObjects {

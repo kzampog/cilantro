@@ -4,6 +4,29 @@
 #include <cilantro/common_renderables.hpp>
 #include <cilantro/icp_common_instances.hpp>
 
+template <typename T>
+void vec_remove(std::vector<T> &vec, const std::vector<size_t> &indices) {
+    if (indices.empty()) return;
+
+    std::set<size_t> indices_set(indices.begin(), indices.end());
+    size_t valid_ind = vec.size() - 1;
+    while (indices_set.find(valid_ind) != indices_set.end()) {
+        valid_ind--;
+    }
+
+    auto ind_it = indices_set.begin();
+    while (ind_it != indices_set.end() && *ind_it < valid_ind) {
+        std::swap(vec[*ind_it], vec[valid_ind]);
+        valid_ind--;
+        while (*ind_it < valid_ind && indices_set.find(valid_ind) != indices_set.end()) {
+            valid_ind--;
+        }
+        ++ind_it;
+    }
+
+    vec.resize(valid_ind + 1);
+}
+
 void color_toggle_callback(cilantro::Visualizer &viz, cilantro::RenderingProperties &rp) {
     if (rp.pointColor == cilantro::RenderingProperties::noColor) {
         rp.setPointColor(0.8f, 0.8f, 0.8f);
@@ -22,32 +45,13 @@ void clear_callback(cilantro::PointCloud3f &cloud, std::vector<float> &confidenc
     confidence.clear();
 }
 
-template <typename T>
-void vec_remove(std::vector<T> &vec, const std::vector<size_t> &indices) {
-    if (indices.empty()) return;
-
-    std::set<size_t> indices_set(indices.begin(), indices.end());
-    if (indices_set.size() >= vec.size()) {
-        vec.clear();
-        return;
+void cleanup_callback(cilantro::PointCloud3f &model, std::vector<float> &confidence, float conf_thresh) {
+    std::vector<size_t> remove_ind;
+    for (size_t i = 0; i < confidence.size(); i++) {
+        if (confidence[i] < conf_thresh) remove_ind.emplace_back(i);
     }
-
-    size_t valid_ind = vec.size() - 1;
-    while (indices_set.find(valid_ind) != indices_set.end()) {
-        valid_ind--;
-    }
-
-    auto ind_it = indices_set.begin();
-    while (ind_it != indices_set.end() && *ind_it < valid_ind) {
-        std::swap(vec[*ind_it], vec[valid_ind]);
-        valid_ind--;
-        while (*ind_it < valid_ind && indices_set.find(valid_ind) != indices_set.end()) {
-            valid_ind--;
-        }
-        ++ind_it;
-    }
-
-    vec.resize(valid_ind + 1);
+    model.remove(remove_ind);
+    vec_remove(confidence, remove_ind);
 }
 
 int main(int argc, char ** argv) {
@@ -75,26 +79,29 @@ int main(int argc, char ** argv) {
 
     cilantro::PointCloud3f model, frame;
     std::vector<float> confidence;
-    bool capture = false;
-    pcdv.registerKeyboardCallback('a', std::bind(capture_callback, std::ref(capture)));
-    pcdv.registerKeyboardCallback('d', std::bind(clear_callback, std::ref(model), std::ref(confidence)));
-
-    cilantro::RenderingProperties rp;
-    pcdv.registerKeyboardCallback('c', std::bind(color_toggle_callback, std::ref(pcdv), std::ref(rp)));
-    rp.setUseLighting(false);
-
     cilantro::RigidTransformation3f cam_pose(cilantro::RigidTransformation3f::Identity());
+    bool capture = false;
+    cilantro::RenderingProperties rp;
+    rp.setPointColor(0.8f, 0.8f, 0.8f);
 
+    // Parameters
     float max_depth = 1.1f;
     float fusion_dist_thresh = 0.005f;
     float occlusion_dist_thresh = 0.025f;
     float radial_factor = -0.5f/(120*120);
+    float confidence_thresh = 2.5f;
+
+    pcdv.registerKeyboardCallback('a', std::bind(capture_callback, std::ref(capture)));
+    pcdv.registerKeyboardCallback('s', std::bind(cleanup_callback, std::ref(model), std::ref(confidence), confidence_thresh));
+    pcdv.registerKeyboardCallback('d', std::bind(clear_callback, std::ref(model), std::ref(confidence)));
+    pcdv.registerKeyboardCallback('c', std::bind(color_toggle_callback, std::ref(pcdv), std::ref(rp)));
 
     cilantro::TruncatedDepthValueConverter<unsigned short,float> dc(1000.0f, max_depth);
 
     if (argc < 2) std::cout << "Note: no output PLY file path provided" << std::endl;
     std::cout << "Highlight the left viewport and:" << std::endl;
     std::cout << "\tPress 'a' to initialize model/fuse new view (keep pressed for continuous fusion)" << std::endl;
+    std::cout << "\tPress 's' to remove unstable points" << std::endl;
     std::cout << "\tPress 'd' to reinitialize process" << std::endl;
     std::cout << "\tPress 'c' to toggle model color" << std::endl;
     std::cout << "\tPress 'l' to toggle lighting" << std::endl;
@@ -167,8 +174,7 @@ int main(int argc, char ** argv) {
                         confidence[model_pt_ind] += weight;
                     } else if (model_pt_ind == empty &&
                                model_index_map(x-1,y) == empty && model_index_map(x+1,y) == empty &&
-                               model_index_map(x,y-1) == empty && model_index_map(x,y+1) == empty &&
-                               (rand()%100)/100.0f < radial_weight)
+                               model_index_map(x,y-1) == empty && model_index_map(x,y+1) == empty)
                     {
                         // Augment model
                         to_append.points.col(append_count) = frame_t.points.col(frame_pt_ind);
@@ -191,15 +197,6 @@ int main(int argc, char ** argv) {
             to_append.colors.conservativeResize(Eigen::NoChange, append_count);
             model.append(to_append);
             confidence.insert(confidence.end(), to_append_confidence.begin(), to_append_confidence.end());
-
-//            if (frames_fused%30 == 0) {
-//                remove_ind.clear();
-//                for (size_t i = 0; i < confidence.size(); i++) {
-//                    if (confidence[i] < 0.3f) remove_ind.emplace_back(i);
-//                }
-//                model.remove(remove_ind);
-//                vec_remove(confidence, remove_ind);
-//            }
 
             frames_fused++;
         }
@@ -224,6 +221,8 @@ int main(int argc, char ** argv) {
     std::cout << "Fused " << frames_fused << " frames" << std::endl;
 
     if (argc > 1) {
+        std::cout << "Removing unstable points" << std::endl;
+        cleanup_callback(model, confidence, confidence_thresh);
         std::cout << "Saving model to \'" << argv[1] << "\'" << std::endl;
         model.toPLYFile(argv[1], true);
     }
