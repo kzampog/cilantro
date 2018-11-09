@@ -164,7 +164,10 @@ int main(int argc, char ** argv) {
                     const float model_depth = (model_pt_ind != empty) ? model_t.points(2,model_pt_ind) : 0.0f;
                     const float radial_weight = std::exp(radial_factor*((x - K(0,2))*(x - K(0,2)) + (y - K(1,2))*(y - K(1,2))));
 
-                    if (model_pt_ind != empty && std::abs(model_depth - frame_depth) < fusion_dist_thresh) {
+                    if (model_pt_ind != empty &&
+                        std::abs(model_depth - frame_depth) < fusion_dist_thresh &&
+                        std::acos(std::min(1.0f, std::max(-1.0f, model_t.normals.col(model_pt_ind).dot(frame.normals.col(frame_pt_ind))))) < 75.0f*M_PI/180.0f)
+                    {
                         // Fuse
                         const float weight = radial_weight/(radial_weight + confidence[model_pt_ind]);
                         const float weight_compl = 1.0f - weight;
@@ -172,9 +175,11 @@ int main(int argc, char ** argv) {
                         model.normals.col(model_pt_ind) = (weight_compl*model.normals.col(model_pt_ind) + weight*frame_t.normals.col(frame_pt_ind)).normalized();
                         model.colors.col(model_pt_ind) = weight_compl*model.colors.col(model_pt_ind) + weight*frame_t.colors.col(frame_pt_ind);
                         confidence[model_pt_ind] += weight;
-                    } else if (model_pt_ind == empty &&
+                    } else if ((model_pt_ind == empty &&
                                model_index_map(x-1,y) == empty && model_index_map(x+1,y) == empty &&
-                               model_index_map(x,y-1) == empty && model_index_map(x,y+1) == empty)
+                               model_index_map(x,y-1) == empty && model_index_map(x,y+1) == empty) ||
+                               (model_pt_ind != empty &&
+                               std::acos(std::min(1.0f, std::max(-1.0f, model_t.normals.col(model_pt_ind).dot(frame.normals.col(frame_pt_ind))))) > 105.0f*M_PI/180.0f))
                     {
                         // Augment model
                         to_append.points.col(append_count) = frame_t.points.col(frame_pt_ind);
