@@ -111,7 +111,7 @@ int main(int argc, char ** argv) {
     std::cout << "\tPress 'c' to toggle model color" << std::endl;
     std::cout << "\tPress 'l' to toggle lighting" << std::endl;
 
-    size_t frames_fused = 0;
+    size_t num_fused = 0;
 
     // Main loop
     while (!pangolin::ShouldQuit()) {
@@ -127,7 +127,7 @@ int main(int argc, char ** argv) {
             cam_pose = icp.estimateTransformation().getTransformation();
         } else {
             cam_pose.setIdentity();
-            frames_fused = 0;
+            num_fused = 0;
         }
 
         // Map
@@ -208,7 +208,7 @@ int main(int argc, char ** argv) {
             model.append(to_append);
             confidence.insert(confidence.end(), to_append_confidence.begin(), to_append_confidence.end());
 
-            frames_fused++;
+            num_fused++;
         }
 
         // Visualization
@@ -228,7 +228,7 @@ int main(int argc, char ** argv) {
         rp = pcdv.getRenderingProperties("model");
     }
 
-    std::cout << "Fused " << frames_fused << " frames" << std::endl;
+    std::cout << "Fused " << num_fused << " frames" << std::endl;
 
     if (argc > 1) {
         std::cout << "Removing unstable points" << std::endl;
