@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cilantro/principal_component_analysis.hpp>
+//#include <cilantro/principal_component_analysis.hpp>
 #include <cilantro/kd_tree.hpp>
 
 namespace cilantro {
@@ -216,16 +216,38 @@ namespace cilantro {
                     curvatures[i] = std::numeric_limits<ScalarT>::quiet_NaN();
                     continue;
                 }
-                VectorSet<ScalarT,EigenDim> neighborhood(dim, nn.size());
+
+//                VectorSet<ScalarT,EigenDim> neighborhood(dim, nn.size());
+//                for (size_t j = 0; j < nn.size(); j++) {
+//                    neighborhood.col(j) = points_.col(nn[j].index);
+//                }
+//                PrincipalComponentAnalysis<ScalarT,EigenDim> pca(neighborhood);
+//                normals.col(i) = pca.getEigenVectors().col(dim-1);
+//                if (normals.col(i).dot(view_point_ - points_.col(i)) < (ScalarT)0.0) {
+//                    normals.col(i) *= (ScalarT)(-1.0);
+//                }
+//                curvatures[i] = pca.getEigenValues()[dim-1]/pca.getEigenValues().sum();
+
+                Vector<ScalarT,EigenDim> mean(Vector<ScalarT,EigenDim>::Zero(points_.rows(), 1));
                 for (size_t j = 0; j < nn.size(); j++) {
-                    neighborhood.col(j) = points_.col(nn[j].index);
+                    mean += points_.col(nn[j].index);
                 }
-                PrincipalComponentAnalysis<ScalarT,EigenDim> pca(neighborhood);
-                normals.col(i) = pca.getEigenVectors().col(dim-1);
-                if (normals.col(i).dot(view_point_ - points_.col(i)) < (ScalarT)0.0) {
-                    normals.col(i) *= (ScalarT)(-1.0);
+                mean *= (ScalarT)(1.0)/(nn.size());
+
+                Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov(Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(points_.rows(), points_.rows()));
+                for (size_t j = 0; j < nn.size(); j++) {
+                    Vector<ScalarT,EigenDim> tmp = points_.col(nn[j].index) - mean;
+                    cov += tmp*tmp.transpose();
                 }
-                curvatures[i] = pca.getEigenValues()[dim-1]/pca.getEigenValues().sum();
+                cov *= (ScalarT)(1.0)/(nn.size() - 1);
+
+                Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(cov);
+                if (eig.eigenvectors().col(0).dot(view_point_ - points_.col(i)) < (ScalarT)0.0) {
+                    normals.col(i) = -eig.eigenvectors().col(0);
+                } else {
+                    normals.col(i) = eig.eigenvectors().col(0);
+                }
+                curvatures[i] = eig.eigenvalues()[0]/eig.eigenvalues().sum();
             }
         }
 

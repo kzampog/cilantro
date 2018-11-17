@@ -14,10 +14,16 @@ namespace cilantro {
 
         PrincipalComponentAnalysis(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data) {
             mean_ = data.rowwise().mean();
-            Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> centered = data.colwise() - mean_;
+//#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,EigenDim,EigenDim>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(omp_orig.rows(), omp_orig.cols()))
+            Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov(Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(data.rows(), data.rows()));
+//#pragma omp parallel for reduction (+: cov)
+            for (size_t i = 0; i < data.cols(); i++) {
+                Eigen::Matrix<ScalarT,EigenDim,1> ptc = data.col(i) - mean_;
+                cov += ptc*ptc.transpose();
+            }
+            cov *= (ScalarT)(1.0)/(data.cols()-1);
 
-            const ScalarT scale = (ScalarT)(1.0)/(data.cols()-1);
-            Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(scale*(centered*centered.transpose()));
+            Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(cov);
 
             eigenvectors_ = eig.eigenvectors().rowwise().reverse();
             if (eigenvectors_.determinant() < (ScalarT)0.0) {
@@ -26,6 +32,21 @@ namespace cilantro {
             }
 
             eigenvalues_ = eig.eigenvalues().reverse();
+
+//            mean_ = data.rowwise().mean();
+//            Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> centered = data.colwise() - mean_;
+//
+//            Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov = centered*centered.transpose();
+//            cov *= (ScalarT)(1.0)/(data.cols()-1);
+//            Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(cov);
+//
+//            eigenvectors_ = eig.eigenvectors().rowwise().reverse();
+//            if (eigenvectors_.determinant() < (ScalarT)0.0) {
+//                auto last_col = eigenvectors_.col(data.rows() - 1);
+//                last_col = -last_col;
+//            }
+//
+//            eigenvalues_ = eig.eigenvalues().reverse();
         }
 
         ~PrincipalComponentAnalysis() {}
