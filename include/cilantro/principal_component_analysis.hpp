@@ -12,41 +12,50 @@ namespace cilantro {
 
         enum { Dimension = EigenDim };
 
-        PrincipalComponentAnalysis(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data) {
-            mean_ = data.rowwise().mean();
-//#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,EigenDim,EigenDim>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(omp_orig.rows(), omp_orig.cols()))
-            Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov(Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(data.rows(), data.rows()));
-//#pragma omp parallel for reduction (+: cov)
-            for (size_t i = 0; i < data.cols(); i++) {
-                Eigen::Matrix<ScalarT,EigenDim,1> ptc = data.col(i) - mean_;
-                cov += ptc*ptc.transpose();
+        PrincipalComponentAnalysis(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data, bool parallel = true) {
+            if (parallel) {
+                mean_.setZero(data.rows(), 1);
+#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,EigenDim,1>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,EigenDim,1>::Zero(omp_orig.rows(), 1))
+#pragma omp parallel for reduction (+: mean_)
+                for (size_t i = 0; i < data.cols(); i++) {
+                    mean_ += data.col(i);
+                }
+                mean_ *= (ScalarT)(1.0)/data.cols();
+
+                Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov(Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(data.rows(), data.rows()));
+#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,EigenDim,EigenDim>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(omp_orig.rows(), omp_orig.cols()))
+#pragma omp parallel for reduction (+: cov)
+                for (size_t i = 0; i < data.cols(); i++) {
+                    Eigen::Matrix<ScalarT,EigenDim,1> ptc = data.col(i) - mean_;
+                    cov += ptc*ptc.transpose();
+                }
+                cov *= (ScalarT)(1.0)/(data.cols()-1);
+
+                Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(cov);
+                eigenvectors_ = eig.eigenvectors().rowwise().reverse();
+                if (eigenvectors_.determinant() < (ScalarT)0.0) {
+                    auto last_col = eigenvectors_.col(data.rows() - 1);
+                    last_col = -last_col;
+                }
+                eigenvalues_ = eig.eigenvalues().reverse();
+            } else {
+                mean_ = data.rowwise().mean();
+
+                Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov(Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(data.rows(), data.rows()));
+                for (size_t i = 0; i < data.cols(); i++) {
+                    Eigen::Matrix<ScalarT,EigenDim,1> ptc = data.col(i) - mean_;
+                    cov += ptc*ptc.transpose();
+                }
+                cov *= (ScalarT)(1.0)/(data.cols()-1);
+
+                Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(cov);
+                eigenvectors_ = eig.eigenvectors().rowwise().reverse();
+                if (eigenvectors_.determinant() < (ScalarT)0.0) {
+                    auto last_col = eigenvectors_.col(data.rows() - 1);
+                    last_col = -last_col;
+                }
+                eigenvalues_ = eig.eigenvalues().reverse();
             }
-            cov *= (ScalarT)(1.0)/(data.cols()-1);
-
-            Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(cov);
-
-            eigenvectors_ = eig.eigenvectors().rowwise().reverse();
-            if (eigenvectors_.determinant() < (ScalarT)0.0) {
-                auto last_col = eigenvectors_.col(data.rows() - 1);
-                last_col = -last_col;
-            }
-
-            eigenvalues_ = eig.eigenvalues().reverse();
-
-//            mean_ = data.rowwise().mean();
-//            Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic> centered = data.colwise() - mean_;
-//
-//            Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov = centered*centered.transpose();
-//            cov *= (ScalarT)(1.0)/(data.cols()-1);
-//            Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(cov);
-//
-//            eigenvectors_ = eig.eigenvectors().rowwise().reverse();
-//            if (eigenvectors_.determinant() < (ScalarT)0.0) {
-//                auto last_col = eigenvectors_.col(data.rows() - 1);
-//                last_col = -last_col;
-//            }
-//
-//            eigenvalues_ = eig.eigenvalues().reverse();
         }
 
         ~PrincipalComponentAnalysis() {}

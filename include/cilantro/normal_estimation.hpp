@@ -221,7 +221,7 @@ namespace cilantro {
 //                for (size_t j = 0; j < nn.size(); j++) {
 //                    neighborhood.col(j) = points_.col(nn[j].index);
 //                }
-//                PrincipalComponentAnalysis<ScalarT,EigenDim> pca(neighborhood);
+//                PrincipalComponentAnalysis<ScalarT,EigenDim> pca(neighborhood, false);
 //                normals.col(i) = pca.getEigenVectors().col(dim-1);
 //                if (normals.col(i).dot(view_point_ - points_.col(i)) < (ScalarT)0.0) {
 //                    normals.col(i) *= (ScalarT)(-1.0);
