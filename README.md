@@ -69,11 +69,17 @@ One such input is bundled in `examples/test_clouds` for quick testing.
 The library is released under the [MIT license](https://github.com/kzampog/cilantro/blob/master/LICENSE).
 If you use `cilantro` in your research, please cite our [technical report](https://arxiv.org/abs/1807.00399):
 ```
-@article{cilantro,
-    author = {Konstantinos Zampogiannis and Cornelia Ferm{\"u}ller and Yiannis Aloimonos},
-    title = {cilantro: a lean, versatile, and efficient library for point cloud data processing},
-    archivePrefix = "arXiv",
-    eprint = {1807.00399},
-    year = {2018}
+@inproceedings{zampogiannis2018cilantro,
+    author = {Zampogiannis, Konstantinos and Fermuller, Cornelia and Aloimonos, Yiannis},
+    title = {cilantro: A Lean, Versatile, and Efficient Library for Point Cloud Data Processing},
+    booktitle = {Proceedings of the 26th ACM International Conference on Multimedia},
+    series = {MM '18},
+    year = {2018},
+    isbn = {978-1-4503-5665-7},
+    location = {Seoul, Republic of Korea},
+    pages = {1364--1367},
+    doi = {10.1145/3240508.3243655},
+    publisher = {ACM},
+    address = {New York, NY, USA}
 }
 ```

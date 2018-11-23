@@ -181,10 +181,10 @@ int main(int argc, char ** argv) {
                         model.colors.col(model_pt_ind) = weight_compl*model.colors.col(model_pt_ind) + weight*frame_t.colors.col(frame_pt_ind);
                         confidence[model_pt_ind] += weight;
                     } else if ((model_pt_ind == empty &&
-                               model_index_map(x-1,y) == empty && model_index_map(x+1,y) == empty &&
-                               model_index_map(x,y-1) == empty && model_index_map(x,y+1) == empty) ||
+                                model_index_map(x-1,y) == empty && model_index_map(x+1,y) == empty &&
+                                model_index_map(x,y-1) == empty && model_index_map(x,y+1) == empty) ||
                                (model_pt_ind != empty &&
-                               std::acos(std::min(1.0f, std::max(-1.0f, model_t.normals.col(model_pt_ind).dot(frame.normals.col(frame_pt_ind))))) > 105.0f*M_PI/180.0f))
+                                std::acos(std::min(1.0f, std::max(-1.0f, model_t.normals.col(model_pt_ind).dot(frame.normals.col(frame_pt_ind))))) > 105.0f*M_PI/180.0f))
                     {
                         // Augment model
                         to_append.points.col(append_count) = frame_t.points.col(frame_pt_ind);
