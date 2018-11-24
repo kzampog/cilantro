@@ -174,7 +174,16 @@ namespace cilantro {
 
     void CoordinateFrameRenderable::render(GPUBufferObjects &gl_objects) {
         glLineWidth(renderingProperties.lineWidth);
-        pangolin::glDrawAxis<Eigen::Matrix4f,float>(transform, scale);
+
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glMultMatrixf(transform.data());
+        const GLfloat cols[]  = { 1,0,0,renderingProperties.opacity, 1,0,0,renderingProperties.opacity,
+                                  0,1,0,renderingProperties.opacity, 0,1,0,renderingProperties.opacity,
+                                  0,0,1,renderingProperties.opacity, 0,0,1,renderingProperties.opacity };
+        const GLfloat verts[] = { 0,0,0, scale,0,0, 0,0,0, 0,scale,0, 0,0,0, 0,0,scale };
+        pangolin::glDrawColoredVertices<float,float>(6, verts, cols, GL_LINES, 3, 4);
+        glPopMatrix();
     }
 
     CameraFrustumRenderable::CameraFrustumRenderable(size_t width, size_t height, const Eigen::Matrix3f &intrinsics,
