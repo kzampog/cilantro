@@ -384,7 +384,7 @@ namespace cilantro {
                         normals.col(i) = tform.linear()*normals.col(i);
                     }
                 } else {
-                    TransformT normal_tform = tform.linear().inverse().transpose();
+                    Eigen::Matrix<ScalarT,EigenDim,EigenDim> normal_tform = tform.linear().inverse().transpose();
 #pragma omp parallel for
                     for (size_t i = 0; i < points.cols(); i++) {
                         points.col(i) = tform*points.col(i);
