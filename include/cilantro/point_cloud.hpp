@@ -317,8 +317,18 @@ namespace cilantro {
         inline PointCloud& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rotation,
                                      const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation)
         {
-            points = (rotation*points).colwise() + translation;
-            if (hasNormals()) normals = rotation*normals;
+            if (hasNormals()) {
+#pragma omp parallel for
+                for (size_t i = 0; i < points.cols(); i++) {
+                    points.col(i) = rotation*points.col(i) + translation;
+                    normals.col(i) = rotation*normals.col(i);
+                }
+            } else {
+#pragma omp parallel for
+                for (size_t i = 0; i < points.cols(); i++) {
+                    points.col(i) = rotation*points.col(i) + translation;
+                }
+            }
             return *this;
         }
 
@@ -326,8 +336,20 @@ namespace cilantro {
                                       const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation)
         {
             PointCloud cloud;
-            cloud.points.noalias() = (rotation*points).colwise() + translation;
-            if (hasNormals()) cloud.normals.noalias() = rotation*normals;
+            cloud.points.resize(points.rows(), points.cols());
+            if (hasNormals()) {
+                cloud.normals.resize(normals.rows(), normals.cols());
+#pragma omp parallel for
+                for (size_t i = 0; i < points.cols(); i++) {
+                    cloud.points.col(i).noalias() = rotation*points.col(i) + translation;
+                    cloud.normals.col(i).noalias() = rotation*normals.col(i);
+                }
+            } else {
+#pragma omp parallel for
+                for (size_t i = 0; i < points.cols(); i++) {
+                    cloud.points.col(i).noalias() = rotation*points.col(i) + translation;
+                }
+            }
             if (hasColors()) cloud.colors = colors;
             return cloud;
         }
@@ -352,9 +374,29 @@ namespace cilantro {
             return transformed(tform.topLeftCorner(points.rows(),points.rows()), tform.topRightCorner(points.rows(),1));
         }
 
-        inline PointCloud& transform(const RigidTransform<ScalarT,EigenDim> &tform) {
-            points = tform*points;
-            if (hasNormals()) normals = tform.linear()*normals;
+        template <class TransformT>
+        inline PointCloud& transform(const TransformT &tform) {
+            if (hasNormals()) {
+                if (int(TransformT::Mode) == int(Eigen::Isometry)) {
+#pragma omp parallel for
+                    for (size_t i = 0; i < points.cols(); i++) {
+                        points.col(i) = tform*points.col(i);
+                        normals.col(i) = tform.linear()*normals.col(i);
+                    }
+                } else {
+                    TransformT normal_tform = tform.linear().inverse().transpose();
+#pragma omp parallel for
+                    for (size_t i = 0; i < points.cols(); i++) {
+                        points.col(i) = tform*points.col(i);
+                        normals.col(i) = (normal_tform*normals.col(i)).normalized();
+                    }
+                }
+            } else {
+#pragma omp parallel for
+                for (size_t i = 0; i < points.cols(); i++) {
+                    points.col(i) = tform*points.col(i);
+                }
+            }
             return *this;
         }
 
@@ -368,9 +410,9 @@ namespace cilantro {
 
         inline PointCloud& transform(const RigidTransformSet<ScalarT,EigenDim> &tforms) {
             if (hasNormals()) {
-                tforms.warpPointsNormals(points, normals);
+                tforms.transformPointsNormals(points, normals);
             } else {
-                tforms.warpPoints(points);
+                tforms.transformPoints(points);
             }
             return *this;
         }

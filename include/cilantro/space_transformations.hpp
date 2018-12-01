@@ -95,7 +95,7 @@ namespace cilantro {
             return *this;
         }
 
-        VectorSet<Scalar,Dim> getWarpedPoints(const ConstVectorSetMatrixMap<Scalar,Dim> &points) const {
+        VectorSet<Scalar,Dim> getTransformedPoints(const ConstVectorSetMatrixMap<Scalar,Dim> &points) const {
             VectorSet<Scalar,Dim> points_t(points.rows(), points.cols());
 #pragma omp parallel for
             for (size_t i = 0; i < points_t.cols(); i++) {
@@ -104,7 +104,7 @@ namespace cilantro {
             return points_t;
         }
 
-        const TransformSet& warpPoints(DataMatrixMap<Scalar,Dim> points) const {
+        const TransformSet& transformPoints(DataMatrixMap<Scalar,Dim> points) const {
 #pragma omp parallel for
             for (size_t i = 0; i < points.cols(); i++) {
                 points.col(i) = (*this)[i]*points.col(i);
@@ -112,7 +112,7 @@ namespace cilantro {
             return *this;
         }
 
-        VectorSet<Scalar,Dim> getWarpedNormals(const ConstVectorSetMatrixMap<Scalar,Dim> &normals) const {
+        VectorSet<Scalar,Dim> getTransformedNormals(const ConstVectorSetMatrixMap<Scalar,Dim> &normals) const {
             VectorSet<Scalar,Dim> normals_t(normals.rows(), normals.cols());
             if (int(TransformT::Mode) == int(Eigen::Isometry)) {
 #pragma omp parallel for
@@ -128,7 +128,7 @@ namespace cilantro {
             return normals_t;
         }
 
-        const TransformSet& warpNormals(DataMatrixMap<Scalar,Dim> normals) const {
+        const TransformSet& transformNormals(DataMatrixMap<Scalar,Dim> normals) const {
             if (int(TransformT::Mode) == int(Eigen::Isometry)) {
 #pragma omp parallel for
                 for (size_t i = 0; i < normals.cols(); i++) {
@@ -143,8 +143,8 @@ namespace cilantro {
             return *this;
         }
 
-        const TransformSet& warpPointsNormals(DataMatrixMap<Scalar,Dim> points,
-                                              DataMatrixMap<Scalar,Dim> normals) const
+        const TransformSet& transformPointsNormals(DataMatrixMap<Scalar,Dim> points,
+                                                   DataMatrixMap<Scalar,Dim> normals) const
         {
             if (int(TransformT::Mode) == int(Eigen::Isometry)) {
 #pragma omp parallel for

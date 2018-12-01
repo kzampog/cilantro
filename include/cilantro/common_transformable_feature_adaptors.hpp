@@ -30,7 +30,7 @@ namespace cilantro {
         inline PointFeaturesAdaptor& transformFeatures(const TransformT &tform) {
 #pragma omp parallel for
             for (size_t i = 0; i < data_map_.cols(); i++) {
-                transformed_data_.col(i).noalias() = tform*data_map_.col(i);
+                transformed_data_.col(i).noalias() = tform.linear()*data_map_.col(i) + tform.translation();
             }
             return *this;
         }
