@@ -23,7 +23,7 @@ void color_toggle(cilantro::Visualizer &viz) {
 
 void generate_input_data(cilantro::PointCloud3f &dst,
                          cilantro::PointCloud3f &src,
-                         cilantro::RigidTransformation3f &tf_ref)
+                         cilantro::RigidTransform3f &tf_ref)
 {
     dst.gridDownsample(0.005f);
 
@@ -72,7 +72,7 @@ int main(int argc, char ** argv) {
     }
 
     cilantro::PointCloud3f dst(argv[1]), src;
-    cilantro::RigidTransformation3f tf_ref;
+    cilantro::RigidTransform3f tf_ref;
 
     if (!dst.hasNormals()) {
         std::cout << "Input cloud is empty or does not have normals!" << std::endl;
@@ -116,7 +116,7 @@ int main(int argc, char ** argv) {
     icp.correspondenceSearchEngine().setMaxDistance(0.1f*0.1f);
     icp.setConvergenceTolerance(1e-4f).setMaxNumberOfIterations(30);
 
-    cilantro::RigidTransformation3f tf_est = icp.estimateTransformation().getTransformation();
+    cilantro::RigidTransform3f tf_est = icp.estimateTransformation().getTransformation();
 
     timer.stop();
 

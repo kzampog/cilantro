@@ -104,7 +104,7 @@ namespace cilantro {
                             const DepthConverterT &depth_converter,
                             size_t image_w, size_t image_h,
                             const Eigen::Ref<const Eigen::Matrix<typename DepthConverterT::MetricDepth,3,3>> &intrinsics,
-                            const RigidTransformation<typename DepthConverterT::MetricDepth,3> &extrinsics,
+                            const RigidTransform<typename DepthConverterT::MetricDepth,3> &extrinsics,
                             VectorSet<typename DepthConverterT::MetricDepth,3> &points,
                             bool keep_invalid = false)
     {
@@ -234,7 +234,7 @@ namespace cilantro {
                                    const DepthConverterT &depth_converter,
                                    size_t image_w, size_t image_h,
                                    const Eigen::Ref<const Eigen::Matrix<typename DepthConverterT::MetricDepth,3,3>> &intrinsics,
-                                   const RigidTransformation<typename DepthConverterT::MetricDepth,3> &extrinsics,
+                                   const RigidTransform<typename DepthConverterT::MetricDepth,3> &extrinsics,
                                    VectorSet<typename DepthConverterT::MetricDepth,3> &points,
                                    VectorSet<typename DepthConverterT::MetricDepth,3> &normals,
                                    bool keep_invalid = false)
@@ -391,7 +391,7 @@ namespace cilantro {
                                   const DepthConverterT &depth_converter,
                                   size_t image_w, size_t image_h,
                                   const Eigen::Ref<const Eigen::Matrix<typename DepthConverterT::MetricDepth,3,3>> &intrinsics,
-                                  const RigidTransformation<typename DepthConverterT::MetricDepth,3> &extrinsics,
+                                  const RigidTransform<typename DepthConverterT::MetricDepth,3> &extrinsics,
                                   VectorSet<typename DepthConverterT::MetricDepth,3> &points,
                                   VectorSet<float,3> &colors,
                                   bool keep_invalid = false)
@@ -553,7 +553,7 @@ namespace cilantro {
                                          const DepthConverterT &depth_converter,
                                          size_t image_w, size_t image_h,
                                          const Eigen::Ref<const Eigen::Matrix<typename DepthConverterT::MetricDepth,3,3>> &intrinsics,
-                                         const RigidTransformation<typename DepthConverterT::MetricDepth,3> &extrinsics,
+                                         const RigidTransform<typename DepthConverterT::MetricDepth,3> &extrinsics,
                                          VectorSet<typename DepthConverterT::MetricDepth,3> &points,
                                          VectorSet<typename DepthConverterT::MetricDepth,3> &normals,
                                          VectorSet<float,3> &colors,
@@ -681,13 +681,13 @@ namespace cilantro {
 
     template <class DepthConverterT>
     void pointsToDepthImage(const ConstVectorSetMatrixMap<typename DepthConverterT::MetricDepth,3> &points,
-                            const RigidTransformation<typename DepthConverterT::MetricDepth,3> &extrinsics,
+                            const RigidTransform<typename DepthConverterT::MetricDepth,3> &extrinsics,
                             const Eigen::Ref<const Eigen::Matrix<typename DepthConverterT::MetricDepth,3,3>> &intrinsics,
                             const DepthConverterT &depth_converter,
                             typename DepthConverterT::RawDepth* depth_data,
                             size_t image_w, size_t image_h)
     {
-        const RigidTransformation<typename DepthConverterT::MetricDepth,3> to_cam(extrinsics.inverse());
+        const RigidTransform<typename DepthConverterT::MetricDepth,3> to_cam(extrinsics.inverse());
 
 #pragma omp parallel for
         for (size_t i = 0; i < image_w*image_h; i++) {
@@ -746,14 +746,14 @@ namespace cilantro {
     template <class DepthConverterT>
     void pointsColorsToRGBDImages(const ConstVectorSetMatrixMap<typename DepthConverterT::MetricDepth,3> &points,
                                   const ConstVectorSetMatrixMap<float,3> &colors,
-                                  const RigidTransformation<typename DepthConverterT::MetricDepth,3> &extrinsics,
+                                  const RigidTransform<typename DepthConverterT::MetricDepth,3> &extrinsics,
                                   const Eigen::Ref<const Eigen::Matrix<typename DepthConverterT::MetricDepth,3,3>> &intrinsics,
                                   const DepthConverterT &depth_converter,
                                   unsigned char* rgb_data,
                                   typename DepthConverterT::RawDepth* depth_data,
                                   size_t image_w, size_t image_h)
     {
-        const RigidTransformation<typename DepthConverterT::MetricDepth,3> to_cam(extrinsics.inverse());
+        const RigidTransform<typename DepthConverterT::MetricDepth,3> to_cam(extrinsics.inverse());
 
 #pragma omp parallel for
         for (size_t i = 0; i < image_w*image_h; i++) {
@@ -809,12 +809,12 @@ namespace cilantro {
 
     template <typename PointT>
     void pointsToIndexMap(const ConstVectorSetMatrixMap<PointT,3> &points,
-                          const RigidTransformation<PointT,3> &extrinsics,
+                          const RigidTransform<PointT,3> &extrinsics,
                           const Eigen::Ref<const Eigen::Matrix<PointT,3,3>> &intrinsics,
                           size_t* index_map_data,
                           size_t image_w, size_t image_h)
     {
-        const RigidTransformation<PointT,3> to_cam(extrinsics.inverse());
+        const RigidTransform<PointT,3> to_cam(extrinsics.inverse());
         const size_t empty = std::numeric_limits<size_t>::max();
 
 #pragma omp parallel for

@@ -7,15 +7,15 @@
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim, class CorrespondenceSearchEngineT>
-    class PointToPointMetricRigidICP : public IterativeClosestPointBase<PointToPointMetricRigidICP<ScalarT,EigenDim,CorrespondenceSearchEngineT>,RigidTransformation<ScalarT,EigenDim>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>> {
-        friend class IterativeClosestPointBase<PointToPointMetricRigidICP<ScalarT,EigenDim,CorrespondenceSearchEngineT>,RigidTransformation<ScalarT,EigenDim>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>;
+    class PointToPointMetricRigidICP : public IterativeClosestPointBase<PointToPointMetricRigidICP<ScalarT,EigenDim,CorrespondenceSearchEngineT>,RigidTransform<ScalarT,EigenDim>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>> {
+        friend class IterativeClosestPointBase<PointToPointMetricRigidICP<ScalarT,EigenDim,CorrespondenceSearchEngineT>,RigidTransform<ScalarT,EigenDim>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>;
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         PointToPointMetricRigidICP(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst,
                                    const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src,
                                    CorrespondenceSearchEngineT &corr_engine)
-                : IterativeClosestPointBase<PointToPointMetricRigidICP<ScalarT,EigenDim,CorrespondenceSearchEngineT>,RigidTransformation<ScalarT,EigenDim>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
+                : IterativeClosestPointBase<PointToPointMetricRigidICP<ScalarT,EigenDim,CorrespondenceSearchEngineT>,RigidTransform<ScalarT,EigenDim>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
                   dst_points_(dst), src_points_(src),
                   src_points_trans_(src_points_.rows(), src_points_.cols())
         {
@@ -43,7 +43,7 @@ namespace cilantro {
             }
 
             CorrespondenceSearchCombinedMetricAdaptor<CorrespondenceSearchEngineT> corr_getter_proxy(this->correspondence_search_engine_);
-            RigidTransformation<ScalarT,EigenDim> tform_iter;
+            RigidTransform<ScalarT,EigenDim> tform_iter;
             estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim,typename CorrespondenceSearchCombinedMetricAdaptor<CorrespondenceSearchEngineT>::PointToPointCorrespondenceScalar>(dst_points_, src_points_trans_, corr_getter_proxy.getPointToPointCorrespondences(), tform_iter);
 
             this->transform_ = tform_iter*this->transform_;

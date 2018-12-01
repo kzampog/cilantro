@@ -84,7 +84,7 @@ int main(int argc, char ** argv) {
 
     cilantro::PointCloud3f model, frame;
     std::vector<float> confidence;
-    cilantro::RigidTransformation3f cam_pose(cilantro::RigidTransformation3f::Identity());
+    cilantro::RigidTransform3f cam_pose(cilantro::RigidTransform3f::Identity());
     bool capture = false;
     cilantro::RenderingProperties rp;
     rp.setPointColor(0.8f, 0.8f, 0.8f);

@@ -1,5 +1,5 @@
 #include <cilantro/point_cloud.hpp>
-#include <cilantro/ransac_rigid_transformation_estimator.hpp>
+#include <cilantro/ransac_rigid_transform_estimator.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
 
@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-    cilantro::Visualizer viz("RigidTransformationRANSACEstimator example", "disp");
+    cilantro::Visualizer viz("RigidTransformRANSACEstimator example", "disp");
     bool re_estimate = false;
     bool randomize = true;
     viz.registerKeyboardCallback('a', std::bind(callback, 'a', std::ref(re_estimate), std::ref(randomize)));
@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
             randomize = false;
 
             // Randomly transform src
-            cilantro::RigidTransformation3f tform;
+            cilantro::RigidTransform3f tform;
             tform.linear().setRandom();
             tform.linear() = tform.rotation();
             tform.translation().setRandom();
@@ -76,11 +76,11 @@ int main(int argc, char **argv) {
 
             viz.remove("corr");
 
-            cilantro::RigidTransformationRANSACEstimator3f te(dst.points, src.points, corr);
+            cilantro::RigidTransformRANSACEstimator3f te(dst.points, src.points, corr);
             te.setMaxInlierResidual(0.01f).setTargetInlierCount((size_t)(0.50*corr.size()))
                 .setMaxNumberOfIterations(250).setReEstimationStep(true);
 
-            cilantro::RigidTransformation3f tform = te.estimateModelParameters().getModelParameters();
+            cilantro::RigidTransform3f tform = te.estimateModelParameters().getModelParameters();
             const auto& inliers = te.getModelInliers();
 
             std::cout << "RANSAC iterations: " << te.getNumberOfPerformedIterations() << ", inlier count: " << te.getNumberOfInliers() << std::endl;

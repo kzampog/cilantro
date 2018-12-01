@@ -40,7 +40,7 @@
 #include <cilantro/principal_component_analysis.hpp>
 #include <cilantro/ransac_base.hpp>
 #include <cilantro/ransac_hyperplane_estimator.hpp>
-#include <cilantro/ransac_rigid_transformation_estimator.hpp>
+#include <cilantro/ransac_rigid_transform_estimator.hpp>
 #include <cilantro/renderable.hpp>
 #include <cilantro/rigid_registration_utilities.hpp>
 #include <cilantro/space_region.hpp>

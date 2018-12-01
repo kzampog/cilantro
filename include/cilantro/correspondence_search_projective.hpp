@@ -24,8 +24,8 @@ namespace cilantro {
                 : dst_search_features_adaptor_(dst_points), src_search_features_adaptor_(src_points),
                   src_evaluation_features_adaptor_(src_points), evaluator_(evaluator),
                   projection_image_width_(640), projection_image_height_(480),
-                  projection_extrinsics_(RigidTransformation<ScalarT,3>::Identity()),
-                  projection_extrinsics_inv_(RigidTransformation<ScalarT,3>::Identity()),
+                  projection_extrinsics_(RigidTransform<ScalarT,3>::Identity()),
+                  projection_extrinsics_inv_(RigidTransform<ScalarT,3>::Identity()),
                   max_distance_((CorrespondenceScalar)(0.01*0.01)), inlier_fraction_(1.0)
         {
             // "Kinect"-like defaults
@@ -39,8 +39,8 @@ namespace cilantro {
                 : dst_search_features_adaptor_(dst_points), src_search_features_adaptor_(src_points),
                   src_evaluation_features_adaptor_(src_eval_features), evaluator_(evaluator),
                   projection_image_width_(640), projection_image_height_(480),
-                  projection_extrinsics_(RigidTransformation<ScalarT,3>::Identity()),
-                  projection_extrinsics_inv_(RigidTransformation<ScalarT,3>::Identity()),
+                  projection_extrinsics_(RigidTransform<ScalarT,3>::Identity()),
+                  projection_extrinsics_inv_(RigidTransform<ScalarT,3>::Identity()),
                   max_distance_((CorrespondenceScalar)(0.01*0.01)), inlier_fraction_(1.0)
         {
             // "Kinect"-like defaults
@@ -92,11 +92,11 @@ namespace cilantro {
             return *this;
         }
 
-        inline const RigidTransformation<ScalarT,3>& getProjectionExtrinsicMatrix() const {
+        inline const RigidTransform<ScalarT,3>& getProjectionExtrinsicMatrix() const {
             return projection_extrinsics_;
         }
 
-        inline CorrespondenceSearchProjective3& setProjectionExtrinsicMatrix(const RigidTransformation<ScalarT,3> &mat) {
+        inline CorrespondenceSearchProjective3& setProjectionExtrinsicMatrix(const RigidTransform<ScalarT,3> &mat) {
             projection_extrinsics_ = mat;
             projection_extrinsics_inv_ = mat.inverse();
             index_map_.resize(0,0);
@@ -130,8 +130,8 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,3,3> projection_intrinsics_;
         size_t projection_image_width_;
         size_t projection_image_height_;
-        RigidTransformation<ScalarT,3> projection_extrinsics_;
-        RigidTransformation<ScalarT,3> projection_extrinsics_inv_;
+        RigidTransform<ScalarT,3> projection_extrinsics_;
+        RigidTransform<ScalarT,3> projection_extrinsics_inv_;
 
         CorrespondenceScalar max_distance_;
         double inlier_fraction_;

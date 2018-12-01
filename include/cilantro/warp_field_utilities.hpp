@@ -6,9 +6,9 @@
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim, class WeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>>
-    void resampleTransformations(const RigidTransformationSet<ScalarT,EigenDim> &old_transforms,
+    void resampleTransformations(const RigidTransformSet<ScalarT,EigenDim> &old_transforms,
                                  const std::vector<NeighborSet<typename WeightEvaluatorT::InputScalar>> &new_to_old_map,
-                                 RigidTransformationSet<ScalarT,EigenDim> &new_transforms,
+                                 RigidTransformSet<ScalarT,EigenDim> &new_transforms,
                                  const WeightEvaluatorT &weight_evaluator = WeightEvaluatorT())
     {
         new_transforms.resize(new_to_old_map.size());
@@ -37,21 +37,21 @@ namespace cilantro {
     }
 
     template <typename ScalarT, ptrdiff_t EigenDim, class WeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>>
-    inline RigidTransformationSet<ScalarT,EigenDim> resampleTransformations(const RigidTransformationSet<ScalarT,EigenDim> &old_transforms,
-                                                                            const std::vector<NeighborSet<typename WeightEvaluatorT::InputScalar>> &new_to_old_map,
-                                                                            const WeightEvaluatorT &weight_evaluator = WeightEvaluatorT())
+    inline RigidTransformSet<ScalarT,EigenDim> resampleTransformations(const RigidTransformSet<ScalarT,EigenDim> &old_transforms,
+                                                                       const std::vector<NeighborSet<typename WeightEvaluatorT::InputScalar>> &new_to_old_map,
+                                                                       const WeightEvaluatorT &weight_evaluator = WeightEvaluatorT())
     {
-        RigidTransformationSet<ScalarT,EigenDim> new_transforms;
+        RigidTransformSet<ScalarT,EigenDim> new_transforms;
         resampleTransformations<ScalarT,EigenDim,WeightEvaluatorT>(old_transforms, new_to_old_map, new_transforms, weight_evaluator);
         return new_transforms;
     }
 
     template <typename ScalarT, ptrdiff_t EigenDim, NeighborhoodType NT, class WeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>>
     void resampleTransformations(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &old_support_kd_tree,
-                                 const RigidTransformationSet<ScalarT,EigenDim> &old_transforms,
+                                 const RigidTransformSet<ScalarT,EigenDim> &old_transforms,
                                  const ConstVectorSetMatrixMap<ScalarT,EigenDim> &new_support,
                                  const NeighborhoodSpecification<ScalarT> &nh,
-                                 RigidTransformationSet<ScalarT,EigenDim> &new_transforms,
+                                 RigidTransformSet<ScalarT,EigenDim> &new_transforms,
                                  const WeightEvaluatorT &weight_evaluator = WeightEvaluatorT())
     {
         new_transforms.resize(new_support.cols());
@@ -82,23 +82,23 @@ namespace cilantro {
     }
 
     template <typename ScalarT, ptrdiff_t EigenDim, NeighborhoodType NT, class WeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>>
-    inline RigidTransformationSet<ScalarT,EigenDim> resampleTransformations(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &old_support_kd_tree,
-                                                                            const RigidTransformationSet<ScalarT,EigenDim> &old_transforms,
-                                                                            const ConstVectorSetMatrixMap<ScalarT,EigenDim> &new_support,
-                                                                            const NeighborhoodSpecification<ScalarT> &nh,
-                                                                            const WeightEvaluatorT &weight_evaluator = WeightEvaluatorT())
+    inline RigidTransformSet<ScalarT,EigenDim> resampleTransformations(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &old_support_kd_tree,
+                                                                       const RigidTransformSet<ScalarT,EigenDim> &old_transforms,
+                                                                       const ConstVectorSetMatrixMap<ScalarT,EigenDim> &new_support,
+                                                                       const NeighborhoodSpecification<ScalarT> &nh,
+                                                                       const WeightEvaluatorT &weight_evaluator = WeightEvaluatorT())
     {
-        RigidTransformationSet<ScalarT,EigenDim> new_transforms;
+        RigidTransformSet<ScalarT,EigenDim> new_transforms;
         resampleTransformations<ScalarT,EigenDim,NT,WeightEvaluatorT>(old_support_kd_tree, old_transforms, new_support, nh, new_transforms, weight_evaluator);
         return new_transforms;
     }
 
     template <typename ScalarT, ptrdiff_t EigenDim, class WeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>>
     void resampleTransformations(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &old_support_kd_tree,
-                                 const RigidTransformationSet<ScalarT,EigenDim> &old_transforms,
+                                 const RigidTransformSet<ScalarT,EigenDim> &old_transforms,
                                  const ConstVectorSetMatrixMap<ScalarT,EigenDim> &new_support,
                                  const NeighborhoodSpecification<ScalarT> &nh,
-                                 RigidTransformationSet<ScalarT,EigenDim> &new_transforms,
+                                 RigidTransformSet<ScalarT,EigenDim> &new_transforms,
                                  const WeightEvaluatorT &weight_evaluator = WeightEvaluatorT())
     {
         switch (nh.type) {
@@ -115,13 +115,13 @@ namespace cilantro {
     }
 
     template <typename ScalarT, ptrdiff_t EigenDim, class WeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>>
-    inline RigidTransformationSet<ScalarT,EigenDim> resampleTransformations(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &old_support_kd_tree,
-                                                                            const RigidTransformationSet<ScalarT,EigenDim> &old_transforms,
-                                                                            const ConstVectorSetMatrixMap<ScalarT,EigenDim> &new_support,
-                                                                            const NeighborhoodSpecification<ScalarT> &nh,
-                                                                            const WeightEvaluatorT &weight_evaluator = WeightEvaluatorT())
+    inline RigidTransformSet<ScalarT,EigenDim> resampleTransformations(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &old_support_kd_tree,
+                                                                       const RigidTransformSet<ScalarT,EigenDim> &old_transforms,
+                                                                       const ConstVectorSetMatrixMap<ScalarT,EigenDim> &new_support,
+                                                                       const NeighborhoodSpecification<ScalarT> &nh,
+                                                                       const WeightEvaluatorT &weight_evaluator = WeightEvaluatorT())
     {
-        RigidTransformationSet<ScalarT,EigenDim> new_transforms;
+        RigidTransformSet<ScalarT,EigenDim> new_transforms;
         resampleTransformations<ScalarT,EigenDim,WeightEvaluatorT>(old_support_kd_tree, old_transforms, new_support, nh, new_transforms, weight_evaluator);
         return new_transforms;
     }

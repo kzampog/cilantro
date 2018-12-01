@@ -5,21 +5,21 @@
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
-    class RigidTransformationRANSACEstimator : public RandomSampleConsensusBase<RigidTransformationRANSACEstimator<ScalarT,EigenDim>,RigidTransformation<ScalarT,EigenDim>,ScalarT> {
+    class RigidTransformRANSACEstimator : public RandomSampleConsensusBase<RigidTransformRANSACEstimator<ScalarT,EigenDim>,RigidTransform<ScalarT,EigenDim>,ScalarT> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        RigidTransformationRANSACEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
+        RigidTransformRANSACEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
                                            const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points)
-                : RandomSampleConsensusBase<RigidTransformationRANSACEstimator<ScalarT,EigenDim>,RigidTransformation<ScalarT,EigenDim>,ScalarT>(dst_points.rows(), dst_points.cols()/2 + dst_points.cols()%2, 100, 0.01, true),
+                : RandomSampleConsensusBase<RigidTransformRANSACEstimator<ScalarT,EigenDim>,RigidTransform<ScalarT,EigenDim>,ScalarT>(dst_points.rows(), dst_points.cols()/2 + dst_points.cols()%2, 100, 0.01, true),
                   dst_points_(dst_points),
                   src_points_(src_points)
         {}
 
-        RigidTransformationRANSACEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
+        RigidTransformRANSACEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
                                            const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points,
                                            const CorrespondenceSet<ScalarT> &corr)
-                : RandomSampleConsensusBase<RigidTransformationRANSACEstimator<ScalarT,EigenDim>,RigidTransformation<ScalarT,EigenDim>,ScalarT>(dst_points.rows(), corr.size()/2 + corr.size()%2, 100, 0.01, true),
+                : RandomSampleConsensusBase<RigidTransformRANSACEstimator<ScalarT,EigenDim>,RigidTransform<ScalarT,EigenDim>,ScalarT>(dst_points.rows(), corr.size()/2 + corr.size()%2, 100, 0.01, true),
                   dst_points_tmp_(dst_points.rows(), corr.size()),
                   src_points_tmp_(src_points.rows(), corr.size()),
                   dst_points_(dst_points_tmp_),
@@ -31,11 +31,11 @@ namespace cilantro {
             }
         }
 
-        RigidTransformationRANSACEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
+        RigidTransformRANSACEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
                                            const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points,
                                            const std::vector<size_t> &dst_ind,
                                            const std::vector<size_t> &src_ind)
-                : RandomSampleConsensusBase<RigidTransformationRANSACEstimator<ScalarT,EigenDim>,RigidTransformation<ScalarT,EigenDim>,ScalarT>(dst_points.rows(), dst_ind.size()/2 + dst_ind.size()%2, 100, 0.01, true),
+                : RandomSampleConsensusBase<RigidTransformRANSACEstimator<ScalarT,EigenDim>,RigidTransform<ScalarT,EigenDim>,ScalarT>(dst_points.rows(), dst_ind.size()/2 + dst_ind.size()%2, 100, 0.01, true),
                   dst_points_tmp_(dst_points.rows(), dst_ind.size()),
                   src_points_tmp_(src_points.rows(), src_ind.size()),
                   dst_points_(dst_points_tmp_),
@@ -47,19 +47,19 @@ namespace cilantro {
             }
         }
 
-        inline RigidTransformationRANSACEstimator& fitModelParameters(RigidTransformation<ScalarT,EigenDim> &model_params) {
+        inline RigidTransformRANSACEstimator& fitModelParameters(RigidTransform<ScalarT,EigenDim> &model_params) {
             estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim>(dst_points_, src_points_, model_params);
             return *this;
         }
 
-        inline RigidTransformation<ScalarT,EigenDim> fitModelParameters() {
-            RigidTransformation<ScalarT,EigenDim> model_params;
+        inline RigidTransform<ScalarT,EigenDim> fitModelParameters() {
+            RigidTransform<ScalarT,EigenDim> model_params;
             fitModelParameters(model_params);
             return model_params;
         }
 
-        RigidTransformationRANSACEstimator& fitModelParameters(const std::vector<size_t> &sample_ind,
-                                                               RigidTransformation<ScalarT,EigenDim> &model_params)
+        RigidTransformRANSACEstimator& fitModelParameters(const std::vector<size_t> &sample_ind,
+                                                               RigidTransform<ScalarT,EigenDim> &model_params)
         {
             VectorSet<ScalarT,EigenDim> dst_p(dst_points_.rows(), sample_ind.size());
             VectorSet<ScalarT,EigenDim> src_p(src_points_.rows(), sample_ind.size());
@@ -71,13 +71,13 @@ namespace cilantro {
             return *this;
         }
 
-        inline RigidTransformation<ScalarT,EigenDim> fitModelParameters(const std::vector<size_t> &sample_ind) {
-            RigidTransformation<ScalarT,EigenDim> model_params;
+        inline RigidTransform<ScalarT,EigenDim> fitModelParameters(const std::vector<size_t> &sample_ind) {
+            RigidTransform<ScalarT,EigenDim> model_params;
             fitModelParameters(sample_ind, model_params);
             return model_params;
         }
 
-        inline RigidTransformationRANSACEstimator& computeResiduals(const RigidTransformation<ScalarT,EigenDim> &model_params,
+        inline RigidTransformRANSACEstimator& computeResiduals(const RigidTransform<ScalarT,EigenDim> &model_params,
                                                                     std::vector<ScalarT> &residuals)
         {
             residuals.resize(dst_points_.cols());
@@ -88,7 +88,7 @@ namespace cilantro {
             return *this;
         }
 
-        inline std::vector<ScalarT> computeResiduals(const RigidTransformation<ScalarT,EigenDim> &model_params) {
+        inline std::vector<ScalarT> computeResiduals(const RigidTransform<ScalarT,EigenDim> &model_params) {
             std::vector<ScalarT> residuals;
             computeResiduals(model_params, residuals);
             return residuals;
@@ -103,8 +103,8 @@ namespace cilantro {
         ConstVectorSetMatrixMap<ScalarT,EigenDim> src_points_;
     };
 
-    typedef RigidTransformationRANSACEstimator<float,2> RigidTransformationRANSACEstimator2f;
-    typedef RigidTransformationRANSACEstimator<double,2> RigidTransformationRANSACEstimator2d;
-    typedef RigidTransformationRANSACEstimator<float,3> RigidTransformationRANSACEstimator3f;
-    typedef RigidTransformationRANSACEstimator<double,3> RigidTransformationRANSACEstimator3d;
+    typedef RigidTransformRANSACEstimator<float,2> RigidTransformRANSACEstimator2f;
+    typedef RigidTransformRANSACEstimator<double,2> RigidTransformRANSACEstimator2d;
+    typedef RigidTransformRANSACEstimator<float,3> RigidTransformRANSACEstimator3f;
+    typedef RigidTransformRANSACEstimator<double,3> RigidTransformRANSACEstimator3d;
 }

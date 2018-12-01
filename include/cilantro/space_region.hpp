@@ -278,7 +278,7 @@ namespace cilantro {
             return *this;
         }
 
-        inline SpaceRegion& transform(const RigidTransformation<ScalarT,EigenDim> &tform) {
+        inline SpaceRegion& transform(const RigidTransform<ScalarT,EigenDim> &tform) {
             for (size_t i = 0; i < polytopes_.size(); i++) {
                 polytopes_[i].transform(tform);
             }

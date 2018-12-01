@@ -7,8 +7,8 @@
 
 namespace cilantro {
     template <typename ScalarT, class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>, class PointToPlaneCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>, class ControlWeightEvaluatorT = RBFKernelWeightEvaluator<ScalarT,ScalarT,true>, class RegularizationWeightEvaluatorT = RBFKernelWeightEvaluator<ScalarT,ScalarT,true>>
-    class SparseCombinedMetricNonRigidICP3 : public IterativeClosestPointBase<SparseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,ControlWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>> {
-        friend class IterativeClosestPointBase<SparseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,ControlWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>;
+    class SparseCombinedMetricNonRigidICP3 : public IterativeClosestPointBase<SparseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,ControlWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>> {
+        friend class IterativeClosestPointBase<SparseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,ControlWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>;
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -31,7 +31,7 @@ namespace cilantro {
                                          ControlWeightEvaluatorT &control_eval,
                                          const std::vector<NeighborSet<ScalarT>> &ctrl_regularization_neighborhoods,
                                          RegularizationWeightEvaluatorT &reg_eval)
-                : IterativeClosestPointBase<SparseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,ControlWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
+                : IterativeClosestPointBase<SparseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,ControlWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
                   dst_points_(dst_p), dst_normals_(dst_n), src_points_(src_p),
                   src_to_ctrl_neighborhoods_(src_to_ctrl_neighborhoods), num_ctrl_nodes_(num_ctrl_nodes),
                   ctrl_regularization_neighborhoods_(ctrl_regularization_neighborhoods),
@@ -116,7 +116,7 @@ namespace cilantro {
             return *this;
         }
 
-        inline const RigidTransformationSet<ScalarT,3>& getPointTransformations() const {
+        inline const RigidTransformSet<ScalarT,3>& getPointTransformations() const {
             return transform_dense_;
         }
 
@@ -143,12 +143,12 @@ namespace cilantro {
         RegularizationWeightEvaluator& reg_eval_;
 
         VectorSet<ScalarT,3> src_points_trans_;
-        RigidTransformationSet<ScalarT,3> transform_dense_;
-        RigidTransformationSet<ScalarT,3> transform_iter_;
+        RigidTransformSet<ScalarT,3> transform_dense_;
+        RigidTransformSet<ScalarT,3> transform_iter_;
 
         // ICP interface
         inline void initializeComputation() {
-            resampleTransformations(this->transform_, src_to_ctrl_neighborhoods_, transform_dense_);
+            resampleTransformations<ScalarT,3,ControlWeightEvaluator>(this->transform_, src_to_ctrl_neighborhoods_, transform_dense_, control_eval_);
         }
 
         // ICP interface
@@ -166,7 +166,7 @@ namespace cilantro {
             CorrespondenceSearchCombinedMetricAdaptor<CorrespondenceSearchEngineT> corr_getter_proxy(this->correspondence_search_engine_);
             estimateSparseWarpFieldCombinedMetric3<ScalarT,PointToPointCorrespondenceWeightEvaluator,PointToPlaneCorrespondenceWeightEvaluator,ControlWeightEvaluator,RegularizationWeightEvaluator>(dst_points_, dst_normals_, src_points_trans_, corr_getter_proxy.getPointToPointCorrespondences(), point_to_point_weight_, corr_getter_proxy.getPointToPlaneCorrespondences(), point_to_plane_weight_, src_to_ctrl_neighborhoods_, num_ctrl_nodes_, ctrl_regularization_neighborhoods_, stiffness_weight_, transform_iter_, huber_boundary_, max_gauss_newton_iterations_, gauss_newton_convergence_tol_, max_conjugate_gradient_iterations_, conjugate_gradient_convergence_tol_, point_corr_eval_, plane_corr_eval_, control_eval_, reg_eval_);
             this->transform_.preApply(transform_iter_);
-            resampleTransformations(this->transform_, src_to_ctrl_neighborhoods_, transform_dense_);
+            resampleTransformations<ScalarT,3,ControlWeightEvaluator>(this->transform_, src_to_ctrl_neighborhoods_, transform_dense_, control_eval_);
 
             ScalarT max_delta_norm_sq = (ScalarT)0.0;
 #pragma omp parallel for reduction (max: max_delta_norm_sq)

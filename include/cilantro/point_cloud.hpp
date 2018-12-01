@@ -352,13 +352,13 @@ namespace cilantro {
             return transformed(tform.topLeftCorner(points.rows(),points.rows()), tform.topRightCorner(points.rows(),1));
         }
 
-        inline PointCloud& transform(const RigidTransformation<ScalarT,EigenDim> &tform) {
+        inline PointCloud& transform(const RigidTransform<ScalarT,EigenDim> &tform) {
             points = tform*points;
             if (hasNormals()) normals = tform.linear()*normals;
             return *this;
         }
 
-        inline PointCloud transformed(const RigidTransformation<ScalarT,EigenDim> &tform) const {
+        inline PointCloud transformed(const RigidTransform<ScalarT,EigenDim> &tform) const {
             PointCloud cloud;
             cloud.points.noalias() = tform*points;
             if (hasNormals()) cloud.normals.noalias() = tform.linear()*normals;
@@ -366,7 +366,7 @@ namespace cilantro {
             return cloud;
         }
 
-        inline PointCloud& transform(const RigidTransformationSet<ScalarT,EigenDim> &tforms) {
+        inline PointCloud& transform(const RigidTransformSet<ScalarT,EigenDim> &tforms) {
             if (hasNormals()) {
                 tforms.warpPointsNormals(points, normals);
             } else {
@@ -375,7 +375,7 @@ namespace cilantro {
             return *this;
         }
 
-        inline PointCloud transformed(const RigidTransformationSet<ScalarT,EigenDim> &tforms) const {
+        inline PointCloud transformed(const RigidTransformSet<ScalarT,EigenDim> &tforms) const {
             PointCloud cloud(*this);
             cloud.transform(tforms);
             return cloud;

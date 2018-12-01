@@ -7,8 +7,8 @@
 
 namespace cilantro {
     template <typename ScalarT, class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>, class PointToPlaneCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>>
-    class CombinedMetricRigidICP3 : public IterativeClosestPointBase<CombinedMetricRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT>,RigidTransformation<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>> {
-        friend class IterativeClosestPointBase<CombinedMetricRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT>,RigidTransformation<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>;
+    class CombinedMetricRigidICP3 : public IterativeClosestPointBase<CombinedMetricRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT>,RigidTransform<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>> {
+        friend class IterativeClosestPointBase<CombinedMetricRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT>,RigidTransform<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>;
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -22,7 +22,7 @@ namespace cilantro {
                                 CorrespondenceSearchEngineT &corr_engine,
                                 PointToPointCorrWeightEvaluatorT &point_corr_eval,
                                 PointToPlaneCorrWeightEvaluatorT &plane_corr_eval)
-                : IterativeClosestPointBase<CombinedMetricRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT>,RigidTransformation<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
+                : IterativeClosestPointBase<CombinedMetricRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT>,RigidTransform<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
                   dst_points_(dst_p), dst_normals_(dst_n), src_points_(src_p),
                   max_optimization_iterations_(1), optimization_convergence_tol_((ScalarT)1e-5),
                   point_to_point_weight_((ScalarT)0.0), point_to_plane_weight_((ScalarT)1.0),
@@ -98,7 +98,7 @@ namespace cilantro {
             }
 
             CorrespondenceSearchCombinedMetricAdaptor<CorrespondenceSearchEngineT> corr_getter_proxy(this->correspondence_search_engine_);
-            RigidTransformation<ScalarT,3> tform_iter;
+            RigidTransform<ScalarT,3> tform_iter;
             estimateRigidTransformCombinedMetric3<ScalarT,PointToPointCorrespondenceWeightEvaluator,PointToPlaneCorrespondenceWeightEvaluator>(dst_points_, dst_normals_, src_points_trans_, corr_getter_proxy.getPointToPointCorrespondences(), point_to_point_weight_, corr_getter_proxy.getPointToPlaneCorrespondences(), point_to_plane_weight_, tform_iter, max_optimization_iterations_, optimization_convergence_tol_, point_corr_eval_, plane_corr_eval_);
 
             this->transform_ = tform_iter*this->transform_;

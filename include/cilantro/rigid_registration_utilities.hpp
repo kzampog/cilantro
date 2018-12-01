@@ -9,7 +9,7 @@ namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
     bool estimateRigidTransformPointToPointClosedForm(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst,
                                                       const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src,
-                                                      RigidTransformation<ScalarT,EigenDim> &tform)
+                                                      RigidTransform<ScalarT,EigenDim> &tform)
     {
         if (src.cols() != dst.cols() || src.cols() == 0) {
             tform.setIdentity();
@@ -39,7 +39,7 @@ namespace cilantro {
     bool estimateRigidTransformPointToPointClosedForm(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst,
                                                       const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src,
                                                       const CorrespondenceSet<CorrValueT> &corr,
-                                                      RigidTransformation<ScalarT,EigenDim> &tform)
+                                                      RigidTransform<ScalarT,EigenDim> &tform)
     {
         VectorSet<ScalarT,EigenDim> dst_corr, src_corr;
         selectCorrespondingPoints<ScalarT,EigenDim,CorrValueT>(corr, dst, src, dst_corr, src_corr);
@@ -54,7 +54,7 @@ namespace cilantro {
                                                ScalarT point_to_point_weight,
                                                const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
                                                ScalarT point_to_plane_weight,
-                                               RigidTransformation<ScalarT,3> &tform,
+                                               RigidTransform<ScalarT,3> &tform,
                                                size_t max_iter = 1,
                                                ScalarT convergence_tol = (ScalarT)1e-5,
                                                const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),

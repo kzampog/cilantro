@@ -61,7 +61,7 @@ int main(int argc, char ** argv) {
         cilantro::RGBDImagesToPointsNormalsColors(rgb_img.ptr, depth_img.ptr, dc1, w, h, K, cloud.points, cloud.normals, cloud.colors, false);
 
         // Get a depth map back from the point cloud
-        cilantro::RigidTransformation3f cam_pose;
+        cilantro::RigidTransform3f cam_pose;
         pcdv.getCameraPose(cam_pose);
         cilantro::DepthValueConverter<float,float> dc2(1.0f);
         cilantro::pointsToDepthImage<decltype(dc2)>(cloud.points, cam_pose, K, dc2, depthf_img.ptr, w, h);

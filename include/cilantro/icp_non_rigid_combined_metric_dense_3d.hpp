@@ -7,8 +7,8 @@
 
 namespace cilantro {
     template <typename ScalarT, class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>, class PointToPlaneCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>, class RegularizationWeightEvaluatorT = RBFKernelWeightEvaluator<ScalarT,ScalarT,true>>
-    class DenseCombinedMetricNonRigidICP3 : public IterativeClosestPointBase<DenseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>> {
-        friend class IterativeClosestPointBase<DenseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>;
+    class DenseCombinedMetricNonRigidICP3 : public IterativeClosestPointBase<DenseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>> {
+        friend class IterativeClosestPointBase<DenseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>;
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -26,7 +26,7 @@ namespace cilantro {
                                         PointToPlaneCorrWeightEvaluatorT &plane_corr_eval,
                                         const std::vector<NeighborSet<ScalarT>> &regularization_neighborhoods,
                                         RegularizationWeightEvaluatorT &reg_eval)
-                : IterativeClosestPointBase<DenseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformationSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
+                : IterativeClosestPointBase<DenseCombinedMetricNonRigidICP3<ScalarT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,RegularizationWeightEvaluatorT>,RigidTransformSet<ScalarT,3>,CorrespondenceSearchEngineT,VectorSet<ScalarT,1>>(corr_engine),
                   dst_points_(dst_p), dst_normals_(dst_n), src_points_(src_p),
                   regularization_neighborhoods_(regularization_neighborhoods),
                   point_to_point_weight_((ScalarT)0.0), point_to_plane_weight_((ScalarT)1.0),
@@ -127,7 +127,7 @@ namespace cilantro {
         RegularizationWeightEvaluator& reg_eval_;
 
         VectorSet<ScalarT,3> src_points_trans_;
-        RigidTransformationSet<ScalarT,3> tforms_iter_;
+        RigidTransformSet<ScalarT,3> tforms_iter_;
 
         // ICP interface
         inline void initializeComputation() {}

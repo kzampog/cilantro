@@ -187,7 +187,7 @@ namespace cilantro {
             return transform(tform.topLeftCorner(dim_,dim_), tform.topRightCorner(dim_,1));
         }
 
-        inline ConvexPolytope& transform(const RigidTransformation<ScalarT,EigenDim> &tform) {
+        inline ConvexPolytope& transform(const RigidTransform<ScalarT,EigenDim> &tform) {
             return transform(tform.linear(), tform.translation());
         }
 
