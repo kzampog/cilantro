@@ -148,7 +148,7 @@ namespace cilantro {
 
         // ICP interface
         inline void initializeComputation() {
-            resampleTransformations<ScalarT,3,ControlWeightEvaluator>(this->transform_, src_to_ctrl_neighborhoods_, transform_dense_, control_eval_);
+            resampleTransforms(this->transform_, src_to_ctrl_neighborhoods_, transform_dense_, control_eval_);
         }
 
         // ICP interface
@@ -163,7 +163,7 @@ namespace cilantro {
             CorrespondenceSearchCombinedMetricAdaptor<CorrespondenceSearchEngineT> corr_getter_proxy(this->correspondence_search_engine_);
             estimateSparseWarpFieldCombinedMetric3<ScalarT,PointToPointCorrespondenceWeightEvaluator,PointToPlaneCorrespondenceWeightEvaluator,ControlWeightEvaluator,RegularizationWeightEvaluator>(dst_points_, dst_normals_, src_points_trans_, corr_getter_proxy.getPointToPointCorrespondences(), point_to_point_weight_, corr_getter_proxy.getPointToPlaneCorrespondences(), point_to_plane_weight_, src_to_ctrl_neighborhoods_, num_ctrl_nodes_, ctrl_regularization_neighborhoods_, stiffness_weight_, transform_iter_, huber_boundary_, max_gauss_newton_iterations_, gauss_newton_convergence_tol_, max_conjugate_gradient_iterations_, conjugate_gradient_convergence_tol_, point_corr_eval_, plane_corr_eval_, control_eval_, reg_eval_);
             this->transform_.preApply(transform_iter_);
-            resampleTransformations<ScalarT,3,ControlWeightEvaluator>(this->transform_, src_to_ctrl_neighborhoods_, transform_dense_, control_eval_);
+            resampleTransforms(this->transform_, src_to_ctrl_neighborhoods_, transform_dense_, control_eval_);
 
             ScalarT max_delta_norm_sq = (ScalarT)0.0;
 #pragma omp parallel for reduction (max: max_delta_norm_sq)
