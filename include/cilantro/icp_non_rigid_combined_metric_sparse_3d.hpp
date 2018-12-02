@@ -158,10 +158,7 @@ namespace cilantro {
 
         // ICP interface
         void updateEstimate() {
-#pragma omp parallel for
-            for (size_t i = 0; i < src_points_.cols(); i++) {
-                src_points_trans_.col(i).noalias() = transform_dense_[i]*src_points_.col(i);
-            }
+            transformPoints(transform_dense_, src_points_, src_points_trans_);
 
             CorrespondenceSearchCombinedMetricAdaptor<CorrespondenceSearchEngineT> corr_getter_proxy(this->correspondence_search_engine_);
             estimateSparseWarpFieldCombinedMetric3<ScalarT,PointToPointCorrespondenceWeightEvaluator,PointToPlaneCorrespondenceWeightEvaluator,ControlWeightEvaluator,RegularizationWeightEvaluator>(dst_points_, dst_normals_, src_points_trans_, corr_getter_proxy.getPointToPointCorrespondences(), point_to_point_weight_, corr_getter_proxy.getPointToPlaneCorrespondences(), point_to_plane_weight_, src_to_ctrl_neighborhoods_, num_ctrl_nodes_, ctrl_regularization_neighborhoods_, stiffness_weight_, transform_iter_, huber_boundary_, max_gauss_newton_iterations_, gauss_newton_convergence_tol_, max_conjugate_gradient_iterations_, conjugate_gradient_convergence_tol_, point_corr_eval_, plane_corr_eval_, control_eval_, reg_eval_);

@@ -377,49 +377,24 @@ namespace cilantro {
         template <class TransformT>
         inline PointCloud& transform(const TransformT &tform) {
             if (hasNormals()) {
-                if (int(TransformT::Mode) == int(Eigen::Isometry)) {
-#pragma omp parallel for
-                    for (size_t i = 0; i < points.cols(); i++) {
-                        points.col(i) = tform*points.col(i);
-                        normals.col(i) = tform.linear()*normals.col(i);
-                    }
-                } else {
-                    Eigen::Matrix<ScalarT,EigenDim,EigenDim> normal_tform = tform.linear().inverse().transpose();
-#pragma omp parallel for
-                    for (size_t i = 0; i < points.cols(); i++) {
-                        points.col(i) = tform*points.col(i);
-                        normals.col(i) = (normal_tform*normals.col(i)).normalized();
-                    }
-                }
+                transformPointsNormals(tform, points, normals);
             } else {
-#pragma omp parallel for
-                for (size_t i = 0; i < points.cols(); i++) {
-                    points.col(i) = tform*points.col(i);
-                }
+                transformPoints(tform, points);
             }
             return *this;
         }
 
-        inline PointCloud transformed(const RigidTransform<ScalarT,EigenDim> &tform) const {
+        template <class TransformT>
+        inline PointCloud transformed(const TransformT &tform) const {
             PointCloud cloud;
-            cloud.points.noalias() = tform*points;
-            if (hasNormals()) cloud.normals.noalias() = tform.linear()*normals;
-            if (hasColors()) cloud.colors = colors;
-            return cloud;
-        }
-
-        inline PointCloud& transform(const RigidTransformSet<ScalarT,EigenDim> &tforms) {
+            cloud.points.resize(points.rows(), points.cols());
             if (hasNormals()) {
-                tforms.transformPointsNormals(points, normals);
+                cloud.normals.resize(normals.rows(), normals.cols());
+                transformPointsNormals(tform, points, normals, cloud.points, cloud.normals);
             } else {
-                tforms.transformPoints(points);
+                transformPoints(tform, points, cloud.points);
             }
-            return *this;
-        }
-
-        inline PointCloud transformed(const RigidTransformSet<ScalarT,EigenDim> &tforms) const {
-            PointCloud cloud(*this);
-            cloud.transform(tforms);
+            if (hasColors()) cloud.colors = colors;
             return cloud;
         }
 

@@ -94,73 +94,6 @@ namespace cilantro {
             }
             return *this;
         }
-
-        VectorSet<Scalar,Dim> getTransformedPoints(const ConstVectorSetMatrixMap<Scalar,Dim> &points) const {
-            VectorSet<Scalar,Dim> points_t(points.rows(), points.cols());
-#pragma omp parallel for
-            for (size_t i = 0; i < points_t.cols(); i++) {
-                points_t.col(i).noalias() = (*this)[i]*points.col(i);
-            }
-            return points_t;
-        }
-
-        const TransformSet& transformPoints(DataMatrixMap<Scalar,Dim> points) const {
-#pragma omp parallel for
-            for (size_t i = 0; i < points.cols(); i++) {
-                points.col(i) = (*this)[i]*points.col(i);
-            }
-            return *this;
-        }
-
-        VectorSet<Scalar,Dim> getTransformedNormals(const ConstVectorSetMatrixMap<Scalar,Dim> &normals) const {
-            VectorSet<Scalar,Dim> normals_t(normals.rows(), normals.cols());
-            if (int(TransformT::Mode) == int(Eigen::Isometry)) {
-#pragma omp parallel for
-                for (size_t i = 0; i < normals_t.cols(); i++) {
-                    normals_t.col(i).noalias() = (*this)[i].linear()*normals.col(i);
-                }
-            } else {
-#pragma omp parallel for
-                for (size_t i = 0; i < normals_t.cols(); i++) {
-                    normals_t.col(i).noalias() = ((*this)[i].linear().inverse().transpose()*normals.col(i)).normalized();
-                }
-            }
-            return normals_t;
-        }
-
-        const TransformSet& transformNormals(DataMatrixMap<Scalar,Dim> normals) const {
-            if (int(TransformT::Mode) == int(Eigen::Isometry)) {
-#pragma omp parallel for
-                for (size_t i = 0; i < normals.cols(); i++) {
-                    normals.col(i) = (*this)[i].linear()*normals.col(i);
-                }
-            } else {
-#pragma omp parallel for
-                for (size_t i = 0; i < normals.cols(); i++) {
-                    normals.col(i) = ((*this)[i].linear().inverse().transpose()*normals.col(i)).normalized();
-                }
-            }
-            return *this;
-        }
-
-        const TransformSet& transformPointsNormals(DataMatrixMap<Scalar,Dim> points,
-                                                   DataMatrixMap<Scalar,Dim> normals) const
-        {
-            if (int(TransformT::Mode) == int(Eigen::Isometry)) {
-#pragma omp parallel for
-                for (size_t i = 0; i < points.cols(); i++) {
-                    points.col(i) = (*this)[i]*points.col(i);
-                    normals.col(i) = (*this)[i].linear()*normals.col(i);
-                }
-            } else {
-#pragma omp parallel for
-                for (size_t i = 0; i < points.cols(); i++) {
-                    points.col(i) = (*this)[i]*points.col(i);
-                    normals.col(i) = ((*this)[i].linear().inverse().transpose()*normals.col(i)).normalized();
-                }
-            }
-            return *this;
-        }
     };
 
     template <typename ScalarT, ptrdiff_t EigenDim>
@@ -168,6 +101,257 @@ namespace cilantro {
 
     template <typename ScalarT, ptrdiff_t EigenDim>
     using AffineTransformSet = TransformSet<AffineTransform<ScalarT,EigenDim>>;
+
+    // Point set transformations
+    template <class TransformT>
+    void transformPoints(const TransformT &tform,
+                         DataMatrixMap<typename TransformT::Scalar,TransformT::Dim> points)
+    {
+#pragma omp parallel for
+        for (size_t i = 0; i < points.cols(); i++) {
+            points.col(i) = tform*points.col(i);
+        }
+    }
+
+    template <class TransformT>
+    void transformPoints(const TransformSet<TransformT> &tforms,
+                         DataMatrixMap<typename TransformT::Scalar,TransformT::Dim> points)
+    {
+#pragma omp parallel for
+        for (size_t i = 0; i < points.cols(); i++) {
+            points.col(i) = tforms[i]*points.col(i);
+        }
+    }
+
+    template <class TransformT>
+    void transformPoints(const TransformT &tform,
+                         const ConstDataMatrixMap<typename TransformT::Scalar,TransformT::Dim> &points,
+                         DataMatrixMap<typename TransformT::Scalar,TransformT::Dim> result)
+    {
+        if (result.data() == points.data()) {
+            transformPoints(tform, result);
+            return;
+        }
+
+#pragma omp parallel for
+        for (size_t i = 0; i < points.cols(); i++) {
+            result.col(i).noalias() = tform*points.col(i);
+        }
+    }
+
+    template <class TransformT>
+    void transformPoints(const TransformSet<TransformT> &tforms,
+                         const ConstDataMatrixMap<typename TransformT::Scalar,TransformT::Dim> &points,
+                         DataMatrixMap<typename TransformT::Scalar,TransformT::Dim> result)
+    {
+        if (result.data() == points.data()) {
+            transformPoints(tforms, result);
+            return;
+        }
+
+#pragma omp parallel for
+        for (size_t i = 0; i < points.cols(); i++) {
+            result.col(i).noalias() = tforms[i]*points.col(i);
+        }
+    }
+
+    template <class TransformT>
+    inline VectorSet<typename TransformT::Scalar,TransformT::Dim> getTransformedPoints(const TransformT &tform,
+                                                                                       const ConstDataMatrixMap<typename TransformT::Scalar,TransformT::Dim> &points)
+    {
+        VectorSet<typename TransformT::Scalar,TransformT::Dim> result(points.rows(), points.cols());
+        transformPoints(tform, points, result);
+        return result;
+    }
+
+    // Normal transformations
+    template <class TransformT>
+    void transformNormals(const TransformT &tform,
+                          DataMatrixMap<typename TransformT::Scalar,TransformT::Dim> normals)
+    {
+        if (int(TransformT::Mode) == int(Eigen::Isometry)) {
+#pragma omp parallel for
+            for (size_t i = 0; i < normals.cols(); i++) {
+                normals.col(i) = tform.linear()*normals.col(i);
+            }
+        } else {
+            Eigen::Matrix<typename TransformT::Scalar,TransformT::Dim,TransformT::Dim> normal_tform = tform.linear().inverse().transpose();
+#pragma omp parallel for
+            for (size_t i = 0; i < normals.cols(); i++) {
+                normals.col(i) = (normal_tform*normals.col(i)).normalized();
+            }
+        }
+    }
+
+    template <class TransformT>
+    void transformNormals(const TransformSet<TransformT> &tforms,
+                          DataMatrixMap<typename TransformT::Scalar,TransformT::Dim> normals)
+    {
+        if (int(TransformT::Mode) == int(Eigen::Isometry)) {
+#pragma omp parallel for
+            for (size_t i = 0; i < normals.cols(); i++) {
+                normals.col(i) = tforms[i].linear()*normals.col(i);
+            }
+        } else {
+#pragma omp parallel for
+            for (size_t i = 0; i < normals.cols(); i++) {
+                normals.col(i) = (tforms[i].linear().inverse().transpose()*normals.col(i)).normalized();
+            }
+        }
+    }
+
+    template <class TransformT>
+    void transformNormals(const TransformT &tform,
+                          const ConstDataMatrixMap<typename TransformT::Scalar,TransformT::Dim> &normals,
+                          DataMatrixMap<typename TransformT::Scalar,TransformT::Dim> result)
+    {
+        if (result.data() == normals.data()) {
+            transformNormals(tform, result);
+            return;
+        }
+
+        if (int(TransformT::Mode) == int(Eigen::Isometry)) {
+#pragma omp parallel for
+            for (size_t i = 0; i < normals.cols(); i++) {
+                result.col(i).noalias() = tform.linear()*normals.col(i);
+            }
+        } else {
+            Eigen::Matrix<typename TransformT::Scalar,TransformT::Dim,TransformT::Dim> normal_tform = tform.linear().inverse().transpose();
+#pragma omp parallel for
+            for (size_t i = 0; i < normals.cols(); i++) {
+                result.col(i).noalias() = (normal_tform*normals.col(i)).normalized();
+            }
+        }
+    }
+
+    template <class TransformT>
+    void transformNormals(const TransformSet<TransformT> &tforms,
+                          const ConstDataMatrixMap<typename TransformT::Scalar,TransformT::Dim> &normals,
+                          DataMatrixMap<typename TransformT::Scalar,TransformT::Dim> result)
+    {
+        if (result.data() == normals.data()) {
+            transformNormals(tforms, result);
+            return;
+        }
+
+        if (int(TransformT::Mode) == int(Eigen::Isometry)) {
+#pragma omp parallel for
+            for (size_t i = 0; i < normals.cols(); i++) {
+                result.col(i).noalias() = tforms[i].linear()*normals.col(i);
+            }
+        } else {
+#pragma omp parallel for
+            for (size_t i = 0; i < normals.cols(); i++) {
+                result.col(i).noalias() = (tforms[i].linear().inverse().transpose()*normals.col(i)).normalized();
+            }
+        }
+    }
+
+    template <class TransformT>
+    inline VectorSet<typename TransformT::Scalar,TransformT::Dim> getTransformedNormals(const TransformT &tform,
+                                                                                        const ConstDataMatrixMap<typename TransformT::Scalar,TransformT::Dim> &normals)
+    {
+        VectorSet<typename TransformT::Scalar,TransformT::Dim> result(normals.rows(), normals.cols());
+        transformNormals(tform, normals, result);
+        return result;
+    }
+
+    // Point & normal transformations
+    template <class TransformT>
+    void transformPointsNormals(const TransformT &tform,
+                                DataMatrixMap<typename TransformT::Scalar,TransformT::Dim> points,
+                                DataMatrixMap<typename TransformT::Scalar,TransformT::Dim> normals)
+    {
+        if (int(TransformT::Mode) == int(Eigen::Isometry)) {
+#pragma omp parallel for
+            for (size_t i = 0; i < points.cols(); i++) {
+                points.col(i) = tform*points.col(i);
+                normals.col(i) = tform.linear()*normals.col(i);
+            }
+        } else {
+            Eigen::Matrix<typename TransformT::Scalar,TransformT::Dim,TransformT::Dim> normal_tform = tform.linear().inverse().transpose();
+#pragma omp parallel for
+            for (size_t i = 0; i < points.cols(); i++) {
+                points.col(i) = tform*points.col(i);
+                normals.col(i) = (normal_tform*normals.col(i)).normalized();
+            }
+        }
+    }
+
+    template <class TransformT>
+    void transformPointsNormals(const TransformSet<TransformT> &tforms,
+                                DataMatrixMap<typename TransformT::Scalar,TransformT::Dim> points,
+                                DataMatrixMap<typename TransformT::Scalar,TransformT::Dim> normals)
+    {
+        if (int(TransformT::Mode) == int(Eigen::Isometry)) {
+#pragma omp parallel for
+            for (size_t i = 0; i < points.cols(); i++) {
+                points.col(i) = tforms[i]*points.col(i);
+                normals.col(i) = tforms[i].linear()*normals.col(i);
+            }
+        } else {
+#pragma omp parallel for
+            for (size_t i = 0; i < points.cols(); i++) {
+                points.col(i) = tforms[i]*points.col(i);
+                normals.col(i) = (tforms[i].linear().inverse().transpose()*normals.col(i)).normalized();
+            }
+        }
+    }
+
+    template <class TransformT>
+    void transformPointsNormals(const TransformT &tform,
+                                const ConstDataMatrixMap<typename TransformT::Scalar,TransformT::Dim> &points,
+                                const ConstDataMatrixMap<typename TransformT::Scalar,TransformT::Dim> &normals,
+                                DataMatrixMap<typename TransformT::Scalar,TransformT::Dim> points_trans,
+                                DataMatrixMap<typename TransformT::Scalar,TransformT::Dim> normals_trans)
+    {
+        if (points_trans.data() == points.data() || normals_trans.data() == normals.data()) {
+            transformPoints(tform, points, points_trans);
+            transformNormals(tform, normals, normals_trans);
+        }
+
+        if (int(TransformT::Mode) == int(Eigen::Isometry)) {
+#pragma omp parallel for
+            for (size_t i = 0; i < normals.cols(); i++) {
+                points_trans.col(i).noalias() = tform*points.col(i);
+                normals_trans.col(i).noalias() = tform.linear()*normals.col(i);
+            }
+        } else {
+            Eigen::Matrix<typename TransformT::Scalar,TransformT::Dim,TransformT::Dim> normal_tform = tform.linear().inverse().transpose();
+#pragma omp parallel for
+            for (size_t i = 0; i < normals.cols(); i++) {
+                points_trans.col(i).noalias() = tform*points.col(i);
+                normals_trans.col(i).noalias() = (normal_tform*normals.col(i)).normalized();
+            }
+        }
+    }
+
+    template <class TransformT>
+    void transformPointsNormals(const TransformSet<TransformT> &tforms,
+                                const ConstDataMatrixMap<typename TransformT::Scalar,TransformT::Dim> &points,
+                                const ConstDataMatrixMap<typename TransformT::Scalar,TransformT::Dim> &normals,
+                                DataMatrixMap<typename TransformT::Scalar,TransformT::Dim> points_trans,
+                                DataMatrixMap<typename TransformT::Scalar,TransformT::Dim> normals_trans)
+    {
+        if (points_trans.data() == points.data() || normals_trans.data() == normals.data()) {
+            transformPoints(tforms, points, points_trans);
+            transformNormals(tforms, normals, normals_trans);
+        }
+
+        if (int(TransformT::Mode) == int(Eigen::Isometry)) {
+#pragma omp parallel for
+            for (size_t i = 0; i < normals.cols(); i++) {
+                points_trans.col(i).noalias() = tforms[i]*points.col(i);
+                normals_trans.col(i).noalias() = tforms[i].linear()*normals.col(i);
+            }
+        } else {
+#pragma omp parallel for
+            for (size_t i = 0; i < normals.cols(); i++) {
+                points_trans.col(i).noalias() = tforms[i]*points.col(i);
+                normals_trans.col(i).noalias() = (tforms[i].linear().inverse().transpose()*normals.col(i)).normalized();
+            }
+        }
+    }
 
     typedef RigidTransform<float,2> RigidTransform2f;
     typedef RigidTransform<double,2> RigidTransform2d;

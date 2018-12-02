@@ -92,10 +92,7 @@ namespace cilantro {
         }
 
         void updateEstimate() {
-#pragma omp parallel for
-            for (size_t i = 0; i < src_points_.cols(); i++) {
-                src_points_trans_.col(i).noalias() = this->transform_*src_points_.col(i);
-            }
+            transformPoints(this->transform_, src_points_, src_points_trans_);
 
             CorrespondenceSearchCombinedMetricAdaptor<CorrespondenceSearchEngineT> corr_getter_proxy(this->correspondence_search_engine_);
             RigidTransform<ScalarT,3> tform_iter;
