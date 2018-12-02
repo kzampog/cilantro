@@ -314,64 +314,14 @@ namespace cilantro {
             return *this;
         }
 
-        inline PointCloud& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rotation,
-                                     const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation)
-        {
+        template <class LinearT, class TranslationT>
+        inline PointCloud& transform(const LinearT &linear, const TranslationT &translation) {
             if (hasNormals()) {
-#pragma omp parallel for
-                for (size_t i = 0; i < points.cols(); i++) {
-                    points.col(i) = rotation*points.col(i) + translation;
-                    normals.col(i) = rotation*normals.col(i);
-                }
+                transformPointsNormals(linear, translation, points, normals);
             } else {
-#pragma omp parallel for
-                for (size_t i = 0; i < points.cols(); i++) {
-                    points.col(i) = rotation*points.col(i) + translation;
-                }
+                transformPoints(linear, translation, points);
             }
             return *this;
-        }
-
-        inline PointCloud transformed(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rotation,
-                                      const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation)
-        {
-            PointCloud cloud;
-            cloud.points.resize(points.rows(), points.cols());
-            if (hasNormals()) {
-                cloud.normals.resize(normals.rows(), normals.cols());
-#pragma omp parallel for
-                for (size_t i = 0; i < points.cols(); i++) {
-                    cloud.points.col(i).noalias() = rotation*points.col(i) + translation;
-                    cloud.normals.col(i).noalias() = rotation*normals.col(i);
-                }
-            } else {
-#pragma omp parallel for
-                for (size_t i = 0; i < points.cols(); i++) {
-                    cloud.points.col(i).noalias() = rotation*points.col(i) + translation;
-                }
-            }
-            if (hasColors()) cloud.colors = colors;
-            return cloud;
-        }
-
-        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
-        inline PointCloud& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim+1,EigenDim+1>> &tform) {
-            return transform(tform.topLeftCorner(EigenDim,EigenDim), tform.topRightCorner(EigenDim,1));
-        }
-
-        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
-        inline PointCloud transformed(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim+1,EigenDim+1>> &tform) {
-            return transformed(tform.topLeftCorner(EigenDim,EigenDim), tform.topRightCorner(EigenDim,1));
-        }
-
-        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == Eigen::Dynamic>::type>
-        inline PointCloud& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &tform) {
-            return transform(tform.topLeftCorner(points.rows(),points.rows()), tform.topRightCorner(points.rows(),1));
-        }
-
-        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == Eigen::Dynamic>::type>
-        inline PointCloud transformed(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &tform) {
-            return transformed(tform.topLeftCorner(points.rows(),points.rows()), tform.topRightCorner(points.rows(),1));
         }
 
         template <class TransformT>
@@ -382,6 +332,20 @@ namespace cilantro {
                 transformPoints(tform, points);
             }
             return *this;
+        }
+
+        template <class LinearT, class TranslationT>
+        inline PointCloud transformed(const LinearT &linear, const TranslationT &translation) const {
+            PointCloud cloud;
+            cloud.points.resize(points.rows(), points.cols());
+            if (hasNormals()) {
+                cloud.normals.resize(normals.rows(), normals.cols());
+                transformPointsNormals(linear, translation, points, normals, cloud.points, cloud.normals);
+            } else {
+                transformPoints(linear, translation, points, cloud.points);
+            }
+            if (hasColors()) cloud.colors = colors;
+            return cloud;
         }
 
         template <class TransformT>

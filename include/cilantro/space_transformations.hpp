@@ -3,6 +3,18 @@
 #include <cilantro/data_containers.hpp>
 
 namespace cilantro {
+    namespace internal {
+        template <ptrdiff_t HDim>
+        struct SpaceDimensionFromHomogeneous {
+            enum { value = (HDim == Eigen::Dynamic) ? Eigen::Dynamic : HDim-1 };
+        };
+
+        template <ptrdiff_t Dim>
+        struct HomogeneousDimensionFromSpace {
+            enum { value = (Dim == Eigen::Dynamic) ? Eigen::Dynamic : Dim+1 };
+        };
+    }
+
     template <typename ScalarT, ptrdiff_t EigenDim>
     using RigidTransform = Eigen::Transform<ScalarT,EigenDim,Eigen::Isometry>;
 
@@ -17,6 +29,7 @@ namespace cilantro {
             std::vector<TransformT,Eigen::aligned_allocator<TransformT>>,
             std::vector<TransformT>>::type;
 #endif
+
     template <class TransformT>
     class TransformSet : public TransformSetBase<TransformT> {
     public:
@@ -103,6 +116,34 @@ namespace cilantro {
     using AffineTransformSet = TransformSet<AffineTransform<ScalarT,EigenDim>>;
 
     // Point set transformations
+
+    template <class LinearT, class TranslationT>
+    void transformPoints(const LinearT &linear,
+                         const TranslationT &translation,
+                         DataMatrixMap<typename LinearT::Scalar,LinearT::ColsAtCompileTime> points)
+    {
+#pragma omp parallel for
+        for (size_t i = 0; i < points.cols(); i++) {
+            points.col(i) = linear*points.col(i) + translation;
+        }
+    }
+
+    template <class MatrixT>
+    inline typename std::enable_if<MatrixT::ColsAtCompileTime != Eigen::Dynamic,void>::type transformPoints(const MatrixT &tform,
+                                                                                                            DataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> points)
+    {
+        transformPoints(tform.template block<internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value>(0, 0),
+                        tform.template block<internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value,1>(0, internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value),
+                        points);
+    }
+
+    template <class MatrixT>
+    inline typename std::enable_if<MatrixT::ColsAtCompileTime == Eigen::Dynamic,void>::type transformPoints(const MatrixT &tform,
+                                                                                                            DataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> points)
+    {
+        transformPoints(tform.block(0, 0, points.rows(), points.rows()), tform.block(0, points.rows(), points.rows(), 1), points);
+    }
+
     template <class TransformT>
     void transformPoints(const TransformT &tform,
                          DataMatrixMap<typename TransformT::Scalar,TransformT::Dim> points)
@@ -121,6 +162,42 @@ namespace cilantro {
         for (size_t i = 0; i < points.cols(); i++) {
             points.col(i) = tforms[i]*points.col(i);
         }
+    }
+
+    template <class LinearT, class TranslationT>
+    void transformPoints(const LinearT &linear,
+                         const TranslationT &translation,
+                         const ConstDataMatrixMap<typename LinearT::Scalar,LinearT::ColsAtCompileTime> &points,
+                         DataMatrixMap<typename LinearT::Scalar,LinearT::ColsAtCompileTime> result)
+    {
+        if (result.data() == points.data()) {
+            transformPoints(linear, translation, result);
+            return;
+        }
+
+#pragma omp parallel for
+        for (size_t i = 0; i < points.cols(); i++) {
+            result.col(i).noalias() = linear*points.col(i) + translation;
+        }
+    }
+
+    template <class MatrixT>
+    inline typename std::enable_if<MatrixT::ColsAtCompileTime != Eigen::Dynamic,void>::type transformPoints(const MatrixT &tform,
+                                                                                                            const ConstDataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> &points,
+                                                                                                            DataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> result)
+    {
+        transformPoints(tform.template block<internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value>(0, 0),
+                        tform.template block<internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value,1>(0, internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value),
+                        points,
+                        result);
+    }
+
+    template <class MatrixT>
+    inline typename std::enable_if<MatrixT::ColsAtCompileTime == Eigen::Dynamic,void>::type transformPoints(const MatrixT &tform,
+                                                                                                            const ConstDataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> &points,
+                                                                                                            DataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> result)
+    {
+        transformPoints(tform.block(0, 0, points.rows(), points.rows()), tform.block(0, points.rows(), points.rows(), 1), points, result);
     }
 
     template <class TransformT>
@@ -155,6 +232,25 @@ namespace cilantro {
         }
     }
 
+    template <class LinearT, class TranslationT>
+    inline VectorSet<typename LinearT::Scalar,LinearT::ColsAtCompileTime> getTransformedPoints(const LinearT &linear,
+                                                                                               const TranslationT &translation,
+                                                                                               const ConstDataMatrixMap<typename LinearT::Scalar,LinearT::ColsAtCompileTime> &points)
+    {
+        VectorSet<typename LinearT::Scalar,LinearT::ColsAtCompileTime> result(points.rows(), points.cols());
+        transformPoints(linear, translation, points, result);
+        return result;
+    }
+
+    template <class MatrixT>
+    inline VectorSet<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> getTransformedPoints(const MatrixT &tform,
+                                                                                                                                               const ConstDataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> &points)
+    {
+        VectorSet<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> result(points.rows(), points.cols());
+        transformPoints(tform, points, result);
+        return result;
+    }
+
     template <class TransformT>
     inline VectorSet<typename TransformT::Scalar,TransformT::Dim> getTransformedPoints(const TransformT &tform,
                                                                                        const ConstDataMatrixMap<typename TransformT::Scalar,TransformT::Dim> &points)
@@ -165,6 +261,55 @@ namespace cilantro {
     }
 
     // Normal transformations
+
+    template <class LinearT>
+    typename std::enable_if<LinearT::ColsAtCompileTime != Eigen::Dynamic,void>::type transformNormals(const LinearT &linear,
+                                                                                                      DataMatrixMap<typename LinearT::Scalar,LinearT::ColsAtCompileTime> normals)
+    {
+        Eigen::Matrix<typename LinearT::Scalar,LinearT::ColsAtCompileTime,LinearT::ColsAtCompileTime> normal_tform = linear.inverse().transpose();
+        if ((normal_tform - linear).squaredNorm() < std::numeric_limits<typename LinearT::Scalar>::epsilon()) {
+#pragma omp parallel for
+            for (size_t i = 0; i < normals.cols(); i++) {
+                normals.col(i) = normal_tform*normals.col(i);
+            }
+        } else {
+#pragma omp parallel for
+            for (size_t i = 0; i < normals.cols(); i++) {
+                normals.col(i) = (normal_tform*normals.col(i)).normalized();
+            }
+        }
+    }
+
+    template <class MatrixT>
+    inline typename std::enable_if<MatrixT::ColsAtCompileTime != Eigen::Dynamic,void>::type transformNormals(const MatrixT &tform,
+                                                                                                             DataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> normals)
+    {
+        transformNormals(tform.template block<internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value>(0, 0), normals);
+    }
+
+    template <class MatrixT>
+    typename std::enable_if<MatrixT::ColsAtCompileTime == Eigen::Dynamic,void>::type transformNormals(const MatrixT &tform,
+                                                                                                      DataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> normals)
+    {
+        if (MatrixT::ColsAtCompileTime == Eigen::Dynamic && tform.cols() > normals.rows()) {
+            transformNormals(tform.block(0, 0, normals.rows(), normals.rows()), normals);
+            return;
+        }
+
+        Eigen::Matrix<typename MatrixT::Scalar,MatrixT::ColsAtCompileTime,MatrixT::ColsAtCompileTime> normal_tform = tform.inverse().transpose();
+        if ((normal_tform - tform).squaredNorm() < std::numeric_limits<typename MatrixT::Scalar>::epsilon()) {
+#pragma omp parallel for
+            for (size_t i = 0; i < normals.cols(); i++) {
+                normals.col(i) = normal_tform*normals.col(i);
+            }
+        } else {
+#pragma omp parallel for
+            for (size_t i = 0; i < normals.cols(); i++) {
+                normals.col(i) = (normal_tform*normals.col(i)).normalized();
+            }
+        }
+    }
+
     template <class TransformT>
     void transformNormals(const TransformT &tform,
                           DataMatrixMap<typename TransformT::Scalar,TransformT::Dim> normals)
@@ -196,6 +341,67 @@ namespace cilantro {
 #pragma omp parallel for
             for (size_t i = 0; i < normals.cols(); i++) {
                 normals.col(i) = (tforms[i].linear().inverse().transpose()*normals.col(i)).normalized();
+            }
+        }
+    }
+
+    template <class LinearT>
+    typename std::enable_if<LinearT::ColsAtCompileTime != Eigen::Dynamic,void>::type transformNormals(const LinearT &linear,
+                                                                                                      const ConstDataMatrixMap<typename LinearT::Scalar,LinearT::ColsAtCompileTime> &normals,
+                                                                                                      DataMatrixMap<typename LinearT::Scalar,LinearT::ColsAtCompileTime> result)
+    {
+        if (result.data() == normals.data()) {
+            transformNormals(linear, result);
+            return;
+        }
+
+        Eigen::Matrix<typename LinearT::Scalar,LinearT::ColsAtCompileTime,LinearT::ColsAtCompileTime> normal_tform = linear.inverse().transpose();
+        if ((normal_tform - linear).squaredNorm() < std::numeric_limits<typename LinearT::Scalar>::epsilon()) {
+#pragma omp parallel for
+            for (size_t i = 0; i < normals.cols(); i++) {
+                result.col(i).noalias() = normal_tform*normals.col(i);
+            }
+        } else {
+#pragma omp parallel for
+            for (size_t i = 0; i < normals.cols(); i++) {
+                result.col(i).noalias() = (normal_tform*normals.col(i)).normalized();
+            }
+        }
+    }
+
+    template <class MatrixT>
+    inline typename std::enable_if<MatrixT::ColsAtCompileTime != Eigen::Dynamic,void>::type transformNormals(const MatrixT &tform,
+                                                                                                             const ConstDataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> &normals,
+                                                                                                             DataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> result)
+    {
+        transformNormals(tform.template block<internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value>(0, 0), normals, result);
+    }
+
+    template <class MatrixT>
+    typename std::enable_if<MatrixT::ColsAtCompileTime == Eigen::Dynamic,void>::type transformNormals(const MatrixT &tform,
+                                                                                                      const ConstDataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> &normals,
+                                                                                                      DataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> result)
+    {
+        if (MatrixT::ColsAtCompileTime == Eigen::Dynamic && tform.cols() > normals.rows()) {
+            transformNormals(tform.block(0, 0, normals.rows(), normals.rows()), normals, result);
+            return;
+        }
+
+        if (result.data() == normals.data()) {
+            transformNormals(tform, result);
+            return;
+        }
+
+        Eigen::Matrix<typename MatrixT::Scalar,MatrixT::ColsAtCompileTime,MatrixT::ColsAtCompileTime> normal_tform = tform.inverse().transpose();
+        if ((normal_tform - tform).squaredNorm() < std::numeric_limits<typename MatrixT::Scalar>::epsilon()) {
+#pragma omp parallel for
+            for (size_t i = 0; i < normals.cols(); i++) {
+                result.col(i).noalias() = normal_tform*normals.col(i);
+            }
+        } else {
+#pragma omp parallel for
+            for (size_t i = 0; i < normals.cols(); i++) {
+                result.col(i).noalias() = (normal_tform*normals.col(i)).normalized();
             }
         }
     }
@@ -247,6 +453,15 @@ namespace cilantro {
         }
     }
 
+    template <class MatrixT>
+    inline VectorSet<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> getTransformedNormals(const MatrixT &tform,
+                                                                                                                                                const ConstDataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> &normals)
+    {
+        VectorSet<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> result(normals.rows(), normals.cols());
+        transformNormals(tform, normals, result);
+        return result;
+    }
+
     template <class TransformT>
     inline VectorSet<typename TransformT::Scalar,TransformT::Dim> getTransformedNormals(const TransformT &tform,
                                                                                         const ConstDataMatrixMap<typename TransformT::Scalar,TransformT::Dim> &normals)
@@ -257,6 +472,48 @@ namespace cilantro {
     }
 
     // Point & normal transformations
+
+    template <class LinearT, class TranslationT>
+    void transformPointsNormals(const LinearT &linear,
+                                const TranslationT &translation,
+                                DataMatrixMap<typename LinearT::Scalar,LinearT::ColsAtCompileTime> points,
+                                DataMatrixMap<typename LinearT::Scalar,LinearT::ColsAtCompileTime> normals)
+    {
+        Eigen::Matrix<typename LinearT::Scalar,LinearT::ColsAtCompileTime,LinearT::ColsAtCompileTime> normal_tform = linear.inverse().transpose();
+        if ((normal_tform - linear).squaredNorm() < std::numeric_limits<typename LinearT::Scalar>::epsilon()) {
+#pragma omp parallel for
+            for (size_t i = 0; i < points.cols(); i++) {
+                points.col(i) = linear*points.col(i) + translation;
+                normals.col(i) = normal_tform*normals.col(i);
+            }
+        } else {
+#pragma omp parallel for
+            for (size_t i = 0; i < points.cols(); i++) {
+                points.col(i) = linear*points.col(i) + translation;
+                normals.col(i) = (normal_tform*normals.col(i)).normalized();
+            }
+        }
+    }
+
+    template <class MatrixT>
+    inline typename std::enable_if<MatrixT::ColsAtCompileTime != Eigen::Dynamic,void>::type transformPointsNormals(const MatrixT &tform,
+                                                                                                                   DataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> points,
+                                                                                                                   DataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> normals)
+    {
+        transformPointsNormals(tform.template block<internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value>(0, 0),
+                               tform.template block<internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value,1>(0, internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value),
+                               points,
+                               normals);
+    }
+
+    template <class MatrixT>
+    inline typename std::enable_if<MatrixT::ColsAtCompileTime == Eigen::Dynamic,void>::type transformPointsNormals(const MatrixT &tform,
+                                                                                                                   DataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> points,
+                                                                                                                   DataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> normals)
+    {
+        transformPointsNormals(tform.block(0, 0, points.rows(), points.rows()), tform.block(0, points.rows(), points.rows(), 1), points, normals);
+    }
+
     template <class TransformT>
     void transformPointsNormals(const TransformT &tform,
                                 DataMatrixMap<typename TransformT::Scalar,TransformT::Dim> points,
@@ -296,6 +553,60 @@ namespace cilantro {
                 normals.col(i) = (tforms[i].linear().inverse().transpose()*normals.col(i)).normalized();
             }
         }
+    }
+
+    template <class LinearT, class TranslationT>
+    void transformPointsNormals(const LinearT &linear,
+                                const TranslationT &translation,
+                                const ConstDataMatrixMap<typename LinearT::Scalar,LinearT::ColsAtCompileTime> &points,
+                                const ConstDataMatrixMap<typename LinearT::Scalar,LinearT::ColsAtCompileTime> &normals,
+                                DataMatrixMap<typename LinearT::Scalar,LinearT::ColsAtCompileTime> points_trans,
+                                DataMatrixMap<typename LinearT::Scalar,LinearT::ColsAtCompileTime> normals_trans)
+    {
+        if (points_trans.data() == points.data() || normals_trans.data() == normals.data()) {
+            transformPoints(linear, translation, points, points_trans);
+            transformNormals(linear, normals, normals_trans);
+        }
+        
+        Eigen::Matrix<typename LinearT::Scalar,LinearT::ColsAtCompileTime,LinearT::ColsAtCompileTime> normal_tform = linear.inverse().transpose();
+        if ((normal_tform - linear).squaredNorm() < std::numeric_limits<typename LinearT::Scalar>::epsilon()) {
+#pragma omp parallel for
+            for (size_t i = 0; i < points.cols(); i++) {
+                points_trans.col(i).noalias() = linear*points.col(i) + translation;
+                normals_trans.col(i).noalias() = normal_tform*normals.col(i);
+            }
+        } else {
+#pragma omp parallel for
+            for (size_t i = 0; i < points.cols(); i++) {
+                points_trans.col(i).noalias() = linear*points.col(i) + translation;
+                normals_trans.col(i).noalias() = (normal_tform*normals.col(i)).normalized();
+            }
+        }
+    }
+
+    template <class MatrixT>
+    inline typename std::enable_if<MatrixT::ColsAtCompileTime != Eigen::Dynamic,void>::type transformPointsNormals(const MatrixT &tform,
+                                                                                                                   const ConstDataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> &points,
+                                                                                                                   const ConstDataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> &normals,
+                                                                                                                   DataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> points_trans,
+                                                                                                                   DataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> normals_trans)
+    {
+        transformPointsNormals(tform.template block<internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value>(0, 0),
+                               tform.template block<internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value,1>(0, internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value),
+                               points,
+                               normals,
+                               points_trans,
+                               normals_trans);
+    }
+
+    template <class MatrixT>
+    inline typename std::enable_if<MatrixT::ColsAtCompileTime == Eigen::Dynamic,void>::type transformPointsNormals(const MatrixT &tform,
+                                                                                                                   const ConstDataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> &points,
+                                                                                                                   const ConstDataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> &normals,
+                                                                                                                   DataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> points_trans,
+                                                                                                                   DataMatrixMap<typename MatrixT::Scalar,internal::SpaceDimensionFromHomogeneous<MatrixT::ColsAtCompileTime>::value> normals_trans)
+    {
+        transformPointsNormals(tform.block(0, 0, points.rows(), points.rows()), tform.block(0, points.rows(), points.rows(), 1), points, normals, points_trans, normals_trans);
     }
 
     template <class TransformT>
