@@ -47,19 +47,19 @@ namespace cilantro {
             }
         }
 
-        inline RigidTransformRANSACEstimator& fitModelParameters(RigidTransform<ScalarT,EigenDim> &model_params) {
+        inline RigidTransformRANSACEstimator& estimateModel(RigidTransform<ScalarT,EigenDim> &model_params) {
             estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim>(dst_points_, src_points_, model_params);
             return *this;
         }
 
-        inline RigidTransform<ScalarT,EigenDim> fitModelParameters() {
+        inline RigidTransform<ScalarT,EigenDim> estimateModel() {
             RigidTransform<ScalarT,EigenDim> model_params;
-            fitModelParameters(model_params);
+            estimateModel(model_params);
             return model_params;
         }
 
-        RigidTransformRANSACEstimator& fitModelParameters(const std::vector<size_t> &sample_ind,
-                                                               RigidTransform<ScalarT,EigenDim> &model_params)
+        RigidTransformRANSACEstimator& estimateModel(const std::vector<size_t> &sample_ind,
+                                                     RigidTransform<ScalarT,EigenDim> &model_params)
         {
             VectorSet<ScalarT,EigenDim> dst_p(dst_points_.rows(), sample_ind.size());
             VectorSet<ScalarT,EigenDim> src_p(src_points_.rows(), sample_ind.size());
@@ -71,9 +71,9 @@ namespace cilantro {
             return *this;
         }
 
-        inline RigidTransform<ScalarT,EigenDim> fitModelParameters(const std::vector<size_t> &sample_ind) {
+        inline RigidTransform<ScalarT,EigenDim> estimateModel(const std::vector<size_t> &sample_ind) {
             RigidTransform<ScalarT,EigenDim> model_params;
-            fitModelParameters(sample_ind, model_params);
+            estimateModel(sample_ind, model_params);
             return model_params;
         }
 

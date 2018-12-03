@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
             cilantro::RigidTransformRANSACEstimator3f te(dst.points, src.points, corr);
             te.setMaxInlierResidual(0.01f).setTargetInlierCount((size_t)(0.50*corr.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
 
-            cilantro::RigidTransform3f tform = te.estimateModelParameters().getModelParameters();
+            cilantro::RigidTransform3f tform = te.estimate().getModel();
             const auto& inliers = te.getModelInliers();
 
             std::cout << "RANSAC iterations: " << te.getNumberOfPerformedIterations() << ", inlier count: " << te.getNumberOfInliers() << std::endl;

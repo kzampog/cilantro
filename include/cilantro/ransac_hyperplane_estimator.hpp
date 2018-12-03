@@ -14,19 +14,19 @@ namespace cilantro {
                   points_(points)
         {}
 
-        inline HyperplaneRANSACEstimator& fitModelParameters(Eigen::Hyperplane<ScalarT,EigenDim> &model_params) {
+        inline HyperplaneRANSACEstimator& estimateModel(Eigen::Hyperplane<ScalarT,EigenDim> &model_params) {
             estimate_params_(points_, model_params);
             return *this;
         }
 
-        inline Eigen::Hyperplane<ScalarT,EigenDim> fitModelParameters() {
+        inline Eigen::Hyperplane<ScalarT,EigenDim> estimateModel() {
             Eigen::Hyperplane<ScalarT,EigenDim> model_params;
-            fitModelParameters(model_params);
+            estimateModel(model_params);
             return model_params;
         }
 
-        HyperplaneRANSACEstimator& fitModelParameters(const std::vector<size_t> &sample_ind,
-                                                      Eigen::Hyperplane<ScalarT,EigenDim> &model_params)
+        HyperplaneRANSACEstimator& estimateModel(const std::vector<size_t> &sample_ind,
+                                                 Eigen::Hyperplane<ScalarT,EigenDim> &model_params)
         {
             VectorSet<ScalarT,EigenDim> points(points_.rows(), sample_ind.size());
             for (size_t i = 0; i < sample_ind.size(); i++) {
@@ -36,9 +36,9 @@ namespace cilantro {
             return *this;
         }
 
-        inline Eigen::Hyperplane<ScalarT,EigenDim> fitModelParameters(const std::vector<size_t> &sample_ind) {
+        inline Eigen::Hyperplane<ScalarT,EigenDim> estimateModel(const std::vector<size_t> &sample_ind) {
             Eigen::Hyperplane<ScalarT,EigenDim> model_params;
-            fitModelParameters(sample_ind, model_params);
+            estimateModel(sample_ind, model_params);
             return model_params;
         }
 

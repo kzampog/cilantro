@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
             pe.setMaxInlierResidual(0.01f).setTargetInlierCount((size_t)(0.15*cloud.size()))
                 .setMaxNumberOfIterations(250).setReEstimationStep(true);
 
-            Eigen::Hyperplane<float,3> plane = pe.estimateModelParameters().getModelParameters();
+            Eigen::Hyperplane<float,3> plane = pe.estimate().getModel();
             const auto& inliers = pe.getModelInliers();
 
             std::cout << "RANSAC iterations: " << pe.getNumberOfPerformedIterations() << ", inlier count: " << pe.getNumberOfInliers() << std::endl;

@@ -12,7 +12,7 @@ namespace cilantro {
 
         enum { Dimension = EigenDim };
 
-        PrincipalComponentAnalysis(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data, bool parallel = true) {
+        PrincipalComponentAnalysis(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data, bool parallel = false) {
             if (parallel) {
                 mean_.setZero(data.rows(), 1);
 #pragma omp declare reduction (+: Eigen::Matrix<ScalarT,EigenDim,1>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,EigenDim,1>::Zero(omp_orig.rows(), 1))
