@@ -11,7 +11,7 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        typedef TransformT Transformation;
+        typedef TransformT Transform;
         typedef typename TransformT::Scalar PointScalar;
         typedef CorrespondenceSearchEngineT CorrespondenceSearchEngine;
         typedef ResidualVectorT ResidualVector;
@@ -44,19 +44,19 @@ namespace cilantro {
             return *static_cast<ICPInstanceT*>(this);
         }
 
-        inline const Transformation& getInitialTransformation() const { return transform_init_; }
+        inline const Transform& getInitialTransform() const { return transform_init_; }
 
-        inline ICPInstanceT& setInitialTransformation(const Transformation& tform_init) {
+        inline ICPInstanceT& setInitialTransform(const Transform& tform_init) {
             transform_init_ = tform_init;
             return *static_cast<ICPInstanceT*>(this);
         }
 
-        inline Transformation& initialTransformation() { return transform_init_; }
+        inline Transform& initialTransform() { return transform_init_; }
 
         inline PointScalar getLastUpdateNorm() const { return last_delta_norm_; }
 
         // Main ICP loop
-        ICPInstanceT& estimateTransformation() {
+        ICPInstanceT& estimate() {
             ICPInstanceT& icp_instance = *static_cast<ICPInstanceT*>(this);
 
             transform_ = transform_init_;
@@ -77,15 +77,15 @@ namespace cilantro {
             return icp_instance;
         }
 
-        inline ICPInstanceT& estimateTransformation(size_t max_iter, PointScalar conv_tol) {
+        inline ICPInstanceT& estimateTransform(size_t max_iter, PointScalar conv_tol) {
             max_iterations_ = max_iter;
             convergence_tol_ = conv_tol;
-            return estimateTransformation();
+            return estimateTransform();
         }
 
-        inline const Transformation& getTransformation() const { return transform_; }
+        inline const Transform& getTransform() const { return transform_; }
 
-        inline const ICPInstanceT& getTransformation(Transformation& tform) const {
+        inline const ICPInstanceT& getTransform(Transform& tform) const {
             tform = transform_;
             return *static_cast<const ICPInstanceT*>(this);
         }
@@ -102,8 +102,8 @@ namespace cilantro {
 
         CorrespondenceSearchEngine& correspondence_search_engine_;
 
-        Transformation transform_init_;
-        Transformation transform_;
+        Transform transform_init_;
+        Transform transform_;
 
         // Default implementation
         inline void initializeComputation() {}

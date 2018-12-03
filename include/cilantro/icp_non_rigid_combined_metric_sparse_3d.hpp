@@ -116,7 +116,7 @@ namespace cilantro {
             return *this;
         }
 
-        inline const RigidTransformSet<ScalarT,3>& getPointTransformations() const {
+        inline const RigidTransformSet<ScalarT,3>& getDenseTransform() const {
             return transform_dense_;
         }
 

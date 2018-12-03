@@ -116,7 +116,7 @@ int main(int argc, char ** argv) {
     icp.correspondenceSearchEngine().setMaxDistance(0.1f*0.1f);
     icp.setConvergenceTolerance(1e-4f).setMaxNumberOfIterations(30);
 
-    cilantro::RigidTransform3f tf_est = icp.estimateTransformation().getTransformation();
+    cilantro::RigidTransform3f tf_est = icp.estimate().getTransform();
 
     timer.stop();
 

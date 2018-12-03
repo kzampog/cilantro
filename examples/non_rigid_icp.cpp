@@ -75,7 +75,7 @@ int main(int argc, char ** argv) {
     icp.setPointToPointMetricWeight(0.0f).setPointToPlaneMetricWeight(1.0f).setStiffnessRegularizationWeight(200.0f);
     icp.setHuberLossBoundary(1e-2f);
 
-    cilantro::RigidTransformSet3f tf_est = icp.estimateTransformation().getPointTransformations();
+    cilantro::RigidTransformSet3f tf_est = icp.estimate().getDenseTransform();
 
     timer.stop();
 
