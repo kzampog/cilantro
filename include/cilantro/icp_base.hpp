@@ -77,10 +77,10 @@ namespace cilantro {
             return icp_instance;
         }
 
-        inline ICPInstanceT& estimateTransform(size_t max_iter, PointScalar conv_tol) {
+        inline ICPInstanceT& estimate(size_t max_iter, PointScalar conv_tol) {
             max_iterations_ = max_iter;
             convergence_tol_ = conv_tol;
-            return estimateTransform();
+            return estimate();
         }
 
         inline const Transform& getTransform() const { return transform_; }
