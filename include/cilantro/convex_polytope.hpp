@@ -191,6 +191,20 @@ namespace cilantro {
             return transform(tform.linear(), tform.translation());
         }
 
+        template <class TransformT>
+        inline ConvexPolytope transformed(const TransformT &tform) const {
+            ConvexPolytope res = *this;
+            res.transform(tform);
+            return res;
+        }
+
+        template <class RotationT, class TranslationT>
+        inline ConvexPolytope transformed(const RotationT &rot, const TranslationT trans) const {
+            ConvexPolytope res = *this;
+            res.transform(rot, trans);
+            return res;
+        }
+
     protected:
         // Polytope properties
         size_t dim_;

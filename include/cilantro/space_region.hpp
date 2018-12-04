@@ -285,6 +285,20 @@ namespace cilantro {
             return *this;
         }
 
+        template <class TransformT>
+        inline SpaceRegion transformed(const TransformT &tform) const {
+            SpaceRegion res = *this;
+            res.transform(tform);
+            return res;
+        }
+
+        template <class RotationT, class TranslationT>
+        inline SpaceRegion transformed(const RotationT &rot, const TranslationT trans) const {
+            SpaceRegion res = *this;
+            res.transform(rot, trans);
+            return res;
+        }
+
     protected:
         size_t dim_;
         ConvexPolytopeVector polytopes_;
