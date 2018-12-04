@@ -6,10 +6,11 @@
 
 namespace cilantro {
     // Point-to-point rigid (closed form, SVD)
-    template <class TransformT, class = typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry)>::type>
-    bool estimateTransformPointToPointMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst,
-                                             const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src,
-                                             TransformT &tform)
+    template <class TransformT>
+    typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry),bool>::type
+    estimateTransformPointToPointMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst,
+                                        const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src,
+                                        TransformT &tform)
     {
         typedef typename TransformT::Scalar ScalarT;
 
@@ -39,6 +40,50 @@ namespace cilantro {
         return src.cols() >= TransformT::Dim;
     }
 
+    template <class TransformT>
+    typename std::enable_if<int(TransformT::Mode) == int(Eigen::Affine) || int(TransformT::Mode) == int(Eigen::AffineCompact),bool>::type
+    estimateTransformPointToPointMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst,
+                                        const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src,
+                                        TransformT &tform)
+    {
+        typedef typename TransformT::Scalar ScalarT;
+        enum { Dim = TransformT::Dim, NumUnknowns = TransformT::Dim*(TransformT::Dim + 1) };
+
+        if (src.cols() != dst.cols() || src.cols() == 0) {
+            tform.setIdentity();
+            return false;
+        }
+
+        Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns> AtA(Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns>::Zero());
+        Eigen::Matrix<ScalarT,NumUnknowns,1> Atb(Eigen::Matrix<ScalarT,NumUnknowns,1>::Zero());
+
+#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns>::Zero())
+#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,NumUnknowns,1>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,NumUnknowns,1>::Zero())
+
+#pragma omp parallel for reduction (+: AtA) reduction (+: Atb)
+        for (size_t i = 0; i < src.cols(); i++) {
+            Eigen::Matrix<ScalarT,NumUnknowns,Dim> eq_vecs(Eigen::Matrix<ScalarT,NumUnknowns,Dim>::Zero());
+            eq_vecs.template block<Dim,Dim>(Dim*Dim, 0).setIdentity();
+
+            for (size_t j = 0; j < Dim; j++) {
+                eq_vecs.template block<Dim,1>(j*Dim, j) = src.col(i);
+            }
+
+            Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns> AtA_priv(eq_vecs*eq_vecs.transpose());
+            Eigen::Matrix<ScalarT,NumUnknowns,1> Atb_priv(eq_vecs*dst.col(i));
+
+            AtA += AtA_priv;
+            Atb += Atb_priv;
+        }
+
+        Eigen::Matrix<ScalarT,NumUnknowns,1> theta = AtA.ldlt().solve(Atb);
+
+        tform.linear() = Eigen::Map<Eigen::Matrix<ScalarT,Dim,Dim,Eigen::RowMajor>>(theta.data(), Dim, Dim);
+        tform.translation() = theta.template tail<Dim>();
+
+        return src.cols() >= Dim + 1;
+    }
+
     template <class TransformT, typename CorrValueT = typename TransformT::Scalar>
     bool estimateTransformPointToPointMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst,
                                              const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src,
@@ -50,19 +95,20 @@ namespace cilantro {
         return estimateTransformPointToPointMetric(dst_corr, src_corr, tform);
     }
 
-    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class = typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 3>::type>
-    bool estimateTransformCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_p,
-                                         const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_n,
-                                         const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &src_p,
-                                         const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
-                                         typename TransformT::Scalar point_to_point_weight,
-                                         const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
-                                         typename TransformT::Scalar point_to_plane_weight,
-                                         TransformT &tform,
-                                         size_t max_iter = 1,
-                                         typename TransformT::Scalar convergence_tol = (typename TransformT::Scalar)1e-5,
-                                         const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
-                                         const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT())
+    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
+    typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 3,bool>::type
+    estimateTransformCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_p,
+                                    const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_n,
+                                    const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &src_p,
+                                    const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                    typename TransformT::Scalar point_to_point_weight,
+                                    const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
+                                    typename TransformT::Scalar point_to_plane_weight,
+                                    TransformT &tform,
+                                    size_t max_iter = 1,
+                                    typename TransformT::Scalar convergence_tol = (typename TransformT::Scalar)1e-5,
+                                    const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
+                                    const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT())
     {
         typedef typename TransformT::Scalar ScalarT;
 
@@ -101,27 +147,30 @@ namespace cilantro {
                         const ScalarT weight = point_to_point_weight*point_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
                         Vector<ScalarT,3> s = tform*src_p.col(corr.indexInSecond);
 
-                        Eigen::Matrix<ScalarT,6,3> eq_vecs;
+                        Eigen::Matrix<ScalarT,6,3,Eigen::RowMajor> eq_vecs;
 
                         eq_vecs(0,0) = (ScalarT)0.0;
-                        eq_vecs(1,0) = s[2];
-                        eq_vecs(2,0) = -s[1];
-                        eq_vecs(3,0) = (ScalarT)1.0;
-                        eq_vecs(4,0) = (ScalarT)0.0;
-                        eq_vecs(5,0) = (ScalarT)0.0;
-
                         eq_vecs(0,1) = -s[2];
-                        eq_vecs(1,1) = (ScalarT)0.0;
-                        eq_vecs(2,1) = s[0];
-                        eq_vecs(3,1) = (ScalarT)0.0;
-                        eq_vecs(4,1) = (ScalarT)1.0;
-                        eq_vecs(5,1) = (ScalarT)0.0;
-
                         eq_vecs(0,2) = s[1];
+
+                        eq_vecs(1,0) = s[2];
+                        eq_vecs(1,1) = (ScalarT)0.0;
                         eq_vecs(1,2) = -s[0];
+
+                        eq_vecs(2,0) = -s[1];
+                        eq_vecs(2,1) = s[0];
                         eq_vecs(2,2) = (ScalarT)0.0;
+
+                        eq_vecs(3,0) = (ScalarT)1.0;
+                        eq_vecs(3,1) = (ScalarT)0.0;
                         eq_vecs(3,2) = (ScalarT)0.0;
+
+                        eq_vecs(4,0) = (ScalarT)0.0;
+                        eq_vecs(4,1) = (ScalarT)1.0;
                         eq_vecs(4,2) = (ScalarT)0.0;
+
+                        eq_vecs(5,0) = (ScalarT)0.0;
+                        eq_vecs(5,1) = (ScalarT)0.0;
                         eq_vecs(5,2) = (ScalarT)1.0;
 
                         Eigen::Matrix<ScalarT,6,6> AtA_priv((weight*eq_vecs)*eq_vecs.transpose());

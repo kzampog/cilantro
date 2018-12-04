@@ -92,25 +92,26 @@ namespace cilantro {
         }
     }
 
-    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class = typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 3>::type>
-    bool estimateDenseWarpFieldCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_p,
-                                              const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_n,
-                                              const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &src_p,
-                                              const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
-                                              typename TransformT::Scalar point_to_point_weight,
-                                              const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
-                                              typename TransformT::Scalar point_to_plane_weight,
-                                              const std::vector<NeighborSet<typename RegWeightEvaluatorT::InputScalar>> &regularization_neighborhoods,
-                                              typename TransformT::Scalar regularization_weight,
-                                              TransformSet<TransformT> &transforms,
-                                              typename TransformT::Scalar huber_boundary = (typename TransformT::Scalar)(1e-4),
-                                              size_t max_gn_iter = 10,
-                                              typename TransformT::Scalar gn_conv_tol = (typename TransformT::Scalar)1e-5,
-                                              size_t max_cg_iter = 1000,
-                                              typename TransformT::Scalar cg_conv_tol = (typename TransformT::Scalar)1e-5,
-                                              const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
-                                              const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT(),
-                                              const RegWeightEvaluatorT &reg_evaluator = RegWeightEvaluatorT())
+    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
+    typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 3,bool>::type
+    estimateDenseWarpFieldCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_p,
+                                         const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_n,
+                                         const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &src_p,
+                                         const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                         typename TransformT::Scalar point_to_point_weight,
+                                         const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
+                                         typename TransformT::Scalar point_to_plane_weight,
+                                         const std::vector<NeighborSet<typename RegWeightEvaluatorT::InputScalar>> &regularization_neighborhoods,
+                                         typename TransformT::Scalar regularization_weight,
+                                         TransformSet<TransformT> &transforms,
+                                         typename TransformT::Scalar huber_boundary = (typename TransformT::Scalar)(1e-4),
+                                         size_t max_gn_iter = 10,
+                                         typename TransformT::Scalar gn_conv_tol = (typename TransformT::Scalar)1e-5,
+                                         size_t max_cg_iter = 1000,
+                                         typename TransformT::Scalar cg_conv_tol = (typename TransformT::Scalar)1e-5,
+                                         const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
+                                         const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT(),
+                                         const RegWeightEvaluatorT &reg_evaluator = RegWeightEvaluatorT())
     {
         typedef typename TransformT::Scalar ScalarT;
 
@@ -411,28 +412,29 @@ namespace cilantro {
         return has_converged;
     }
 
-    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class ControlWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class = typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 3>::type>
-    bool estimateSparseWarpFieldCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_p,
-                                               const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_n,
-                                               const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &src_p,
-                                               const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
-                                               typename TransformT::Scalar point_to_point_weight,
-                                               const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
-                                               typename TransformT::Scalar point_to_plane_weight,
-                                               const std::vector<NeighborSet<typename ControlWeightEvaluatorT::InputScalar>> &src_to_ctrl_neighborhoods,
-                                               size_t num_ctrl_points,
-                                               const std::vector<NeighborSet<typename RegWeightEvaluatorT::InputScalar>> &regularization_neighborhoods,
-                                               typename TransformT::Scalar regularization_weight,
-                                               TransformSet<TransformT> &transforms,
-                                               typename TransformT::Scalar huber_boundary = (typename TransformT::Scalar)(1e-4),
-                                               size_t max_gn_iter = 10,
-                                               typename TransformT::Scalar gn_conv_tol = (typename TransformT::Scalar)1e-5,
-                                               size_t max_cg_iter = 1000,
-                                               typename TransformT::Scalar cg_conv_tol = (typename TransformT::Scalar)1e-5,
-                                               const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
-                                               const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT(),
-                                               const ControlWeightEvaluatorT &control_evaluator = ControlWeightEvaluatorT(),
-                                               const RegWeightEvaluatorT &reg_evaluator = RegWeightEvaluatorT())
+    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class ControlWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
+    typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 3,bool>::type
+    estimateSparseWarpFieldCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_p,
+                                          const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_n,
+                                          const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &src_p,
+                                          const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                          typename TransformT::Scalar point_to_point_weight,
+                                          const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
+                                          typename TransformT::Scalar point_to_plane_weight,
+                                          const std::vector<NeighborSet<typename ControlWeightEvaluatorT::InputScalar>> &src_to_ctrl_neighborhoods,
+                                          size_t num_ctrl_points,
+                                          const std::vector<NeighborSet<typename RegWeightEvaluatorT::InputScalar>> &regularization_neighborhoods,
+                                          typename TransformT::Scalar regularization_weight,
+                                          TransformSet<TransformT> &transforms,
+                                          typename TransformT::Scalar huber_boundary = (typename TransformT::Scalar)(1e-4),
+                                          size_t max_gn_iter = 10,
+                                          typename TransformT::Scalar gn_conv_tol = (typename TransformT::Scalar)1e-5,
+                                          size_t max_cg_iter = 1000,
+                                          typename TransformT::Scalar cg_conv_tol = (typename TransformT::Scalar)1e-5,
+                                          const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
+                                          const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT(),
+                                          const ControlWeightEvaluatorT &control_evaluator = ControlWeightEvaluatorT(),
+                                          const RegWeightEvaluatorT &reg_evaluator = RegWeightEvaluatorT())
     {
         typedef typename TransformT::Scalar ScalarT;
 

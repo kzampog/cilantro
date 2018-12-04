@@ -10,15 +10,15 @@ namespace cilantro {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         RigidTransformRANSACEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
-                                           const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points)
+                                      const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points)
                 : RandomSampleConsensusBase<RigidTransformRANSACEstimator<ScalarT,EigenDim>,RigidTransform<ScalarT,EigenDim>,ScalarT>(dst_points.rows(), dst_points.cols()/2 + dst_points.cols()%2, 100, 0.01, true),
                   dst_points_(dst_points),
                   src_points_(src_points)
         {}
 
         RigidTransformRANSACEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
-                                           const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points,
-                                           const CorrespondenceSet<ScalarT> &corr)
+                                      const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points,
+                                      const CorrespondenceSet<ScalarT> &corr)
                 : RandomSampleConsensusBase<RigidTransformRANSACEstimator<ScalarT,EigenDim>,RigidTransform<ScalarT,EigenDim>,ScalarT>(dst_points.rows(), corr.size()/2 + corr.size()%2, 100, 0.01, true),
                   dst_points_tmp_(dst_points.rows(), corr.size()),
                   src_points_tmp_(src_points.rows(), corr.size()),
@@ -32,9 +32,9 @@ namespace cilantro {
         }
 
         RigidTransformRANSACEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
-                                           const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points,
-                                           const std::vector<size_t> &dst_ind,
-                                           const std::vector<size_t> &src_ind)
+                                      const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points,
+                                      const std::vector<size_t> &dst_ind,
+                                      const std::vector<size_t> &src_ind)
                 : RandomSampleConsensusBase<RigidTransformRANSACEstimator<ScalarT,EigenDim>,RigidTransform<ScalarT,EigenDim>,ScalarT>(dst_points.rows(), dst_ind.size()/2 + dst_ind.size()%2, 100, 0.01, true),
                   dst_points_tmp_(dst_points.rows(), dst_ind.size()),
                   src_points_tmp_(src_points.rows(), src_ind.size()),
@@ -78,7 +78,7 @@ namespace cilantro {
         }
 
         inline RigidTransformRANSACEstimator& computeResiduals(const RigidTransform<ScalarT,EigenDim> &model_params,
-                                                                    std::vector<ScalarT> &residuals)
+                                                               std::vector<ScalarT> &residuals)
         {
             residuals.resize(dst_points_.cols());
 #pragma omp parallel for
