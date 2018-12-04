@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cilantro/ransac_base.hpp>
-#include <cilantro/rigid_registration_utilities.hpp>
+#include <cilantro/transform_estimation.hpp>
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
@@ -48,7 +48,7 @@ namespace cilantro {
         }
 
         inline RigidTransformRANSACEstimator& estimateModel(RigidTransform<ScalarT,EigenDim> &model_params) {
-            estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim>(dst_points_, src_points_, model_params);
+            estimateTransformPointToPointMetric(dst_points_, src_points_, model_params);
             return *this;
         }
 
@@ -67,7 +67,7 @@ namespace cilantro {
                 dst_p.col(i) = dst_points_.col(sample_ind[i]);
                 src_p.col(i) = src_points_.col(sample_ind[i]);
             }
-            estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim>(dst_p, src_p, model_params);
+            estimateTransformPointToPointMetric(dst_p, src_p, model_params);
             return *this;
         }
 

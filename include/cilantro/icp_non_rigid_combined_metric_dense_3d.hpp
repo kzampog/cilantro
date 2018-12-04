@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cilantro/icp_base.hpp>
-#include <cilantro/non_rigid_registration_utilities.hpp>
+#include <cilantro/warp_field_estimation.hpp>
 #include <cilantro/correspondence_search_combined_metric_adaptor.hpp>
 #include <cilantro/kd_tree.hpp>
 
@@ -142,7 +142,7 @@ namespace cilantro {
             transformPoints(this->transform_, src_points_, src_points_trans_);
 
             CorrespondenceSearchCombinedMetricAdaptor<CorrespondenceSearchEngineT> corr_getter_proxy(this->correspondence_search_engine_);
-            estimateDenseWarpFieldCombinedMetric3<ScalarT,PointToPointCorrespondenceWeightEvaluator,PointToPlaneCorrespondenceWeightEvaluator,RegularizationWeightEvaluator>(dst_points_, dst_normals_, src_points_trans_, corr_getter_proxy.getPointToPointCorrespondences(), point_to_point_weight_, corr_getter_proxy.getPointToPlaneCorrespondences(), point_to_plane_weight_, regularization_neighborhoods_, stiffness_weight_, tforms_iter_, huber_boundary_, max_gauss_newton_iterations_, gauss_newton_convergence_tol_, max_conjugate_gradient_iterations_, conjugate_gradient_convergence_tol_, point_corr_eval_, plane_corr_eval_, reg_eval_);
+            estimateDenseWarpFieldCombinedMetric(dst_points_, dst_normals_, src_points_trans_, corr_getter_proxy.getPointToPointCorrespondences(), point_to_point_weight_, corr_getter_proxy.getPointToPlaneCorrespondences(), point_to_plane_weight_, regularization_neighborhoods_, stiffness_weight_, tforms_iter_, huber_boundary_, max_gauss_newton_iterations_, gauss_newton_convergence_tol_, max_conjugate_gradient_iterations_, conjugate_gradient_convergence_tol_, point_corr_eval_, plane_corr_eval_, reg_eval_);
             this->transform_.preApply(tforms_iter_);
 
             ScalarT max_delta_norm_sq = (ScalarT)0.0;

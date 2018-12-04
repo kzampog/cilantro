@@ -7,109 +7,113 @@
 #include <cilantro/common_pair_evaluators.hpp>
 
 namespace cilantro {
-    template <typename ScalarT>
-    inline ScalarT sqrtHuberLoss(ScalarT x, ScalarT delta = (ScalarT)1.0) {
-        const ScalarT x_abs = std::abs(x);
-        if (x_abs > delta) {
-            return std::sqrt(delta*(x_abs - (ScalarT)(0.5)*delta));
-        } else {
-            return std::sqrt((ScalarT)(0.5))*x_abs;
+    namespace internal {
+        template <typename ScalarT>
+        inline ScalarT sqrtHuberLoss(ScalarT x, ScalarT delta = (ScalarT)1.0) {
+            const ScalarT x_abs = std::abs(x);
+            if (x_abs > delta) {
+                return std::sqrt(delta*(x_abs - (ScalarT)(0.5)*delta));
+            } else {
+                return std::sqrt((ScalarT)(0.5))*x_abs;
+            }
+        }
+
+        template <typename ScalarT>
+        inline ScalarT sqrtHuberLossDerivative(ScalarT x, ScalarT delta = (ScalarT)1.0) {
+            const ScalarT x_abs = std::abs(x);
+            if (x < (ScalarT)0.0) {
+                if (x_abs > delta) {
+                    return -delta/((ScalarT)(2.0)*std::sqrt(delta*(x_abs - (ScalarT)(0.5)*delta)));
+                } else {
+                    return -std::sqrt((ScalarT)(0.5));
+                }
+            } else {
+                if (x_abs > delta) {
+                    return delta/((ScalarT)(2.0)*std::sqrt(delta*(x_abs - (ScalarT)(0.5)*delta)));
+                } else {
+                    return std::sqrt((ScalarT)0.5);
+                }
+            }
+        }
+
+        template <typename ScalarT>
+        void computeRotationTerms(ScalarT a, ScalarT b, ScalarT c,
+                                  Eigen::Matrix<ScalarT,3,3> &rot_coeffs,
+                                  Eigen::Matrix<ScalarT,3,3> &d_rot_coeffs_da,
+                                  Eigen::Matrix<ScalarT,3,3> &d_rot_coeffs_db,
+                                  Eigen::Matrix<ScalarT,3,3> &d_rot_coeffs_dc)
+        {
+            const ScalarT sina = std::sin(a);
+            const ScalarT cosa = std::cos(a);
+            const ScalarT sinb = std::sin(b);
+            const ScalarT cosb = std::cos(b);
+            const ScalarT sinc = std::sin(c);
+            const ScalarT cosc = std::cos(c);
+
+            rot_coeffs(0,0) = cosc*cosb;
+            rot_coeffs(1,0) = -sinc*cosa + cosc*sinb*sina;
+            rot_coeffs(2,0) = sinc*sina + cosc*sinb*cosa;
+            rot_coeffs(0,1) = sinc*cosb;
+            rot_coeffs(1,1) = cosc*cosa + sinc*sinb*sina;
+            rot_coeffs(2,1) = -cosc*sina + sinc*sinb*cosa;
+            rot_coeffs(0,2) = -sinb;
+            rot_coeffs(1,2) = cosb*sina;
+            rot_coeffs(2,2) = cosb*cosa;
+
+            d_rot_coeffs_da(0,0) = (ScalarT)0.0;
+            d_rot_coeffs_da(1,0) = sinc*sina + cosc*sinb*cosa;
+            d_rot_coeffs_da(2,0) = sinc*cosa - cosc*sinb*sina;
+            d_rot_coeffs_da(0,1) = (ScalarT)0.0;
+            d_rot_coeffs_da(1,1) = -cosc*sina + sinc*sinb*cosa;
+            d_rot_coeffs_da(2,1) = -cosc*cosa - sinc*sinb*sina;
+            d_rot_coeffs_da(0,2) = (ScalarT)0.0;
+            d_rot_coeffs_da(1,2) = cosb*cosa;
+            d_rot_coeffs_da(2,2) = -cosb*sina;
+
+            d_rot_coeffs_db(0,0) = -cosc*sinb;
+            d_rot_coeffs_db(1,0) = cosc*cosb*sina;
+            d_rot_coeffs_db(2,0) = cosc*cosb*cosa;
+            d_rot_coeffs_db(0,1) = -sinc*sinb;
+            d_rot_coeffs_db(1,1) = sinc*cosb*sina;
+            d_rot_coeffs_db(2,1) = sinc*cosb*cosa;
+            d_rot_coeffs_db(0,2) = -cosb;
+            d_rot_coeffs_db(1,2) = -sinb*sina;
+            d_rot_coeffs_db(2,2) = -sinb*cosa;
+
+            d_rot_coeffs_dc(0,0) = -sinc*cosb;
+            d_rot_coeffs_dc(1,0) = -cosc*cosa - sinc*sinb*sina;
+            d_rot_coeffs_dc(2,0) = cosc*sina - sinc*sinb*cosa;
+            d_rot_coeffs_dc(0,1) = cosc*cosb;
+            d_rot_coeffs_dc(1,1) = -sinc*cosa + cosc*sinb*sina;
+            d_rot_coeffs_dc(2,1) = sinc*sina + cosc*sinb*cosa;
+            d_rot_coeffs_dc(0,2) = (ScalarT)0.0;
+            d_rot_coeffs_dc(1,2) = (ScalarT)0.0;
+            d_rot_coeffs_dc(2,2) = (ScalarT)0.0;
         }
     }
 
-    template <typename ScalarT>
-    inline ScalarT sqrtHuberLossDerivative(ScalarT x, ScalarT delta = (ScalarT)1.0) {
-        const ScalarT x_abs = std::abs(x);
-        if (x < (ScalarT)0.0) {
-            if (x_abs > delta) {
-                return -delta/((ScalarT)(2.0)*std::sqrt(delta*(x_abs - (ScalarT)(0.5)*delta)));
-            } else {
-                return -std::sqrt((ScalarT)(0.5));
-            }
-        } else {
-            if (x_abs > delta) {
-                return delta/((ScalarT)(2.0)*std::sqrt(delta*(x_abs - (ScalarT)(0.5)*delta)));
-            } else {
-                return std::sqrt((ScalarT)0.5);
-            }
-        }
-    }
-
-    template <typename ScalarT>
-    void computeRotationTerms(ScalarT a, ScalarT b, ScalarT c,
-                              Eigen::Matrix<ScalarT,3,3> &rot_coeffs,
-                              Eigen::Matrix<ScalarT,3,3> &d_rot_coeffs_da,
-                              Eigen::Matrix<ScalarT,3,3> &d_rot_coeffs_db,
-                              Eigen::Matrix<ScalarT,3,3> &d_rot_coeffs_dc)
+    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class = typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 3>::type>
+    bool estimateDenseWarpFieldCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_p,
+                                              const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_n,
+                                              const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &src_p,
+                                              const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                              typename TransformT::Scalar point_to_point_weight,
+                                              const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
+                                              typename TransformT::Scalar point_to_plane_weight,
+                                              const std::vector<NeighborSet<typename RegWeightEvaluatorT::InputScalar>> &regularization_neighborhoods,
+                                              typename TransformT::Scalar regularization_weight,
+                                              TransformSet<TransformT> &transforms,
+                                              typename TransformT::Scalar huber_boundary = (typename TransformT::Scalar)(1e-4),
+                                              size_t max_gn_iter = 10,
+                                              typename TransformT::Scalar gn_conv_tol = (typename TransformT::Scalar)1e-5,
+                                              size_t max_cg_iter = 1000,
+                                              typename TransformT::Scalar cg_conv_tol = (typename TransformT::Scalar)1e-5,
+                                              const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
+                                              const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT(),
+                                              const RegWeightEvaluatorT &reg_evaluator = RegWeightEvaluatorT())
     {
-        const ScalarT sina = std::sin(a);
-        const ScalarT cosa = std::cos(a);
-        const ScalarT sinb = std::sin(b);
-        const ScalarT cosb = std::cos(b);
-        const ScalarT sinc = std::sin(c);
-        const ScalarT cosc = std::cos(c);
+        typedef typename TransformT::Scalar ScalarT;
 
-        rot_coeffs(0,0) = cosc*cosb;
-        rot_coeffs(1,0) = -sinc*cosa + cosc*sinb*sina;
-        rot_coeffs(2,0) = sinc*sina + cosc*sinb*cosa;
-        rot_coeffs(0,1) = sinc*cosb;
-        rot_coeffs(1,1) = cosc*cosa + sinc*sinb*sina;
-        rot_coeffs(2,1) = -cosc*sina + sinc*sinb*cosa;
-        rot_coeffs(0,2) = -sinb;
-        rot_coeffs(1,2) = cosb*sina;
-        rot_coeffs(2,2) = cosb*cosa;
-
-        d_rot_coeffs_da(0,0) = (ScalarT)0.0;
-        d_rot_coeffs_da(1,0) = sinc*sina + cosc*sinb*cosa;
-        d_rot_coeffs_da(2,0) = sinc*cosa - cosc*sinb*sina;
-        d_rot_coeffs_da(0,1) = (ScalarT)0.0;
-        d_rot_coeffs_da(1,1) = -cosc*sina + sinc*sinb*cosa;
-        d_rot_coeffs_da(2,1) = -cosc*cosa - sinc*sinb*sina;
-        d_rot_coeffs_da(0,2) = (ScalarT)0.0;
-        d_rot_coeffs_da(1,2) = cosb*cosa;
-        d_rot_coeffs_da(2,2) = -cosb*sina;
-
-        d_rot_coeffs_db(0,0) = -cosc*sinb;
-        d_rot_coeffs_db(1,0) = cosc*cosb*sina;
-        d_rot_coeffs_db(2,0) = cosc*cosb*cosa;
-        d_rot_coeffs_db(0,1) = -sinc*sinb;
-        d_rot_coeffs_db(1,1) = sinc*cosb*sina;
-        d_rot_coeffs_db(2,1) = sinc*cosb*cosa;
-        d_rot_coeffs_db(0,2) = -cosb;
-        d_rot_coeffs_db(1,2) = -sinb*sina;
-        d_rot_coeffs_db(2,2) = -sinb*cosa;
-
-        d_rot_coeffs_dc(0,0) = -sinc*cosb;
-        d_rot_coeffs_dc(1,0) = -cosc*cosa - sinc*sinb*sina;
-        d_rot_coeffs_dc(2,0) = cosc*sina - sinc*sinb*cosa;
-        d_rot_coeffs_dc(0,1) = cosc*cosb;
-        d_rot_coeffs_dc(1,1) = -sinc*cosa + cosc*sinb*sina;
-        d_rot_coeffs_dc(2,1) = sinc*sina + cosc*sinb*cosa;
-        d_rot_coeffs_dc(0,2) = (ScalarT)0.0;
-        d_rot_coeffs_dc(1,2) = (ScalarT)0.0;
-        d_rot_coeffs_dc(2,2) = (ScalarT)0.0;
-    }
-
-    template <typename ScalarT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>, class RegWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>>
-    bool estimateDenseWarpFieldCombinedMetric3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
-                                               const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
-                                               const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
-                                               const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
-                                               ScalarT point_to_point_weight,
-                                               const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
-                                               ScalarT point_to_plane_weight,
-                                               const std::vector<NeighborSet<typename RegWeightEvaluatorT::InputScalar>> &regularization_neighborhoods,
-                                               ScalarT regularization_weight,
-                                               RigidTransformSet<ScalarT,3> &transforms,
-                                               ScalarT huber_boundary = (ScalarT)(1e-4),
-                                               size_t max_gn_iter = 10,
-                                               ScalarT gn_conv_tol = (ScalarT)1e-5,
-                                               size_t max_cg_iter = 1000,
-                                               ScalarT cg_conv_tol = (ScalarT)1e-5,
-                                               const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
-                                               const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT(),
-                                               const RegWeightEvaluatorT &reg_evaluator = RegWeightEvaluatorT())
-    {
         const bool has_point_to_point_terms = !point_to_point_correspondences.empty() && (point_to_point_weight > (ScalarT)0.0);
         const bool has_point_to_plane_terms = !point_to_plane_correspondences.empty() && (point_to_plane_weight > (ScalarT)0.0);
 
@@ -208,7 +212,7 @@ namespace cilantro {
                         const size_t offset = 6*corr.indexInSecond;
                         weight = point_to_point_weight_sqrt*std::sqrt(point_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value));
 
-                        computeRotationTerms(tforms_vec[offset], tforms_vec[offset + 1], tforms_vec[offset + 2], rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db, d_rot_coeffs_dc);
+                        internal::computeRotationTerms(tforms_vec[offset], tforms_vec[offset + 1], tforms_vec[offset + 2], rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db, d_rot_coeffs_dc);
                         const auto trans_coeffs = tforms_vec.template segment<3>(offset + 3);
 
                         trans_s.noalias() = rot_coeffs.transpose()*s + trans_coeffs - d;
@@ -273,7 +277,7 @@ namespace cilantro {
                         const size_t offset = 6*corr.indexInSecond;
                         weight = point_to_plane_weight_sqrt*std::sqrt(plane_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value));
 
-                        computeRotationTerms(tforms_vec[offset], tforms_vec[offset + 1], tforms_vec[offset + 2], rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db, d_rot_coeffs_dc);
+                        internal::computeRotationTerms(tforms_vec[offset], tforms_vec[offset + 1], tforms_vec[offset + 2], rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db, d_rot_coeffs_dc);
                         const auto trans_coeffs = tforms_vec.template segment<3>(offset + 3);
 
                         trans_s.noalias() = rot_coeffs.transpose()*s + trans_coeffs - d;
@@ -315,52 +319,52 @@ namespace cilantro {
                         if (n_offset < s_offset) std::swap(s_offset, n_offset);
 
                         diff = tforms_vec[s_offset + 0] - tforms_vec[n_offset + 0];
-                        d_sqrt_huber_loss = weight*sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
+                        d_sqrt_huber_loss = weight*internal::sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
                         values[nz_ind] = d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = s_offset;
                         values[nz_ind] = -d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = n_offset;
-                        b[eq_ind++] = -weight*sqrtHuberLoss<ScalarT>(diff, huber_boundary);
+                        b[eq_ind++] = -weight*internal::sqrtHuberLoss<ScalarT>(diff, huber_boundary);
 
                         diff = tforms_vec[s_offset + 1] - tforms_vec[n_offset + 1];
-                        d_sqrt_huber_loss = weight*sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
+                        d_sqrt_huber_loss = weight*internal::sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
                         values[nz_ind] = d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = s_offset + 1;
                         values[nz_ind] = -d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = n_offset + 1;
-                        b[eq_ind++] = -weight*sqrtHuberLoss<ScalarT>(diff, huber_boundary);
+                        b[eq_ind++] = -weight*internal::sqrtHuberLoss<ScalarT>(diff, huber_boundary);
 
                         diff = tforms_vec[s_offset + 2] - tforms_vec[n_offset + 2];
-                        d_sqrt_huber_loss = weight*sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
+                        d_sqrt_huber_loss = weight*internal::sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
                         values[nz_ind] = d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = s_offset + 2;
                         values[nz_ind] = -d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = n_offset + 2;
-                        b[eq_ind++] = -weight*sqrtHuberLoss<ScalarT>(diff, huber_boundary);
+                        b[eq_ind++] = -weight*internal::sqrtHuberLoss<ScalarT>(diff, huber_boundary);
 
                         diff = tforms_vec[s_offset + 3] - tforms_vec[n_offset + 3];
-                        d_sqrt_huber_loss = weight*sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
+                        d_sqrt_huber_loss = weight*internal::sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
                         values[nz_ind] = d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = s_offset + 3;
                         values[nz_ind] = -d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = n_offset + 3;
-                        b[eq_ind++] = -weight*sqrtHuberLoss<ScalarT>(diff, huber_boundary);
+                        b[eq_ind++] = -weight*internal::sqrtHuberLoss<ScalarT>(diff, huber_boundary);
 
                         diff = tforms_vec[s_offset + 4] - tforms_vec[n_offset + 4];
-                        d_sqrt_huber_loss = weight*sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
+                        d_sqrt_huber_loss = weight*internal::sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
                         values[nz_ind] = d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = s_offset + 4;
                         values[nz_ind] = -d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = n_offset + 4;
-                        b[eq_ind++] = -weight*sqrtHuberLoss<ScalarT>(diff, huber_boundary);
+                        b[eq_ind++] = -weight*internal::sqrtHuberLoss<ScalarT>(diff, huber_boundary);
 
                         diff = tforms_vec[s_offset + 5] - tforms_vec[n_offset + 5];
-                        d_sqrt_huber_loss = weight*sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
+                        d_sqrt_huber_loss = weight*internal::sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
                         values[nz_ind] = d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = s_offset + 5;
                         values[nz_ind] = -d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = n_offset + 5;
-                        b[eq_ind++] = -weight*sqrtHuberLoss<ScalarT>(diff, huber_boundary);
+                        b[eq_ind++] = -weight*internal::sqrtHuberLoss<ScalarT>(diff, huber_boundary);
                     }
                 }
             }
@@ -407,29 +411,31 @@ namespace cilantro {
         return has_converged;
     }
 
-    template <typename ScalarT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>, class ControlWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>, class RegWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>>
-    bool estimateSparseWarpFieldCombinedMetric3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
-                                                const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
-                                                const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
-                                                const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
-                                                ScalarT point_to_point_weight,
-                                                const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
-                                                ScalarT point_to_plane_weight,
-                                                const std::vector<NeighborSet<typename ControlWeightEvaluatorT::InputScalar>> &src_to_ctrl_neighborhoods,
-                                                size_t num_ctrl_points,
-                                                const std::vector<NeighborSet<typename RegWeightEvaluatorT::InputScalar>> &regularization_neighborhoods,
-                                                ScalarT regularization_weight,
-                                                RigidTransformSet<ScalarT,3> &transforms,
-                                                ScalarT huber_boundary = (ScalarT)(1e-4),
-                                                size_t max_gn_iter = 10,
-                                                ScalarT gn_conv_tol = (ScalarT)1e-5,
-                                                size_t max_cg_iter = 1000,
-                                                ScalarT cg_conv_tol = (ScalarT)1e-5,
-                                                const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
-                                                const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT(),
-                                                const ControlWeightEvaluatorT &control_evaluator = ControlWeightEvaluatorT(),
-                                                const RegWeightEvaluatorT &reg_evaluator = RegWeightEvaluatorT())
+    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class ControlWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class = typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 3>::type>
+    bool estimateSparseWarpFieldCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_p,
+                                               const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_n,
+                                               const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &src_p,
+                                               const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                               typename TransformT::Scalar point_to_point_weight,
+                                               const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
+                                               typename TransformT::Scalar point_to_plane_weight,
+                                               const std::vector<NeighborSet<typename ControlWeightEvaluatorT::InputScalar>> &src_to_ctrl_neighborhoods,
+                                               size_t num_ctrl_points,
+                                               const std::vector<NeighborSet<typename RegWeightEvaluatorT::InputScalar>> &regularization_neighborhoods,
+                                               typename TransformT::Scalar regularization_weight,
+                                               TransformSet<TransformT> &transforms,
+                                               typename TransformT::Scalar huber_boundary = (typename TransformT::Scalar)(1e-4),
+                                               size_t max_gn_iter = 10,
+                                               typename TransformT::Scalar gn_conv_tol = (typename TransformT::Scalar)1e-5,
+                                               size_t max_cg_iter = 1000,
+                                               typename TransformT::Scalar cg_conv_tol = (typename TransformT::Scalar)1e-5,
+                                               const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
+                                               const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT(),
+                                               const ControlWeightEvaluatorT &control_evaluator = ControlWeightEvaluatorT(),
+                                               const RegWeightEvaluatorT &reg_evaluator = RegWeightEvaluatorT())
     {
+        typedef typename TransformT::Scalar ScalarT;
+
         const bool has_point_to_point_terms = !point_to_point_correspondences.empty() && (point_to_point_weight > (ScalarT)0.0);
         const bool has_point_to_plane_terms = !point_to_plane_correspondences.empty() && (point_to_plane_weight > (ScalarT)0.0);
 
@@ -591,7 +597,7 @@ namespace cilantro {
                         const auto d = dst_p.col(corr.indexInFirst);
                         const auto s = src_p.col(corr.indexInSecond);
 
-                        computeRotationTerms(angles_curr[0], angles_curr[1], angles_curr[2], rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db, d_rot_coeffs_dc);
+                        internal::computeRotationTerms(angles_curr[0], angles_curr[1], angles_curr[2], rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db, d_rot_coeffs_dc);
 
                         trans_s.noalias() = rot_coeffs.transpose()*s + trans_curr - d;
                         d_rot_da_s.noalias() = d_rot_coeffs_da.transpose()*s;
@@ -683,7 +689,7 @@ namespace cilantro {
                         const auto n = dst_n.col(corr.indexInFirst);
                         const auto s = src_p.col(corr.indexInSecond);
 
-                        computeRotationTerms(angles_curr[0], angles_curr[1], angles_curr[2], rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db, d_rot_coeffs_dc);
+                        internal::computeRotationTerms(angles_curr[0], angles_curr[1], angles_curr[2], rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db, d_rot_coeffs_dc);
 
                         trans_s.noalias() = rot_coeffs.transpose()*s + trans_curr - d;
                         d_rot_da_s.noalias() = d_rot_coeffs_da.transpose()*s;
@@ -731,52 +737,52 @@ namespace cilantro {
                         if (n_offset < s_offset) std::swap(s_offset, n_offset);
 
                         diff = tforms_vec[s_offset + 0] - tforms_vec[n_offset + 0];
-                        d_sqrt_huber_loss = weight*sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
+                        d_sqrt_huber_loss = weight*internal::sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
                         values[nz_ind] = d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = s_offset;
                         values[nz_ind] = -d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = n_offset;
-                        b[eq_ind++] = -weight*sqrtHuberLoss<ScalarT>(diff, huber_boundary);
+                        b[eq_ind++] = -weight*internal::sqrtHuberLoss<ScalarT>(diff, huber_boundary);
 
                         diff = tforms_vec[s_offset + 1] - tforms_vec[n_offset + 1];
-                        d_sqrt_huber_loss = weight*sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
+                        d_sqrt_huber_loss = weight*internal::sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
                         values[nz_ind] = d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = s_offset + 1;
                         values[nz_ind] = -d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = n_offset + 1;
-                        b[eq_ind++] = -weight*sqrtHuberLoss<ScalarT>(diff, huber_boundary);
+                        b[eq_ind++] = -weight*internal::sqrtHuberLoss<ScalarT>(diff, huber_boundary);
 
                         diff = tforms_vec[s_offset + 2] - tforms_vec[n_offset + 2];
-                        d_sqrt_huber_loss = weight*sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
+                        d_sqrt_huber_loss = weight*internal::sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
                         values[nz_ind] = d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = s_offset + 2;
                         values[nz_ind] = -d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = n_offset + 2;
-                        b[eq_ind++] = -weight*sqrtHuberLoss<ScalarT>(diff, huber_boundary);
+                        b[eq_ind++] = -weight*internal::sqrtHuberLoss<ScalarT>(diff, huber_boundary);
 
                         diff = tforms_vec[s_offset + 3] - tforms_vec[n_offset + 3];
-                        d_sqrt_huber_loss = weight*sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
+                        d_sqrt_huber_loss = weight*internal::sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
                         values[nz_ind] = d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = s_offset + 3;
                         values[nz_ind] = -d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = n_offset + 3;
-                        b[eq_ind++] = -weight*sqrtHuberLoss<ScalarT>(diff, huber_boundary);
+                        b[eq_ind++] = -weight*internal::sqrtHuberLoss<ScalarT>(diff, huber_boundary);
 
                         diff = tforms_vec[s_offset + 4] - tforms_vec[n_offset + 4];
-                        d_sqrt_huber_loss = weight*sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
+                        d_sqrt_huber_loss = weight*internal::sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
                         values[nz_ind] = d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = s_offset + 4;
                         values[nz_ind] = -d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = n_offset + 4;
-                        b[eq_ind++] = -weight*sqrtHuberLoss<ScalarT>(diff, huber_boundary);
+                        b[eq_ind++] = -weight*internal::sqrtHuberLoss<ScalarT>(diff, huber_boundary);
 
                         diff = tforms_vec[s_offset + 5] - tforms_vec[n_offset + 5];
-                        d_sqrt_huber_loss = weight*sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
+                        d_sqrt_huber_loss = weight*internal::sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
                         values[nz_ind] = d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = s_offset + 5;
                         values[nz_ind] = -d_sqrt_huber_loss;
                         inner_ind[nz_ind++] = n_offset + 5;
-                        b[eq_ind++] = -weight*sqrtHuberLoss<ScalarT>(diff, huber_boundary);
+                        b[eq_ind++] = -weight*internal::sqrtHuberLoss<ScalarT>(diff, huber_boundary);
                     }
                 }
             }

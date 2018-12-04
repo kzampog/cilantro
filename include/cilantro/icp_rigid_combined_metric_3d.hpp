@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cilantro/icp_base.hpp>
-#include <cilantro/rigid_registration_utilities.hpp>
+#include <cilantro/transform_estimation.hpp>
 #include <cilantro/correspondence_search_combined_metric_adaptor.hpp>
 #include <cilantro/kd_tree.hpp>
 
@@ -96,7 +96,7 @@ namespace cilantro {
 
             CorrespondenceSearchCombinedMetricAdaptor<CorrespondenceSearchEngineT> corr_getter_proxy(this->correspondence_search_engine_);
             RigidTransform<ScalarT,3> tform_iter;
-            estimateRigidTransformCombinedMetric3<ScalarT,PointToPointCorrespondenceWeightEvaluator,PointToPlaneCorrespondenceWeightEvaluator>(dst_points_, dst_normals_, src_points_trans_, corr_getter_proxy.getPointToPointCorrespondences(), point_to_point_weight_, corr_getter_proxy.getPointToPlaneCorrespondences(), point_to_plane_weight_, tform_iter, max_optimization_iterations_, optimization_convergence_tol_, point_corr_eval_, plane_corr_eval_);
+            estimateTransformCombinedMetric(dst_points_, dst_normals_, src_points_trans_, corr_getter_proxy.getPointToPointCorrespondences(), point_to_point_weight_, corr_getter_proxy.getPointToPlaneCorrespondences(), point_to_plane_weight_, tform_iter, max_optimization_iterations_, optimization_convergence_tol_, point_corr_eval_, plane_corr_eval_);
 
             this->transform_ = tform_iter*this->transform_;
             this->transform_.linear() = this->transform_.rotation();

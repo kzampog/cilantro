@@ -108,7 +108,7 @@ int main(int argc, char ** argv) {
 //    icp.setPointToPointMetricWeight(0.1f).setPointToPlaneMetricWeight(1.0f).setStiffnessRegularizationWeight(200.0f);
 //    icp.setHuberLossBoundary(1e-2f);
 //
-//    auto tf_est = icp.estimateTransformation().getTransformation();
+//    auto tf_est = icp.estimate().getTransform();
 //
 //    timer.stop();
 

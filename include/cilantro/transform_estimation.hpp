@@ -5,26 +5,30 @@
 #include <cilantro/common_pair_evaluators.hpp>
 
 namespace cilantro {
-    // Point-to-point (closed form, SVD)
-    template <typename ScalarT, ptrdiff_t EigenDim>
-    bool estimateRigidTransformPointToPointClosedForm(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst,
-                                                      const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src,
-                                                      RigidTransform<ScalarT,EigenDim> &tform)
+    // Point-to-point rigid (closed form, SVD)
+    template <class TransformT, class = typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry)>::type>
+    bool estimateTransformPointToPointMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst,
+                                             const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src,
+                                             TransformT &tform)
     {
+        typedef typename TransformT::Scalar ScalarT;
+
         if (src.cols() != dst.cols() || src.cols() == 0) {
             tform.setIdentity();
             return false;
         }
 
-        Vector<ScalarT,EigenDim> mu_dst(dst.rowwise().mean());
-        Vector<ScalarT,EigenDim> mu_src(src.rowwise().mean());
+        Vector<ScalarT,TransformT::Dim> mu_dst(dst.rowwise().mean());
+        Vector<ScalarT,TransformT::Dim> mu_src(src.rowwise().mean());
 
-        VectorSet<ScalarT,EigenDim> dst_centered(dst.colwise() - mu_dst);
-        VectorSet<ScalarT,EigenDim> src_centered(src.colwise() - mu_src);
+        Eigen::Matrix<ScalarT,TransformT::Dim,Eigen::Dynamic,Eigen::RowMajor> dst_centered(dst.colwise() - mu_dst);
+        Eigen::Matrix<ScalarT,TransformT::Dim,Eigen::Dynamic,Eigen::RowMajor> src_centered(src.colwise() - mu_src);
 
-        Eigen::JacobiSVD<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> svd(dst_centered*src_centered.transpose(), Eigen::ComputeFullU | Eigen::ComputeFullV);
+        Eigen::Matrix<ScalarT,TransformT::Dim,TransformT::Dim> sigma((ScalarT(1)/ScalarT(dst.cols()))*(dst_centered*src_centered.transpose()));
+
+        Eigen::JacobiSVD<Eigen::Matrix<ScalarT,TransformT::Dim,TransformT::Dim>> svd(sigma, Eigen::ComputeFullU | Eigen::ComputeFullV);
         if ((svd.matrixU()*svd.matrixV()).determinant() < (ScalarT)0.0) {
-            Eigen::Matrix<ScalarT,EigenDim,EigenDim> U(svd.matrixU());
+            Eigen::Matrix<ScalarT,TransformT::Dim,TransformT::Dim> U(svd.matrixU());
             U.col(dst.rows()-1) *= (ScalarT)(-1.0);
             tform.linear().noalias() = U*svd.matrixV().transpose();
         } else {
@@ -35,31 +39,33 @@ namespace cilantro {
         return true;
     }
 
-    template <typename ScalarT, ptrdiff_t EigenDim, typename CorrValueT = ScalarT>
-    bool estimateRigidTransformPointToPointClosedForm(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst,
-                                                      const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src,
-                                                      const CorrespondenceSet<CorrValueT> &corr,
-                                                      RigidTransform<ScalarT,EigenDim> &tform)
+    template <class TransformT, typename CorrValueT = typename TransformT::Scalar>
+    bool estimateTransformPointToPointMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst,
+                                             const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src,
+                                             const CorrespondenceSet<CorrValueT> &corr,
+                                             TransformT &tform)
     {
-        VectorSet<ScalarT,EigenDim> dst_corr, src_corr;
-        selectCorrespondingPoints<ScalarT,EigenDim,CorrValueT>(corr, dst, src, dst_corr, src_corr);
-        return estimateRigidTransformPointToPointClosedForm<ScalarT,EigenDim>(dst_corr, src_corr, tform);
+        VectorSet<typename TransformT::Scalar,TransformT::Dim> dst_corr, src_corr;
+        selectCorrespondingPoints<typename TransformT::Scalar,TransformT::Dim,CorrValueT>(corr, dst, src, dst_corr, src_corr);
+        return estimateTransformPointToPointMetric(dst_corr, src_corr, tform);
     }
 
-    template <typename ScalarT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>>
-    bool estimateRigidTransformCombinedMetric3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_p,
-                                               const ConstVectorSetMatrixMap<ScalarT,3> &dst_n,
-                                               const ConstVectorSetMatrixMap<ScalarT,3> &src_p,
-                                               const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
-                                               ScalarT point_to_point_weight,
-                                               const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
-                                               ScalarT point_to_plane_weight,
-                                               RigidTransform<ScalarT,3> &tform,
-                                               size_t max_iter = 1,
-                                               ScalarT convergence_tol = (ScalarT)1e-5,
-                                               const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
-                                               const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT())
+    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class = typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 3>::type>
+    bool estimateTransformCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_p,
+                                         const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_n,
+                                         const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &src_p,
+                                         const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                         typename TransformT::Scalar point_to_point_weight,
+                                         const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
+                                         typename TransformT::Scalar point_to_plane_weight,
+                                         TransformT &tform,
+                                         size_t max_iter = 1,
+                                         typename TransformT::Scalar convergence_tol = (typename TransformT::Scalar)1e-5,
+                                         const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
+                                         const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT())
     {
+        typedef typename TransformT::Scalar ScalarT;
+
         tform.setIdentity();
 
         const bool has_point_to_point_terms = !point_to_point_correspondences.empty() && (point_to_point_weight > (ScalarT)0.0);

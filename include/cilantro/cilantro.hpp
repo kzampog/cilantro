@@ -34,7 +34,6 @@
 #include <cilantro/multidimensional_scaling.hpp>
 #include <cilantro/nearest_neighbor_graph_utilities.hpp>
 #include <cilantro/nearest_neighbors.hpp>
-#include <cilantro/non_rigid_registration_utilities.hpp>
 #include <cilantro/normal_estimation.hpp>
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/principal_component_analysis.hpp>
@@ -42,11 +41,12 @@
 #include <cilantro/ransac_hyperplane_estimator.hpp>
 #include <cilantro/ransac_rigid_transform_estimator.hpp>
 #include <cilantro/renderable.hpp>
-#include <cilantro/rigid_registration_utilities.hpp>
 #include <cilantro/space_region.hpp>
 #include <cilantro/space_transformations.hpp>
 #include <cilantro/spectral_clustering.hpp>
 #include <cilantro/timer.hpp>
+#include <cilantro/transform_estimation.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/visualizer_handler.hpp>
+#include <cilantro/warp_field_estimation.hpp>
 #include <cilantro/warp_field_utilities.hpp>
