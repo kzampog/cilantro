@@ -36,7 +36,7 @@ namespace cilantro {
         }
         tform.translation().noalias() = mu_dst - tform.linear()*mu_src;
 
-        return true;
+        return src.cols() >= TransformT::Dim;
     }
 
     template <class TransformT, typename CorrValueT = typename TransformT::Scalar>
