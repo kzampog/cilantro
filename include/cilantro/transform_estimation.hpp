@@ -100,6 +100,116 @@ namespace cilantro {
         return estimateTransformPointToPointMetric(dst_corr, src_corr, tform);
     }
 
+    // Rigid, combined metric, 2D, iterative
+    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
+    typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 2,bool>::type
+    estimateTransformCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &dst_p,
+                                    const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &dst_n,
+                                    const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &src_p,
+                                    const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                    typename TransformT::Scalar point_to_point_weight,
+                                    const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
+                                    typename TransformT::Scalar point_to_plane_weight,
+                                    TransformT &tform,
+                                    size_t max_iter = 1,
+                                    typename TransformT::Scalar convergence_tol = (typename TransformT::Scalar)1e-5,
+                                    const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
+                                    const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT())
+    {
+        typedef typename TransformT::Scalar ScalarT;
+
+        tform.setIdentity();
+
+        const bool has_point_to_point_terms = !point_to_point_correspondences.empty() && (point_to_point_weight > (ScalarT)0.0);
+        const bool has_point_to_plane_terms = !point_to_plane_correspondences.empty() && (point_to_plane_weight > (ScalarT)0.0);
+
+        if ((!has_point_to_point_terms && !has_point_to_plane_terms) ||
+            (has_point_to_plane_terms && dst_p.cols() != dst_n.cols()))
+        {
+            return false;
+        }
+
+        Eigen::Matrix<ScalarT,3,3> AtA;
+        Eigen::Matrix<ScalarT,3,1> Atb;
+
+        Eigen::Matrix<ScalarT,2,2> rot_mat_iter;
+        Eigen::Matrix<ScalarT,3,1> d_theta;
+
+#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,3,3>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,3,3>::Zero())
+#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,3,1>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,3,1>::Zero())
+
+        size_t iter = 0;
+        while (iter < max_iter) {
+            // Compute differential
+            AtA.setZero();
+            Atb.setZero();
+
+#pragma omp parallel reduction (+: AtA) reduction (+: Atb)
+            {
+                if (has_point_to_point_terms) {
+                    Eigen::Matrix<ScalarT,3,2,Eigen::RowMajor> eq_vecs;
+                    eq_vecs.template block<2,2>(1, 0).setIdentity();
+
+#pragma omp for nowait
+                    for (size_t i = 0; i < point_to_point_correspondences.size(); i++) {
+                        const auto& corr = point_to_point_correspondences[i];
+                        const auto d = dst_p.col(corr.indexInFirst);
+                        const ScalarT weight = point_to_point_weight*point_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
+                        Vector<ScalarT,2> s = tform*src_p.col(corr.indexInSecond);
+
+                        eq_vecs(0,0) = -s[1];
+                        eq_vecs(0,1) = s[0];
+
+                        Eigen::Matrix<ScalarT,3,3> AtA_priv((weight*eq_vecs)*eq_vecs.transpose());
+                        Eigen::Matrix<ScalarT,3,1> Atb_priv(eq_vecs*(weight*(d - s)));
+
+                        AtA += AtA_priv;
+                        Atb += Atb_priv;
+                    }
+                }
+
+                if (has_point_to_plane_terms) {
+                    Eigen::Matrix<ScalarT,3,1> eq_vec;
+
+#pragma omp for nowait
+                    for (size_t i = 0; i < point_to_plane_correspondences.size(); i++) {
+                        const auto& corr = point_to_plane_correspondences[i];
+                        const auto d = dst_p.col(corr.indexInFirst);
+                        const auto n = dst_n.col(corr.indexInFirst);
+                        const ScalarT weight = point_to_plane_weight*plane_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
+                        Vector<ScalarT,2> s = tform*src_p.col(corr.indexInSecond);
+
+                        eq_vec(0) = s[0]*n[1] - s[1]*n[0];
+                        eq_vec(1) = n[0];
+                        eq_vec(2) = n[1];
+
+                        Eigen::Matrix<ScalarT,3,3> AtA_priv((weight*eq_vec)*eq_vec.transpose());
+                        Eigen::Matrix<ScalarT,3,1> Atb_priv((weight*(n.dot(d - s)))*eq_vec);
+
+                        AtA += AtA_priv;
+                        Atb += Atb_priv;
+                    }
+                }
+            }
+
+            d_theta.noalias() = AtA.ldlt().solve(Atb);
+
+            // Update estimate
+            rot_mat_iter.noalias() = Eigen::Rotation2D<ScalarT>(d_theta[0]).toRotationMatrix();
+
+            tform.linear() = rot_mat_iter*tform.linear();
+            tform.linear() = tform.rotation();
+            tform.translation() = rot_mat_iter*tform.translation() + d_theta.template tail<2>();
+
+            iter++;
+
+            // Check for convergence
+            if (d_theta.norm() < convergence_tol) return true;
+        }
+
+        return false;
+    }
+
     // Rigid, combined metric, 3D, iterative
     template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
     typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 3,bool>::type
@@ -143,6 +253,7 @@ namespace cilantro {
             // Compute differential
             AtA.setZero();
             Atb.setZero();
+
 #pragma omp parallel reduction (+: AtA) reduction (+: Atb)
             {
                 if (has_point_to_point_terms) {
@@ -168,20 +279,8 @@ namespace cilantro {
                         eq_vecs(2,1) = s[0];
                         eq_vecs(2,2) = (ScalarT)0.0;
 
-//                        eq_vecs(3,0) = (ScalarT)1.0;
-//                        eq_vecs(3,1) = (ScalarT)0.0;
-//                        eq_vecs(3,2) = (ScalarT)0.0;
-//
-//                        eq_vecs(4,0) = (ScalarT)0.0;
-//                        eq_vecs(4,1) = (ScalarT)1.0;
-//                        eq_vecs(4,2) = (ScalarT)0.0;
-//
-//                        eq_vecs(5,0) = (ScalarT)0.0;
-//                        eq_vecs(5,1) = (ScalarT)0.0;
-//                        eq_vecs(5,2) = (ScalarT)1.0;
-
                         Eigen::Matrix<ScalarT,6,6> AtA_priv((weight*eq_vecs)*eq_vecs.transpose());
-                        Eigen::Matrix<ScalarT,6,1> Atb_priv(eq_vecs*(weight*Eigen::Matrix<ScalarT,3,1>(d[0]-s[0],d[1]-s[1],d[2]-s[2])));
+                        Eigen::Matrix<ScalarT,6,1> Atb_priv(eq_vecs*(weight*(d - s)));
 
                         AtA += AtA_priv;
                         Atb += Atb_priv;
@@ -207,7 +306,7 @@ namespace cilantro {
                         eq_vec(5) = n[2];
 
                         Eigen::Matrix<ScalarT,6,6> AtA_priv((weight*eq_vec)*eq_vec.transpose());
-                        Eigen::Matrix<ScalarT,6,1> Atb_priv((weight*(n[0]*d[0] + n[1]*d[1] + n[2]*d[2] - n[0]*s[0] - n[1]*s[1] - n[2]*s[2]))*eq_vec);
+                        Eigen::Matrix<ScalarT,6,1> Atb_priv((weight*(n.dot(d - s)))*eq_vec);
 
                         AtA += AtA_priv;
                         Atb += Atb_priv;
@@ -224,7 +323,7 @@ namespace cilantro {
 
             tform.linear() = rot_mat_iter*tform.linear();
             tform.linear() = tform.rotation();
-            tform.translation() = rot_mat_iter*tform.translation() + d_theta.tail(3);
+            tform.translation() = rot_mat_iter*tform.translation() + d_theta.template tail<3>();
 
             iter++;
 
