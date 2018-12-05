@@ -1,5 +1,5 @@
 #include <cilantro/point_cloud.hpp>
-#include <cilantro/ransac_rigid_transform_estimator.hpp>
+#include <cilantro/ransac_transform_estimator.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
 
@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-    cilantro::Visualizer viz("RigidTransformRANSACEstimator example", "disp");
+    cilantro::Visualizer viz("TransformRANSACEstimator example", "disp");
     bool re_estimate = false;
     bool randomize = true;
     viz.registerKeyboardCallback('a', std::bind(callback, 'a', std::ref(re_estimate), std::ref(randomize)));
