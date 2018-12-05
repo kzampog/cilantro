@@ -112,7 +112,7 @@ int main(int argc, char ** argv) {
     cilantro::SimpleCombinedMetricRigidICP3f icp(dst.points, dst.normals, src.points);
 
     // Parameter setting
-    icp.setMaxNumberOfOptimizationStepIterations(1).setPointToPointMetricWeight(0.0).setPointToPlaneMetricWeight(1.0);
+    icp.setMaxNumberOfOptimizationStepIterations(1).setPointToPointMetricWeight(0.0f).setPointToPlaneMetricWeight(1.0f);
     icp.correspondenceSearchEngine().setMaxDistance(0.1f*0.1f);
     icp.setConvergenceTolerance(1e-4f).setMaxNumberOfIterations(30);
 

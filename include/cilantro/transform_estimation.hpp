@@ -187,6 +187,7 @@ namespace cilantro {
                         Atb += Atb_priv;
                     }
                 }
+
                 if (has_point_to_plane_terms) {
                     Eigen::Matrix<ScalarT,6,1> eq_vec;
 
@@ -232,5 +233,95 @@ namespace cilantro {
         }
 
         return false;
+    }
+
+    // Affine, combined metric, general dimension, closed form
+    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
+    typename std::enable_if<int(TransformT::Mode) == int(Eigen::Affine) || int(TransformT::Mode) == int(Eigen::AffineCompact),bool>::type
+    estimateTransformCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_p,
+                                    const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_n,
+                                    const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src_p,
+                                    const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                    typename TransformT::Scalar point_to_point_weight,
+                                    const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
+                                    typename TransformT::Scalar point_to_plane_weight,
+                                    TransformT &tform,
+                                    size_t /*max_iter = 1*/,
+                                    typename TransformT::Scalar /*convergence_tol = (typename TransformT::Scalar)1e-5*/,
+                                    const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
+                                    const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT())
+    {
+        typedef typename TransformT::Scalar ScalarT;
+        enum { Dim = TransformT::Dim, NumUnknowns = TransformT::Dim*(TransformT::Dim + 1) };
+
+        const bool has_point_to_point_terms = !point_to_point_correspondences.empty() && (point_to_point_weight > (ScalarT)0.0);
+        const bool has_point_to_plane_terms = !point_to_plane_correspondences.empty() && (point_to_plane_weight > (ScalarT)0.0);
+
+        if ((!has_point_to_point_terms && !has_point_to_plane_terms) ||
+            (has_point_to_plane_terms && dst_p.cols() != dst_n.cols()))
+        {
+            tform.setIdentity();
+            return false;
+        }
+
+        Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns> AtA(Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns>::Zero());
+        Eigen::Matrix<ScalarT,NumUnknowns,1> Atb(Eigen::Matrix<ScalarT,NumUnknowns,1>::Zero());
+
+#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns>::Zero())
+#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,NumUnknowns,1>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,NumUnknowns,1>::Zero())
+
+#pragma omp parallel reduction (+: AtA) reduction (+: Atb)
+        {
+            if (has_point_to_point_terms) {
+                Eigen::Matrix<ScalarT,NumUnknowns,Dim> eq_vecs;
+                eq_vecs.template block<Dim*Dim,Dim>(0, 0).setZero();
+                eq_vecs.template block<Dim,Dim>(Dim*Dim, 0).setIdentity();
+
+#pragma omp for nowait
+                for (size_t i = 0; i < point_to_point_correspondences.size(); i++) {
+                    const auto& corr = point_to_point_correspondences[i];
+                    const ScalarT weight = point_to_point_weight*point_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
+
+                    for (size_t j = 0; j < Dim; j++) {
+                        eq_vecs.template block<Dim,1>(j*Dim, j) = src_p.col(corr.indexInSecond);
+                    }
+
+                    Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns> AtA_priv((weight*eq_vecs)*eq_vecs.transpose());
+                    Eigen::Matrix<ScalarT,NumUnknowns,1> Atb_priv(eq_vecs*(weight*dst_p.col(corr.indexInFirst)));
+
+                    AtA += AtA_priv;
+                    Atb += Atb_priv;
+                }
+            }
+
+            if (has_point_to_plane_terms) {
+                Eigen::Matrix<ScalarT,NumUnknowns,1> eq_vec;
+
+#pragma omp for nowait
+                for (size_t i = 0; i < point_to_plane_correspondences.size(); i++) {
+                    const auto& corr = point_to_plane_correspondences[i];
+                    const auto n = dst_n.col(corr.indexInFirst);
+                    const ScalarT weight = point_to_plane_weight*plane_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
+
+                    for (size_t j = 0; j < Dim; j++) {
+                        eq_vec.template segment<Dim>(j*Dim) = n[j]*src_p.col(corr.indexInSecond);
+                    }
+                    eq_vec.template tail<Dim>() = n;
+
+                    Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns> AtA_priv((weight*eq_vec)*eq_vec.transpose());
+                    Eigen::Matrix<ScalarT,NumUnknowns,1> Atb_priv((weight*(n.dot(dst_p.col(corr.indexInFirst))))*eq_vec);
+
+                    AtA += AtA_priv;
+                    Atb += Atb_priv;
+                }
+            }
+        }
+
+        Eigen::Matrix<ScalarT,NumUnknowns,1> theta = AtA.ldlt().solve(Atb);
+
+        tform.linear() = Eigen::Map<Eigen::Matrix<ScalarT,Dim,Dim,Eigen::RowMajor>>(theta.data(), Dim, Dim);
+        tform.translation() = theta.template tail<Dim>();
+
+        return has_point_to_point_terms*point_to_point_correspondences.size() + has_point_to_plane_terms*point_to_plane_correspondences.size() >= Dim + 1;
     }
 }
