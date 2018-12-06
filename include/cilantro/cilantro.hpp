@@ -21,10 +21,10 @@
 #include <cilantro/grid_downsampler.hpp>
 #include <cilantro/icp_base.hpp>
 #include <cilantro/icp_common_instances.hpp>
-#include <cilantro/icp_non_rigid_combined_metric_dense_3d.hpp>
-#include <cilantro/icp_non_rigid_combined_metric_sparse_3d.hpp>
-#include <cilantro/icp_rigid_combined_metric_3d.hpp>
-#include <cilantro/icp_rigid_point_to_point.hpp>
+#include <cilantro/icp_single_transform_combined_metric.hpp>
+#include <cilantro/icp_single_transform_point_to_point_metric.hpp>
+#include <cilantro/icp_warp_field_combined_metric_dense.hpp>
+#include <cilantro/icp_warp_field_combined_metric_sparse.hpp>
 #include <cilantro/image_point_cloud_conversions.hpp>
 #include <cilantro/image_viewer.hpp>
 #include <cilantro/io.hpp>

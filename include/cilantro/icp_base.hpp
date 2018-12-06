@@ -12,8 +12,15 @@ namespace cilantro {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         typedef TransformT Transform;
+
+        typedef typename TransformT::Scalar Scalar;
+
         typedef typename TransformT::Scalar PointScalar;
+
+        enum { Dim = Transform::Dim };
+
         typedef CorrespondenceSearchEngineT CorrespondenceSearchEngine;
+
         typedef ResidualVectorT ResidualVector;
 
         IterativeClosestPointBase(CorrespondenceSearchEngine &corr_engine,
