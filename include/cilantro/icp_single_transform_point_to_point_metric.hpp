@@ -51,7 +51,7 @@ namespace cilantro {
             if (int(Base::Transform::Mode) == int(Eigen::Isometry)) {
                 this->transform_.linear() = this->transform_.rotation();
             }
-            this->last_delta_norm_ = std::sqrt((tform_iter.linear() - Eigen::Matrix<typename TransformT::Scalar,TransformT::Dim,TransformT::Dim>::Identity(src_points_.rows(),src_points_.rows())).squaredNorm() + tform_iter.translation().squaredNorm());
+            this->last_delta_norm_ = std::sqrt((tform_iter.linear() - TransformT::LinearMatrixType::Identity()).squaredNorm() + tform_iter.translation().squaredNorm());
         }
 
         // ICP interface

@@ -173,7 +173,7 @@ namespace cilantro {
             typename TransformT::Scalar max_delta_norm_sq = (typename TransformT::Scalar)0.0;
 #pragma omp parallel for reduction (max: max_delta_norm_sq)
             for (size_t i = 0; i < transform_iter_.size(); i++) {
-                typename TransformT::Scalar last_delta_norm_sq = (transform_iter_[i].linear() - Eigen::Matrix<typename TransformT::Scalar,TransformT::Dim,TransformT::Dim>::Identity()).squaredNorm() + transform_iter_[i].translation().squaredNorm();
+                typename TransformT::Scalar last_delta_norm_sq = (transform_iter_[i].linear() - TransformT::LinearMatrixType::Identity()).squaredNorm() + transform_iter_[i].translation().squaredNorm();
                 if (last_delta_norm_sq > max_delta_norm_sq) max_delta_norm_sq = last_delta_norm_sq;
             }
             this->last_delta_norm_ = std::sqrt(max_delta_norm_sq);
