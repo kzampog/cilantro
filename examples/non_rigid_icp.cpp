@@ -62,17 +62,7 @@ int main(int argc, char ** argv) {
     cilantro::Timer timer;
     timer.start();
 
-
-    cilantro::PointFeaturesAdaptor3f dst_feat(dst.points);
-    cilantro::PointFeaturesAdaptor3f src_feat(src.points);
-
-    cilantro::DistanceEvaluator<float> dist_eval;
-    cilantro::CorrespondenceSearchKDTree<decltype(dst_feat)> corr_engine(dst_feat, src_feat, dist_eval);
-    cilantro::UnityWeightEvaluator<float> unity_eval;
-    cilantro::RBFKernelWeightEvaluator<float,float,true> rbf_eval;
-
-
-    cilantro::CombinedMetricSparseRigidWarpFieldICP3f<decltype(corr_engine)> icp(dst.points, dst.normals, src.points, corr_engine, unity_eval, unity_eval, src_to_control_nn, control_points.cols(), rbf_eval, regularization_nn, rbf_eval);
+    cilantro::SimpleCombinedMetricSparseRigidWarpFieldICP3f icp(dst.points, dst.normals, src.points, src_to_control_nn, control_points.cols(), regularization_nn);
 
     // Parameter setting
     icp.correspondenceSearchEngine().setMaxDistance(max_correspondence_dist_sq);
@@ -106,15 +96,7 @@ int main(int argc, char ** argv) {
 //    cilantro::Timer timer;
 //    timer.start();
 //
-//    cilantro::PointFeaturesAdaptor3f dst_feat(dst.points);
-//    cilantro::PointFeaturesAdaptor3f src_feat(src.points);
-//
-//    cilantro::DistanceEvaluator<float> dist_eval;
-//    cilantro::CorrespondenceSearchKDTree<decltype(dst_feat)> corr_engine(dst_feat, src_feat, dist_eval);
-//    cilantro::UnityWeightEvaluator<float> unity_eval;
-//    cilantro::RBFKernelWeightEvaluator<float,float,true> rbf_eval;
-//
-//    cilantro::CombinedMetricDenseRigidWarpFieldICP3f<decltype(corr_engine)> icp(dst.points, dst.normals, src.points, corr_engine, unity_eval, unity_eval, regularization_nn, rbf_eval);
+//    cilantro::SimpleCombinedMetricDenseRigidWarpFieldICP3f icp(dst.points, dst.normals, src.points, regularization_nn);
 //
 //    // Parameter setting
 //    icp.correspondenceSearchEngine().setMaxDistance(max_correspondence_dist_sq);

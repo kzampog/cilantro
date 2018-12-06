@@ -8,186 +8,259 @@
 #include <cilantro/icp_warp_field_combined_metric_dense.hpp>
 #include <cilantro/icp_warp_field_combined_metric_sparse.hpp>
 
-//namespace cilantro {
-//    namespace internal {
-//        template <typename ScalarT, ptrdiff_t EigenDim, class CorrSearchT>
-//        class SimpleICPEntitiesContainer {
-//        public:
-//            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-//
-//            SimpleICPEntitiesContainer(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
-//                                       const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points)
-//                    : dst_feat_(dst_points), src_feat_(src_points),
-//                      corr_search_(dst_feat_, src_feat_, corr_dist_evaluator_)
-//            {}
-//
-//        protected:
-//            PointFeaturesAdaptor<ScalarT,EigenDim> dst_feat_;
-//            PointFeaturesAdaptor<ScalarT,EigenDim> src_feat_;
-//            DistanceEvaluator<ScalarT,ScalarT> corr_dist_evaluator_;
-//            CorrSearchT corr_search_;
-//            UnityWeightEvaluator<ScalarT,ScalarT> point_corr_weight_eval_;
-//            UnityWeightEvaluator<ScalarT,ScalarT> plane_corr_weight_eval_;
-//            RBFKernelWeightEvaluator<ScalarT,ScalarT,true> control_weight_eval_;
-//            RBFKernelWeightEvaluator<ScalarT,ScalarT,true> reg_weight_eval_;
-//        };
-//
-//        template <typename ScalarT, ptrdiff_t EigenDim>
-//        using DefaultKDTreeCorrespondenceSearch = CorrespondenceSearchKDTree<PointFeaturesAdaptor<ScalarT,EigenDim>,KDTreeDistanceAdaptors::L2,PointFeaturesAdaptor<ScalarT,EigenDim>,DistanceEvaluator<ScalarT,ScalarT>>;
-//
-//        template <typename ScalarT>
-//        using DefaultProjectiveCorrespondenceSearch3 = CorrespondenceSearchProjective3<ScalarT,PointFeaturesAdaptor<ScalarT,3>,DistanceEvaluator<ScalarT,ScalarT>>;
-//    }
-//
-//    template <typename ScalarT, ptrdiff_t EigenDim>
-//    class SimplePointToPointMetricRigidICP : private internal::SimpleICPEntitiesContainer<ScalarT,EigenDim,internal::DefaultKDTreeCorrespondenceSearch<ScalarT,EigenDim>>,
-//                                             public PointToPointMetricRigidICP<ScalarT,EigenDim,internal::DefaultKDTreeCorrespondenceSearch<ScalarT,EigenDim>>
-//    {
-//    public:
-//        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-//
-//        SimplePointToPointMetricRigidICP(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &dst_points,
-//                                         const ConstVectorSetMatrixMap<ScalarT,EigenDim> &src_points)
-//                : internal::SimpleICPEntitiesContainer<ScalarT,EigenDim,internal::DefaultKDTreeCorrespondenceSearch<ScalarT,EigenDim>>(dst_points, src_points),
-//                  PointToPointMetricRigidICP<ScalarT,EigenDim,internal::DefaultKDTreeCorrespondenceSearch<ScalarT,EigenDim>>(dst_points, src_points, this->corr_search_)
-//        {}
-//    };
-//
-//    typedef SimplePointToPointMetricRigidICP<float,2> SimplePointToPointMetricRigidICP2f;
-//    typedef SimplePointToPointMetricRigidICP<double,2> SimplePointToPointMetricRigidICP2d;
-//    typedef SimplePointToPointMetricRigidICP<float,3> SimplePointToPointMetricRigidICP3f;
-//    typedef SimplePointToPointMetricRigidICP<double,3> SimplePointToPointMetricRigidICP3d;
-//
-//    template <typename ScalarT>
-//    class SimplePointToPointMetricRigidProjectiveICP3 : private internal::SimpleICPEntitiesContainer<ScalarT,3,internal::DefaultProjectiveCorrespondenceSearch3<ScalarT>>,
-//                                                        public PointToPointMetricRigidICP<ScalarT,3,internal::DefaultProjectiveCorrespondenceSearch3<ScalarT>>
-//    {
-//    public:
-//        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-//
-//        SimplePointToPointMetricRigidProjectiveICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_points,
-//                                                    const ConstVectorSetMatrixMap<ScalarT,3> &src_points)
-//                : internal::SimpleICPEntitiesContainer<ScalarT,3,internal::DefaultProjectiveCorrespondenceSearch3<ScalarT>>(dst_points, src_points),
-//                  PointToPointMetricRigidICP<ScalarT,3,internal::DefaultProjectiveCorrespondenceSearch3<ScalarT>>(dst_points, src_points, this->corr_search_)
-//        {}
-//    };
-//
-//    typedef SimplePointToPointMetricRigidProjectiveICP3<float> SimplePointToPointMetricRigidProjectiveICP3f;
-//    typedef SimplePointToPointMetricRigidProjectiveICP3<double> SimplePointToPointMetricRigidProjectiveICP3d;
-//
-//    template <typename ScalarT>
-//    class SimpleCombinedMetricRigidICP3 : private internal::SimpleICPEntitiesContainer<ScalarT,3,internal::DefaultKDTreeCorrespondenceSearch<ScalarT,3>>,
-//                                          public CombinedMetricRigidICP3<ScalarT,internal::DefaultKDTreeCorrespondenceSearch<ScalarT,3>,UnityWeightEvaluator<ScalarT,ScalarT>,UnityWeightEvaluator<ScalarT,ScalarT>>
-//    {
-//    public:
-//        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-//
-//        SimpleCombinedMetricRigidICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_points,
-//                                      const ConstVectorSetMatrixMap<ScalarT,3> &dst_normals,
-//                                      const ConstVectorSetMatrixMap<ScalarT,3> &src_points)
-//                : internal::SimpleICPEntitiesContainer<ScalarT,3,internal::DefaultKDTreeCorrespondenceSearch<ScalarT,3>>(dst_points, src_points),
-//                  CombinedMetricRigidICP3<ScalarT,internal::DefaultKDTreeCorrespondenceSearch<ScalarT,3>,UnityWeightEvaluator<ScalarT,ScalarT>,UnityWeightEvaluator<ScalarT,ScalarT>>(dst_points, dst_normals, src_points, this->corr_search_, this->point_corr_weight_eval_, this->plane_corr_weight_eval_)
-//        {}
-//    };
-//
-//    typedef SimpleCombinedMetricRigidICP3<float> SimpleCombinedMetricRigidICP3f;
-//    typedef SimpleCombinedMetricRigidICP3<double> SimpleCombinedMetricRigidICP3d;
-//
-//    template <typename ScalarT>
-//    class SimpleCombinedMetricRigidProjectiveICP3 : private internal::SimpleICPEntitiesContainer<ScalarT,3,internal::DefaultProjectiveCorrespondenceSearch3<ScalarT>>,
-//                                                    public CombinedMetricRigidICP3<ScalarT,internal::DefaultProjectiveCorrespondenceSearch3<ScalarT>,UnityWeightEvaluator<ScalarT,ScalarT>,UnityWeightEvaluator<ScalarT,ScalarT>>
-//    {
-//    public:
-//        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-//
-//        SimpleCombinedMetricRigidProjectiveICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_points,
-//                                                const ConstVectorSetMatrixMap<ScalarT,3> &dst_normals,
-//                                                const ConstVectorSetMatrixMap<ScalarT,3> &src_points)
-//                : internal::SimpleICPEntitiesContainer<ScalarT,3,internal::DefaultProjectiveCorrespondenceSearch3<ScalarT>>(dst_points, src_points),
-//                  CombinedMetricRigidICP3<ScalarT,internal::DefaultProjectiveCorrespondenceSearch3<ScalarT>,UnityWeightEvaluator<ScalarT,ScalarT>,UnityWeightEvaluator<ScalarT,ScalarT>>(dst_points, dst_normals, src_points, this->corr_search_, this->point_corr_weight_eval_, this->plane_corr_weight_eval_)
-//        {}
-//    };
-//
-//    typedef SimpleCombinedMetricRigidProjectiveICP3<float> SimpleCombinedMetricRigidProjectiveICP3f;
-//    typedef SimpleCombinedMetricRigidProjectiveICP3<double> SimpleCombinedMetricRigidProjectiveICP3d;
-//
-//    template <typename ScalarT>
-//    class SimpleDenseCombinedMetricNonRigidICP3 : private internal::SimpleICPEntitiesContainer<ScalarT,3,internal::DefaultKDTreeCorrespondenceSearch<ScalarT,3>>,
-//                                                  public DenseCombinedMetricNonRigidICP3<ScalarT,internal::DefaultKDTreeCorrespondenceSearch<ScalarT,3>,UnityWeightEvaluator<ScalarT,ScalarT>,UnityWeightEvaluator<ScalarT,ScalarT>,RBFKernelWeightEvaluator<ScalarT,ScalarT,true>>
-//    {
-//    public:
-//        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-//
-//        SimpleDenseCombinedMetricNonRigidICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_points,
-//                                              const ConstVectorSetMatrixMap<ScalarT,3> &dst_normals,
-//                                              const ConstVectorSetMatrixMap<ScalarT,3> &src_points,
-//                                              const std::vector<NeighborSet<ScalarT>> &regularization_neighborhoods)
-//                : internal::SimpleICPEntitiesContainer<ScalarT,3,internal::DefaultKDTreeCorrespondenceSearch<ScalarT,3>>(dst_points, src_points),
-//                  DenseCombinedMetricNonRigidICP3<ScalarT,internal::DefaultKDTreeCorrespondenceSearch<ScalarT,3>,UnityWeightEvaluator<ScalarT,ScalarT>,UnityWeightEvaluator<ScalarT,ScalarT>,RBFKernelWeightEvaluator<ScalarT,ScalarT,true>>(dst_points, dst_normals, src_points, this->corr_search_, this->point_corr_weight_eval_, this->plane_corr_weight_eval_, regularization_neighborhoods, this->reg_weight_eval_)
-//        {}
-//    };
-//
-//    typedef SimpleDenseCombinedMetricNonRigidICP3<float> SimpleDenseCombinedMetricNonRigidICP3f;
-//    typedef SimpleDenseCombinedMetricNonRigidICP3<double> SimpleDenseCombinedMetricNonRigidICP3d;
-//
-//    template <typename ScalarT>
-//    class SimpleDenseCombinedMetricNonRigidProjectiveICP3 : private internal::SimpleICPEntitiesContainer<ScalarT,3,internal::DefaultProjectiveCorrespondenceSearch3<ScalarT>>,
-//                                                            public DenseCombinedMetricNonRigidICP3<ScalarT,internal::DefaultProjectiveCorrespondenceSearch3<ScalarT>,UnityWeightEvaluator<ScalarT,ScalarT>,UnityWeightEvaluator<ScalarT,ScalarT>,RBFKernelWeightEvaluator<ScalarT,ScalarT,true>>
-//    {
-//    public:
-//        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-//
-//        SimpleDenseCombinedMetricNonRigidProjectiveICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_points,
-//                                                        const ConstVectorSetMatrixMap<ScalarT,3> &dst_normals,
-//                                                        const ConstVectorSetMatrixMap<ScalarT,3> &src_points,
-//                                                        const std::vector<NeighborSet<ScalarT>> &regularization_neighborhoods)
-//                : internal::SimpleICPEntitiesContainer<ScalarT,3,internal::DefaultProjectiveCorrespondenceSearch3<ScalarT>>(dst_points, src_points),
-//                  DenseCombinedMetricNonRigidICP3<ScalarT,internal::DefaultProjectiveCorrespondenceSearch3<ScalarT>,UnityWeightEvaluator<ScalarT,ScalarT>,UnityWeightEvaluator<ScalarT,ScalarT>,RBFKernelWeightEvaluator<ScalarT,ScalarT,true>>(dst_points, dst_normals, src_points, this->corr_search_, this->point_corr_weight_eval_, this->plane_corr_weight_eval_, regularization_neighborhoods, this->reg_weight_eval_)
-//        {}
-//    };
-//
-//    typedef SimpleDenseCombinedMetricNonRigidProjectiveICP3<float> SimpleDenseCombinedMetricNonRigidProjectiveICP3f;
-//    typedef SimpleDenseCombinedMetricNonRigidProjectiveICP3<double> SimpleDenseCombinedMetricNonRigidProjectiveICP3d;
-//
-//    template <typename ScalarT>
-//    class SimpleSparseCombinedMetricNonRigidICP3 : private internal::SimpleICPEntitiesContainer<ScalarT,3,internal::DefaultKDTreeCorrespondenceSearch<ScalarT,3>>,
-//                                                   public SparseCombinedMetricNonRigidICP3<ScalarT,internal::DefaultKDTreeCorrespondenceSearch<ScalarT,3>,UnityWeightEvaluator<ScalarT,ScalarT>,UnityWeightEvaluator<ScalarT,ScalarT>,RBFKernelWeightEvaluator<ScalarT,ScalarT,true>,RBFKernelWeightEvaluator<ScalarT,ScalarT,true>>
-//    {
-//    public:
-//        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-//
-//        SimpleSparseCombinedMetricNonRigidICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_points,
-//                                               const ConstVectorSetMatrixMap<ScalarT,3> &dst_normals,
-//                                               const ConstVectorSetMatrixMap<ScalarT,3> &src_points,
-//                                               const std::vector<NeighborSet<ScalarT>> &src_to_control_neighborhoods,
-//                                               size_t num_control_nodes,
-//                                               const std::vector<NeighborSet<ScalarT>> &control_regularization_neighborhoods)
-//                : internal::SimpleICPEntitiesContainer<ScalarT,3,internal::DefaultKDTreeCorrespondenceSearch<ScalarT,3>>(dst_points, src_points),
-//                  SparseCombinedMetricNonRigidICP3<ScalarT,internal::DefaultKDTreeCorrespondenceSearch<ScalarT,3>,UnityWeightEvaluator<ScalarT,ScalarT>,UnityWeightEvaluator<ScalarT,ScalarT>,RBFKernelWeightEvaluator<ScalarT,ScalarT,true>,RBFKernelWeightEvaluator<ScalarT,ScalarT,true>>(dst_points, dst_normals, src_points, this->corr_search_, this->point_corr_weight_eval_, this->plane_corr_weight_eval_, src_to_control_neighborhoods, num_control_nodes, this->control_weight_eval_, control_regularization_neighborhoods, this->reg_weight_eval_)
-//        {}
-//    };
-//
-//    typedef SimpleSparseCombinedMetricNonRigidICP3<float> SimpleSparseCombinedMetricNonRigidICP3f;
-//    typedef SimpleSparseCombinedMetricNonRigidICP3<double> SimpleSparseCombinedMetricNonRigidICP3d;
-//
-//    template <typename ScalarT>
-//    class SimpleSparseCombinedMetricNonRigidProjectiveICP3 : private internal::SimpleICPEntitiesContainer<ScalarT,3,internal::DefaultProjectiveCorrespondenceSearch3<ScalarT>>,
-//                                                             public SparseCombinedMetricNonRigidICP3<ScalarT,internal::DefaultProjectiveCorrespondenceSearch3<ScalarT>,UnityWeightEvaluator<ScalarT,ScalarT>,UnityWeightEvaluator<ScalarT,ScalarT>,RBFKernelWeightEvaluator<ScalarT,ScalarT,true>,RBFKernelWeightEvaluator<ScalarT,ScalarT,true>>
-//    {
-//    public:
-//        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-//
-//        SimpleSparseCombinedMetricNonRigidProjectiveICP3(const ConstVectorSetMatrixMap<ScalarT,3> &dst_points,
-//                                                         const ConstVectorSetMatrixMap<ScalarT,3> &dst_normals,
-//                                                         const ConstVectorSetMatrixMap<ScalarT,3> &src_points,
-//                                                         const std::vector<NeighborSet<ScalarT>> &src_to_control_neighborhoods,
-//                                                         size_t num_control_nodes,
-//                                                         const std::vector<NeighborSet<ScalarT>> &control_regularization_neighborhoods)
-//                : internal::SimpleICPEntitiesContainer<ScalarT,3,internal::DefaultProjectiveCorrespondenceSearch3<ScalarT>>(dst_points, src_points),
-//                  SparseCombinedMetricNonRigidICP3<ScalarT,internal::DefaultProjectiveCorrespondenceSearch3<ScalarT>,UnityWeightEvaluator<ScalarT,ScalarT>,UnityWeightEvaluator<ScalarT,ScalarT>,RBFKernelWeightEvaluator<ScalarT,ScalarT,true>,RBFKernelWeightEvaluator<ScalarT,ScalarT,true>>(dst_points, dst_normals, src_points, this->corr_search_, this->point_corr_weight_eval_, this->plane_corr_weight_eval_, src_to_control_neighborhoods, num_control_nodes, this->control_weight_eval_, control_regularization_neighborhoods, this->reg_weight_eval_)
-//        {}
-//    };
-//
-//    typedef SimpleSparseCombinedMetricNonRigidProjectiveICP3<float> SimpleSparseCombinedMetricNonRigidProjectiveICP3f;
-//    typedef SimpleSparseCombinedMetricNonRigidProjectiveICP3<double> SimpleSparseCombinedMetricNonRigidProjectiveICP3d;
-//}
+namespace cilantro {
+    namespace internal {
+        template <class TransformT, class CorrSearchT>
+        using DefaultPointToPointMetricICP = PointToPointMetricSingleTransformICP<TransformT,CorrSearchT>;
+
+        template <class TransformT, class CorrSearchT>
+        class DefaultPointToPointMetricICPEntities {
+        public:
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+            DefaultPointToPointMetricICPEntities(const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_points,
+                                                 const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src_points)
+                    : dst_feat_(dst_points), src_feat_(src_points),
+                      corr_search_(dst_feat_, src_feat_, corr_dist_evaluator_)
+            {}
+
+        protected:
+            PointFeaturesAdaptor<typename TransformT::Scalar,TransformT::Dim> dst_feat_;
+            PointFeaturesAdaptor<typename TransformT::Scalar,TransformT::Dim> src_feat_;
+            DistanceEvaluator<typename TransformT::Scalar,typename TransformT::Scalar> corr_dist_evaluator_;
+            CorrSearchT corr_search_;
+        };
+
+        template <class TransformT, class CorrSearchT>
+        class SimplePointToPointMetricICPWrapper : private DefaultPointToPointMetricICPEntities<TransformT,CorrSearchT>,
+                                                   public DefaultPointToPointMetricICP<TransformT,CorrSearchT>
+        {
+        public:
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+            SimplePointToPointMetricICPWrapper(const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_points,
+                                               const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src_points)
+                    : DefaultPointToPointMetricICPEntities<TransformT,CorrSearchT>(dst_points, src_points),
+                      DefaultPointToPointMetricICP<TransformT,CorrSearchT>(dst_points, src_points, this->corr_search_)
+            {}
+        };
+
+        template <class TransformT, class CorrSearchT>
+        using DefaultCombinedMetricICP = CombinedMetricSingleTransformICP<TransformT,CorrSearchT,UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>,UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>;
+
+        template <class TransformT, class CorrSearchT>
+        class DefaultCombinedMetricICPEntities {
+        public:
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+            DefaultCombinedMetricICPEntities(const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_points,
+                                             const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src_points)
+                    : dst_feat_(dst_points), src_feat_(src_points),
+                      corr_search_(dst_feat_, src_feat_, corr_dist_evaluator_)
+            {}
+
+        protected:
+            PointFeaturesAdaptor<typename TransformT::Scalar,TransformT::Dim> dst_feat_;
+            PointFeaturesAdaptor<typename TransformT::Scalar,TransformT::Dim> src_feat_;
+            DistanceEvaluator<typename TransformT::Scalar,typename TransformT::Scalar> corr_dist_evaluator_;
+            CorrSearchT corr_search_;
+            UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar> point_corr_weight_eval_;
+            UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar> plane_corr_weight_eval_;
+        };
+
+        template <class TransformT, class CorrSearchT>
+        class SimpleCombinedMetricICPWrapper : private DefaultCombinedMetricICPEntities<TransformT,CorrSearchT>,
+                                               public DefaultCombinedMetricICP<TransformT,CorrSearchT>
+        {
+        public:
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+            SimpleCombinedMetricICPWrapper(const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_points,
+                                           const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_normals,
+                                           const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src_points)
+                    : DefaultCombinedMetricICPEntities<TransformT,CorrSearchT>(dst_points, src_points),
+                      DefaultCombinedMetricICP<TransformT,CorrSearchT>(dst_points, dst_normals, src_points, this->corr_search_, this->point_corr_weight_eval_, this->plane_corr_weight_eval_)
+            {}
+        };
+
+        template <class TransformT, class CorrSearchT>
+        using DefaultCombinedMetricDenseWarpFieldICP = CombinedMetricDenseWarpFieldICP<TransformT,CorrSearchT,UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>,UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>,RBFKernelWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar,true>>;
+
+        template <class TransformT, class CorrSearchT>
+        class DefaultCombinedMetricDenseWarpFieldICPEntities {
+        public:
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+            DefaultCombinedMetricDenseWarpFieldICPEntities(const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_points,
+                                                           const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src_points)
+                    : dst_feat_(dst_points), src_feat_(src_points),
+                      corr_search_(dst_feat_, src_feat_, corr_dist_evaluator_)
+            {}
+
+        protected:
+            PointFeaturesAdaptor<typename TransformT::Scalar,TransformT::Dim> dst_feat_;
+            PointFeaturesAdaptor<typename TransformT::Scalar,TransformT::Dim> src_feat_;
+            DistanceEvaluator<typename TransformT::Scalar,typename TransformT::Scalar> corr_dist_evaluator_;
+            CorrSearchT corr_search_;
+            UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar> point_corr_weight_eval_;
+            UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar> plane_corr_weight_eval_;
+            RBFKernelWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar,true> reg_weight_eval_;
+        };
+
+        template <class TransformT, class CorrSearchT>
+        class SimpleCombinedMetricDenseWarpFieldICPWrapper : private DefaultCombinedMetricDenseWarpFieldICPEntities<TransformT,CorrSearchT>,
+                                                             public DefaultCombinedMetricDenseWarpFieldICP<TransformT,CorrSearchT>
+        {
+        public:
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+            SimpleCombinedMetricDenseWarpFieldICPWrapper(const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_points,
+                                                         const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_normals,
+                                                         const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src_points,
+                                                         const std::vector<NeighborSet<typename TransformT::Scalar>> &regularization_neighborhoods)
+                    : DefaultCombinedMetricDenseWarpFieldICPEntities<TransformT,CorrSearchT>(dst_points, src_points),
+                      DefaultCombinedMetricDenseWarpFieldICP<TransformT,CorrSearchT>(dst_points, dst_normals, src_points, this->corr_search_, this->point_corr_weight_eval_, this->plane_corr_weight_eval_, regularization_neighborhoods, this->reg_weight_eval_)
+            {}
+        };
+
+        template <class TransformT, class CorrSearchT>
+        using DefaultCombinedMetricSparseWarpFieldICP = CombinedMetricSparseWarpFieldICP<TransformT,CorrSearchT,UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>,UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>,RBFKernelWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar,true>,RBFKernelWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar,true>>;
+
+        template <class TransformT, class CorrSearchT>
+        class DefaultCombinedMetricSparseWarpFieldICPEntities {
+        public:
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+            DefaultCombinedMetricSparseWarpFieldICPEntities(const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_points,
+                                                            const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src_points)
+                    : dst_feat_(dst_points), src_feat_(src_points),
+                      corr_search_(dst_feat_, src_feat_, corr_dist_evaluator_)
+            {}
+
+        protected:
+            PointFeaturesAdaptor<typename TransformT::Scalar,TransformT::Dim> dst_feat_;
+            PointFeaturesAdaptor<typename TransformT::Scalar,TransformT::Dim> src_feat_;
+            DistanceEvaluator<typename TransformT::Scalar,typename TransformT::Scalar> corr_dist_evaluator_;
+            CorrSearchT corr_search_;
+            UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar> point_corr_weight_eval_;
+            UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar> plane_corr_weight_eval_;
+            RBFKernelWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar,true> control_weight_eval_;
+            RBFKernelWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar,true> reg_weight_eval_;
+        };
+
+        template <class TransformT, class CorrSearchT>
+        class SimpleCombinedMetricSparseWarpFieldICPWrapper : private DefaultCombinedMetricSparseWarpFieldICPEntities<TransformT,CorrSearchT>,
+                                                              public DefaultCombinedMetricSparseWarpFieldICP<TransformT,CorrSearchT>
+        {
+        public:
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+            SimpleCombinedMetricSparseWarpFieldICPWrapper(const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_points,
+                                                          const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_normals,
+                                                          const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src_points,
+                                                          const std::vector<NeighborSet<typename TransformT::Scalar>> &src_to_control_neighborhoods,
+                                                          size_t num_control_nodes,
+                                                          const std::vector<NeighborSet<typename TransformT::Scalar>> &control_regularization_neighborhoods)
+                    : DefaultCombinedMetricSparseWarpFieldICPEntities<TransformT,CorrSearchT>(dst_points, src_points),
+                      DefaultCombinedMetricSparseWarpFieldICP<TransformT,CorrSearchT>(dst_points, dst_normals, src_points, this->corr_search_, this->point_corr_weight_eval_, this->plane_corr_weight_eval_, src_to_control_neighborhoods, num_control_nodes, this->control_weight_eval_, control_regularization_neighborhoods, this->reg_weight_eval_)
+            {}
+        };
+
+        template <class TransformT>
+        using DefaultKDTreeSearch = CorrespondenceSearchKDTree<PointFeaturesAdaptor<typename TransformT::Scalar,TransformT::Dim>,KDTreeDistanceAdaptors::L2,PointFeaturesAdaptor<typename TransformT::Scalar,TransformT::Dim>,DistanceEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>;
+
+        template <class TransformT>
+        using DefaultProjectiveSearch = CorrespondenceSearchProjective<typename TransformT::Scalar,PointFeaturesAdaptor<typename TransformT::Scalar,3>,DistanceEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>;
+    }
+
+    template <class TransformT>
+    using SimplePointToPointMetricICP = internal::SimplePointToPointMetricICPWrapper<TransformT,internal::DefaultKDTreeSearch<TransformT>>;
+
+    template <class TransformT>
+    using SimplePointToPointMetricProjectiveICP = internal::SimplePointToPointMetricICPWrapper<TransformT,internal::DefaultProjectiveSearch<TransformT>>;
+
+    template <class TransformT>
+    using SimpleCombinedMetricICP = internal::SimpleCombinedMetricICPWrapper<TransformT,internal::DefaultKDTreeSearch<TransformT>>;
+
+    template <class TransformT>
+    using SimpleCombinedMetricProjectiveICP = internal::SimpleCombinedMetricICPWrapper<TransformT,internal::DefaultProjectiveSearch<TransformT>>;
+
+    template <class TransformT>
+    using SimpleCombinedMetricDenseWarpFieldICP = internal::SimpleCombinedMetricDenseWarpFieldICPWrapper<TransformT,internal::DefaultKDTreeSearch<TransformT>>;
+
+    template <class TransformT>
+    using SimpleCombinedMetricDenseWarpFieldProjectiveICP = internal::SimpleCombinedMetricDenseWarpFieldICPWrapper<TransformT,internal::DefaultProjectiveSearch<TransformT>>;
+
+    template <class TransformT>
+    using SimpleCombinedMetricSparseWarpFieldICP = internal::SimpleCombinedMetricSparseWarpFieldICPWrapper<TransformT,internal::DefaultKDTreeSearch<TransformT>>;
+
+    template <class TransformT>
+    using SimpleCombinedMetricSparseWarpFieldProjectiveICP = internal::SimpleCombinedMetricSparseWarpFieldICPWrapper<TransformT,internal::DefaultProjectiveSearch<TransformT>>;
+
+    // Point to point
+    typedef SimplePointToPointMetricICP<RigidTransform<float,2>> SimplePointToPointMetricRigidICP2f;
+    typedef SimplePointToPointMetricICP<RigidTransform<double,2>> SimplePointToPointMetricRigidICP2d;
+    typedef SimplePointToPointMetricICP<RigidTransform<float,3>> SimplePointToPointMetricRigidICP3f;
+    typedef SimplePointToPointMetricICP<RigidTransform<double,3>> SimplePointToPointMetricRigidICP3d;
+
+    typedef SimplePointToPointMetricICP<AffineTransform<float,2>> SimplePointToPointMetricAffineICP2f;
+    typedef SimplePointToPointMetricICP<AffineTransform<double,2>> SimplePointToPointMetricAffineICP2d;
+    typedef SimplePointToPointMetricICP<AffineTransform<float,3>> SimplePointToPointMetricAffineICP3f;
+    typedef SimplePointToPointMetricICP<AffineTransform<double,3>> SimplePointToPointMetricAffineICP3d;
+
+    typedef SimplePointToPointMetricProjectiveICP<RigidTransform<float,3>> SimplePointToPointMetricRigidProjectiveICP3f;
+    typedef SimplePointToPointMetricProjectiveICP<RigidTransform<double,3>> SimplePointToPointMetricRigidProjectiveICP3d;
+
+    typedef SimplePointToPointMetricProjectiveICP<AffineTransform<float,3>> SimplePointToPointMetricAffineProjectiveICP3f;
+    typedef SimplePointToPointMetricProjectiveICP<AffineTransform<double,3>> SimplePointToPointMetricAffineProjectiveICP3d;
+
+    // Combined metric
+    typedef SimpleCombinedMetricICP<RigidTransform<float,2>> SimpleCombinedMetricRigidICP2f;
+    typedef SimpleCombinedMetricICP<RigidTransform<double,2>> SimpleCombinedMetricRigidICP2d;
+    typedef SimpleCombinedMetricICP<RigidTransform<float,3>> SimpleCombinedMetricRigidICP3f;
+    typedef SimpleCombinedMetricICP<RigidTransform<double,3>> SimpleCombinedMetricRigidICP3d;
+
+    typedef SimpleCombinedMetricICP<AffineTransform<float,2>> SimpleCombinedMetricAffineICP2f;
+    typedef SimpleCombinedMetricICP<AffineTransform<double,2>> SimpleCombinedMetricAffineICP2d;
+    typedef SimpleCombinedMetricICP<AffineTransform<float,3>> SimpleCombinedMetricAffineICP3f;
+    typedef SimpleCombinedMetricICP<AffineTransform<double,3>> SimpleCombinedMetricAffineICP3d;
+
+    typedef SimpleCombinedMetricProjectiveICP<RigidTransform<float,3>> SimpleCombinedMetricRigidProjectiveICP3f;
+    typedef SimpleCombinedMetricProjectiveICP<RigidTransform<double,3>> SimpleCombinedMetricRigidProjectiveICP3d;
+
+    typedef SimpleCombinedMetricProjectiveICP<AffineTransform<float,3>> SimpleCombinedMetricAffineProjectiveICP3f;
+    typedef SimpleCombinedMetricProjectiveICP<AffineTransform<double,3>> SimpleCombinedMetricAffineProjectiveICP3d;
+
+    // Dense warp field
+    typedef SimpleCombinedMetricDenseWarpFieldICP<RigidTransform<float,2>> SimpleCombinedMetricDenseRigidWarpFieldICP2f;
+    typedef SimpleCombinedMetricDenseWarpFieldICP<RigidTransform<double,2>> SimpleCombinedMetricDenseRigidWarpFieldICP2d;
+    typedef SimpleCombinedMetricDenseWarpFieldICP<RigidTransform<float,3>> SimpleCombinedMetricDenseRigidWarpFieldICP3f;
+    typedef SimpleCombinedMetricDenseWarpFieldICP<RigidTransform<double,3>> SimpleCombinedMetricDenseRigidWarpFieldICP3d;
+
+    typedef SimpleCombinedMetricDenseWarpFieldICP<AffineTransform<float,2>> SimpleCombinedMetricDenseAffineWarpFieldICP2f;
+    typedef SimpleCombinedMetricDenseWarpFieldICP<AffineTransform<double,2>> SimpleCombinedMetricDenseAffineWarpFieldICP2d;
+    typedef SimpleCombinedMetricDenseWarpFieldICP<AffineTransform<float,3>> SimpleCombinedMetricDenseAffineWarpFieldICP3f;
+    typedef SimpleCombinedMetricDenseWarpFieldICP<AffineTransform<double,3>> SimpleCombinedMetricDenseAffineWarpFieldICP3d;
+
+    typedef SimpleCombinedMetricDenseWarpFieldProjectiveICP<RigidTransform<float,3>> SimpleCombinedMetricDenseRigidWarpFieldProjectiveICP3f;
+    typedef SimpleCombinedMetricDenseWarpFieldProjectiveICP<RigidTransform<double,3>> SimpleCombinedMetricDenseRigidWarpFieldProjectiveICP3d;
+
+    typedef SimpleCombinedMetricDenseWarpFieldProjectiveICP<AffineTransform<float,3>> SimpleCombinedMetricDenseAffineWarpFieldProjectiveICP3f;
+    typedef SimpleCombinedMetricDenseWarpFieldProjectiveICP<AffineTransform<double,3>> SimpleCombinedMetricDenseAffineWarpFieldProjectiveICP3d;
+
+    // Sparse warp field
+    typedef SimpleCombinedMetricSparseWarpFieldICP<RigidTransform<float,2>> SimpleCombinedMetricSparseRigidWarpFieldICP2f;
+    typedef SimpleCombinedMetricSparseWarpFieldICP<RigidTransform<double,2>> SimpleCombinedMetricSparseRigidWarpFieldICP2d;
+    typedef SimpleCombinedMetricSparseWarpFieldICP<RigidTransform<float,3>> SimpleCombinedMetricSparseRigidWarpFieldICP3f;
+    typedef SimpleCombinedMetricSparseWarpFieldICP<RigidTransform<double,3>> SimpleCombinedMetricSparseRigidWarpFieldICP3d;
+
+    typedef SimpleCombinedMetricSparseWarpFieldICP<AffineTransform<float,2>> SimpleCombinedMetricSparseAffineWarpFieldICP2f;
+    typedef SimpleCombinedMetricSparseWarpFieldICP<AffineTransform<double,2>> SimpleCombinedMetricSparseAffineWarpFieldICP2d;
+    typedef SimpleCombinedMetricSparseWarpFieldICP<AffineTransform<float,3>> SimpleCombinedMetricSparseAffineWarpFieldICP3f;
+    typedef SimpleCombinedMetricSparseWarpFieldICP<AffineTransform<double,3>> SimpleCombinedMetricSparseAffineWarpFieldICP3d;
+
+    typedef SimpleCombinedMetricSparseWarpFieldProjectiveICP<RigidTransform<float,3>> SimpleCombinedMetricSparseRigidWarpFieldProjectiveICP3f;
+    typedef SimpleCombinedMetricSparseWarpFieldProjectiveICP<RigidTransform<double,3>> SimpleCombinedMetricSparseRigidWarpFieldProjectiveICP3d;
+
+    typedef SimpleCombinedMetricSparseWarpFieldProjectiveICP<AffineTransform<float,3>> SimpleCombinedMetricSparseAffineWarpFieldProjectiveICP3f;
+    typedef SimpleCombinedMetricSparseWarpFieldProjectiveICP<AffineTransform<double,3>> SimpleCombinedMetricSparseAffineWarpFieldProjectiveICP3d;
+}

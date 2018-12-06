@@ -120,16 +120,7 @@ int main(int argc, char ** argv) {
 
         // Localize
         if (!model.isEmpty()) {
-//            cilantro::SimpleCombinedMetricRigidProjectiveICP3f icp(model.points, model.normals, frame.points);
-
-            cilantro::PointFeaturesAdaptor3f dst_feat(model.points);
-            cilantro::PointFeaturesAdaptor3f src_feat(frame.points);
-            cilantro::DistanceEvaluator<float> dist_eval;
-            cilantro::CorrespondenceSearchProjective3<float> corr_engine(dst_feat, src_feat, dist_eval);
-            cilantro::UnityWeightEvaluator<float> corr_weight_eval;
-            cilantro::CombinedMetricRigidTransformICP3f<decltype(corr_engine)> icp(model.points, model.normals, frame.points, corr_engine, corr_weight_eval, corr_weight_eval);
-
-
+            cilantro::SimpleCombinedMetricRigidProjectiveICP3f icp(model.points, model.normals, frame.points);
             icp.correspondenceSearchEngine().setProjectionExtrinsicMatrix(cam_pose).setMaxDistance(0.1f*0.1f);
             icp.setInitialTransform(cam_pose).setConvergenceTolerance(5e-4f);
             icp.setMaxNumberOfIterations(6).setMaxNumberOfOptimizationStepIterations(1);
