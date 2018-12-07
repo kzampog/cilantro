@@ -96,6 +96,7 @@ int main(int argc, char ** argv) {
 //    cilantro::Timer timer;
 //    timer.start();
 //
+////    cilantro::SimpleCombinedMetricDenseAffineWarpFieldICP3f icp(dst.points, dst.normals, src.points, regularization_nn);
 //    cilantro::SimpleCombinedMetricDenseRigidWarpFieldICP3f icp(dst.points, dst.normals, src.points, regularization_nn);
 //
 //    // Parameter setting
