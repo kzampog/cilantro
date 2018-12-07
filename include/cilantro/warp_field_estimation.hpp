@@ -92,6 +92,260 @@ namespace cilantro {
         }
     }
 
+    // Locally rigid dense warp field, 2D
+    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
+    typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 2,bool>::type
+    estimateDenseWarpFieldCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &dst_p,
+                                         const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &dst_n,
+                                         const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &src_p,
+                                         const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                         typename TransformT::Scalar point_to_point_weight,
+                                         const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
+                                         typename TransformT::Scalar point_to_plane_weight,
+                                         const std::vector<NeighborSet<typename RegWeightEvaluatorT::InputScalar>> &regularization_neighborhoods,
+                                         typename TransformT::Scalar regularization_weight,
+                                         TransformSet<TransformT> &transforms,
+                                         typename TransformT::Scalar huber_boundary = (typename TransformT::Scalar)(1e-4),
+                                         size_t max_gn_iter = 10,
+                                         typename TransformT::Scalar gn_conv_tol = (typename TransformT::Scalar)1e-5,
+                                         size_t max_cg_iter = 1000,
+                                         typename TransformT::Scalar cg_conv_tol = (typename TransformT::Scalar)1e-5,
+                                         const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
+                                         const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT(),
+                                         const RegWeightEvaluatorT &reg_evaluator = RegWeightEvaluatorT())
+    {
+        typedef typename TransformT::Scalar ScalarT;
+
+        const bool has_point_to_point_terms = !point_to_point_correspondences.empty() && (point_to_point_weight > (ScalarT)0.0);
+        const bool has_point_to_plane_terms = !point_to_plane_correspondences.empty() && (point_to_plane_weight > (ScalarT)0.0);
+
+        if ((!has_point_to_point_terms && !has_point_to_plane_terms) ||
+            (has_point_to_plane_terms && dst_p.cols() != dst_n.cols()))
+        {
+            transforms.resize(src_p.cols());
+            transforms.setIdentity();
+            return false;
+        }
+
+        // Get regularization equation count and indices
+        std::vector<size_t> reg_eq_ind(regularization_neighborhoods.size());
+        size_t num_reg_arcs = 0;
+        if (!regularization_neighborhoods.empty()) {
+            reg_eq_ind[0] = 0;
+            num_reg_arcs = std::max((size_t)0, regularization_neighborhoods[0].size() - 1);
+        }
+        for (size_t i = 1; i < regularization_neighborhoods.size(); i++) {
+            reg_eq_ind[i] = reg_eq_ind[i-1] + 3*std::max((size_t)0, regularization_neighborhoods[i-1].size() - 1);
+            num_reg_arcs += std::max((size_t)0, regularization_neighborhoods[i].size() - 1);
+        }
+
+        // Compute number of equations and unknowns
+        const size_t num_unknowns = 3*src_p.cols();
+        const size_t num_point_to_point_equations = 2*has_point_to_point_terms*point_to_point_correspondences.size();
+        const size_t num_point_to_plane_equations = has_point_to_plane_terms*point_to_plane_correspondences.size();
+        const size_t num_data_term_equations = num_point_to_point_equations + num_point_to_plane_equations;
+        const size_t num_regularization_equations = 3*num_reg_arcs;
+        const size_t num_equations = num_data_term_equations + num_regularization_equations;
+        const size_t num_non_zeros = 3*num_data_term_equations + 2*num_regularization_equations;
+
+        // Jacobian
+        Eigen::SparseMatrix<ScalarT> At(num_unknowns, num_equations);
+        At.reserve(num_non_zeros);
+        // Values
+        ScalarT * const values = At.valuePtr();
+        // Outer pointers
+        typename Eigen::SparseMatrix<ScalarT>::StorageIndex * const outer_ptr = At.outerIndexPtr();
+#pragma omp parallel
+        {
+#pragma omp for nowait
+            for (size_t i = 0; i < num_data_term_equations + 1; i++) {
+                outer_ptr[i] = 3*i;
+            }
+#pragma omp for nowait
+            for (size_t i = 1; i < num_regularization_equations + 1; i++) {
+                outer_ptr[num_data_term_equations + i] = 3*num_data_term_equations + 2*i;
+            }
+        }
+        // Inner indices
+        typename Eigen::SparseMatrix<ScalarT>::StorageIndex * const inner_ind = At.innerIndexPtr();
+
+        // Vector of (negative) residuals
+        Eigen::Matrix<ScalarT,Eigen::Dynamic,1> b(num_equations);
+
+        // Vector of unknowns (rotation angle and translation offsets per point)
+        Eigen::Matrix<ScalarT,Eigen::Dynamic,1> tforms_vec(Eigen::Matrix<ScalarT,Eigen::Dynamic,1>::Zero(num_unknowns, 1));
+
+        // Conjugate Gradient solver
+//        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IncompleteCholesky<ScalarT,Eigen::Lower|Eigen::Upper>> solver;
+//        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IdentityPreconditioner> solver;
+        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::DiagonalPreconditioner<ScalarT>> solver;
+        solver.setMaxIterations(max_cg_iter);
+        solver.setTolerance(cg_conv_tol);
+
+        Eigen::SparseMatrix<ScalarT> AtA;
+        Eigen::Matrix<ScalarT,Eigen::Dynamic,1> Atb;
+
+        // Parameters
+        const ScalarT point_to_point_weight_sqrt = std::sqrt(point_to_point_weight);
+        const ScalarT point_to_plane_weight_sqrt = std::sqrt(point_to_plane_weight);
+        const ScalarT regularization_weight_sqrt = std::sqrt(regularization_weight);
+        const ScalarT gn_conv_tol_sq = gn_conv_tol*gn_conv_tol;
+
+        // Temporaries
+        Eigen::Matrix<ScalarT,Eigen::Dynamic,1> delta;
+        ScalarT weight, diff, d_sqrt_huber_loss, curr_delta_sq, max_delta_sq;
+        size_t eq_ind, nz_ind;
+
+        bool has_converged = false;
+        size_t iter = 0;
+        while (iter < max_gn_iter) {
+#pragma omp parallel shared (At, b) private (eq_ind, nz_ind, weight, diff, d_sqrt_huber_loss)
+            {
+                // Data term
+                if (has_point_to_point_terms) {
+#pragma omp for nowait
+                    for (size_t i = 0; i < point_to_point_correspondences.size(); i++) {
+                        const auto& corr = point_to_point_correspondences[i];
+                        const auto d = dst_p.col(corr.indexInFirst);
+                        const auto s = src_p.col(corr.indexInSecond);
+                        const size_t offset = 3*corr.indexInSecond;
+                        weight = point_to_point_weight_sqrt*std::sqrt(point_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value));
+
+                        const ScalarT cosa = std::cos(tforms_vec[offset]);
+                        const ScalarT sina = std::sin(tforms_vec[offset]);
+
+                        Eigen::Matrix<ScalarT,2,1> s_t(cosa*s[0] - sina*s[1] + tforms_vec[offset + 1], sina*s[0] + cosa*s[1] + tforms_vec[offset + 2]);
+
+                        eq_ind = 2*i;
+                        nz_ind = 6*i;
+
+                        values[nz_ind] = (-sina*s[0] - cosa*s[1])*weight;
+                        inner_ind[nz_ind++] = offset;
+                        values[nz_ind] = weight;
+                        inner_ind[nz_ind++] = offset + 1;
+                        values[nz_ind] = (ScalarT)0.0;
+                        inner_ind[nz_ind++] = offset + 2;
+                        b[eq_ind++] = (d[0] - s_t[0])*weight;
+
+                        values[nz_ind] = (cosa*s[0] - sina*s[1])*weight;
+                        inner_ind[nz_ind++] = offset;
+                        values[nz_ind] = (ScalarT)0.0;
+                        inner_ind[nz_ind++] = offset + 1;
+                        values[nz_ind] = weight;
+                        inner_ind[nz_ind++] = offset + 2;
+                        b[eq_ind++] = (d[1] - s_t[1])*weight;
+                    }
+                }
+
+                if (has_point_to_plane_terms) {
+#pragma omp for nowait
+                    for (size_t i = 0; i < point_to_plane_correspondences.size(); i++) {
+                        const auto& corr = point_to_plane_correspondences[i];
+                        const auto d = dst_p.col(corr.indexInFirst);
+                        const auto n = dst_n.col(corr.indexInFirst);
+                        const auto s = src_p.col(corr.indexInSecond);
+                        const size_t offset = 3*corr.indexInSecond;
+                        weight = point_to_plane_weight_sqrt*std::sqrt(plane_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value));
+
+                        const ScalarT cosa = std::cos(tforms_vec[offset]);
+                        const ScalarT sina = std::sin(tforms_vec[offset]);
+
+                        Eigen::Matrix<ScalarT,2,1> s_t(cosa*s[0] - sina*s[1] + tforms_vec[offset + 1], sina*s[0] + cosa*s[1] + tforms_vec[offset + 2]);
+
+                        eq_ind = num_point_to_point_equations + i;
+                        nz_ind = 3*num_point_to_point_equations + 3*i;
+
+                        values[nz_ind] = (n[0]*(-sina*s[0] - cosa*s[1]) + n[1]*(cosa*s[0] - sina*s[1]))*weight;
+                        inner_ind[nz_ind++] = offset;
+                        values[nz_ind] = n[0]*weight;
+                        inner_ind[nz_ind++] = offset + 1;
+                        values[nz_ind] = n[1]*weight;
+                        inner_ind[nz_ind++] = offset + 2;
+
+                        b[eq_ind] = n.dot(d - s_t)*weight;
+                    }
+                }
+
+                // Regularization
+#pragma omp for nowait
+                for (size_t i = 0; i < regularization_neighborhoods.size(); i++) {
+                    eq_ind = num_data_term_equations + reg_eq_ind[i];
+                    nz_ind = 3*num_data_term_equations + 2*reg_eq_ind[i];
+                    const auto& neighbors = regularization_neighborhoods[i];
+
+                    for (size_t j = 1; j < neighbors.size(); j++) {
+                        size_t s_offset = 3*neighbors[0].index;
+                        size_t n_offset = 3*neighbors[j].index;
+                        weight = regularization_weight_sqrt*std::sqrt(reg_evaluator(neighbors[0].index, neighbors[j].index, neighbors[j].value));
+
+                        if (n_offset < s_offset) std::swap(s_offset, n_offset);
+
+                        diff = tforms_vec[s_offset + 0] - tforms_vec[n_offset + 0];
+                        d_sqrt_huber_loss = weight*internal::sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
+                        values[nz_ind] = d_sqrt_huber_loss;
+                        inner_ind[nz_ind++] = s_offset + 0;
+                        values[nz_ind] = -d_sqrt_huber_loss;
+                        inner_ind[nz_ind++] = n_offset + 0;
+                        b[eq_ind++] = -weight*internal::sqrtHuberLoss<ScalarT>(diff, huber_boundary);
+
+                        diff = tforms_vec[s_offset + 1] - tforms_vec[n_offset + 1];
+                        d_sqrt_huber_loss = weight*internal::sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
+                        values[nz_ind] = d_sqrt_huber_loss;
+                        inner_ind[nz_ind++] = s_offset + 1;
+                        values[nz_ind] = -d_sqrt_huber_loss;
+                        inner_ind[nz_ind++] = n_offset + 1;
+                        b[eq_ind++] = -weight*internal::sqrtHuberLoss<ScalarT>(diff, huber_boundary);
+
+                        diff = tforms_vec[s_offset + 2] - tforms_vec[n_offset + 2];
+                        d_sqrt_huber_loss = weight*internal::sqrtHuberLossDerivative<ScalarT>(diff, huber_boundary);
+                        values[nz_ind] = d_sqrt_huber_loss;
+                        inner_ind[nz_ind++] = s_offset + 2;
+                        values[nz_ind] = -d_sqrt_huber_loss;
+                        inner_ind[nz_ind++] = n_offset + 2;
+                        b[eq_ind++] = -weight*internal::sqrtHuberLoss<ScalarT>(diff, huber_boundary);
+                    }
+                }
+            }
+
+            // Solve linear system using CG
+            AtA = At*At.transpose();
+            Atb.noalias() = At*b;
+
+//            solver.compute(AtA);
+            if (iter == 0) solver.analyzePattern(AtA);
+            solver.factorize(AtA);
+            delta = solver.solve(Atb);
+            tforms_vec += delta;
+
+            iter++;
+
+            // Check for convergence
+            max_delta_sq = (ScalarT)0.0;
+#pragma omp parallel for private (curr_delta_sq) reduction (max: max_delta_sq)
+            for (size_t i = 0; i < src_p.cols(); i++) {
+                curr_delta_sq = delta.template segment<3>(3*i).squaredNorm();
+                if (curr_delta_sq > max_delta_sq) max_delta_sq = curr_delta_sq;
+            }
+
+//            std::cout << iter << ": " << std::sqrt(max_delta_sq) << std::endl;
+
+            if (max_delta_sq < gn_conv_tol_sq) {
+                has_converged = true;
+                break;
+            }
+        }
+
+        // Convert to output format
+        transforms.resize(src_p.cols());
+#pragma omp parallel for
+        for (size_t i = 0; i < transforms.size(); i++) {
+            transforms[i].linear().noalias() = Eigen::Rotation2D<ScalarT>(tforms_vec[3*i]).toRotationMatrix();
+            transforms[i].translation() = tforms_vec.template segment<2>(3*i + 1);
+        }
+
+        return has_converged;
+    }
+
     // Locally rigid dense warp field, 3D
     template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
     typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 3,bool>::type
@@ -217,7 +471,7 @@ namespace cilantro {
                         internal::computeRotationTerms(tforms_vec[offset], tforms_vec[offset + 1], tforms_vec[offset + 2], rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db, d_rot_coeffs_dc);
                         const auto trans_coeffs = tforms_vec.template segment<3>(offset + 3);
 
-                        trans_s.noalias() = rot_coeffs.transpose()*s + trans_coeffs - d;
+                        trans_s.noalias() = d - (rot_coeffs.transpose()*s + trans_coeffs);
                         d_rot_da_s.noalias() = d_rot_coeffs_da.transpose()*s;
                         d_rot_db_s.noalias() = d_rot_coeffs_db.transpose()*s;
                         d_rot_dc_s.noalias() = d_rot_coeffs_dc.transpose()*s;
@@ -237,7 +491,7 @@ namespace cilantro {
                         inner_ind[nz_ind++] = offset + 4;
                         values[nz_ind] = (ScalarT)0.0;
                         inner_ind[nz_ind++] = offset + 5;
-                        b[eq_ind++] = -(trans_s[0])*weight;
+                        b[eq_ind++] = trans_s[0]*weight;
 
                         values[nz_ind] = d_rot_da_s[1]*weight;
                         inner_ind[nz_ind++] = offset;
@@ -251,7 +505,7 @@ namespace cilantro {
                         inner_ind[nz_ind++] = offset + 4;
                         values[nz_ind] = (ScalarT)0.0;
                         inner_ind[nz_ind++] = offset + 5;
-                        b[eq_ind++] = -(trans_s[1])*weight;
+                        b[eq_ind++] = trans_s[1]*weight;
 
                         values[nz_ind] = d_rot_da_s[2]*weight;
                         inner_ind[nz_ind++] = offset;
@@ -265,7 +519,7 @@ namespace cilantro {
                         inner_ind[nz_ind++] = offset + 4;
                         values[nz_ind] = weight;
                         inner_ind[nz_ind++] = offset + 5;
-                        b[eq_ind++] = -(trans_s[2])*weight;
+                        b[eq_ind++] = trans_s[2]*weight;
                     }
                 }
 
@@ -282,7 +536,7 @@ namespace cilantro {
                         internal::computeRotationTerms(tforms_vec[offset], tforms_vec[offset + 1], tforms_vec[offset + 2], rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db, d_rot_coeffs_dc);
                         const auto trans_coeffs = tforms_vec.template segment<3>(offset + 3);
 
-                        trans_s.noalias() = rot_coeffs.transpose()*s + trans_coeffs - d;
+                        trans_s.noalias() = d - (rot_coeffs.transpose()*s + trans_coeffs);
                         d_rot_da_s.noalias() = d_rot_coeffs_da.transpose()*s;
                         d_rot_db_s.noalias() = d_rot_coeffs_db.transpose()*s;
                         d_rot_dc_s.noalias() = d_rot_coeffs_dc.transpose()*s;
@@ -302,7 +556,7 @@ namespace cilantro {
                         inner_ind[nz_ind++] = offset + 4;
                         values[nz_ind] = n[2]*weight;
                         inner_ind[nz_ind++] = offset + 5;
-                        b[eq_ind] = -(n.dot(trans_s))*weight;
+                        b[eq_ind] = n.dot(trans_s)*weight;
                     }
                 }
 
@@ -658,7 +912,7 @@ namespace cilantro {
         transforms.resize(src_p.cols());
 #pragma omp parallel for
         for (size_t i = 0; i < transforms.size(); i++) {
-            transforms[i].linear() = Eigen::Map<Eigen::Matrix<ScalarT,Dim,Dim,Eigen::RowMajor>>(tforms_vec.data() + i*NumUnknownsLocal, Dim, Dim);
+            transforms[i].linear().noalias() = Eigen::Map<Eigen::Matrix<ScalarT,Dim,Dim,Eigen::RowMajor>>(tforms_vec.data() + i*NumUnknownsLocal, Dim, Dim);
             transforms[i].translation() = tforms_vec.template segment<Dim>(NumUnknownsLocal*i + Dim*Dim);
         }
 
@@ -855,7 +1109,7 @@ namespace cilantro {
 
                         internal::computeRotationTerms(angles_curr[0], angles_curr[1], angles_curr[2], rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db, d_rot_coeffs_dc);
 
-                        trans_s.noalias() = rot_coeffs.transpose()*s + trans_curr - d;
+                        trans_s.noalias() = d - (rot_coeffs.transpose()*s + trans_curr);
                         d_rot_da_s.noalias() = d_rot_coeffs_da.transpose()*s;
                         d_rot_db_s.noalias() = d_rot_coeffs_db.transpose()*s;
                         d_rot_dc_s.noalias() = d_rot_coeffs_dc.transpose()*s;
@@ -909,9 +1163,9 @@ namespace cilantro {
                             inner_ind[nz_ind++] = offset + 5;
                         }
 
-                        b[eq_ind] = -(trans_s[0])*corr_weight_sqrt;
-                        b[eq_ind + 1] = -(trans_s[1])*corr_weight_sqrt;
-                        b[eq_ind + 2] = -(trans_s[2])*corr_weight_sqrt;
+                        b[eq_ind] = trans_s[0]*corr_weight_sqrt;
+                        b[eq_ind + 1] = trans_s[1]*corr_weight_sqrt;
+                        b[eq_ind + 2] = trans_s[2]*corr_weight_sqrt;
                     }
                 }
 
@@ -947,7 +1201,7 @@ namespace cilantro {
 
                         internal::computeRotationTerms(angles_curr[0], angles_curr[1], angles_curr[2], rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db, d_rot_coeffs_dc);
 
-                        trans_s.noalias() = rot_coeffs.transpose()*s + trans_curr - d;
+                        trans_s.noalias() = d - (rot_coeffs.transpose()*s + trans_curr);
                         d_rot_da_s.noalias() = d_rot_coeffs_da.transpose()*s;
                         d_rot_db_s.noalias() = d_rot_coeffs_db.transpose()*s;
                         d_rot_dc_s.noalias() = d_rot_coeffs_dc.transpose()*s;
@@ -974,7 +1228,7 @@ namespace cilantro {
                             inner_ind[nz_ind++] = offset + 5;
                         }
 
-                        b[eq_ind] = -(n.dot(trans_s))*corr_weight_sqrt;
+                        b[eq_ind] = n.dot(trans_s)*corr_weight_sqrt;
                     }
                 }
 
@@ -1420,7 +1674,7 @@ namespace cilantro {
         transforms.resize(num_ctrl_points);
 #pragma omp parallel for
         for (size_t i = 0; i < transforms.size(); i++) {
-            transforms[i].linear() = Eigen::Map<Eigen::Matrix<ScalarT,Dim,Dim,Eigen::RowMajor>>(tforms_vec.data() + i*NumUnknownsLocal, Dim, Dim);
+            transforms[i].linear().noalias() = Eigen::Map<Eigen::Matrix<ScalarT,Dim,Dim,Eigen::RowMajor>>(tforms_vec.data() + i*NumUnknownsLocal, Dim, Dim);
             transforms[i].translation() = tforms_vec.template segment<Dim>(NumUnknownsLocal*i + Dim*Dim);
         }
 

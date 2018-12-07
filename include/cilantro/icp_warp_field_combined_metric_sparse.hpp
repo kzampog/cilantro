@@ -121,7 +121,7 @@ namespace cilantro {
             return *this;
         }
 
-        inline const TransformSet<TransformT>& getDenseTransform() const {
+        inline const TransformSet<TransformT>& getDenseWarpField() const {
             return transform_dense_;
         }
 
