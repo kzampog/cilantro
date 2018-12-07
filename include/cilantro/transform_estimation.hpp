@@ -48,7 +48,10 @@ namespace cilantro {
                                         TransformT &tform)
     {
         typedef typename TransformT::Scalar ScalarT;
-        enum { Dim = TransformT::Dim, NumUnknowns = TransformT::Dim*(TransformT::Dim + 1) };
+        enum {
+            Dim = TransformT::Dim,
+            NumUnknowns = TransformT::Dim*(TransformT::Dim + 1)
+        };
 
         if (src.cols() != dst.cols() || src.cols() == 0) {
             tform.setIdentity();
@@ -351,7 +354,10 @@ namespace cilantro {
                                     const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT())
     {
         typedef typename TransformT::Scalar ScalarT;
-        enum { Dim = TransformT::Dim, NumUnknowns = TransformT::Dim*(TransformT::Dim + 1) };
+        enum {
+            Dim = TransformT::Dim,
+            NumUnknowns = TransformT::Dim*(TransformT::Dim + 1)
+        };
 
         const bool has_point_to_point_terms = !point_to_point_correspondences.empty() && (point_to_point_weight > (ScalarT)0.0);
         const bool has_point_to_plane_terms = !point_to_plane_correspondences.empty() && (point_to_plane_weight > (ScalarT)0.0);

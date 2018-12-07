@@ -62,6 +62,7 @@ int main(int argc, char ** argv) {
     cilantro::Timer timer;
     timer.start();
 
+//    cilantro::SimpleCombinedMetricSparseAffineWarpFieldICP3f icp(dst.points, dst.normals, src.points, src_to_control_nn, control_points.cols(), regularization_nn);
     cilantro::SimpleCombinedMetricSparseRigidWarpFieldICP3f icp(dst.points, dst.normals, src.points, src_to_control_nn, control_points.cols(), regularization_nn);
 
     // Parameter setting
@@ -75,7 +76,7 @@ int main(int argc, char ** argv) {
     icp.setPointToPointMetricWeight(0.0f).setPointToPlaneMetricWeight(1.0f).setStiffnessRegularizationWeight(200.0f);
     icp.setHuberLossBoundary(1e-2f);
 
-    cilantro::RigidTransformSet3f tf_est = icp.estimate().getDenseTransform();
+    auto tf_est = icp.estimate().getDenseTransform();
 
     timer.stop();
 
