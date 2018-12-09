@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Eigen/Dense>
+
 namespace cilantro {
     namespace internal {
         template <typename ScalarT, ptrdiff_t NRows, ptrdiff_t NCols>

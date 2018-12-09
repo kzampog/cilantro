@@ -56,7 +56,7 @@ namespace cilantro {
             return transform(rigid_transform.topLeftCorner(3,3), rigid_transform.topRightCorner(3,1));
         }
 
-        inline FlatConvexHull3& transform(const RigidTransform<float,3> &rigid_transform) {
+        inline FlatConvexHull3& transform(const RigidTransform<ScalarT,3> &rigid_transform) {
             return transform(rigid_transform.linear(), rigid_transform.translation());
         }
 
