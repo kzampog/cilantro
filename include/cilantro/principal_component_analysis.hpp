@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cilantro/data_containers.hpp>
+#include <cilantro/omp_reductions.hpp>
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
@@ -14,17 +15,15 @@ namespace cilantro {
 
         PrincipalComponentAnalysis(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data, bool parallel = false) {
             if (parallel) {
-                mean_.setZero(data.rows(), 1);
-#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,EigenDim,1>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,EigenDim,1>::Zero(omp_orig.rows(), 1))
-#pragma omp parallel for reduction (+: mean_)
+                Vector<ScalarT,EigenDim> sum(Vector<ScalarT,EigenDim>::Zero(data.rows(), 1));
+#pragma omp parallel for reduction (internal::MatrixReductions<ScalarT,EigenDim,1>::operator+: sum)
                 for (size_t i = 0; i < data.cols(); i++) {
-                    mean_ += data.col(i);
+                    sum += data.col(i);
                 }
-                mean_ *= (ScalarT)(1.0)/data.cols();
+                mean_ = ((ScalarT)(1.0)/data.cols())*sum;
 
                 Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov(Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(data.rows(), data.rows()));
-#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,EigenDim,EigenDim>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(omp_orig.rows(), omp_orig.cols()))
-#pragma omp parallel for reduction (+: cov)
+#pragma omp parallel for reduction (internal::MatrixReductions<ScalarT,EigenDim,EigenDim>::operator+: cov)
                 for (size_t i = 0; i < data.cols(); i++) {
                     Eigen::Matrix<ScalarT,EigenDim,1> ptc = data.col(i) - mean_;
                     cov += ptc*ptc.transpose();

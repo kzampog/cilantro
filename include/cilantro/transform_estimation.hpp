@@ -3,6 +3,7 @@
 #include <cilantro/space_transformations.hpp>
 #include <cilantro/correspondence.hpp>
 #include <cilantro/common_pair_evaluators.hpp>
+#include <cilantro/omp_reductions.hpp>
 
 namespace cilantro {
     // Rigid, point-to-point, general dimension, closed form, SVD
@@ -61,10 +62,7 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns> AtA(Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns>::Zero());
         Eigen::Matrix<ScalarT,NumUnknowns,1> Atb(Eigen::Matrix<ScalarT,NumUnknowns,1>::Zero());
 
-#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns>::Zero())
-#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,NumUnknowns,1>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,NumUnknowns,1>::Zero())
-
-#pragma omp parallel reduction (+: AtA) reduction (+: Atb)
+#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,NumUnknowns,NumUnknowns>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,NumUnknowns,1>::operator+: Atb)
         {
             Eigen::Matrix<ScalarT,NumUnknowns,Dim> eq_vecs;
             eq_vecs.template block<Dim*Dim,Dim>(0, 0).setZero();
@@ -138,16 +136,13 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,2,2> rot_mat_iter;
         Eigen::Matrix<ScalarT,3,1> d_theta;
 
-#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,3,3>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,3,3>::Zero())
-#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,3,1>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,3,1>::Zero())
-
         size_t iter = 0;
         while (iter < max_iter) {
             // Compute differential
             AtA.setZero();
             Atb.setZero();
 
-#pragma omp parallel reduction (+: AtA) reduction (+: Atb)
+#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,3,3>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,3,1>::operator+: Atb)
             {
                 if (has_point_to_point_terms) {
                     Eigen::Matrix<ScalarT,3,2,Eigen::RowMajor> eq_vecs;
@@ -248,16 +243,13 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,3,3> rot_mat_iter;
         Eigen::Matrix<ScalarT,6,1> d_theta;
 
-#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,6,6>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,6,6>::Zero())
-#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,6,1>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,6,1>::Zero())
-
         size_t iter = 0;
         while (iter < max_iter) {
             // Compute differential
             AtA.setZero();
             Atb.setZero();
 
-#pragma omp parallel reduction (+: AtA) reduction (+: Atb)
+#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,6,6>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,6,1>::operator+: Atb)
             {
                 if (has_point_to_point_terms) {
                     Eigen::Matrix<ScalarT,6,3,Eigen::RowMajor> eq_vecs;
@@ -372,10 +364,7 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns> AtA(Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns>::Zero());
         Eigen::Matrix<ScalarT,NumUnknowns,1> Atb(Eigen::Matrix<ScalarT,NumUnknowns,1>::Zero());
 
-#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns>::Zero())
-#pragma omp declare reduction (+: Eigen::Matrix<ScalarT,NumUnknowns,1>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,NumUnknowns,1>::Zero())
-
-#pragma omp parallel reduction (+: AtA) reduction (+: Atb)
+#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,NumUnknowns,NumUnknowns>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,NumUnknowns,1>::operator+: Atb)
         {
             if (has_point_to_point_terms) {
                 Eigen::Matrix<ScalarT,NumUnknowns,Dim> eq_vecs;
