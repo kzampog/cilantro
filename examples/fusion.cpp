@@ -121,7 +121,8 @@ int main(int argc, char ** argv) {
         // Localize
         if (!model.isEmpty()) {
             cilantro::SimpleCombinedMetricRigidProjectiveICP3f icp(model.points, model.normals, frame.points);
-            icp.correspondenceSearchEngine().setProjectionExtrinsicMatrix(cam_pose).setMaxDistance(0.1f*0.1f);
+            icp.correspondenceSearchEngine().setProjectionExtrinsicMatrix(cam_pose).setMaxDistance(0.1f*0.1f)
+                    .setProjectionImageWidth(w).setProjectionImageHeight(h).setProjectionIntrinsicMatrix(K);
             icp.setInitialTransform(cam_pose).setConvergenceTolerance(5e-4f);
             icp.setMaxNumberOfIterations(6).setMaxNumberOfOptimizationStepIterations(1);
             cam_pose = icp.estimate().getTransform();
