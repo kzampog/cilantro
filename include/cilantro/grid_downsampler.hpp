@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cilantro/grid_accumulator.hpp>
-#include <cilantro/accumulators.hpp>
+#include <cilantro/common_accumulators.hpp>
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>

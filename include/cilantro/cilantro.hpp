@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cilantro/accumulators.hpp>
 #include <cilantro/colormap.hpp>
+#include <cilantro/common_accumulators.hpp>
 #include <cilantro/common_pair_evaluators.hpp>
 #include <cilantro/common_renderables.hpp>
 #include <cilantro/common_transformable_feature_adaptors.hpp>

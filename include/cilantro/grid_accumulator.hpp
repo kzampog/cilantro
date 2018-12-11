@@ -59,6 +59,10 @@ namespace cilantro {
                 std::map<GridPoint,Accumulator,EigenVectorComparator<typename GridPoint::Scalar,EigenDim>,Eigen::aligned_allocator<std::pair<const GridPoint,Accumulator>>>,
                 std::map<GridPoint,Accumulator,EigenVectorComparator<typename GridPoint::Scalar,EigenDim>>>::type GridBinMap;
 
+        typedef typename GridBinMap::iterator GridBinMapIterator;
+
+        typedef typename GridBinMap::const_iterator GridBinMapConstIterator;
+
         GridAccumulator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data,
                         const Eigen::Ref<const Vector<ScalarT,EigenDim>> &bin_size,
                         const AccumulatorProxy &accum_proxy)
@@ -87,9 +91,9 @@ namespace cilantro {
 
         inline const GridBinMap& getOccupiedBinMap() const { return grid_lookup_table_; }
 
-        inline const std::vector<typename GridBinMap::iterator>& getOccupiedBinIterators() const { return bin_iterators_; }
+        inline const std::vector<GridBinMapIterator>& getOccupiedBinIterators() const { return bin_iterators_; }
 
-        const typename GridBinMap::const_iterator findContainingGridBin(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &point) const {
+        inline const GridBinMapConstIterator findContainingGridBin(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &point) const {
             GridPoint grid_coords(data_map_.rows());
             for (size_t i = 0; i < data_map_.rows(); i++) {
                 grid_coords[i] = std::floor(point[i]*bin_size_inv_[i]);
@@ -97,7 +101,7 @@ namespace cilantro {
             return grid_lookup_table_.find(grid_coords);
         }
 
-        inline const typename GridBinMap::const_iterator findContainingGridBin(size_t ind) const {
+        inline const GridBinMapConstIterator findContainingGridBin(size_t ind) const {
             return getPointBinNeighbors(data_map_.col(ind));
         }
 
@@ -110,7 +114,7 @@ namespace cilantro {
         }
 
         inline GridPoint getPointGridCoordinates(size_t point_ind) const {
-            return getGridCoordinates(data_map_.col(point_ind));
+            return getPointGridCoordinates(data_map_.col(point_ind));
         }
 
         inline Vector<ScalarT,EigenDim> getBinCornerCoordinates(const Eigen::Ref<const GridPoint> &grid_point) const {
@@ -127,23 +131,21 @@ namespace cilantro {
         Vector<ScalarT,EigenDim> bin_size_inv_;
 
         GridBinMap grid_lookup_table_;
-        std::vector<typename GridBinMap::iterator> bin_iterators_;
+        std::vector<GridBinMapIterator> bin_iterators_;
 
         inline void build_index_(const AccumulatorProxy &accum_proxy) {
             if (data_map_.cols() == 0) return;
 
             bin_iterators_.reserve(data_map_.cols());
-            GridPoint grid_coords(data_map_.rows());
 
             for (size_t i = 0; i < data_map_.cols(); i++) {
-                for (size_t j = 0; j < data_map_.rows(); j++) {
-                    grid_coords[j] = std::floor(data_map_(j,i)*bin_size_inv_[j]);
-                }
+                GridPoint grid_coords = getPointGridCoordinates(data_map_.col(i));
+
                 auto lb = grid_lookup_table_.lower_bound(grid_coords);
                 if (lb != grid_lookup_table_.end() && !(grid_lookup_table_.key_comp()(grid_coords, lb->first))) {
                     accum_proxy.addToAccumulator(lb->second, i);
                 } else {
-                    bin_iterators_.emplace_back(grid_lookup_table_.emplace_hint(lb, grid_coords, accum_proxy.buildAccumulator(i)));
+                    bin_iterators_.emplace_back(grid_lookup_table_.emplace_hint(lb, std::move(grid_coords), accum_proxy.buildAccumulator(i)));
                 }
             }
         }
