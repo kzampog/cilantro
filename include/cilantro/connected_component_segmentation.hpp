@@ -208,7 +208,7 @@ namespace cilantro {
 
         inline size_t getNumberOfSegments() const { return component_point_indices_.size(); }
 
-    private:
+    protected:
         std::vector<std::vector<size_t>> component_point_indices_;
         std::vector<size_t> segment_index_map_;
 
@@ -260,7 +260,6 @@ namespace cilantro {
                         }
                     }
                 }
-
             }
 
             for (size_t i = 0; i < seeds_to_merge_with.size(); i++) {
@@ -352,7 +351,6 @@ namespace cilantro {
                         }
                     }
                 }
-
             }
 
             for (size_t i = 0; i < seeds_to_merge_with.size(); i++) {

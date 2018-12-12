@@ -39,7 +39,7 @@ namespace cilantro {
         template<class... PolytopeArgs>
         SpaceRegion(PolytopeArgs... args) {
             polytopes_.emplace_back(args...);
-            dim_ = polytopes_[0].getSpaceDimension();
+            dim_ = polytopes_.back().getSpaceDimension();
         }
 
         ~SpaceRegion() {}

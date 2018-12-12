@@ -1,5 +1,6 @@
 #pragma once
 
+#include <utility>
 #include <pangolin/display/display_internal.h>
 #include <cilantro/renderable.hpp>
 #include <cilantro/visualizer_handler.hpp>
@@ -25,9 +26,9 @@ namespace cilantro {
         }
 
         template <class RenderableT, class... Args>
-        std::shared_ptr<RenderableT> addObject(const std::string &name, Args... args) {
+        std::shared_ptr<RenderableT> addObject(const std::string &name, Args&&... args) {
             gl_context_->MakeCurrent();
-            std::shared_ptr<RenderableT> obj_ptr(new RenderableT(args...));
+            std::shared_ptr<RenderableT> obj_ptr(new RenderableT(std::forward<Args>(args)...));
             renderables_[name] = ManagedRenderable(obj_ptr, std::shared_ptr<typename RenderableT::GPUBuffers>(new typename RenderableT::GPUBuffers()));
             return obj_ptr;
         }
