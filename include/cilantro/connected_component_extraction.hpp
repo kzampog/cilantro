@@ -468,7 +468,7 @@ namespace cilantro {
         inline const std::vector<size_t>& getPointToSegmentIndexMap() const { return point_to_segment_map_; }
 
         inline std::vector<size_t> getUnlabeledPointIndices() const {
-            return getUnlabeledPointIndices(segment_to_point_map_, point_to_segment_map_);
+            return cilantro::getUnlabeledPointIndices(segment_to_point_map_, point_to_segment_map_);
         }
 
         inline size_t getNumberOfExtractedComponents() const { return segment_to_point_map_.size(); }
