@@ -1,4 +1,4 @@
-#include <cilantro/connected_component_segmentation.hpp>
+#include <cilantro/connected_component_extraction.hpp>
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
@@ -22,24 +22,26 @@ int main(int argc, char ** argv) {
     cilantro::Timer timer;
     timer.start();
 
-    cilantro::ConnectedComponentSegmentation ccs;
-
     cilantro::NeighborhoodSpecification<float> nh(cilantro::NeighborhoodType::RADIUS, 32, 0.02f*0.02f);
 //    cilantro::NormalsColorsProximityEvaluator<float,3> ev(cloud.normals, cloud.colors, (float)(2.0*M_PI/180.0), 0.1f);
     cilantro::NormalsProximityEvaluator<float,3> ev(cloud.normals, (float)(2.0*M_PI/180.0));
-    ccs.segment<float,3>(cloud.points, nh, ev, 100, cloud.size());
 
-//    std::vector<cilantro::NearestNeighborSearchResultSet<float>> nn;
-//    cilantro::KDTree3f(cloud.points).radiusSearch(cloud.points, 0.02f*0.02f, nn);
-//    ccs.segment(nn);
+//    std::vector<cilantro::NeighborSet<float>> nn;
+//    cilantro::KDTree3f(cloud.points).search(cloud.points, nh, nn);
+//    auto seg_to_pt = cilantro::extractConnectedComponents(nn, ev, 100, cloud.size());
+
+    auto seg_to_pt = cilantro::extractConnectedComponents(cilantro::KDTree3f(cloud.points), nh, ev, 100, cloud.size());
+
+    auto pt_to_seg = cilantro::getPointToSegmentIndexMap(seg_to_pt, cloud.size());
+
     timer.stop();
 
     std::cout << "Segmentation time: " << timer.getElapsedTime() << "ms" << std::endl;
-    std::cout << ccs.getComponentPointIndices().size() << " components found" << std::endl;
+    std::cout << seg_to_pt.size() << " components found" << std::endl;
 
     // Build a color map
-    size_t num_labels = ccs.getComponentPointIndices().size();
-    const auto& labels = ccs.getComponentIndexMap();
+    size_t num_labels = seg_to_pt.size();
+    const auto& labels = pt_to_seg;
 
     cilantro::VectorSet3f color_map(3, num_labels+1);
     for (size_t i = 0; i < num_labels; i++) {

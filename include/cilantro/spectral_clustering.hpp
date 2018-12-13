@@ -6,42 +6,44 @@
 #include <cilantro/kmeans.hpp>
 
 namespace cilantro {
-    template <typename ScalarT>
-    class SpectraDiagonalInverseBop {
-    private:
-        const int dim_;
-        Eigen::Matrix<ScalarT,Eigen::Dynamic,1> diag_vals_;
-        Eigen::Matrix<ScalarT,Eigen::Dynamic,1> diag_vals_inv_;
-    public:
-        SpectraDiagonalInverseBop(const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>& D)
-                : dim_(D.rows()),
-                  diag_vals_(D.diagonal()),
-                  diag_vals_inv_(diag_vals_.cwiseInverse())
-        {}
+    namespace internal {
+        template <typename ScalarT>
+        class SpectraDiagonalInverseBop {
+        private:
+            const int dim_;
+            Eigen::Matrix<ScalarT,Eigen::Dynamic,1> diag_vals_;
+            Eigen::Matrix<ScalarT,Eigen::Dynamic,1> diag_vals_inv_;
+        public:
+            SpectraDiagonalInverseBop(const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>& D)
+                    : dim_(D.rows()),
+                      diag_vals_(D.diagonal()),
+                      diag_vals_inv_(diag_vals_.cwiseInverse())
+            {}
 
-        SpectraDiagonalInverseBop(const Eigen::SparseMatrix<ScalarT>& D)
-                : dim_(D.rows()),
-                  diag_vals_(D.diagonal()),
-                  diag_vals_inv_(diag_vals_.cwiseInverse())
-        {}
+            SpectraDiagonalInverseBop(const Eigen::SparseMatrix<ScalarT>& D)
+                    : dim_(D.rows()),
+                      diag_vals_(D.diagonal()),
+                      diag_vals_inv_(diag_vals_.cwiseInverse())
+            {}
 
-        inline int rows() const { return dim_; }
-        inline int cols() const { return dim_; }
+            inline int rows() const { return dim_; }
+            inline int cols() const { return dim_; }
 
-        // y_out = inv(B) * x_in
-        void solve(const ScalarT* x_in, ScalarT* y_out) const {
-            Eigen::Map<const Eigen::Matrix<ScalarT,Eigen::Dynamic,1>> x(x_in, dim_);
-            Eigen::Map<Eigen::Matrix<ScalarT,Eigen::Dynamic,1>> y(y_out, dim_);
-            y.noalias() = diag_vals_inv_.cwiseProduct(x);
-        }
+            // y_out = inv(B) * x_in
+            void solve(const ScalarT* x_in, ScalarT* y_out) const {
+                Eigen::Map<const Eigen::Matrix<ScalarT,Eigen::Dynamic,1>> x(x_in, dim_);
+                Eigen::Map<Eigen::Matrix<ScalarT,Eigen::Dynamic,1>> y(y_out, dim_);
+                y.noalias() = diag_vals_inv_.cwiseProduct(x);
+            }
 
-        // y_out = B * x_in
-        void mat_prod(const ScalarT* x_in, ScalarT* y_out) const {
-            Eigen::Map<const Eigen::Matrix<ScalarT,Eigen::Dynamic,1>> x(x_in, dim_);
-            Eigen::Map<Eigen::Matrix<ScalarT,Eigen::Dynamic,1>> y(y_out, dim_);
-            y.noalias() = diag_vals_.cwiseProduct(x);
-        }
-    };
+            // y_out = B * x_in
+            void mat_prod(const ScalarT* x_in, ScalarT* y_out) const {
+                Eigen::Map<const Eigen::Matrix<ScalarT,Eigen::Dynamic,1>> x(x_in, dim_);
+                Eigen::Map<Eigen::Matrix<ScalarT,Eigen::Dynamic,1>> y(y_out, dim_);
+                y.noalias() = diag_vals_.cwiseProduct(x);
+            }
+        };
+    }
 
     enum struct GraphLaplacianType {UNNORMALIZED, NORMALIZED_SYMMETRIC, NORMALIZED_RANDOM_WALK};
 
@@ -217,8 +219,8 @@ namespace cilantro {
                     Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> L = D - affinities;
 
                     Spectra::DenseSymMatProd<ScalarT> op(L);
-                    SpectraDiagonalInverseBop<ScalarT> Bop(D);
-                    Spectra::SymGEigsSolver<ScalarT, Spectra::SMALLEST_MAGN, Spectra::DenseSymMatProd<ScalarT>, SpectraDiagonalInverseBop<ScalarT>, Spectra::GEIGS_REGULAR_INVERSE> eig(&op, &Bop, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
+                    internal::SpectraDiagonalInverseBop<ScalarT> Bop(D);
+                    Spectra::SymGEigsSolver<ScalarT,Spectra::SMALLEST_MAGN,Spectra::DenseSymMatProd<ScalarT>,internal::SpectraDiagonalInverseBop<ScalarT>,Spectra::GEIGS_REGULAR_INVERSE> eig(&op, &Bop, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
 
                     eig.init();
                     do {
@@ -335,8 +337,8 @@ namespace cilantro {
                     Eigen::SparseMatrix<ScalarT> L = D - affinities;
 
                     Spectra::SparseSymMatProd<ScalarT> op(L);
-                    SpectraDiagonalInverseBop<ScalarT> Bop(D);
-                    Spectra::SymGEigsSolver<ScalarT, Spectra::SMALLEST_MAGN, Spectra::SparseSymMatProd<ScalarT>, SpectraDiagonalInverseBop<ScalarT>, Spectra::GEIGS_REGULAR_INVERSE> eig(&op, &Bop, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
+                    internal::SpectraDiagonalInverseBop<ScalarT> Bop(D);
+                    Spectra::SymGEigsSolver<ScalarT,Spectra::SMALLEST_MAGN,Spectra::SparseSymMatProd<ScalarT>,internal::SpectraDiagonalInverseBop<ScalarT>,Spectra::GEIGS_REGULAR_INVERSE> eig(&op, &Bop, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
 
                     eig.init();
                     do {

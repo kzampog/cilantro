@@ -5,7 +5,7 @@
 #include <cilantro/common_pair_evaluators.hpp>
 #include <cilantro/common_renderables.hpp>
 #include <cilantro/common_transformable_feature_adaptors.hpp>
-#include <cilantro/connected_component_segmentation.hpp>
+#include <cilantro/connected_component_extraction.hpp>
 #include <cilantro/convex_hull_utilities.hpp>
 #include <cilantro/convex_polytope.hpp>
 #include <cilantro/correspondence.hpp>
