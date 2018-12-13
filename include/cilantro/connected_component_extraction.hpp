@@ -27,7 +27,7 @@ namespace cilantro {
         return point_to_segment;
     }
 
-    std::vector<std::vector<size_t>> getSegmentToPointIndexMap(const std::vector<size_t> &point_to_segment,
+    std::vector<std::vector<size_t>> getSegmentToPointIndicesMap(const std::vector<size_t> &point_to_segment,
                                                                size_t num_segments)
     {
         std::vector<std::vector<size_t>> segment_to_point(num_segments);
@@ -35,6 +35,18 @@ namespace cilantro {
             segment_to_point[point_to_segment[i]].emplace_back(i);
         }
         return segment_to_point;
+    }
+
+    std::vector<size_t> getUnlabeledPointIndices(const std::vector<std::vector<size_t>> &segment_to_point_map,
+                                                 const std::vector<size_t> &point_to_segment_map)
+    {
+        const size_t no_label = segment_to_point_map.size();
+        std::vector<size_t> res;
+        res.reserve(point_to_segment_map.size());
+        for (size_t i = 0; i < point_to_segment_map.size(); i++) {
+            if (point_to_segment_map[i] == no_label) res.emplace_back(i);
+        }
+        return res;
     }
 
     // Given neighbors and seeds
@@ -400,4 +412,90 @@ namespace cilantro {
     {
         return extractConnectedComponents<ScalarT,EigenDim,DistAdaptor,PointSimilarityEvaluator>(KDTree<ScalarT,EigenDim,DistAdaptor>(points), nh, evaluator, min_segment_size, max_segment_size);
     }
+
+    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
+    class ConnectedComponentExtraction {
+    public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        typedef ScalarT Scalar;
+
+        enum { Dimension = EigenDim };
+
+        typedef KDTree<ScalarT,EigenDim,DistAdaptor> SearchTree;
+
+        ConnectedComponentExtraction(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, size_t max_leaf_size = 10)
+                : points_(points),
+                  kd_tree_ptr_(new KDTree<ScalarT,EigenDim,DistAdaptor>(points, max_leaf_size)),
+                  kd_tree_owned_(true)
+        {}
+
+        ConnectedComponentExtraction(const KDTree<ScalarT,EigenDim,DistAdaptor> &kd_tree)
+                : points_(kd_tree.getPointsMatrixMap()),
+                  kd_tree_ptr_(&kd_tree),
+                  kd_tree_owned_(false)
+        {}
+
+        ~ConnectedComponentExtraction() {
+            if (kd_tree_owned_) delete kd_tree_ptr_;
+        }
+
+        template <class PointSimilarityEvaluator = AlwaysTrueEvaluator<ScalarT>>
+        inline ConnectedComponentExtraction& segment(const std::vector<size_t> &seeds_ind,
+                                                     const NeighborhoodSpecification<ScalarT> &nh,
+                                                     const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
+                                                     size_t min_segment_size = 0,
+                                                     size_t max_segment_size = std::numeric_limits<size_t>::max())
+        {
+            extractConnectedComponents<ScalarT,EigenDim,DistAdaptor,PointSimilarityEvaluator>(*kd_tree_ptr_, nh, seeds_ind, segment_to_point_map_, evaluator, min_segment_size, max_segment_size);
+            point_to_segment_map_ = cilantro::getPointToSegmentIndexMap(segment_to_point_map_, points_.cols());
+            return *this;
+        }
+
+        template <class PointSimilarityEvaluator = AlwaysTrueEvaluator<ScalarT>>
+        inline ConnectedComponentExtraction& segment(const NeighborhoodSpecification<ScalarT> &nh,
+                                                     const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
+                                                     size_t min_segment_size = 0,
+                                                     size_t max_segment_size = std::numeric_limits<size_t>::max())
+        {
+            extractConnectedComponents<ScalarT,EigenDim,DistAdaptor,PointSimilarityEvaluator>(*kd_tree_ptr_, nh, segment_to_point_map_, evaluator, min_segment_size, max_segment_size);
+            point_to_segment_map_ = cilantro::getPointToSegmentIndexMap(segment_to_point_map_, points_.cols());
+            return *this;
+        }
+
+        inline const std::vector<std::vector<size_t>>& getSegmentToPointIndicesMap() const { return segment_to_point_map_; }
+
+        inline const std::vector<size_t>& getPointToSegmentIndexMap() const { return point_to_segment_map_; }
+
+        inline std::vector<size_t> getUnlabeledPointIndices() const {
+            return getUnlabeledPointIndices(segment_to_point_map_, point_to_segment_map_);
+        }
+
+        inline size_t getNumberOfExtractedComponents() const { return segment_to_point_map_.size(); }
+
+    protected:
+        ConstVectorSetMatrixMap<ScalarT,EigenDim> points_;
+        const KDTree<ScalarT,EigenDim,DistAdaptor> *kd_tree_ptr_;
+        bool kd_tree_owned_;
+        std::vector<std::vector<size_t>> segment_to_point_map_;
+        std::vector<size_t> point_to_segment_map_;
+    };
+
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
+    using ConnectedComponentExtraction2f = ConnectedComponentExtraction<float,2,DistAdaptor>;
+
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
+    using ConnectedComponentExtraction2d = ConnectedComponentExtraction<double,2,DistAdaptor>;
+
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
+    using ConnectedComponentExtraction3f = ConnectedComponentExtraction<float,3,DistAdaptor>;
+
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
+    using ConnectedComponentExtraction3d = ConnectedComponentExtraction<double,3,DistAdaptor>;
+
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
+    using ConnectedComponentExtractionXf = ConnectedComponentExtraction<float,Eigen::Dynamic,DistAdaptor>;
+
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
+    using ConnectedComponentExtractionXd = ConnectedComponentExtraction<double,Eigen::Dynamic,DistAdaptor>;
 }

@@ -23,25 +23,19 @@ int main(int argc, char ** argv) {
     timer.start();
 
     cilantro::NeighborhoodSpecification<float> nh(cilantro::NeighborhoodType::RADIUS, 32, 0.02f*0.02f);
-//    cilantro::NormalsColorsProximityEvaluator<float,3> ev(cloud.normals, cloud.colors, (float)(2.0*M_PI/180.0), 0.1f);
     cilantro::NormalsProximityEvaluator<float,3> ev(cloud.normals, (float)(2.0*M_PI/180.0));
 
-//    std::vector<cilantro::NeighborSet<float>> nn;
-//    cilantro::KDTree3f(cloud.points).search(cloud.points, nh, nn);
-//    auto seg_to_pt = cilantro::extractConnectedComponents(nn, ev, 100, cloud.size());
-
-    auto seg_to_pt = cilantro::extractConnectedComponents(cilantro::KDTree3f(cloud.points), nh, ev, 100, cloud.size());
-
-    auto pt_to_seg = cilantro::getPointToSegmentIndexMap(seg_to_pt, cloud.size());
+    cilantro::ConnectedComponentExtraction3f<> cce(cloud.points);
+    cce.segment(nh, ev, 100, cloud.size());
 
     timer.stop();
 
     std::cout << "Segmentation time: " << timer.getElapsedTime() << "ms" << std::endl;
-    std::cout << seg_to_pt.size() << " components found" << std::endl;
+    std::cout << cce.getNumberOfExtractedComponents() << " components found" << std::endl;
 
     // Build a color map
-    size_t num_labels = seg_to_pt.size();
-    const auto& labels = pt_to_seg;
+    size_t num_labels = cce.getNumberOfExtractedComponents();
+    const auto& labels = cce.getPointToSegmentIndexMap();
 
     cilantro::VectorSet3f color_map(3, num_labels+1);
     for (size_t i = 0; i < num_labels; i++) {

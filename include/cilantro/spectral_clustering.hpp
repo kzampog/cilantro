@@ -130,9 +130,9 @@ namespace cilantro {
 
         inline const Vector<ScalarT,Eigen::Dynamic>& getComputedEigenValues() const { return eigenvalues_; }
 
-        inline const std::vector<std::vector<size_t>>& getClusterPointIndices() const { return clusterer_->getClusterPointIndices(); }
+        inline const std::vector<std::vector<size_t>>& getClusterToPointIndicesMap() const { return clusterer_->getClusterToPointIndicesMap(); }
 
-        inline const std::vector<size_t>& getClusterIndexMap() const { return clusterer_->getClusterIndexMap(); }
+        inline const std::vector<size_t>& getPointToClusterIndexMap() const { return clusterer_->getPointToClusterIndexMap(); }
 
         inline size_t getNumberOfClusters() const { return embedded_points_.rows(); }
 

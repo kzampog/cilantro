@@ -47,7 +47,7 @@ int main(int argc, char ** argv) {
     std::cout << "Number of clusters: " << sc.getNumberOfClusters() << std::endl;
     std::cout << "Performed k-means iterations: " << sc.getClusterer().getNumberOfPerformedIterations() << std::endl;
 
-    const auto& cpi = sc.getClusterPointIndices();
+    const auto& cpi = sc.getClusterToPointIndicesMap();
     size_t mins = points.cols(), maxs = 0;
     for (size_t i = 0; i < cpi.size(); i++) {
         if (cpi[i].size() < mins) mins = cpi[i].size();
@@ -61,7 +61,7 @@ int main(int argc, char ** argv) {
         color_map.col(i) = Eigen::Vector3f::Random().cwiseAbs();
     }
 
-    const auto& idx_map = sc.getClusterIndexMap();
+    const auto& idx_map = sc.getPointToClusterIndexMap();
 
     cilantro::VectorSet3f colors(3, idx_map.size());
     for (size_t i = 0; i < colors.cols(); i++) {
