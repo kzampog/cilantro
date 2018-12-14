@@ -27,7 +27,7 @@ int main(int argc, char ** argv) {
 //    KMeans<float,3,KDTreeDistanceAdaptors::L1> kmc(cloud.points);
 
     // k-means on point coordinates
-    cilantro::KMeans3f kmc(cloud.points);
+    cilantro::KMeans3f<> kmc(cloud.points);
 
     size_t k = 250;
     size_t max_iter = 100;

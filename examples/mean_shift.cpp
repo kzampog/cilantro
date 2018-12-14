@@ -42,7 +42,7 @@ int main(int argc, char ** argv) {
 
     std::cout << "Number of points: " << points.cols() << std::endl;
 
-    cilantro::MeanShift3f ms(points);
+    cilantro::MeanShift3f<> ms(points);
 
     cilantro::Timer timer;
     timer.start();

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstddef>
-#include <limits>
 #include <Eigen/Dense>
 
 namespace cilantro {

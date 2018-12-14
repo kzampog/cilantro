@@ -13,6 +13,15 @@ namespace cilantro {
         struct HomogeneousDimensionFromSpace {
             enum { value = (Dim == Eigen::Dynamic) ? Eigen::Dynamic : Dim+1 };
         };
+
+        template <class TransformT>
+#ifdef _MSC_VER
+        using TransformSetBase = std::vector<TransformT,Eigen::aligned_allocator<TransformT>>;
+#else
+        using TransformSetBase = typename std::conditional<TransformT::Dim != Eigen::Dynamic && sizeof(TransformT) % 16 == 0,
+                std::vector<TransformT,Eigen::aligned_allocator<TransformT>>,
+                std::vector<TransformT>>::type;
+#endif
     }
 
     template <typename ScalarT, ptrdiff_t EigenDim>
@@ -22,16 +31,7 @@ namespace cilantro {
     using AffineTransform = Eigen::Transform<ScalarT,EigenDim,Eigen::Affine>;
 
     template <class TransformT>
-#ifdef _MSC_VER
-    using TransformSetBase = std::vector<TransformT,Eigen::aligned_allocator<TransformT>>;
-#else
-    using TransformSetBase = typename std::conditional<TransformT::Dim != Eigen::Dynamic && sizeof(TransformT) % 16 == 0,
-            std::vector<TransformT,Eigen::aligned_allocator<TransformT>>,
-            std::vector<TransformT>>::type;
-#endif
-
-    template <class TransformT>
-    class TransformSet : public TransformSetBase<TransformT> {
+    class TransformSet : public internal::TransformSetBase<TransformT> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -45,11 +45,11 @@ namespace cilantro {
 
         TransformSet() {}
 
-        TransformSet(size_t size) : TransformSetBase<TransformT>(size) {}
+        TransformSet(size_t size) : internal::TransformSetBase<TransformT>(size) {}
 
-        TransformSet(const TransformSet<TransformT> &other) : TransformSetBase<TransformT>(other) {}
+        TransformSet(const TransformSet<TransformT> &other) : internal::TransformSetBase<TransformT>(other) {}
 
-        TransformSet(size_t size, const TransformT &tform) : TransformSetBase<TransformT>(size, tform) {}
+        TransformSet(size_t size, const TransformT &tform) : internal::TransformSetBase<TransformT>(size, tform) {}
 
         TransformSet& setIdentity() {
 #pragma omp parallel for

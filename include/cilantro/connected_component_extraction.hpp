@@ -1,8 +1,9 @@
 #pragma once
 
+#include <set>
 #include <cilantro/kd_tree.hpp>
 #include <cilantro/common_pair_evaluators.hpp>
-#include <set>
+#include <cilantro/clustering.hpp>
 
 namespace cilantro {
     template <class T>
@@ -15,47 +16,13 @@ namespace cilantro {
         inline bool operator()(const T& obj1, const T& obj2) const { return obj1.size() > obj2.size(); }
     };
 
-    std::vector<size_t> getPointToSegmentIndexMap(const std::vector<std::vector<size_t>> &segment_to_point,
-                                                  size_t num_points)
-    {
-        std::vector<size_t> point_to_segment(num_points, segment_to_point.size());
-        for (size_t i = 0; i < segment_to_point.size(); i++) {
-            for (size_t j = 0; j < segment_to_point[i].size(); j++) {
-                point_to_segment[segment_to_point[i][j]] = i;
-            }
-        }
-        return point_to_segment;
-    }
-
-    std::vector<std::vector<size_t>> getSegmentToPointIndicesMap(const std::vector<size_t> &point_to_segment,
-                                                               size_t num_segments)
-    {
-        std::vector<std::vector<size_t>> segment_to_point(num_segments);
-        for (size_t i = 0; i < point_to_segment.size(); i++) {
-            segment_to_point[point_to_segment[i]].emplace_back(i);
-        }
-        return segment_to_point;
-    }
-
-    std::vector<size_t> getUnlabeledPointIndices(const std::vector<std::vector<size_t>> &segment_to_point_map,
-                                                 const std::vector<size_t> &point_to_segment_map)
-    {
-        const size_t no_label = segment_to_point_map.size();
-        std::vector<size_t> res;
-        res.reserve(point_to_segment_map.size());
-        for (size_t i = 0; i < point_to_segment_map.size(); i++) {
-            if (point_to_segment_map[i] == no_label) res.emplace_back(i);
-        }
-        return res;
-    }
-
     // Given neighbors and seeds
     template <typename ScalarT, class PointSimilarityEvaluator = AlwaysTrueEvaluator<ScalarT>>
     void extractConnectedComponents(const std::vector<NeighborSet<ScalarT>> &neighbors,
                                     const std::vector<size_t> &seeds_ind,
                                     std::vector<std::vector<size_t>> &segment_to_point_map,
                                     const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                    size_t min_segment_size = 0,
+                                    size_t min_segment_size = 1,
                                     size_t max_segment_size = std::numeric_limits<size_t>::max())
     {
         const size_t unassigned = std::numeric_limits<size_t>::max();
@@ -135,7 +102,7 @@ namespace cilantro {
     inline std::vector<std::vector<size_t>> extractConnectedComponents(const std::vector<NeighborSet<ScalarT>> &neighbors,
                                                                        const std::vector<size_t> &seeds_ind,
                                                                        const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                                                       size_t min_segment_size = 0,
+                                                                       size_t min_segment_size = 1,
                                                                        size_t max_segment_size = std::numeric_limits<size_t>::max())
     {
         std::vector<std::vector<size_t>> segment_to_point_map;
@@ -148,7 +115,7 @@ namespace cilantro {
     void extractConnectedComponents(const std::vector<NeighborSet<ScalarT>> &neighbors,
                                     std::vector<std::vector<size_t>> &segment_to_point_map,
                                     const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                    size_t min_segment_size = 0,
+                                    size_t min_segment_size = 1,
                                     size_t max_segment_size = std::numeric_limits<size_t>::max())
     {
         std::vector<size_t> seeds_ind(neighbors.size());
@@ -160,7 +127,7 @@ namespace cilantro {
     template <typename ScalarT, class PointSimilarityEvaluator = AlwaysTrueEvaluator<ScalarT>>
     std::vector<std::vector<size_t>> extractConnectedComponents(const std::vector<NeighborSet<ScalarT>> &neighbors,
                                                                 const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                                                size_t min_segment_size = 0,
+                                                                size_t min_segment_size = 1,
                                                                 size_t max_segment_size = std::numeric_limits<size_t>::max())
     {
         std::vector<size_t> seeds_ind(neighbors.size());
@@ -177,7 +144,7 @@ namespace cilantro {
                                     const std::vector<size_t> &seeds_ind,
                                     std::vector<std::vector<size_t>> &segment_to_point_map,
                                     const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                    size_t min_segment_size = 0,
+                                    size_t min_segment_size = 1,
                                     size_t max_segment_size = std::numeric_limits<size_t>::max())
     {
         const ConstVectorSetMatrixMap<ScalarT,EigenDim>& points(tree.getPointsMatrixMap());
@@ -262,7 +229,7 @@ namespace cilantro {
                                                                        const NeighborhoodSpecification<ScalarT> &nh,
                                                                        const std::vector<size_t> &seeds_ind,
                                                                        const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                                                       size_t min_segment_size = 0,
+                                                                       size_t min_segment_size = 1,
                                                                        size_t max_segment_size = std::numeric_limits<size_t>::max())
     {
         std::vector<std::vector<size_t>> segment_to_point_map;
@@ -276,7 +243,7 @@ namespace cilantro {
                                     const NeighborhoodSpecification<ScalarT> &nh,
                                     std::vector<std::vector<size_t>> &segment_to_point_map,
                                     const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                    size_t min_segment_size = 0,
+                                    size_t min_segment_size = 1,
                                     size_t max_segment_size = std::numeric_limits<size_t>::max())
     {
         std::vector<size_t> seeds_ind(tree.getPointsMatrixMap().cols());
@@ -289,7 +256,7 @@ namespace cilantro {
     std::vector<std::vector<size_t>> extractConnectedComponents(const KDTree<ScalarT,EigenDim,DistAdaptor> &tree,
                                                                 const NeighborhoodSpecification<ScalarT> &nh,
                                                                 const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                                                size_t min_segment_size = 0,
+                                                                size_t min_segment_size = 1,
                                                                 size_t max_segment_size = std::numeric_limits<size_t>::max())
     {
         std::vector<size_t> seeds_ind(tree.getPointsMatrixMap().cols());
@@ -306,7 +273,7 @@ namespace cilantro {
                                     const std::vector<size_t> &seeds_ind,
                                     std::vector<std::vector<size_t>> &segment_to_point_map,
                                     const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                    size_t min_segment_size = 0,
+                                    size_t min_segment_size = 1,
                                     size_t max_segment_size = std::numeric_limits<size_t>::max())
     {
         switch (nh.type) {
@@ -328,7 +295,7 @@ namespace cilantro {
                                                                        const NeighborhoodSpecification<ScalarT> &nh,
                                                                        const std::vector<size_t> &seeds_ind,
                                                                        const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                                                       size_t min_segment_size = 0,
+                                                                       size_t min_segment_size = 1,
                                                                        size_t max_segment_size = std::numeric_limits<size_t>::max())
     {
         std::vector<std::vector<size_t>> segment_to_point_map;
@@ -342,7 +309,7 @@ namespace cilantro {
                                     const NeighborhoodSpecification<ScalarT> &nh,
                                     std::vector<std::vector<size_t>> &segment_to_point_map,
                                     const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                    size_t min_segment_size = 0,
+                                    size_t min_segment_size = 1,
                                     size_t max_segment_size = std::numeric_limits<size_t>::max())
     {
         std::vector<size_t> seeds_ind(tree.getPointsMatrixMap().cols());
@@ -355,7 +322,7 @@ namespace cilantro {
     std::vector<std::vector<size_t>> extractConnectedComponents(const KDTree<ScalarT,EigenDim,DistAdaptor> &tree,
                                                                 const NeighborhoodSpecification<ScalarT> &nh,
                                                                 const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                                                size_t min_segment_size = 0,
+                                                                size_t min_segment_size = 1,
                                                                 size_t max_segment_size = std::numeric_limits<size_t>::max())
     {
         std::vector<size_t> seeds_ind(tree.getPointsMatrixMap().cols());
@@ -372,7 +339,7 @@ namespace cilantro {
                                            const std::vector<size_t> &seeds_ind,
                                            std::vector<std::vector<size_t>> &segment_to_point_map,
                                            const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                           size_t min_segment_size = 0,
+                                           size_t min_segment_size = 1,
                                            size_t max_segment_size = std::numeric_limits<size_t>::max())
     {
         extractConnectedComponents<ScalarT,EigenDim,DistAdaptor,PointSimilarityEvaluator>(KDTree<ScalarT,EigenDim,DistAdaptor>(points), nh, seeds_ind, segment_to_point_map, evaluator, min_segment_size, max_segment_size);
@@ -384,7 +351,7 @@ namespace cilantro {
                                                                        const NeighborhoodSpecification<ScalarT> &nh,
                                                                        const std::vector<size_t> &seeds_ind,
                                                                        const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                                                       size_t min_segment_size = 0,
+                                                                       size_t min_segment_size = 1,
                                                                        size_t max_segment_size = std::numeric_limits<size_t>::max())
     {
         return extractConnectedComponents<ScalarT,EigenDim,DistAdaptor,PointSimilarityEvaluator>(KDTree<ScalarT,EigenDim,DistAdaptor>(points), nh, seeds_ind, evaluator, min_segment_size, max_segment_size);
@@ -396,7 +363,7 @@ namespace cilantro {
                                            const NeighborhoodSpecification<ScalarT> &nh,
                                            std::vector<std::vector<size_t>> &segment_to_point_map,
                                            const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                           size_t min_segment_size = 0,
+                                           size_t min_segment_size = 1,
                                            size_t max_segment_size = std::numeric_limits<size_t>::max())
     {
         extractConnectedComponents<ScalarT,EigenDim,DistAdaptor,PointSimilarityEvaluator>(KDTree<ScalarT,EigenDim,DistAdaptor>(points), nh, segment_to_point_map, evaluator, min_segment_size, max_segment_size);
@@ -407,14 +374,14 @@ namespace cilantro {
     inline std::vector<std::vector<size_t>> extractConnectedComponents(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
                                                                        const NeighborhoodSpecification<ScalarT> &nh,
                                                                        const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                                                       size_t min_segment_size = 0,
+                                                                       size_t min_segment_size = 1,
                                                                        size_t max_segment_size = std::numeric_limits<size_t>::max())
     {
         return extractConnectedComponents<ScalarT,EigenDim,DistAdaptor,PointSimilarityEvaluator>(KDTree<ScalarT,EigenDim,DistAdaptor>(points), nh, evaluator, min_segment_size, max_segment_size);
     }
 
     template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    class ConnectedComponentExtraction {
+    class ConnectedComponentExtraction : public Clustering {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -441,44 +408,32 @@ namespace cilantro {
         }
 
         template <class PointSimilarityEvaluator = AlwaysTrueEvaluator<ScalarT>>
-        inline ConnectedComponentExtraction& segment(const std::vector<size_t> &seeds_ind,
-                                                     const NeighborhoodSpecification<ScalarT> &nh,
+        inline ConnectedComponentExtraction& segment(const NeighborhoodSpecification<ScalarT> &nh,
+                                                     const std::vector<size_t> &seeds_ind,
                                                      const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                                     size_t min_segment_size = 0,
+                                                     size_t min_segment_size = 1,
                                                      size_t max_segment_size = std::numeric_limits<size_t>::max())
         {
-            extractConnectedComponents<ScalarT,EigenDim,DistAdaptor,PointSimilarityEvaluator>(*kd_tree_ptr_, nh, seeds_ind, segment_to_point_map_, evaluator, min_segment_size, max_segment_size);
-            point_to_segment_map_ = cilantro::getPointToSegmentIndexMap(segment_to_point_map_, points_.cols());
+            extractConnectedComponents<ScalarT,EigenDim,DistAdaptor,PointSimilarityEvaluator>(*kd_tree_ptr_, nh, seeds_ind, clusterToPointIndicesMap, evaluator, min_segment_size, max_segment_size);
+            pointToClusterIndexMap = cilantro::getPointToClusterIndexMap(clusterToPointIndicesMap, points_.cols());
             return *this;
         }
 
         template <class PointSimilarityEvaluator = AlwaysTrueEvaluator<ScalarT>>
         inline ConnectedComponentExtraction& segment(const NeighborhoodSpecification<ScalarT> &nh,
                                                      const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
-                                                     size_t min_segment_size = 0,
+                                                     size_t min_segment_size = 1,
                                                      size_t max_segment_size = std::numeric_limits<size_t>::max())
         {
-            extractConnectedComponents<ScalarT,EigenDim,DistAdaptor,PointSimilarityEvaluator>(*kd_tree_ptr_, nh, segment_to_point_map_, evaluator, min_segment_size, max_segment_size);
-            point_to_segment_map_ = cilantro::getPointToSegmentIndexMap(segment_to_point_map_, points_.cols());
+            extractConnectedComponents<ScalarT,EigenDim,DistAdaptor,PointSimilarityEvaluator>(*kd_tree_ptr_, nh, clusterToPointIndicesMap, evaluator, min_segment_size, max_segment_size);
+            pointToClusterIndexMap = cilantro::getPointToClusterIndexMap(clusterToPointIndicesMap, points_.cols());
             return *this;
         }
-
-        inline const std::vector<std::vector<size_t>>& getSegmentToPointIndicesMap() const { return segment_to_point_map_; }
-
-        inline const std::vector<size_t>& getPointToSegmentIndexMap() const { return point_to_segment_map_; }
-
-        inline std::vector<size_t> getUnlabeledPointIndices() const {
-            return cilantro::getUnlabeledPointIndices(segment_to_point_map_, point_to_segment_map_);
-        }
-
-        inline size_t getNumberOfExtractedComponents() const { return segment_to_point_map_.size(); }
 
     protected:
         ConstVectorSetMatrixMap<ScalarT,EigenDim> points_;
         const KDTree<ScalarT,EigenDim,DistAdaptor> *kd_tree_ptr_;
         bool kd_tree_owned_;
-        std::vector<std::vector<size_t>> segment_to_point_map_;
-        std::vector<size_t> point_to_segment_map_;
     };
 
     template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>

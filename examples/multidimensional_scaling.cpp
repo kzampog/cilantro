@@ -24,7 +24,7 @@ void generate_input_data(cilantro::VectorSet3f &original_points,
     dist_sq.resize(num_points, num_points);
     for (size_t i = 0; i < original_points.cols(); i++) {
         for (size_t j = 0; j < original_points.cols(); j++) {
-            dist_sq(i,j) = (original_points.col(i) - original_points.col(j)).norm();
+            dist_sq(i,j) = (original_points.col(i) - original_points.col(j)).squaredNorm();
         }
     }
 }

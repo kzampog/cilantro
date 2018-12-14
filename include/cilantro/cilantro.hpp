@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cilantro/clustering.hpp>
 #include <cilantro/colormap.hpp>
 #include <cilantro/common_accumulators.hpp>
 #include <cilantro/common_pair_evaluators.hpp>
@@ -45,6 +46,7 @@
 #include <cilantro/space_region.hpp>
 #include <cilantro/space_transformations.hpp>
 #include <cilantro/spectral_clustering.hpp>
+#include <cilantro/spectral_embedding.hpp>
 #include <cilantro/timer.hpp>
 #include <cilantro/transform_estimation.hpp>
 #include <cilantro/visualizer.hpp>

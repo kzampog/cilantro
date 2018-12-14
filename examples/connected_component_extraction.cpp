@@ -31,11 +31,11 @@ int main(int argc, char ** argv) {
     timer.stop();
 
     std::cout << "Segmentation time: " << timer.getElapsedTime() << "ms" << std::endl;
-    std::cout << cce.getNumberOfExtractedComponents() << " components found" << std::endl;
+    std::cout << cce.getNumberOfClusters() << " components found" << std::endl;
 
     // Build a color map
-    size_t num_labels = cce.getNumberOfExtractedComponents();
-    const auto& labels = cce.getPointToSegmentIndexMap();
+    size_t num_labels = cce.getNumberOfClusters();
+    const auto& labels = cce.getPointToClusterIndexMap();
 
     cilantro::VectorSet3f color_map(3, num_labels+1);
     for (size_t i = 0; i < num_labels; i++) {
