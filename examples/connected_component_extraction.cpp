@@ -22,7 +22,7 @@ int main(int argc, char ** argv) {
     cilantro::Timer timer;
     timer.start();
 
-    cilantro::NeighborhoodSpecification<float> nh(cilantro::NeighborhoodType::RADIUS, 32, 0.02f*0.02f);
+    cilantro::RadiusNeighborhoodSpecification<float> nh(0.02f*0.02f);
     cilantro::NormalsProximityEvaluator<float,3> ev(cloud.normals, (float)(2.0*M_PI/180.0));
 
     cilantro::ConnectedComponentExtraction3f<> cce(cloud.points);

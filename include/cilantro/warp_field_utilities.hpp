@@ -44,15 +44,15 @@ namespace cilantro {
                                                        const WeightEvaluatorT &weight_evaluator = WeightEvaluatorT())
     {
         TransformSet<TransformT> new_transforms;
-        resampleTransforms(old_transforms, new_to_old_map, new_transforms, weight_evaluator);
+        resampleTransforms<TransformT,WeightEvaluatorT>(old_transforms, new_to_old_map, new_transforms, weight_evaluator);
         return new_transforms;
     }
 
-    template <class TransformT, NeighborhoodType NT, class WeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
+    template <class TransformT, class NeighborhoodSpecT, class WeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
     void resampleTransforms(const KDTree<typename TransformT::Scalar,TransformT::Dim,KDTreeDistanceAdaptors::L2> &old_support_kd_tree,
                             const TransformSet<TransformT> &old_transforms,
                             const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &new_support,
-                            const NeighborhoodSpecification<typename TransformT::Scalar> &nh,
+                            const NeighborhoodSpecT &nh,
                             TransformSet<TransformT> &new_transforms,
                             const WeightEvaluatorT &weight_evaluator = WeightEvaluatorT())
     {
@@ -61,7 +61,7 @@ namespace cilantro {
         NeighborSet<typename TransformT::Scalar> nn;
 #pragma omp parallel for shared (new_transforms) private (nn)
         for (size_t i = 0; i < new_transforms.size(); i++) {
-            old_support_kd_tree.template search<NT>(new_support.col(i), nh, nn);
+            old_support_kd_tree.template search<NeighborhoodSpecT>(new_support.col(i), nh, nn);
             typename TransformT::Scalar total_weight = (typename TransformT::Scalar)0.0;
             new_transforms[i].linear().setZero();
             new_transforms[i].translation().setZero();
@@ -85,48 +85,15 @@ namespace cilantro {
         }
     }
 
-    template <class TransformT, NeighborhoodType NT, class WeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
+    template <class TransformT, class NeighborhoodSpecT, class WeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
     inline TransformSet<TransformT> resampleTransforms(const KDTree<typename TransformT::Scalar,TransformT::Dim,KDTreeDistanceAdaptors::L2> &old_support_kd_tree,
                                                        const TransformSet<TransformT> &old_transforms,
                                                        const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &new_support,
-                                                       const NeighborhoodSpecification<typename TransformT::Scalar> &nh,
+                                                       const NeighborhoodSpecT &nh,
                                                        const WeightEvaluatorT &weight_evaluator = WeightEvaluatorT())
     {
         TransformSet<TransformT> new_transforms;
-        resampleTransforms<TransformT,NT,WeightEvaluatorT>(old_support_kd_tree, old_transforms, new_support, nh, new_transforms, weight_evaluator);
-        return new_transforms;
-    }
-
-    template <class TransformT, class WeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
-    void resampleTransforms(const KDTree<typename TransformT::Scalar,TransformT::Dim,KDTreeDistanceAdaptors::L2> &old_support_kd_tree,
-                            const TransformSet<TransformT> &old_transforms,
-                            const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &new_support,
-                            const NeighborhoodSpecification<typename TransformT::Scalar> &nh,
-                            TransformSet<TransformT> &new_transforms,
-                            const WeightEvaluatorT &weight_evaluator = WeightEvaluatorT())
-    {
-        switch (nh.type) {
-            case NeighborhoodType::KNN:
-                resampleTransforms<TransformT,NeighborhoodType::KNN,WeightEvaluatorT>(old_support_kd_tree, old_transforms, new_support, nh, new_transforms, weight_evaluator);
-                break;
-            case NeighborhoodType::RADIUS:
-                resampleTransforms<TransformT,NeighborhoodType::RADIUS,WeightEvaluatorT>(old_support_kd_tree, old_transforms, new_support, nh, new_transforms, weight_evaluator);
-                break;
-            case NeighborhoodType::KNN_IN_RADIUS:
-                resampleTransforms<TransformT,NeighborhoodType::KNN_IN_RADIUS,WeightEvaluatorT>(old_support_kd_tree, old_transforms, new_support, nh, new_transforms, weight_evaluator);
-                break;
-        }
-    }
-
-    template <class TransformT, class WeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
-    inline TransformSet<TransformT> resampleTransforms(const KDTree<typename TransformT::Scalar,TransformT::Dim,KDTreeDistanceAdaptors::L2> &old_support_kd_tree,
-                                                       const TransformSet<TransformT> &old_transforms,
-                                                       const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &new_support,
-                                                       const NeighborhoodSpecification<typename TransformT::Scalar> &nh,
-                                                       const WeightEvaluatorT &weight_evaluator = WeightEvaluatorT())
-    {
-        TransformSet<TransformT> new_transforms;
-        resampleTransforms(old_support_kd_tree, old_transforms, new_support, nh, new_transforms, weight_evaluator);
+        resampleTransforms<TransformT,NeighborhoodSpecT,WeightEvaluatorT>(old_support_kd_tree, old_transforms, new_support, nh, new_transforms, weight_evaluator);
         return new_transforms;
     }
 }

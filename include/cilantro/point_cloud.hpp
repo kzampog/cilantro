@@ -302,13 +302,15 @@ namespace cilantro {
             return *this;
         }
 
-        inline PointCloud& estimateNormals(const NeighborhoodSpecification<ScalarT> &nh) {
+        template <typename NeighborhoodSpecT>
+        inline PointCloud& estimateNormals(const NeighborhoodSpecT &nh) {
             normals = NormalEstimation<ScalarT,EigenDim>(points).estimateNormals(nh);
             return *this;
         }
 
+        template <typename NeighborhoodSpecT>
         inline PointCloud& estimateNormals(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree,
-                                           const NeighborhoodSpecification<ScalarT> &nh)
+                                           const NeighborhoodSpecT &nh)
         {
             normals = NormalEstimation<ScalarT,EigenDim>(kd_tree).estimateNormals(nh);
             return *this;

@@ -45,41 +45,32 @@ namespace cilantro {
     template <typename ScalarT>
     using NeighborSet = std::vector<Neighbor<ScalarT>>;
 
-    enum struct NeighborhoodType {KNN, RADIUS, KNN_IN_RADIUS};
-
-    template <typename ScalarT>
-    struct NeighborhoodSpecification {
+    struct KNNNeighborhoodSpecification {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        NeighborhoodType type;
+        KNNNeighborhoodSpecification(size_t k = 0) : maxNumberOfNeighbors(k) {}
+
         size_t maxNumberOfNeighbors;
-        ScalarT radius;
-
-        inline NeighborhoodSpecification()
-                : type(NeighborhoodType::KNN), maxNumberOfNeighbors(1)
-        {}
-
-        inline NeighborhoodSpecification(size_t knn, ScalarT radius)
-                : type(NeighborhoodType::KNN_IN_RADIUS), maxNumberOfNeighbors(knn), radius(radius)
-        {}
-
-        inline NeighborhoodSpecification(NeighborhoodType type, size_t knn, ScalarT radius)
-                : type(type), maxNumberOfNeighbors(knn), radius(radius)
-        {}
     };
 
     template <typename ScalarT>
-    inline NeighborhoodSpecification<ScalarT> kNNNeighborhood(size_t k) {
-        return NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN, k, (ScalarT)0.0);
-    }
+    struct RadiusNeighborhoodSpecification {
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        RadiusNeighborhoodSpecification(ScalarT r = (ScalarT)0) : radius(r) {}
+
+        ScalarT radius;
+    };
 
     template <typename ScalarT>
-    inline NeighborhoodSpecification<ScalarT> radiusNeighborhood(ScalarT radius) {
-        return NeighborhoodSpecification<ScalarT>(NeighborhoodType::RADIUS, 0, radius);
-    }
+    struct KNNInRadiusNeighborhoodSpecification {
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    template <typename ScalarT>
-    inline NeighborhoodSpecification<ScalarT> kNNInRadiusNeighborhood(size_t k, ScalarT radius) {
-        return NeighborhoodSpecification<ScalarT>(NeighborhoodType::KNN_IN_RADIUS, k, radius);
-    }
+        KNNInRadiusNeighborhoodSpecification(size_t k = 0, ScalarT r = (ScalarT)0)
+                : maxNumberOfNeighbors(k), radius(r)
+        {}
+
+        size_t maxNumberOfNeighbors;
+        ScalarT radius;
+    };
 }
