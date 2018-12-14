@@ -77,12 +77,12 @@ namespace cilantro {
     // If positive, EigenDim is the embedding dimension (and also the number of clusters).
     // Set to Eigen::Dynamic for runtime setting.
     template <typename ScalarT, ptrdiff_t EigenDim = Eigen::Dynamic>
-    void computeLaplacianSpectralEmbeddingDense(const Eigen::Ref<const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> &affinities,
-                                                size_t max_num_clusters,
-                                                bool estimate_num_clusters,
-                                                const GraphLaplacianType &laplacian_type,
-                                                VectorSet<ScalarT,EigenDim> &embedded_points,
-                                                Vector<ScalarT,EigenDim> &computed_eigenvalues)
+    void computeLaplacianSpectralEmbedding(const Eigen::Ref<const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> &affinities,
+                                           size_t max_num_clusters,
+                                           bool estimate_num_clusters,
+                                           const GraphLaplacianType &laplacian_type,
+                                           VectorSet<ScalarT,EigenDim> &embedded_points,
+                                           Vector<ScalarT,EigenDim> &computed_eigenvalues)
     {
         size_t num_clusters = max_num_clusters;
         const size_t num_eigenvalues = (estimate_num_clusters) ? std::min(max_num_clusters+1, (size_t)(affinities.rows()-1)) : max_num_clusters;
@@ -180,37 +180,37 @@ namespace cilantro {
     // If positive, EigenDim is the embedding dimension (and also the number of clusters).
     // Set to Eigen::Dynamic for runtime setting.
     template <typename ScalarT, ptrdiff_t EigenDim = Eigen::Dynamic>
-    inline void computeLaplacianSpectralEmbeddingDense(const Eigen::Ref<const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> &affinities,
-                                                       size_t max_num_clusters,
-                                                       bool estimate_num_clusters,
-                                                       const GraphLaplacianType &laplacian_type,
-                                                       SpectralEmbedding<ScalarT,EigenDim> &embedding)
+    inline void computeLaplacianSpectralEmbedding(const Eigen::Ref<const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> &affinities,
+                                                  size_t max_num_clusters,
+                                                  bool estimate_num_clusters,
+                                                  const GraphLaplacianType &laplacian_type,
+                                                  SpectralEmbedding<ScalarT,EigenDim> &embedding)
     {
-        computeLaplacianSpectralEmbeddingDense<ScalarT,EigenDim>(affinities, max_num_clusters, estimate_num_clusters, laplacian_type, embedding.embeddedPoints, embedding.computedEigenvalues);
+        computeLaplacianSpectralEmbedding<ScalarT,EigenDim>(affinities, max_num_clusters, estimate_num_clusters, laplacian_type, embedding.embeddedPoints, embedding.computedEigenvalues);
     }
 
     // If positive, EigenDim is the embedding dimension (and also the number of clusters).
     // Set to Eigen::Dynamic for runtime setting.
     template <typename ScalarT, ptrdiff_t EigenDim = Eigen::Dynamic>
-    inline SpectralEmbedding<ScalarT,EigenDim> computeLaplacianSpectralEmbeddingDense(const Eigen::Ref<const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> &affinities,
-                                                                                      size_t max_num_clusters,
-                                                                                      bool estimate_num_clusters,
-                                                                                      const GraphLaplacianType &laplacian_type)
+    inline SpectralEmbedding<ScalarT,EigenDim> computeLaplacianSpectralEmbedding(const Eigen::Ref<const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> &affinities,
+                                                                                 size_t max_num_clusters,
+                                                                                 bool estimate_num_clusters,
+                                                                                 const GraphLaplacianType &laplacian_type)
     {
         SpectralEmbedding<ScalarT,EigenDim> embedding;
-        computeLaplacianSpectralEmbeddingDense<ScalarT,EigenDim>(affinities, max_num_clusters, estimate_num_clusters, laplacian_type, embedding.embeddedPoints, embedding.computedEigenvalues);
+        computeLaplacianSpectralEmbedding<ScalarT,EigenDim>(affinities, max_num_clusters, estimate_num_clusters, laplacian_type, embedding.embeddedPoints, embedding.computedEigenvalues);
         return embedding;
     }
 
     // If positive, EigenDim is the embedding dimension (and also the number of clusters).
     // Set to Eigen::Dynamic for runtime setting.
     template <typename ScalarT, ptrdiff_t EigenDim = Eigen::Dynamic>
-    void computeLaplacianSpectralEmbeddingSparse(const Eigen::SparseMatrix<ScalarT> &affinities,
-                                                 size_t max_num_clusters,
-                                                 bool estimate_num_clusters,
-                                                 const GraphLaplacianType &laplacian_type,
-                                                 VectorSet<ScalarT,EigenDim> &embedded_points,
-                                                 Vector<ScalarT,EigenDim> &computed_eigenvalues)
+    void computeLaplacianSpectralEmbedding(const Eigen::SparseMatrix<ScalarT> &affinities,
+                                           size_t max_num_clusters,
+                                           bool estimate_num_clusters,
+                                           const GraphLaplacianType &laplacian_type,
+                                           VectorSet<ScalarT,EigenDim> &embedded_points,
+                                           Vector<ScalarT,EigenDim> &computed_eigenvalues)
     {
         size_t num_clusters = max_num_clusters;
         const size_t num_eigenvalues = (estimate_num_clusters) ? std::min(max_num_clusters+1, (size_t)(affinities.rows()-1)) : max_num_clusters;
@@ -322,25 +322,25 @@ namespace cilantro {
     // If positive, EigenDim is the embedding dimension (and also the number of clusters).
     // Set to Eigen::Dynamic for runtime setting.
     template <typename ScalarT, ptrdiff_t EigenDim = Eigen::Dynamic>
-    inline void computeLaplacianSpectralEmbeddingSparse(const Eigen::SparseMatrix<ScalarT> &affinities,
-                                                        size_t max_num_clusters,
-                                                        bool estimate_num_clusters,
-                                                        const GraphLaplacianType &laplacian_type,
-                                                        SpectralEmbedding<ScalarT,EigenDim> &embedding)
+    inline void computeLaplacianSpectralEmbedding(const Eigen::SparseMatrix<ScalarT> &affinities,
+                                                  size_t max_num_clusters,
+                                                  bool estimate_num_clusters,
+                                                  const GraphLaplacianType &laplacian_type,
+                                                  SpectralEmbedding<ScalarT,EigenDim> &embedding)
     {
-        computeLaplacianSpectralEmbeddingSparse<ScalarT,EigenDim>(affinities, max_num_clusters, estimate_num_clusters, laplacian_type, embedding.embeddedPoints, embedding.computedEigenvalues);
+        computeLaplacianSpectralEmbedding<ScalarT,EigenDim>(affinities, max_num_clusters, estimate_num_clusters, laplacian_type, embedding.embeddedPoints, embedding.computedEigenvalues);
     }
 
     // If positive, EigenDim is the embedding dimension (and also the number of clusters).
     // Set to Eigen::Dynamic for runtime setting.
     template <typename ScalarT, ptrdiff_t EigenDim = Eigen::Dynamic>
-    inline SpectralEmbedding<ScalarT,EigenDim> computeLaplacianSpectralEmbeddingSparse(const Eigen::SparseMatrix<ScalarT> &affinities,
-                                                                                       size_t max_num_clusters,
-                                                                                       bool estimate_num_clusters,
-                                                                                       const GraphLaplacianType &laplacian_type)
+    inline SpectralEmbedding<ScalarT,EigenDim> computeLaplacianSpectralEmbedding(const Eigen::SparseMatrix<ScalarT> &affinities,
+                                                                                 size_t max_num_clusters,
+                                                                                 bool estimate_num_clusters,
+                                                                                 const GraphLaplacianType &laplacian_type)
     {
         SpectralEmbedding<ScalarT,EigenDim> embedding;
-        computeLaplacianSpectralEmbeddingSparse<ScalarT,EigenDim>(affinities, max_num_clusters, estimate_num_clusters, laplacian_type, embedding.embeddedPoints, embedding.computedEigenvalues);
+        computeLaplacianSpectralEmbedding<ScalarT,EigenDim>(affinities, max_num_clusters, estimate_num_clusters, laplacian_type, embedding.embeddedPoints, embedding.computedEigenvalues);
         return embedding;
     }
 
@@ -365,7 +365,7 @@ namespace cilantro {
                            size_t kmeans_max_iter = 100,
                            ScalarT kmeans_conv_tol = std::numeric_limits<ScalarT>::epsilon(),
                            bool kmeans_use_kd_tree = false)
-                : SpectralEmbedding<ScalarT,EigenDim>(std::move(computeLaplacianSpectralEmbeddingDense<ScalarT,EigenDim>(affinities, EigenDim, false, laplacian_type))),
+                : SpectralEmbedding<ScalarT,EigenDim>(std::move(computeLaplacianSpectralEmbedding<ScalarT,EigenDim>(affinities, EigenDim, false, laplacian_type))),
                   KMeans<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2>(this->embeddedPoints)
         {
             this->cluster(this->embeddedPoints.rows(), kmeans_max_iter, kmeans_conv_tol, kmeans_use_kd_tree);
@@ -383,8 +383,8 @@ namespace cilantro {
                            size_t kmeans_max_iter = 100,
                            ScalarT kmeans_conv_tol = std::numeric_limits<ScalarT>::epsilon(),
                            bool kmeans_use_kd_tree = false)
-                : SpectralEmbedding<ScalarT,EigenDim>((max_num_clusters > 0 && max_num_clusters < affinities.rows()) ? std::move(computeLaplacianSpectralEmbeddingDense<ScalarT,EigenDim>(affinities, max_num_clusters, estimate_num_clusters, laplacian_type))
-                                                                                                                     : std::move(computeLaplacianSpectralEmbeddingDense<ScalarT,EigenDim>(affinities, 2, false, laplacian_type))),
+                : SpectralEmbedding<ScalarT,EigenDim>((max_num_clusters > 0 && max_num_clusters < affinities.rows()) ? std::move(computeLaplacianSpectralEmbedding<ScalarT,EigenDim>(affinities, max_num_clusters, estimate_num_clusters, laplacian_type))
+                                                                                                                     : std::move(computeLaplacianSpectralEmbedding<ScalarT,EigenDim>(affinities, 2, false, laplacian_type))),
                   KMeans<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2>(this->embeddedPoints)
         {
             this->cluster(this->embeddedPoints.rows(), kmeans_max_iter, kmeans_conv_tol, kmeans_use_kd_tree);
@@ -398,7 +398,7 @@ namespace cilantro {
                            size_t kmeans_max_iter = 100,
                            ScalarT kmeans_conv_tol = std::numeric_limits<ScalarT>::epsilon(),
                            bool kmeans_use_kd_tree = false)
-                : SpectralEmbedding<ScalarT,EigenDim>(std::move(computeLaplacianSpectralEmbeddingSparse<ScalarT,EigenDim>(affinities, EigenDim, false, laplacian_type))),
+                : SpectralEmbedding<ScalarT,EigenDim>(std::move(computeLaplacianSpectralEmbedding<ScalarT,EigenDim>(affinities, EigenDim, false, laplacian_type))),
                   KMeans<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2>(this->embeddedPoints)
         {
             this->cluster(this->embeddedPoints.rows(), kmeans_max_iter, kmeans_conv_tol, kmeans_use_kd_tree);
@@ -416,14 +416,12 @@ namespace cilantro {
                            size_t kmeans_max_iter = 100,
                            ScalarT kmeans_conv_tol = std::numeric_limits<ScalarT>::epsilon(),
                            bool kmeans_use_kd_tree = false)
-                : SpectralEmbedding<ScalarT,EigenDim>((max_num_clusters > 0 && max_num_clusters < affinities.rows()) ? std::move(computeLaplacianSpectralEmbeddingSparse<ScalarT,EigenDim>(affinities, max_num_clusters, estimate_num_clusters, laplacian_type))
-                                                                                                                     : std::move(computeLaplacianSpectralEmbeddingSparse<ScalarT,EigenDim>(affinities, 2, false, laplacian_type))),
+                : SpectralEmbedding<ScalarT,EigenDim>((max_num_clusters > 0 && max_num_clusters < affinities.rows()) ? std::move(computeLaplacianSpectralEmbedding<ScalarT,EigenDim>(affinities, max_num_clusters, estimate_num_clusters, laplacian_type))
+                                                                                                                     : std::move(computeLaplacianSpectralEmbedding<ScalarT,EigenDim>(affinities, 2, false, laplacian_type))),
                   KMeans<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2>(this->embeddedPoints)
         {
             this->cluster(this->embeddedPoints.rows(), kmeans_max_iter, kmeans_conv_tol, kmeans_use_kd_tree);
         }
-
-        ~SpectralClustering() {}
     };
 
     typedef SpectralClustering<float,2> SpectralClustering2f;

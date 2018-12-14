@@ -18,5 +18,7 @@ namespace cilantro {
         inline const VectorSet<ScalarT,EigenDim>& getEmbeddedPoints() const { return embeddedPoints; }
 
         inline const Vector<ScalarT,EigenDim>& getComputedEigenValues() const { return computedEigenvalues; }
+
+        inline size_t getEmbeddingDimension() const { return embeddedPoints.rows(); }
     };
 }

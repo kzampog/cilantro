@@ -66,7 +66,7 @@ namespace cilantro {
 
         size_t iteration_count_;
 
-        inline void cluster_(size_t max_iter, ScalarT tol, bool use_kd_tree) {
+        void cluster_(size_t max_iter, ScalarT tol, bool use_kd_tree) {
             const size_t num_clusters = cluster_centroids_.cols();
             const size_t num_points = data_map_.cols();
             const ScalarT tol_sq = tol*tol;
