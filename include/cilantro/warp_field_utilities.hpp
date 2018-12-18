@@ -6,10 +6,11 @@
 
 namespace cilantro {
     template <class TransformT, class WeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
-    void resampleTransforms(const TransformSet<TransformT> &old_transforms,
-                            const std::vector<NeighborSet<typename WeightEvaluatorT::InputScalar>> &new_to_old_map,
-                            TransformSet<TransformT> &new_transforms,
-                            const WeightEvaluatorT &weight_evaluator = WeightEvaluatorT())
+    typename std::enable_if<internal::HasLinear<TransformT>::value && internal::HasTranslation<TransformT>::value,void>::type
+    resampleTransforms(const TransformSet<TransformT> &old_transforms,
+                       const std::vector<NeighborSet<typename WeightEvaluatorT::InputScalar>> &new_to_old_map,
+                       TransformSet<TransformT> &new_transforms,
+                       const WeightEvaluatorT &weight_evaluator = WeightEvaluatorT())
     {
         new_transforms.resize(new_to_old_map.size());
 
@@ -49,12 +50,13 @@ namespace cilantro {
     }
 
     template <class TransformT, class NeighborhoodSpecT, class WeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
-    void resampleTransforms(const KDTree<typename TransformT::Scalar,TransformT::Dim,KDTreeDistanceAdaptors::L2> &old_support_kd_tree,
-                            const TransformSet<TransformT> &old_transforms,
-                            const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &new_support,
-                            const NeighborhoodSpecT &nh,
-                            TransformSet<TransformT> &new_transforms,
-                            const WeightEvaluatorT &weight_evaluator = WeightEvaluatorT())
+    typename std::enable_if<internal::HasLinear<TransformT>::value && internal::HasTranslation<TransformT>::value,void>::type
+    resampleTransforms(const KDTree<typename TransformT::Scalar,TransformT::Dim,KDTreeDistanceAdaptors::L2> &old_support_kd_tree,
+                       const TransformSet<TransformT> &old_transforms,
+                       const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &new_support,
+                       const NeighborhoodSpecT &nh,
+                       TransformSet<TransformT> &new_transforms,
+                       const WeightEvaluatorT &weight_evaluator = WeightEvaluatorT())
     {
         new_transforms.resize(new_support.cols());
 
