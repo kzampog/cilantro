@@ -52,7 +52,7 @@ namespace cilantro {
             return transformed_data_map_;
         }
 
-    private:
+    protected:
         ConstVectorSetMatrixMap<ScalarT,FeatureDimension> data_map_;
         VectorSet<ScalarT,FeatureDimension> transformed_data_;
         ConstVectorSetMatrixMap<ScalarT,FeatureDimension> transformed_data_map_;
@@ -149,7 +149,7 @@ namespace cilantro {
             return transformed_data_map_;
         }
 
-    private:
+    protected:
         VectorSet<ScalarT,FeatureDimension> data_;
         ConstVectorSetMatrixMap<ScalarT,FeatureDimension> data_map_;
         VectorSet<ScalarT,FeatureDimension> transformed_data_;
@@ -225,7 +225,7 @@ namespace cilantro {
             return transformed_data_map_;
         }
 
-    private:
+    protected:
         VectorSet<ScalarT,FeatureDimension> data_;
         ConstVectorSetMatrixMap<ScalarT,FeatureDimension> data_map_;
         VectorSet<ScalarT,FeatureDimension> transformed_data_;
@@ -329,7 +329,7 @@ namespace cilantro {
             return transformed_data_map_;
         }
 
-    private:
+    protected:
         VectorSet<ScalarT,FeatureDimension> data_;
         ConstVectorSetMatrixMap<ScalarT,FeatureDimension> data_map_;
         VectorSet<ScalarT,FeatureDimension> transformed_data_;
