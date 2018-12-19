@@ -91,7 +91,7 @@ int main(int argc, char ** argv) {
 //    float max_correspondence_dist_sq = 0.04f*0.04f;
 //
 //    std::vector<cilantro::NeighborSet<float>> regularization_nn;
-//    cilantro::KDTree3f(src.points).search(src.points, cilantro::kNNNeighborhood<float>(12), regularization_nn);
+//    cilantro::KDTree3f(src.points).search(src.points, cilantro::KNNNeighborhoodSpecification(12), regularization_nn);
 //
 //    // Perform ICP registration
 //    cilantro::Timer timer;

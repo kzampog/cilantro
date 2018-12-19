@@ -25,7 +25,7 @@ namespace cilantro {
         Neighbor<ScalarT> nn;
 
         if (ref_is_first) {
-#pragma omp parallel for shared (correspondences) private (nn)
+#pragma omp parallel for shared (corr_tmp) private (nn)
             for (size_t i = 0; i < corr_tmp.size(); i++) {
                 ref_tree.nearestNeighborSearch(query_pts.col(i), nn);
                 corr_tmp[i].indexInFirst = nn.index;
@@ -33,7 +33,7 @@ namespace cilantro {
                 corr_tmp[i].value = evaluator(nn.index, i, nn.value);
             }
         } else {
-#pragma omp parallel for shared (correspondences) private (nn)
+#pragma omp parallel for shared (corr_tmp) private (nn)
             for (size_t i = 0; i < corr_tmp.size(); i++) {
                 ref_tree.nearestNeighborSearch(query_pts.col(i), nn);
                 corr_tmp[i].indexInFirst = i;
