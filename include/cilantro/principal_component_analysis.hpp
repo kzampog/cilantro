@@ -16,14 +16,20 @@ namespace cilantro {
         PrincipalComponentAnalysis(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data, bool parallel = false) {
             if (parallel) {
                 Vector<ScalarT,EigenDim> sum(Vector<ScalarT,EigenDim>::Zero(data.rows(), 1));
+
+#ifdef ENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS
 #pragma omp parallel for reduction (internal::MatrixReductions<ScalarT,EigenDim,1>::operator+: sum)
+#endif
                 for (size_t i = 0; i < data.cols(); i++) {
                     sum += data.col(i);
                 }
                 mean_ = ((ScalarT)(1.0)/data.cols())*sum;
 
                 Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov(Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(data.rows(), data.rows()));
+
+#ifdef ENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS
 #pragma omp parallel for reduction (internal::MatrixReductions<ScalarT,EigenDim,EigenDim>::operator+: cov)
+#endif
                 for (size_t i = 0; i < data.cols(); i++) {
                     Eigen::Matrix<ScalarT,EigenDim,1> ptc = data.col(i) - mean_;
                     cov += ptc*ptc.transpose();

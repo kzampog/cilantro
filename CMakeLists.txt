@@ -34,6 +34,11 @@ file(GLOB lib_src ${CMAKE_SOURCE_DIR}/src/*.cpp)
 add_library(${PROJECT_NAME} SHARED ${3rd_src} ${lib_include} ${lib_src})
 target_link_libraries(${PROJECT_NAME} ${Pangolin_LIBRARIES})
 
+option(ENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS "Enable OpenMP sum reductions on floating point data" ON)
+if(ENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS)
+    add_definitions(-DENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS)
+endif()
+
 # Configure Doxyfile
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
