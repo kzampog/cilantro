@@ -3,8 +3,9 @@
 #include <cilantro/data_containers.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, ptrdiff_t EigenDim = Eigen::Dynamic>
-    struct SpectralEmbedding {
+    // CRTP base class that holds computed embedding and accessors
+    template <typename ScalarT, ptrdiff_t EigenDim = Eigen::Dynamic, typename Derived = void>
+    struct SpectralEmbeddingBase {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         typedef ScalarT Scalar;

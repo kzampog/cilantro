@@ -2,11 +2,11 @@
 
 #include <random>
 #include <cilantro/kd_tree.hpp>
-#include <cilantro/clustering.hpp>
+#include <cilantro/clustering_base.hpp>
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    class KMeans : public Clustering {
+    class KMeans : public ClusteringBase<KMeans<ScalarT,EigenDim,DistAdaptor>> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -71,7 +71,7 @@ namespace cilantro {
             const size_t num_points = data_map_.cols();
             const ScalarT tol_sq = tol*tol;
 
-            pointToClusterIndexMap.resize(num_points);
+            this->pointToClusterIndexMap.resize(num_points);
 
             size_t extr_dist_ind;
             ScalarT extr_dist;
@@ -94,8 +94,8 @@ namespace cilantro {
 #pragma omp parallel for shared (assignments_unchanged) private (nn)
                     for (size_t i = 0; i < num_points; i++) {
                         tree.nearestNeighborSearch(data_map_.col(i), nn);
-                        if (pointToClusterIndexMap[i] != nn.index) assignments_unchanged = false;
-                        pointToClusterIndexMap[i] = nn.index;
+                        if (this->pointToClusterIndexMap[i] != nn.index) assignments_unchanged = false;
+                        this->pointToClusterIndexMap[i] = nn.index;
                     }
                 } else {
 #pragma omp parallel for shared (assignments_unchanged) private (extr_dist, extr_dist_ind, dist)
@@ -115,8 +115,8 @@ namespace cilantro {
                                 extr_dist_ind = j;
                             }
                         }
-                        if (pointToClusterIndexMap[i] != extr_dist_ind) assignments_unchanged = false;
-                        pointToClusterIndexMap[i] = extr_dist_ind;
+                        if (this->pointToClusterIndexMap[i] != extr_dist_ind) assignments_unchanged = false;
+                        this->pointToClusterIndexMap[i] = extr_dist_ind;
                     }
                 }
 
@@ -127,8 +127,8 @@ namespace cilantro {
                 cluster_centroids_.setZero();
                 std::vector<size_t> point_count(num_clusters, 0);
                 for (size_t i = 0; i < num_points; i++) {
-                    cluster_centroids_.col(pointToClusterIndexMap[i]) += data_map_.col(i);
-                    point_count[pointToClusterIndexMap[i]]++;
+                    cluster_centroids_.col(this->pointToClusterIndexMap[i]) += data_map_.col(i);
+                    point_count[this->pointToClusterIndexMap[i]]++;
                 }
 
                 // Handle empty clusters
@@ -146,7 +146,7 @@ namespace cilantro {
                     extr_dist = (ScalarT)(-1.0);
 #pragma omp parallel for shared (extr_dist, extr_dist_ind) private (dist)
                     for (size_t j = 0; j < num_points; j++) {
-                        if (pointToClusterIndexMap[j] == max_ind) {
+                        if (this->pointToClusterIndexMap[j] == max_ind) {
                             // Resolved at compile time
                             if (std::is_same<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>, KDTreeDistanceAdaptors::L2<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>>::value ||
                                 std::is_same<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>, KDTreeDistanceAdaptors::L2Simple<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>>::value)
@@ -164,7 +164,7 @@ namespace cilantro {
                     }
 
                     // Move previously found point to current (empty) cluster
-                    pointToClusterIndexMap[extr_dist_ind] = i;
+                    this->pointToClusterIndexMap[extr_dist_ind] = i;
                     cluster_centroids_.col(max_ind) -= data_map_.col(extr_dist_ind);
                     point_count[max_ind]--;
                     point_count[i]++;
@@ -181,7 +181,7 @@ namespace cilantro {
                 if (tol > (ScalarT)0.0 && (cluster_centroids_ - centroids_old).colwise().squaredNorm().maxCoeff() < tol_sq) break;
             }
 
-            clusterToPointIndicesMap = cilantro::getClusterToPointIndicesMap(pointToClusterIndexMap, num_clusters);
+            this->clusterToPointIndicesMap = cilantro::getClusterToPointIndicesMap(this->pointToClusterIndexMap, num_clusters);
         }
     };
 

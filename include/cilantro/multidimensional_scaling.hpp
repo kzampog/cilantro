@@ -2,7 +2,7 @@
 
 #include <cilantro/3rd_party/spectra/SymEigsSolver.h>
 #include <cilantro/data_containers.hpp>
-#include <cilantro/spectral_embedding.hpp>
+#include <cilantro/spectral_embedding_base.hpp>
 
 namespace cilantro {
     template <class VectorT>
@@ -77,31 +77,34 @@ namespace cilantro {
     }
 
     // If positive, EigenDim is the embedding dimension. Set to Eigen::Dynamic for runtime setting.
-    template <typename ScalarT, ptrdiff_t EigenDim = Eigen::Dynamic>
+    template <typename ScalarT, ptrdiff_t EigenDim = Eigen::Dynamic, typename EmbeddingDerived = void>
     inline void computeDistancePreservingSpectralEmbedding(const Eigen::Ref<const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> &distances,
                                                            size_t max_dim,
                                                            bool estimate_dim,
                                                            bool distances_are_squared,
-                                                           SpectralEmbedding<ScalarT,EigenDim> &embedding)
+                                                           SpectralEmbeddingBase<ScalarT,EigenDim,EmbeddingDerived> &embedding)
     {
         computeDistancePreservingSpectralEmbedding<ScalarT,EigenDim>(distances, max_dim, estimate_dim, distances_are_squared, embedding.embeddedPoints, embedding.computedEigenvalues);
     }
 
     // If positive, EigenDim is the embedding dimension. Set to Eigen::Dynamic for runtime setting.
-    template <typename ScalarT, ptrdiff_t EigenDim = Eigen::Dynamic>
-    inline SpectralEmbedding<ScalarT,EigenDim> computeDistancePreservingSpectralEmbedding(const Eigen::Ref<const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> &distances,
-                                                                                          size_t max_dim,
-                                                                                          bool estimate_dim,
-                                                                                          bool distances_are_squared)
+    template <typename ScalarT, ptrdiff_t EigenDim = Eigen::Dynamic, typename EmbeddingDerived = void>
+    inline SpectralEmbeddingBase<ScalarT,EigenDim,EmbeddingDerived> computeDistancePreservingSpectralEmbedding(const Eigen::Ref<const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> &distances,
+                                                                                                               size_t max_dim,
+                                                                                                               bool estimate_dim,
+                                                                                                               bool distances_are_squared)
     {
-        SpectralEmbedding<ScalarT,EigenDim> embedding;
+        SpectralEmbeddingBase<ScalarT,EigenDim,EmbeddingDerived> embedding;
         computeDistancePreservingSpectralEmbedding<ScalarT,EigenDim>(distances, max_dim, estimate_dim, distances_are_squared, embedding.embeddedPoints, embedding.computedEigenvalues);
         return embedding;
     }
 
     // If positive, EigenDim is the embedding dimension. Set to Eigen::Dynamic for runtime setting.
     template <typename ScalarT, ptrdiff_t EigenDim = Eigen::Dynamic>
-    class MultidimensionalScaling : public SpectralEmbedding<ScalarT,EigenDim> {
+    class MultidimensionalScaling : public SpectralEmbeddingBase<ScalarT,EigenDim,MultidimensionalScaling<ScalarT,EigenDim>> {
+
+        typedef SpectralEmbeddingBase<ScalarT,EigenDim,MultidimensionalScaling<ScalarT,EigenDim>> EmbeddingBase;
+
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -109,7 +112,7 @@ namespace cilantro {
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
         MultidimensionalScaling(const Eigen::Ref<const Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>> &distances,
                                 bool distances_are_squared = true)
-                : SpectralEmbedding<ScalarT,EigenDim>(std::move(computeDistancePreservingSpectralEmbedding<ScalarT,EigenDim>(distances, EigenDim, false, distances_are_squared)))
+                : EmbeddingBase(std::move(computeDistancePreservingSpectralEmbedding<ScalarT,EigenDim,MultidimensionalScaling<ScalarT,EigenDim>>(distances, EigenDim, false, distances_are_squared)))
         {}
 
         // Embedding dimension set at runtime (EigenDim == Eigen::Dynamic)
@@ -120,8 +123,8 @@ namespace cilantro {
                                 size_t max_dim,
                                 bool estimate_dim = false,
                                 bool distances_are_squared = true)
-                : SpectralEmbedding<ScalarT,EigenDim>((max_dim > 0 && max_dim < distances.rows()) ? std::move(computeDistancePreservingSpectralEmbedding<ScalarT,EigenDim>(distances, max_dim, estimate_dim, distances_are_squared))
-                                                                                                  : std::move(computeDistancePreservingSpectralEmbedding<ScalarT,EigenDim>(distances, 2, false, distances_are_squared)))
+                : EmbeddingBase((max_dim > 0 && max_dim < distances.rows()) ? std::move(computeDistancePreservingSpectralEmbedding<ScalarT,EigenDim,MultidimensionalScaling<ScalarT,EigenDim>>(distances, max_dim, estimate_dim, distances_are_squared))
+                                                                            : std::move(computeDistancePreservingSpectralEmbedding<ScalarT,EigenDim,MultidimensionalScaling<ScalarT,EigenDim>>(distances, 2, false, distances_are_squared)))
         {}
     };
 

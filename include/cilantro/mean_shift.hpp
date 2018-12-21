@@ -2,11 +2,11 @@
 
 #include <cilantro/kd_tree.hpp>
 #include <cilantro/common_pair_evaluators.hpp>
-#include <cilantro/clustering.hpp>
+#include <cilantro/clustering_base.hpp>
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    class MeanShift : public Clustering {
+    class MeanShift : public ClusteringBase<MeanShift<ScalarT,EigenDim,DistAdaptor>> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -84,26 +84,26 @@ namespace cilantro {
 
             for (size_t i = 0; i < shifted_seeds_.cols(); i++) {
                 size_t c;
-                for (c = 0; c < clusterToPointIndicesMap.size(); c++) {
-                    if ((shifted_seeds_.col(i) - shifted_seeds_.col(clusterToPointIndicesMap[c][0])).squaredNorm() < cluster_tol_sq) break;
+                for (c = 0; c < this->clusterToPointIndicesMap.size(); c++) {
+                    if ((shifted_seeds_.col(i) - shifted_seeds_.col(this->clusterToPointIndicesMap[c][0])).squaredNorm() < cluster_tol_sq) break;
                 }
 
-                if (c == clusterToPointIndicesMap.size()) {
-                    clusterToPointIndicesMap.emplace_back(1, i);
+                if (c == this->clusterToPointIndicesMap.size()) {
+                    this->clusterToPointIndicesMap.emplace_back(1, i);
                 } else {
-                    clusterToPointIndicesMap[c].emplace_back(i);
+                    this->clusterToPointIndicesMap[c].emplace_back(i);
                 }
             }
 
-            pointToClusterIndexMap.resize(shifted_seeds_.cols());
-            cluster_modes_.resize(data_map_.rows(), clusterToPointIndicesMap.size());
-            for (size_t i = 0; i < clusterToPointIndicesMap.size(); i++) {
+            this->pointToClusterIndexMap.resize(shifted_seeds_.cols());
+            cluster_modes_.resize(data_map_.rows(), this->clusterToPointIndicesMap.size());
+            for (size_t i = 0; i < this->clusterToPointIndicesMap.size(); i++) {
                 cluster_modes_.col(i).setZero();
-                for (size_t j = 0; j < clusterToPointIndicesMap[i].size(); j++) {
-                    cluster_modes_.col(i) += shifted_seeds_.col(clusterToPointIndicesMap[i][j]);
-                    pointToClusterIndexMap[clusterToPointIndicesMap[i][j]] = i;
+                for (size_t j = 0; j < this->clusterToPointIndicesMap[i].size(); j++) {
+                    cluster_modes_.col(i) += shifted_seeds_.col(this->clusterToPointIndicesMap[i][j]);
+                    this->pointToClusterIndexMap[this->clusterToPointIndicesMap[i][j]] = i;
                 }
-                cluster_modes_.col(i) *= (ScalarT)(1.0)/clusterToPointIndicesMap[i].size();
+                cluster_modes_.col(i) *= (ScalarT)(1.0)/this->clusterToPointIndicesMap[i].size();
             }
 
             return *this;

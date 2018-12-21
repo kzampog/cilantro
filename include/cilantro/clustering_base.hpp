@@ -38,9 +38,12 @@ namespace cilantro {
         return res;
     }
 
-    // A simple struct that holds clustering results
-    struct Clustering {
+    // CRTP base class that holds clustering results and accessors
+    template <typename Derived = void>
+    struct ClusteringBase {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        ClusteringBase() = default;
 
         std::vector<std::vector<size_t>> clusterToPointIndicesMap;
 
