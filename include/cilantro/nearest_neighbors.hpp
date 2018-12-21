@@ -45,6 +45,12 @@ namespace cilantro {
     template <typename ScalarT>
     using NeighborSet = std::vector<Neighbor<ScalarT>>;
 
+    template <typename ScalarT>
+    using Neighborhood = std::vector<Neighbor<ScalarT>>;
+
+    template <typename ScalarT>
+    using NeighborhoodSet = std::vector<Neighborhood<ScalarT>>;
+
     struct KNNNeighborhoodSpecification {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 

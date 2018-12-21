@@ -102,7 +102,7 @@ namespace cilantro {
                                          typename TransformT::Scalar point_to_point_weight,
                                          const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
                                          typename TransformT::Scalar point_to_plane_weight,
-                                         const std::vector<NeighborSet<typename RegWeightEvaluatorT::InputScalar>> &regularization_neighborhoods,
+                                         const NeighborhoodSet<typename RegWeightEvaluatorT::InputScalar> &regularization_neighborhoods,
                                          typename TransformT::Scalar regularization_weight,
                                          TransformSet<TransformT> &transforms,
                                          typename TransformT::Scalar huber_boundary = (typename TransformT::Scalar)(1e-4),
@@ -356,7 +356,7 @@ namespace cilantro {
                                          typename TransformT::Scalar point_to_point_weight,
                                          const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
                                          typename TransformT::Scalar point_to_plane_weight,
-                                         const std::vector<NeighborSet<typename RegWeightEvaluatorT::InputScalar>> &regularization_neighborhoods,
+                                         const NeighborhoodSet<typename RegWeightEvaluatorT::InputScalar> &regularization_neighborhoods,
                                          typename TransformT::Scalar regularization_weight,
                                          TransformSet<TransformT> &transforms,
                                          typename TransformT::Scalar huber_boundary = (typename TransformT::Scalar)(1e-4),
@@ -677,7 +677,7 @@ namespace cilantro {
                                          typename TransformT::Scalar point_to_point_weight,
                                          const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
                                          typename TransformT::Scalar point_to_plane_weight,
-                                         const std::vector<NeighborSet<typename RegWeightEvaluatorT::InputScalar>> &regularization_neighborhoods,
+                                         const NeighborhoodSet<typename RegWeightEvaluatorT::InputScalar> &regularization_neighborhoods,
                                          typename TransformT::Scalar regularization_weight,
                                          TransformSet<TransformT> &transforms,
                                          typename TransformT::Scalar huber_boundary = (typename TransformT::Scalar)(1e-4),
@@ -929,9 +929,9 @@ namespace cilantro {
                                           typename TransformT::Scalar point_to_point_weight,
                                           const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
                                           typename TransformT::Scalar point_to_plane_weight,
-                                          const std::vector<NeighborSet<typename ControlWeightEvaluatorT::InputScalar>> &src_to_ctrl_neighborhoods,
+                                          const NeighborhoodSet<typename ControlWeightEvaluatorT::InputScalar> &src_to_ctrl_neighborhoods,
                                           size_t num_ctrl_points,
-                                          const std::vector<NeighborSet<typename RegWeightEvaluatorT::InputScalar>> &regularization_neighborhoods,
+                                          const NeighborhoodSet<typename RegWeightEvaluatorT::InputScalar> &regularization_neighborhoods,
                                           typename TransformT::Scalar regularization_weight,
                                           TransformSet<TransformT> &transforms,
                                           typename TransformT::Scalar huber_boundary = (typename TransformT::Scalar)(1e-4),
@@ -959,7 +959,7 @@ namespace cilantro {
         }
 
         // Sort control nodes by index and compute total weight
-        std::vector<NeighborSet<ScalarT>> src_to_ctrl_sorted(src_to_ctrl_neighborhoods.size());
+        NeighborhoodSet<ScalarT> src_to_ctrl_sorted(src_to_ctrl_neighborhoods.size());
         std::vector<ScalarT> total_weight(src_to_ctrl_sorted.size());
         std::vector<char> has_data_term(src_to_ctrl_neighborhoods.size(), 0);
 #pragma omp parallel shared (src_to_ctrl_sorted, total_weight, has_data_term)
@@ -1286,9 +1286,9 @@ namespace cilantro {
                                           typename TransformT::Scalar point_to_point_weight,
                                           const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
                                           typename TransformT::Scalar point_to_plane_weight,
-                                          const std::vector<NeighborSet<typename ControlWeightEvaluatorT::InputScalar>> &src_to_ctrl_neighborhoods,
+                                          const NeighborhoodSet<typename ControlWeightEvaluatorT::InputScalar> &src_to_ctrl_neighborhoods,
                                           size_t num_ctrl_points,
-                                          const std::vector<NeighborSet<typename RegWeightEvaluatorT::InputScalar>> &regularization_neighborhoods,
+                                          const NeighborhoodSet<typename RegWeightEvaluatorT::InputScalar> &regularization_neighborhoods,
                                           typename TransformT::Scalar regularization_weight,
                                           TransformSet<TransformT> &transforms,
                                           typename TransformT::Scalar huber_boundary = (typename TransformT::Scalar)(1e-4),
@@ -1316,7 +1316,7 @@ namespace cilantro {
         }
 
         // Sort control nodes by index and compute total weight
-        std::vector<NeighborSet<ScalarT>> src_to_ctrl_sorted(src_to_ctrl_neighborhoods.size());
+        NeighborhoodSet<ScalarT> src_to_ctrl_sorted(src_to_ctrl_neighborhoods.size());
         std::vector<ScalarT> total_weight(src_to_ctrl_sorted.size());
         std::vector<char> has_data_term(src_to_ctrl_neighborhoods.size(), 0);
 #pragma omp parallel shared (src_to_ctrl_sorted, total_weight, has_data_term)
@@ -1708,9 +1708,9 @@ namespace cilantro {
                                           typename TransformT::Scalar point_to_point_weight,
                                           const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
                                           typename TransformT::Scalar point_to_plane_weight,
-                                          const std::vector<NeighborSet<typename ControlWeightEvaluatorT::InputScalar>> &src_to_ctrl_neighborhoods,
+                                          const NeighborhoodSet<typename ControlWeightEvaluatorT::InputScalar> &src_to_ctrl_neighborhoods,
                                           size_t num_ctrl_points,
-                                          const std::vector<NeighborSet<typename RegWeightEvaluatorT::InputScalar>> &regularization_neighborhoods,
+                                          const NeighborhoodSet<typename RegWeightEvaluatorT::InputScalar> &regularization_neighborhoods,
                                           typename TransformT::Scalar regularization_weight,
                                           TransformSet<TransformT> &transforms,
                                           typename TransformT::Scalar huber_boundary = (typename TransformT::Scalar)(1e-4),
@@ -1744,7 +1744,7 @@ namespace cilantro {
         }
 
         // Sort control nodes by index and compute total weight
-        std::vector<NeighborSet<ScalarT>> src_to_ctrl_sorted(src_to_ctrl_neighborhoods.size());
+        NeighborhoodSet<ScalarT> src_to_ctrl_sorted(src_to_ctrl_neighborhoods.size());
         std::vector<ScalarT> total_weight(src_to_ctrl_sorted.size());
         std::vector<char> has_data_term(src_to_ctrl_neighborhoods.size(), 0);
 #pragma omp parallel shared (src_to_ctrl_sorted, total_weight, has_data_term)

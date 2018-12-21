@@ -49,7 +49,7 @@ namespace cilantro {
 
             std::vector<char> has_converged(shifted_seeds_.cols(), 0);
             bool all_converged;
-            NeighborSet<ScalarT> nn;
+            Neighborhood<ScalarT> nn;
             Vector<ScalarT,EigenDim> point_tmp;
 
             while (iteration_count_ < max_iter) {

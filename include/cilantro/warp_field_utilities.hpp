@@ -8,7 +8,7 @@ namespace cilantro {
     template <class TransformT, class WeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
     typename std::enable_if<internal::HasLinear<TransformT>::value && internal::HasTranslation<TransformT>::value,void>::type
     resampleTransforms(const TransformSet<TransformT> &old_transforms,
-                       const std::vector<NeighborSet<typename WeightEvaluatorT::InputScalar>> &new_to_old_map,
+                       const NeighborhoodSet<typename WeightEvaluatorT::InputScalar> &new_to_old_map,
                        TransformSet<TransformT> &new_transforms,
                        const WeightEvaluatorT &weight_evaluator = WeightEvaluatorT())
     {
@@ -41,7 +41,7 @@ namespace cilantro {
 
     template <class TransformT, class WeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
     inline TransformSet<TransformT> resampleTransforms(const TransformSet<TransformT> &old_transforms,
-                                                       const std::vector<NeighborSet<typename WeightEvaluatorT::InputScalar>> &new_to_old_map,
+                                                       const NeighborhoodSet<typename WeightEvaluatorT::InputScalar> &new_to_old_map,
                                                        const WeightEvaluatorT &weight_evaluator = WeightEvaluatorT())
     {
         TransformSet<TransformT> new_transforms;
@@ -60,7 +60,7 @@ namespace cilantro {
     {
         new_transforms.resize(new_support.cols());
 
-        NeighborSet<typename TransformT::Scalar> nn;
+        Neighborhood<typename TransformT::Scalar> nn;
 #pragma omp parallel for shared (new_transforms) private (nn)
         for (size_t i = 0; i < new_transforms.size(); i++) {
             old_support_kd_tree.template search<NeighborhoodSpecT>(new_support.col(i), nh, nn);

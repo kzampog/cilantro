@@ -3,14 +3,6 @@
 #include <cilantro/visualizer.hpp>
 #include <cilantro/common_renderables.hpp>
 
-//cilantro::VectorSet<float,3> selectByIndices(const cilantro::VectorSet<float,3> &elements, const std::vector<size_t> &indices) {
-//    cilantro::VectorSet<float,3> res(3,indices.size());
-//    for (size_t i = 0; i < indices.size(); i++) {
-//        res.col(i) = elements.col(indices[i]);
-//    }
-//    return res;
-//}
-
 void callback(unsigned char key, bool &re_estimate, bool &randomize) {
     if (key == 'a') {
         re_estimate = true;

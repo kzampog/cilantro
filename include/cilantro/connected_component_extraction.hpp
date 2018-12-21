@@ -18,7 +18,7 @@ namespace cilantro {
 
     // Given neighbors and seeds
     template <typename ScalarT, class PointSimilarityEvaluator = AlwaysTrueEvaluator<ScalarT>>
-    void extractConnectedComponents(const std::vector<NeighborSet<ScalarT>> &neighbors,
+    void extractConnectedComponents(const NeighborhoodSet<ScalarT> &neighbors,
                                     const std::vector<size_t> &seeds_ind,
                                     std::vector<std::vector<size_t>> &segment_to_point_map,
                                     const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
@@ -53,7 +53,7 @@ namespace cilantro {
 //                ind_per_seed[i].insert(curr_seed);
                 ind_per_seed[i].emplace_back(curr_seed);
 
-                const NeighborSet<ScalarT>& nn(neighbors[curr_seed]);
+                const Neighborhood<ScalarT>& nn(neighbors[curr_seed]);
                 for (size_t j = 1; j < nn.size(); j++) {
                     const size_t& curr_lbl = current_label[nn[j].index];
                     if (curr_lbl == i || evaluator(curr_seed, nn[j].index, nn[j].value)) {
@@ -99,7 +99,7 @@ namespace cilantro {
 
     // Given neighbors and seeds
     template <typename ScalarT, class PointSimilarityEvaluator = AlwaysTrueEvaluator<ScalarT>>
-    inline std::vector<std::vector<size_t>> extractConnectedComponents(const std::vector<NeighborSet<ScalarT>> &neighbors,
+    inline std::vector<std::vector<size_t>> extractConnectedComponents(const NeighborhoodSet<ScalarT> &neighbors,
                                                                        const std::vector<size_t> &seeds_ind,
                                                                        const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
                                                                        size_t min_segment_size = 1,
@@ -112,7 +112,7 @@ namespace cilantro {
 
     // Given neighbors, all seeds
     template <typename ScalarT, class PointSimilarityEvaluator = AlwaysTrueEvaluator<ScalarT>>
-    void extractConnectedComponents(const std::vector<NeighborSet<ScalarT>> &neighbors,
+    void extractConnectedComponents(const NeighborhoodSet<ScalarT> &neighbors,
                                     std::vector<std::vector<size_t>> &segment_to_point_map,
                                     const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
                                     size_t min_segment_size = 1,
@@ -125,7 +125,7 @@ namespace cilantro {
 
     // Given neighbors, all seeds
     template <typename ScalarT, class PointSimilarityEvaluator = AlwaysTrueEvaluator<ScalarT>>
-    std::vector<std::vector<size_t>> extractConnectedComponents(const std::vector<NeighborSet<ScalarT>> &neighbors,
+    std::vector<std::vector<size_t>> extractConnectedComponents(const NeighborhoodSet<ScalarT> &neighbors,
                                                                 const PointSimilarityEvaluator &evaluator = PointSimilarityEvaluator(),
                                                                 size_t min_segment_size = 1,
                                                                 size_t max_segment_size = std::numeric_limits<size_t>::max())
@@ -159,7 +159,7 @@ namespace cilantro {
         std::vector<std::vector<size_t>> ind_per_seed(seeds_ind.size());
         std::vector<std::set<size_t>> seeds_to_merge_with(seeds_ind.size());
 
-        NeighborSet<ScalarT> nn;
+        Neighborhood<ScalarT> nn;
 
 #pragma omp parallel for shared (seeds_ind, current_label, ind_per_seed, seeds_to_merge_with) private (nn, frontier_set)
         for (size_t i = 0; i < seeds_ind.size(); i++) {

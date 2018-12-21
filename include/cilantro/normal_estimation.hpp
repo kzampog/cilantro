@@ -146,7 +146,7 @@ namespace cilantro {
             normals.resize(dim, num_points);
             curvatures.resize(1, num_points);
 
-            NeighborSet<ScalarT> nn;
+            Neighborhood<ScalarT> nn;
 #pragma omp parallel for shared (normals) private (nn)
             for (size_t i = 0; i < num_points; i++) {
                 kd_tree_ptr_->template search<NeighborhoodSpecT>(points_.col(i), nh, nn);

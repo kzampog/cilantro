@@ -49,7 +49,7 @@ namespace cilantro {
     }
 
     template <typename ScalarT, class PairEvaluatorT, typename ValueT = typename PairEvaluatorT::OutputScalar>
-    std::vector<std::vector<ValueT>> getNNGraphFunctionValueList(const std::vector<std::vector<Neighbor<ScalarT>>> &adj_list,
+    std::vector<std::vector<ValueT>> getNNGraphFunctionValueList(const NeighborhoodSet<ScalarT> &adj_list,
                                                                  const PairEvaluatorT &evaluator = PairEvaluatorT())
     {
         std::vector<std::vector<ValueT>> f_values(adj_list.size());
@@ -64,7 +64,7 @@ namespace cilantro {
     }
 
     template <typename ScalarT, class PairEvaluatorT, typename ValueT = typename PairEvaluatorT::OutputScalar>
-    Eigen::Matrix<ValueT,Eigen::Dynamic,Eigen::Dynamic> getNNGraphFunctionValueDenseMatrix(const std::vector<std::vector<Neighbor<ScalarT>>> &adj_list,
+    Eigen::Matrix<ValueT,Eigen::Dynamic,Eigen::Dynamic> getNNGraphFunctionValueDenseMatrix(const NeighborhoodSet<ScalarT> &adj_list,
                                                                                            const PairEvaluatorT &evaluator = PairEvaluatorT(),
                                                                                            bool force_symmetry = false)
     {
@@ -88,7 +88,7 @@ namespace cilantro {
     }
 
     template <typename ScalarT, class PairEvaluatorT, typename ValueT = typename PairEvaluatorT::OutputScalar>
-    Eigen::SparseMatrix<ValueT> getNNGraphFunctionValueSparseMatrix(const std::vector<std::vector<Neighbor<ScalarT>>> &adj_list,
+    Eigen::SparseMatrix<ValueT> getNNGraphFunctionValueSparseMatrix(const NeighborhoodSet<ScalarT> &adj_list,
                                                                     const PairEvaluatorT &evaluator = PairEvaluatorT(),
                                                                     bool force_symmetry = false)
     {
@@ -118,28 +118,28 @@ namespace cilantro {
     }
 
     template <typename ScalarT, typename ValueT = bool>
-    inline Eigen::Matrix<ValueT,Eigen::Dynamic,Eigen::Dynamic> getNNGraphDenseAdjacencyMatrix(const std::vector<std::vector<Neighbor<ScalarT>>> &adj_list,
+    inline Eigen::Matrix<ValueT,Eigen::Dynamic,Eigen::Dynamic> getNNGraphDenseAdjacencyMatrix(const NeighborhoodSet<ScalarT> &adj_list,
                                                                                               bool force_symmetry = false)
     {
         return getNNGraphFunctionValueDenseMatrix<ScalarT,AdjacencyEvaluator<ScalarT,ValueT>,ValueT>(adj_list, AdjacencyEvaluator<ScalarT,ValueT>(), force_symmetry);
     }
 
     template <typename ScalarT, typename ValueT = bool>
-    inline Eigen::SparseMatrix<ValueT> getNNGraphSparseAdjacencyMatrix(const std::vector<std::vector<Neighbor<ScalarT>>> &adj_list,
+    inline Eigen::SparseMatrix<ValueT> getNNGraphSparseAdjacencyMatrix(const NeighborhoodSet<ScalarT> &adj_list,
                                                                        bool force_symmetry = false)
     {
         return getNNGraphFunctionValueSparseMatrix<ScalarT,AdjacencyEvaluator<ScalarT,ValueT>,ValueT>(adj_list, AdjacencyEvaluator<ScalarT,ValueT>(), force_symmetry);
     }
 
     template <typename ScalarT, typename ValueT = ScalarT>
-    inline Eigen::Matrix<ValueT,Eigen::Dynamic,Eigen::Dynamic> getNNGraphDenseDistanceMatrix(const std::vector<std::vector<Neighbor<ScalarT>>> &adj_list,
+    inline Eigen::Matrix<ValueT,Eigen::Dynamic,Eigen::Dynamic> getNNGraphDenseDistanceMatrix(const NeighborhoodSet<ScalarT> &adj_list,
                                                                                              bool force_symmetry = false)
     {
         return getNNGraphFunctionValueDenseMatrix<ScalarT,DistanceEvaluator<ScalarT,ValueT>,ValueT>(adj_list, DistanceEvaluator<ScalarT,ValueT>(), force_symmetry);
     }
 
     template <typename ScalarT, typename ValueT = ScalarT>
-    inline Eigen::SparseMatrix<ValueT> getNNGraphSparseDistanceMatrix(const std::vector<std::vector<Neighbor<ScalarT>>> &adj_list,
+    inline Eigen::SparseMatrix<ValueT> getNNGraphSparseDistanceMatrix(const NeighborhoodSet<ScalarT> &adj_list,
                                                                       bool force_symmetry = false)
     {
         return getNNGraphFunctionValueSparseMatrix<ScalarT,DistanceEvaluator<ScalarT,ValueT>,ValueT>(adj_list, DistanceEvaluator<ScalarT,ValueT>(), force_symmetry);

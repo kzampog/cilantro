@@ -51,12 +51,10 @@ int main(int argc, char ** argv) {
     cilantro::KDTree<float,3> control_tree(control_points);
 
     // Find which control nodes affect each point in src
-    std::vector<cilantro::NeighborSet<float>> src_to_control_nn;
-    control_tree.search(src.points, cilantro::KNNNeighborhoodSpecification(4), src_to_control_nn);
+    cilantro::NeighborhoodSet<float> src_to_control_nn = control_tree.search(src.points, cilantro::KNNNeighborhoodSpecification(4));
 
     // Get regularization neighborhoods for control nodes
-    std::vector<cilantro::NeighborSet<float>> regularization_nn;
-    control_tree.search(control_points, cilantro::KNNNeighborhoodSpecification(8), regularization_nn);
+    cilantro::NeighborhoodSet<float> regularization_nn = control_tree.search(control_points, cilantro::KNNNeighborhoodSpecification(8));
 
     // Perform ICP registration
     cilantro::Timer timer;

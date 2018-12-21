@@ -32,18 +32,18 @@ int main(int argc, char ** argv) {
     cilantro::Timer ne_timer;
     ne_timer.start();
 
-//    cloud.normals = ne.estimateNormals(cilantro::NeighborhoodSpecification<float>(cilantro::NeighborhoodType::KNN_IN_RADIUS, 7, 0.01f));
+//    cloud.normals = ne.estimateNormals(cilantro::KNNInRadiusNeighborhoodSpecification<float>(7, 0.01f));
 //    cloud.normals = ne.estimateNormalsKNNInRadius(7, 0.01f);
 //    cloud.normals = ne.estimateNormalsRadius(0.01f);
 //    cloud.normals = ne.estimateNormalsKNN(7);
 
-//    cloud.estimateNormals(tree, cilantro::NeighborhoodSpecification<float>(cilantro::NeighborhoodType::KNN_IN_RADIUS, 7, 0.01f));
+//    cloud.estimateNormals(tree, cilantro::KNNInRadiusNeighborhoodSpecification<float>(7, 0.01f));
 //    cloud.estimateNormalsKNNInRadius(tree, 7, 0.01f);
 //    cloud.estimateNormalsRadius(tree, 0.01f);
     cloud.estimateNormalsKNN(tree, 7);
 
     // Search tree argument is optional (automatically built):
-//    cloud.estimateNormals(cilantro::NeighborhoodSpecification<float>(cilantro::NeighborhoodType::KNN_IN_RADIUS, 7, 0.01f));
+//    cloud.estimateNormals(cilantro::KNNInRadiusNeighborhoodSpecification<float>(7, 0.01f));
 //    cloud.estimateNormalsKNNInRadius(7, 0.01f);
 //    cloud.estimateNormalsRadius(0.01f);
 //    cloud.estimateNormalsKNN(7);

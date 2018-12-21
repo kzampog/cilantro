@@ -31,10 +31,10 @@ namespace cilantro {
                                          CorrespondenceSearchEngineT &corr_engine,
                                          PointToPointCorrWeightEvaluatorT &point_corr_eval,
                                          PointToPlaneCorrWeightEvaluatorT &plane_corr_eval,
-                                         const std::vector<NeighborSet<typename TransformT::Scalar>> &src_to_ctrl_neighborhoods,
+                                         const NeighborhoodSet<typename TransformT::Scalar> &src_to_ctrl_neighborhoods,
                                          size_t num_ctrl_nodes,
                                          ControlWeightEvaluatorT &control_eval,
-                                         const std::vector<NeighborSet<typename TransformT::Scalar>> &ctrl_regularization_neighborhoods,
+                                         const NeighborhoodSet<typename TransformT::Scalar> &ctrl_regularization_neighborhoods,
                                          RegularizationWeightEvaluatorT &reg_eval)
                 : Base(corr_engine),
                   dst_points_(dst_p), dst_normals_(dst_n), src_points_(src_p),
@@ -129,9 +129,9 @@ namespace cilantro {
         ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> dst_points_;
         ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> dst_normals_;
         ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> src_points_;
-        const std::vector<NeighborSet<typename TransformT::Scalar>>& src_to_ctrl_neighborhoods_;
+        const NeighborhoodSet<typename TransformT::Scalar>& src_to_ctrl_neighborhoods_;
         size_t num_ctrl_nodes_;
-        const std::vector<NeighborSet<typename TransformT::Scalar>>& ctrl_regularization_neighborhoods_;
+        const NeighborhoodSet<typename TransformT::Scalar>& ctrl_regularization_neighborhoods_;
 
         typename TransformT::Scalar point_to_point_weight_;
         typename TransformT::Scalar point_to_plane_weight_;

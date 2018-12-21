@@ -15,9 +15,7 @@ int main(int argc, char ** argv) {
 
     cilantro::KDTree3f tree(points);
 
-    cilantro::NeighborSet<float> nn;
-
-    tree.kNNInRadiusSearch(Eigen::Vector3f(0.1, 0.1, 0.4), 2, 1.001, nn);
+    cilantro::NeighborSet<float> nn = tree.kNNInRadiusSearch(Eigen::Vector3f(0.1, 0.1, 0.4), 2, 1.001);
 
     std::cout << "Neighbor indices: ";
     for (int i = 0; i < nn.size(); i++) {
