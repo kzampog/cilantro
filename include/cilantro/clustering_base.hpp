@@ -43,8 +43,6 @@ namespace cilantro {
     struct ClusteringBase {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        ClusteringBase() = default;
-
         std::vector<std::vector<size_t>> clusterToPointIndicesMap;
 
         std::vector<size_t> pointToClusterIndexMap;
