@@ -3,12 +3,10 @@ project(cilantro)
 
 # Build setup
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
 
 set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-O3 -march=native -mtune=native")
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-O3 -march=native -mtune=native")
 
 # Packages
 
@@ -26,13 +24,13 @@ include_directories(include)
 include_directories(${OTHER_INCLUDES})
 
 # Build library
-
-file(GLOB_RECURSE 3rd_src ${CMAKE_SOURCE_DIR}/src/3rd_party/*.c ${CMAKE_SOURCE_DIR}/src/3rd_party/*.cpp)
-file(GLOB lib_include ${CMAKE_SOURCE_DIR}/include/cilantro/*.hpp)
-file(GLOB lib_src ${CMAKE_SOURCE_DIR}/src/*.cpp)
+file(GLOB_RECURSE 3rd_src ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd_party/*.c ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd_party/*.cpp)
+file(GLOB lib_include ${CMAKE_CURRENT_SOURCE_DIR}/include/cilantro/*.hpp)
+file(GLOB lib_src ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
 add_library(${PROJECT_NAME} SHARED ${3rd_src} ${lib_include} ${lib_src})
 target_link_libraries(${PROJECT_NAME} ${Pangolin_LIBRARIES})
+target_compile_options(${PROJECT_NAME} PUBLIC -O3 -march=native -mtune=native)
 
 option(ENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS "Enable OpenMP sum reductions on floating point data" ON)
 if(ENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS)
@@ -46,7 +44,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DI
 
 option(BUILD_EXAMPLES "Build small example apps" ON)
 if(BUILD_EXAMPLES)
-    file(GLOB example_files RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/examples/*.cpp)
+    file(GLOB example_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/examples/*.cpp)
     foreach(example_file ${example_files})
         get_filename_component(example_name ${example_file} NAME_WE)
         add_executable(${example_name} ${example_file})
@@ -63,12 +61,12 @@ set(CMAKECONFIG_INSTALL_DIR lib/cmake/${PROJECT_NAME})
 file(RELATIVE_PATH REL_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKECONFIG_INSTALL_DIR}" "${CMAKE_INSTALL_PREFIX}/include")
 
 # Build tree config
-set(EXPORT_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
-configure_file(${CMAKE_SOURCE_DIR}/${PROJECT_NAME}Config.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake @ONLY IMMEDIATE)
+set(EXPORT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}Config.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake @ONLY IMMEDIATE)
 
 # Install tree config
 set(EXPORT_INCLUDE_DIR "\${PROJECT_CMAKE_DIR}/${REL_INCLUDE_DIR}")
-configure_file(${CMAKE_SOURCE_DIR}/${PROJECT_NAME}Config.cmake.in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}Config.cmake.in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake @ONLY)
 
 # Add package to CMake package registry for use from the build tree
 option(EXPORT_${PROJECT_NAME} "Export ${PROJECT_NAME} package for use by other software" ON)
@@ -78,7 +76,7 @@ endif()
 
 # Install target
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
 install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 
 install(FILES "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake" DESTINATION ${CMAKECONFIG_INSTALL_DIR})
