@@ -1,3 +1,4 @@
+#ifdef Pangolin_FOUND
 #include <cilantro/common_renderables.hpp>
 
 namespace cilantro {
@@ -511,3 +512,4 @@ namespace cilantro {
         glPopMatrix();
     }
 }
+#endif

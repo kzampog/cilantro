@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD 11)
 # Packages
 
 find_package(Eigen3 REQUIRED)
-find_package(Pangolin REQUIRED)
+find_package(Pangolin QUIET)
 find_package(OpenMP)
 if (OPENMP_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -43,7 +43,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DI
 # Build examples
 
 option(BUILD_EXAMPLES "Build small example apps" ON)
-if(BUILD_EXAMPLES)
+if(BUILD_EXAMPLES AND Pangolin_FOUND)
     file(GLOB example_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/examples/*.cpp)
     foreach(example_file ${example_files})
         get_filename_component(example_name ${example_file} NAME_WE)
