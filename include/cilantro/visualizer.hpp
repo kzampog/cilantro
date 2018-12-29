@@ -1,5 +1,6 @@
 #pragma once
 
+#ifdef Pangolin_FOUND
 #include <utility>
 #include <pangolin/display/display_internal.h>
 #include <cilantro/renderable.hpp>
@@ -202,3 +203,4 @@ namespace cilantro {
         };
     };
 }
+#endif

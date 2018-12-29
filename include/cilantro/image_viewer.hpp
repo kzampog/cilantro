@@ -1,5 +1,6 @@
 #pragma once
 
+#ifdef Pangolin_FOUND
 #include <pangolin/pangolin.h>
 #include <pangolin/display/display_internal.h>
 
@@ -36,3 +37,4 @@ namespace cilantro {
         void init_(const std::string &window_name, const std::string &display_name);
     };
 }
+#endif

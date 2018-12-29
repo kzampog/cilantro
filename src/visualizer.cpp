@@ -1,3 +1,4 @@
+#ifdef Pangolin_FOUND
 #include <cilantro/visualizer.hpp>
 
 namespace cilantro {
@@ -415,3 +416,4 @@ namespace cilantro {
         video_record_on_render_ = false;
     }
 }
+#endif

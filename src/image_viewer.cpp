@@ -1,3 +1,4 @@
+#ifdef Pangolin_FOUND
 #include <cilantro/image_viewer.hpp>
 
 namespace cilantro {
@@ -83,3 +84,4 @@ namespace cilantro {
         display_ = &(pangolin::Display(display_name));
     }
 }
+#endif
