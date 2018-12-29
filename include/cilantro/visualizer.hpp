@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef Pangolin_FOUND
+#ifdef HAVE_PANGOLIN
 #include <utility>
 #include <pangolin/display/display_internal.h>
 #include <cilantro/renderable.hpp>

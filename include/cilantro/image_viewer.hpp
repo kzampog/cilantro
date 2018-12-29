@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef Pangolin_FOUND
+#ifdef HAVE_PANGOLIN
 #include <pangolin/pangolin.h>
 #include <pangolin/display/display_internal.h>
 

@@ -1,4 +1,4 @@
-#ifdef Pangolin_FOUND
+#ifdef HAVE_PANGOLIN
 #include <cilantro/common_renderables.hpp>
 
 namespace cilantro {
