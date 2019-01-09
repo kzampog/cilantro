@@ -39,8 +39,18 @@ namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
     using RigidTransform = Eigen::Transform<ScalarT,EigenDim,Eigen::Isometry>;
 
+    typedef RigidTransform<float,2> RigidTransform2f;
+    typedef RigidTransform<double,2> RigidTransform2d;
+    typedef RigidTransform<float,3> RigidTransform3f;
+    typedef RigidTransform<double,3> RigidTransform3d;
+
     template <typename ScalarT, ptrdiff_t EigenDim>
     using AffineTransform = Eigen::Transform<ScalarT,EigenDim,Eigen::Affine>;
+
+    typedef AffineTransform<float,2> AffineTransform2f;
+    typedef AffineTransform<double,2> AffineTransform2d;
+    typedef AffineTransform<float,3> AffineTransform3f;
+    typedef AffineTransform<double,3> AffineTransform3d;
 
     template <class TransformT>
     class TransformSet : public internal::TransformSetBase<TransformT> {
@@ -134,8 +144,18 @@ namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
     using RigidTransformSet = TransformSet<RigidTransform<ScalarT,EigenDim>>;
 
+    typedef RigidTransformSet<float,2> RigidTransformSet2f;
+    typedef RigidTransformSet<double,2> RigidTransformSet2d;
+    typedef RigidTransformSet<float,3> RigidTransformSet3f;
+    typedef RigidTransformSet<double,3> RigidTransformSet3d;
+
     template <typename ScalarT, ptrdiff_t EigenDim>
     using AffineTransformSet = TransformSet<AffineTransform<ScalarT,EigenDim>>;
+
+    typedef AffineTransformSet<float,2> AffineTransformSet2f;
+    typedef AffineTransformSet<double,2> AffineTransformSet2d;
+    typedef AffineTransformSet<float,3> AffineTransformSet3f;
+    typedef AffineTransformSet<double,3> AffineTransformSet3d;
 
     // Point set transformations
 
@@ -774,24 +794,4 @@ namespace cilantro {
             normals_trans.col(i).noalias() = (tforms[i].linear().inverse().transpose()*normals.col(i)).normalized();
         }
     }
-
-    typedef RigidTransform<float,2> RigidTransform2f;
-    typedef RigidTransform<double,2> RigidTransform2d;
-    typedef RigidTransform<float,3> RigidTransform3f;
-    typedef RigidTransform<double,3> RigidTransform3d;
-
-    typedef AffineTransform<float,2> AffineTransform2f;
-    typedef AffineTransform<double,2> AffineTransform2d;
-    typedef AffineTransform<float,3> AffineTransform3f;
-    typedef AffineTransform<double,3> AffineTransform3d;
-
-    typedef RigidTransformSet<float,2> RigidTransformSet2f;
-    typedef RigidTransformSet<double,2> RigidTransformSet2d;
-    typedef RigidTransformSet<float,3> RigidTransformSet3f;
-    typedef RigidTransformSet<double,3> RigidTransformSet3d;
-
-    typedef AffineTransformSet<float,2> AffineTransformSet2f;
-    typedef AffineTransformSet<double,2> AffineTransformSet2d;
-    typedef AffineTransformSet<float,3> AffineTransformSet3f;
-    typedef AffineTransformSet<double,3> AffineTransformSet3d;
 }

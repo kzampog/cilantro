@@ -5,8 +5,8 @@ Getting started
 Dependencies
 ============
 
-* Eigen_ (3.3 or greater)
-* Pangolin_ (built with Eigen enabled)
+* Eigen_ (3.3 or greater) (3.3 or newer) [**required**]
+* Pangolin_ (built with Eigen enabled) [**optional**; needed for visualization modules and most examples]
 
 How to build
 ============

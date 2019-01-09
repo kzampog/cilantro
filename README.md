@@ -29,8 +29,8 @@ A high-level description of `cilantro` can be found in our [technical report](ht
 
 #### Geometric registration:
 - Multiple generic Iterative Closest Point implementations that support arbitrary correspondence search methods in arbitrary point feature spaces for:
-    - **Rigid** alignment under the point-to-point metric (general dimension), point-to-plane metric (3D), or any combination thereof
-    - **Non-rigid** alignment of 3D point sets, by means of a robustly regularized, locally rigid warp field, under any combination of the point-to-point and point-to-plane metrics; implementations for both *densely* and *sparsely* (similarly to [DynamicFusion](http://grail.cs.washington.edu/projects/dynamicfusion/)) supported warp fields are provided
+    - **Rigid** or **affine** alignment under the point-to-point metric (general dimension), point-to-plane metric (2D or 3D), or any combination thereof
+    - **Non-rigid** alignment of 2D or 3D point sets, by means of a robustly regularized, **locally rigid** or **locally affine** deformation field, under any combination of the point-to-point and point-to-plane metrics; implementations for both *densely* and *sparsely* (similarly to [DynamicFusion](http://grail.cs.washington.edu/projects/dynamicfusion/)) supported warp fields are provided
 
 #### Robust model estimation:
 - A RANSAC estimator template and instantiations thereof for general dimension:
@@ -42,8 +42,8 @@ A high-level description of `cilantro` can be found in our [technical report](ht
 - A powerful, extensible, and easy to use 3D visualizer
 
 ## Dependencies
-- [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) (3.3 or newer)
-- [Pangolin](https://github.com/stevenlovegrove/Pangolin) (built with Eigen enabled)
+- [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) (3.3 or newer) [**required**]
+- [Pangolin](https://github.com/stevenlovegrove/Pangolin) (built with Eigen enabled) [**optional**; needed for visualization modules and most examples]
 
 ## Building
 `cilantro` is developed and tested on Ubuntu 14.04, 16.04, and 18.04 variants using [CMake](https://cmake.org/).

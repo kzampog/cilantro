@@ -34,8 +34,8 @@ Features
 
     - Multiple generic Iterative Closest Point implementations that support arbitrary correspondence search methods in arbitrary point feature spaces for:
 
-        * **Rigid** alignment under the point-to-point metric (general dimension), point-to-plane metric (3D), or any combination thereof
-        * **Non-rigid** alignment of 3D point sets, by means of a robustly regularized, locally rigid warp field, under any combination of the point-to-point and point-to-plane metrics; implementations for both *densely* and *sparsely* (similarly to DynamicFusion_) supported warp fields are provided
+        * **Rigid** or **affine** alignment under the point-to-point metric (general dimension), point-to-plane metric (2D or 3D), or any combination thereof
+        * **Non-rigid** alignment of 2D or 3D point sets, by means of a robustly regularized, **locally rigid** or **locally affine** deformation field, under any combination of the point-to-point and point-to-plane metrics; implementations for both *densely* and *sparsely* (similarly to DynamicFusion_) supported warp fields are provided
 
 * **Robust model estimation:**
 
