@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cilantro/3rd_party/spectra/SymEigsSolver.h>
+#include <cilantro/3rd_party/Spectra/SymEigsSolver.h>
 #include <cilantro/data_containers.hpp>
 #include <cilantro/spectral_embedding_base.hpp>
 

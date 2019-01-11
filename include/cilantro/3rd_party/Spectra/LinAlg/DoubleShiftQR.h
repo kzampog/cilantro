@@ -160,7 +160,7 @@ private:
 
     // P = I - 2 * u * u' = P'
     // PX = X - 2 * u * (u'X)
-    void apply_PX(GenericMatrix X, Index stride, Index u_ind)
+    void apply_PX(GenericMatrix X, Index stride, Index u_ind) const
     {
         const Index nr = m_ref_nr.coeff(u_ind);
         if(nr == 1)
@@ -198,7 +198,7 @@ private:
 
     // x is a pointer to a vector
     // Px = x - 2 * dot(x, u) * u
-    void apply_PX(Scalar* x, Index u_ind)
+    void apply_PX(Scalar* x, Index u_ind) const
     {
         const Index nr = m_ref_nr.coeff(u_ind);
         if(nr == 1)
@@ -218,7 +218,7 @@ private:
     }
 
     // XP = X - 2 * (X * u) * u'
-    void apply_XP(GenericMatrix X, Index stride, Index u_ind)
+    void apply_XP(GenericMatrix X, Index stride, Index u_ind) const
     {
         const Index nr = m_ref_nr.coeff(u_ind);
         if(nr == 1)
@@ -268,7 +268,7 @@ public:
         m_computed(false)
     {}
 
-    DoubleShiftQR(ConstGenericMatrix& mat, Scalar s, Scalar t) :
+    DoubleShiftQR(ConstGenericMatrix& mat, const Scalar& s, const Scalar& t) :
         m_n(mat.rows()),
         m_mat_H(m_n, m_n),
         m_shift_s(s),
@@ -333,17 +333,17 @@ public:
         m_computed = true;
     }
 
-    const Matrix& matrix_QtHQ() const
+    void matrix_QtHQ(Matrix& dest) const
     {
         if(!m_computed)
             throw std::logic_error("DoubleShiftQR: need to call compute() first");
 
-        return m_mat_H;
+        dest.noalias() = m_mat_H;
     }
 
     // Q = P0 * P1 * ...
     // Q'y = P_{n-2} * ... * P1 * P0 * y
-    void apply_QtY(Vector& y)
+    void apply_QtY(Vector& y) const
     {
         if(!m_computed)
             throw std::logic_error("DoubleShiftQR: need to call compute() first");
@@ -358,7 +358,7 @@ public:
 
     // Q = P0 * P1 * ...
     // YQ = Y * P0 * P1 * ...
-    void apply_YQ(GenericMatrix Y)
+    void apply_YQ(GenericMatrix Y) const
     {
         if(!m_computed)
             throw std::logic_error("DoubleShiftQR: need to call compute() first");

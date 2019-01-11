@@ -10,6 +10,7 @@
 
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
+#include <Eigen/Eigenvalues>
 #include <Eigen/SVD>
 #include <Eigen/SparseCholesky>
 
@@ -85,17 +86,22 @@ namespace Spectra {
 
 		typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
 		typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
-		typedef Eigen::Matrix< complex<Scalar>, Eigen::Dynamic, Eigen::Dynamic > Matrix_complex;
-		typedef Eigen::Matrix< complex<Scalar>, Eigen::Dynamic, 1 > Vector_complex;
+
+		typedef std::complex<Scalar> Complex;
+		typedef Eigen::Matrix<Complex, Eigen::Dynamic, Eigen::Dynamic> ComplexMatrix;
+		typedef Eigen::Matrix<Complex, Eigen::Dynamic, 1> ComplexVector;
+
+		typedef Eigen::SparseMatrix<Scalar>  SparseMatrix;
+		typedef Eigen::SparseMatrix<Complex> SparseComplexMatrix;
 
 		const int m_n;           // dimension of matrix A
 		const int m_nev;         // number of eigenvalues requested
-		Eigen::SparseMatrix<Scalar> A, X;
-		Eigen::SparseMatrix<Scalar>  m_Y, m_B, m_preconditioner;
+		SparseMatrix A, X;
+		SparseMatrix  m_Y, m_B, m_preconditioner;
 		bool flag_with_constraints, flag_with_B, flag_with_preconditioner;
 
 	public:
-		Eigen::SparseMatrix<Scalar> m_residuals;
+		SparseMatrix m_residuals;
 		Matrix m_evectors;
 		Vector m_evalues;
 		int m_info;
@@ -103,10 +109,10 @@ namespace Spectra {
 	private:
 
 		// B-orthonormalize matrix M
-		int orthogonalizeInPlace(Eigen::SparseMatrix<Scalar> &M, Eigen::SparseMatrix<Scalar> &B, \
-			Eigen::SparseMatrix<Scalar> &true_BM, bool has_true_BM = false) {
+		int orthogonalizeInPlace(SparseMatrix &M, SparseMatrix &B, \
+			SparseMatrix &true_BM, bool has_true_BM = false) {
 
-			Eigen::SparseMatrix<Scalar> BM;
+			SparseMatrix BM;
 
 			if (has_true_BM == false) {
 				if (flag_with_B) { BM = B * M; }
@@ -116,7 +122,7 @@ namespace Spectra {
 				BM = true_BM;
 			}
 
-			Eigen::SimplicialLDLT<Eigen::SparseMatrix<Scalar>> chol_MBM(M.transpose() * BM);
+			Eigen::SimplicialLDLT<SparseMatrix> chol_MBM(M.transpose() * BM);
 
 			if (chol_MBM.info() != SUCCESSFUL) {
 				// LDLT decomposition fail
@@ -124,22 +130,22 @@ namespace Spectra {
 				return  chol_MBM.info();
 			}
 
-			Eigen::SparseMatrix<complex<Scalar>> Upper_MBM = chol_MBM.matrixU().cast< std::complex<Scalar> >();
-			Vector_complex D_MBM_vec = chol_MBM.vectorD().cast< std::complex<Scalar> >();
+			SparseComplexMatrix Upper_MBM = chol_MBM.matrixU().template cast<Complex>();
+			ComplexVector D_MBM_vec = chol_MBM.vectorD().template cast<Complex>();
 
 			D_MBM_vec = D_MBM_vec.cwiseSqrt();
 
 			for (int i = 0; i < D_MBM_vec.rows(); i++) {
-				D_MBM_vec(i) = std::complex<Scalar>(1.0, 0.0) / D_MBM_vec(i);
+				D_MBM_vec(i) = Complex(1.0, 0.0) / D_MBM_vec(i);
 			}
 
-			Eigen::SparseMatrix<complex<Scalar>> D_MBM_mat(D_MBM_vec.asDiagonal());
+			SparseComplexMatrix D_MBM_mat(D_MBM_vec.asDiagonal());
 
-			Eigen::SparseMatrix<complex<Scalar>> U_inv(Upper_MBM.rows(), Upper_MBM.cols());
+			SparseComplexMatrix U_inv(Upper_MBM.rows(), Upper_MBM.cols());
 			U_inv.setIdentity();
-			Upper_MBM.triangularView<Eigen::Upper>().solveInPlace(U_inv);
+			Upper_MBM.template triangularView<Eigen::Upper>().solveInPlace(U_inv);
 
-			Eigen::SparseMatrix<complex<Scalar>> right_product = U_inv * D_MBM_mat;
+			SparseComplexMatrix right_product = U_inv * D_MBM_mat;
 			M = M*right_product.real();
 			if (flag_with_B) { true_BM = B * M; }
 			else { true_BM = M; }
@@ -147,16 +153,16 @@ namespace Spectra {
 			return SUCCESSFUL;
 		}
 
-		void applyConstraintsInPlace(Eigen::SparseMatrix<Scalar> &X, Eigen::SparseMatrix<Scalar>&Y, \
-			Eigen::SparseMatrix<Scalar>&B) {
-			Eigen::SparseMatrix<Scalar> BY;
+		void applyConstraintsInPlace(SparseMatrix &X, SparseMatrix&Y, \
+			SparseMatrix&B) {
+			SparseMatrix BY;
 			if (flag_with_B) { BY = B * Y; }
 			else { BY = Y; }
 
-			Eigen::SparseMatrix<Scalar> YBY = Y.transpose() * BY;
-			Eigen::SparseMatrix<Scalar> BYX = BY.transpose() * X;
+			SparseMatrix YBY = Y.transpose() * BY;
+			SparseMatrix BYX = BY.transpose() * X;
 
-			Eigen::SparseMatrix<Scalar> YBY_XYX = (Matrix(YBY).bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(Matrix(BYX))).sparseView();
+			SparseMatrix YBY_XYX = (Matrix(YBY).bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(Matrix(BYX))).sparseView();
 			X = X - Y * YBY_XYX;
 		}
 
@@ -213,10 +219,10 @@ namespace Spectra {
 			}
 		}
 
-		void removeColumns(Eigen::SparseMatrix<Scalar>& matrix, std::vector<int>& colToRemove)
+		void removeColumns(SparseMatrix& matrix, std::vector<int>& colToRemove)
 		{
 			// remove columns through matrix multiplication
-			Eigen::SparseMatrix<Scalar> new_matrix(matrix.cols(), matrix.cols() - int(colToRemove.size()));
+			SparseMatrix new_matrix(matrix.cols(), matrix.cols() - int(colToRemove.size()));
 			int iCol = 0;
 			std::vector<Eigen::Triplet<Scalar>> tripletList;
 			tripletList.reserve(matrix.cols() - int(colToRemove.size()));
@@ -232,7 +238,7 @@ namespace Spectra {
 			matrix = matrix * new_matrix;
 		}
 
-		int checkConvergence_getBlocksize(Eigen::SparseMatrix<Scalar> & m_residuals, Scalar tolerance_L2, vector<int> & columnsToDelete) {
+		int checkConvergence_getBlocksize(SparseMatrix & m_residuals, Scalar tolerance_L2, std::vector<int> & columnsToDelete) {
 			// square roots from sum of squares by column
 			int BlockSize = m_nev;
 			Scalar sum, buffer;
@@ -255,7 +261,7 @@ namespace Spectra {
 
 	public:
 
-		LOBPCGSolver(const Eigen::SparseMatrix<Scalar>& A, const Eigen::SparseMatrix<Scalar> X) :
+		LOBPCGSolver(const SparseMatrix& A, const SparseMatrix X) :
 			m_n(A.rows()),
 			m_nev(X.cols()),
 			m_info(NOT_COMPUTED),
@@ -272,19 +278,19 @@ namespace Spectra {
 			//	throw std::invalid_argument("The problem size is small compared to the block size. Use standard eigensolver");
 		}
 
-		void setConstraints(const Eigen::SparseMatrix<Scalar>& Y) {
+		void setConstraints(const SparseMatrix& Y) {
 			m_Y = Y;
-			flag_with_constraints = true
+			flag_with_constraints = true;
 		}
 
-		void setB(const Eigen::SparseMatrix<Scalar>& B) {
+		void setB(const SparseMatrix& B) {
 			if (B.rows() != A.rows() || B.cols() != A.cols())
 				throw std::invalid_argument("Wrong size");
 			m_B = B;
-			flag_with_B = true
+			flag_with_B = true;
 		}
 
-		void setPreconditioner(const Eigen::SparseMatrix<Scalar>& preconditioner) {
+		void setPreconditioner(const SparseMatrix& preconditioner) {
 			m_preconditioner = preconditioner;
 			flag_with_preconditioner = true;
 		}
@@ -295,7 +301,7 @@ namespace Spectra {
 			int BlockSize;
 			int max_iter = std::min(m_n, maxit);
 
-			Eigen::SparseMatrix<Scalar> directions, AX, AR, BX, AD, ADD, DD, BDD, BD, XAD, RAD, DAD, XBD, RBD, BR, sparse_eVecX, sparse_eVecR, sparse_eVecD, inverse_matrix;
+			SparseMatrix directions, AX, AR, BX, AD, ADD, DD, BDD, BD, XAD, RAD, DAD, XBD, RBD, BR, sparse_eVecX, sparse_eVecR, sparse_eVecD, inverse_matrix;
 			Matrix XAR, RAR, XBR, gramA, gramB, eVecX, eVecR, eVecD;
 			std::vector<int> columnsToDelete;
 
@@ -404,7 +410,7 @@ namespace Spectra {
 				DenseCholesky<Scalar>  Bop(gramB);
 
 				SymGEigsSolver<Scalar, SMALLEST_ALGE, DenseSymMatProd<Scalar>, \
-					DenseCholesky<Scalar>, GEIGS_CHOLESKY> geigs(&Aop, &Bop, m_nev, std::min(10, gramA.rows() - 1));
+					DenseCholesky<Scalar>, GEIGS_CHOLESKY> geigs(&Aop, &Bop, m_nev, std::min(10, int(gramA.rows()) - 1));
 
 				geigs.init();
 				int nconv = geigs.compute();

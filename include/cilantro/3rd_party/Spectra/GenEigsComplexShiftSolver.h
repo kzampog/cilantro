@@ -7,7 +7,10 @@
 #ifndef GEN_EIGS_COMPLEX_SHIFT_SOLVER_H
 #define GEN_EIGS_COMPLEX_SHIFT_SOLVER_H
 
-#include "GenEigsSolver.h"
+#include <Eigen/Core>
+
+#include "GenEigsBase.h"
+#include "Util/SelectionRule.h"
 #include "MatOp/DenseGenComplexShiftSolve.h"
 
 namespace Spectra {
@@ -29,13 +32,13 @@ namespace Spectra {
 ///                       \ref Enumerations.
 /// \tparam OpType        The name of the matrix operation class. Users could either
 ///                       use the DenseGenComplexShiftSolve wrapper class, or define their
-///                       own that impelemnts all the public member functions as in
+///                       own that implements all the public member functions as in
 ///                       DenseGenComplexShiftSolve.
 ///
 template <typename Scalar = double,
           int SelectionRule = LARGEST_MAGN,
           typename OpType = DenseGenComplexShiftSolve<double> >
-class GenEigsComplexShiftSolver: public GenEigsSolver<Scalar, SelectionRule, OpType>
+class GenEigsComplexShiftSolver: public GenEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>
 {
 private:
     typedef std::complex<Scalar> Complex;
@@ -45,14 +48,14 @@ private:
     const Scalar m_sigmar;
     const Scalar m_sigmai;
 
-    // First transform back the ritz values, and then sort
+    // First transform back the Ritz values, and then sort
     void sort_ritzpair(int sort_rule)
     {
         using std::abs;
         using std::sqrt;
         using std::norm;
 
-        // The eigenvalus we get from the iteration is
+        // The eigenvalues we get from the iteration is
         //     nu = 0.5 * (1 / (lambda - sigma) + 1 / (lambda - conj(sigma)))
         // So the eigenvalues of the original problem is
         //                       1 \pm sqrt(1 - 4 * nu^2 * sigmai^2)
@@ -81,8 +84,8 @@ private:
         const Scalar eps = Eigen::NumTraits<Scalar>::epsilon();
         for(int i = 0; i < this->m_nev; i++)
         {
-            v_real.noalias() = this->m_fac_V * this->m_ritz_vec.col(i).real();
-            v_imag.noalias() = this->m_fac_V * this->m_ritz_vec.col(i).imag();
+            v_real.noalias() = this->m_fac.matrix_V() * this->m_ritz_vec.col(i).real();
+            v_imag.noalias() = this->m_fac.matrix_V() * this->m_ritz_vec.col(i).imag();
             this->m_op->perform_op(v_real.data(), OPv_real.data());
             this->m_op->perform_op(v_imag.data(), OPv_imag.data());
 
@@ -116,7 +119,7 @@ private:
             }
         }
 
-        GenEigsSolver<Scalar, SelectionRule, OpType>::sort_ritzpair(sort_rule);
+        GenEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>::sort_ritzpair(sort_rule);
     }
 public:
     ///
@@ -126,7 +129,7 @@ public:
     ///                the complex shift-solve operation of \f$A\f$: calculating
     ///                \f$\mathrm{Re}\{(A-\sigma I)^{-1}v\}\f$ for any vector \f$v\f$. Users could either
     ///                create the object from the DenseGenComplexShiftSolve wrapper class, or
-    ///                define their own that impelemnts all the public member functions
+    ///                define their own that implements all the public member functions
     ///                as in DenseGenComplexShiftSolve.
     /// \param nev     Number of eigenvalues requested. This should satisfy \f$1\le nev \le n-2\f$,
     ///                where \f$n\f$ is the size of matrix.
@@ -139,7 +142,7 @@ public:
     /// \param sigmai  The imaginary part of the shift.
     ///
     GenEigsComplexShiftSolver(OpType* op, int nev, int ncv, const Scalar& sigmar, const Scalar& sigmai) :
-        GenEigsSolver<Scalar, SelectionRule, OpType>(op, nev, ncv),
+        GenEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>(op, NULL, nev, ncv),
         m_sigmar(sigmar), m_sigmai(sigmai)
     {
         this->m_op->set_shift(m_sigmar, m_sigmai);

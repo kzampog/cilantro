@@ -7,9 +7,11 @@
 #ifndef SYM_EIGS_SHIFT_SOLVER_H
 #define SYM_EIGS_SHIFT_SOLVER_H
 
-#include "SymEigsSolver.h"
-#include "MatOp/DenseSymShiftSolve.h"
+#include <Eigen/Core>
 
+#include "SymEigsBase.h"
+#include "Util/SelectionRule.h"
+#include "MatOp/DenseSymShiftSolve.h"
 
 namespace Spectra {
 
@@ -62,7 +64,7 @@ namespace Spectra {
 /// \tparam OpType        The name of the matrix operation class. Users could either
 ///                       use the wrapper classes such as DenseSymShiftSolve and
 ///                       SparseSymShiftSolve, or define their
-///                       own that impelemnts all the public member functions as in
+///                       own that implements all the public member functions as in
 ///                       DenseSymShiftSolve.
 ///
 /// Below is an example that illustrates the use of the shift-and-invert mode:
@@ -154,19 +156,19 @@ namespace Spectra {
 template <typename Scalar = double,
           int SelectionRule = LARGEST_MAGN,
           typename OpType = DenseSymShiftSolve<double> >
-class SymEigsShiftSolver: public SymEigsSolver<Scalar, SelectionRule, OpType>
+class SymEigsShiftSolver: public SymEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>
 {
 private:
     typedef Eigen::Array<Scalar, Eigen::Dynamic, 1> Array;
 
     const Scalar m_sigma;
 
-    // First transform back the ritz values, and then sort
+    // First transform back the Ritz values, and then sort
     void sort_ritzpair(int sort_rule)
     {
         Array m_ritz_val_org = Scalar(1.0) / this->m_ritz_val.head(this->m_nev).array() + m_sigma;
         this->m_ritz_val.head(this->m_nev) = m_ritz_val_org;
-        SymEigsSolver<Scalar, SelectionRule, OpType>::sort_ritzpair(sort_rule);
+        SymEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>::sort_ritzpair(sort_rule);
     }
 
 public:
@@ -177,7 +179,7 @@ public:
     ///               the shift-solve operation of \f$A\f$: calculating
     ///               \f$(A-\sigma I)^{-1}v\f$ for any vector \f$v\f$. Users could either
     ///               create the object from the wrapper class such as DenseSymShiftSolve, or
-    ///               define their own that impelemnts all the public member functions
+    ///               define their own that implements all the public member functions
     ///               as in DenseSymShiftSolve.
     /// \param nev    Number of eigenvalues requested. This should satisfy \f$1\le nev \le n-1\f$,
     ///               where \f$n\f$ is the size of matrix.
@@ -189,7 +191,7 @@ public:
     /// \param sigma  The value of the shift.
     ///
     SymEigsShiftSolver(OpType* op, int nev, int ncv, Scalar sigma) :
-        SymEigsSolver<Scalar, SelectionRule, OpType>(op, nev, ncv),
+        SymEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>(op, NULL, nev, ncv),
         m_sigma(sigma)
     {
         this->m_op->set_shift(m_sigma);

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <memory>
-#include <cilantro/3rd_party/spectra/SymEigsSolver.h>
-#include <cilantro/3rd_party/spectra/SymGEigsSolver.h>
+#include <cilantro/3rd_party/Spectra/SymEigsSolver.h>
+#include <cilantro/3rd_party/Spectra/SymGEigsSolver.h>
 #include <cilantro/spectral_embedding_base.hpp>
 #include <cilantro/kmeans.hpp>
 
