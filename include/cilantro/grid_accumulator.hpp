@@ -138,6 +138,37 @@ namespace cilantro {
 
             bin_iterators_.reserve(data_map_.cols());
 
+#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
+#pragma omp parallel
+            {
+                GridBinMap lookup_priv;
+
+#pragma omp for nowait
+                for (size_t i = 0; i < data_map_.cols(); i++) {
+                    GridPoint grid_coords = getPointGridCoordinates(data_map_.col(i));
+
+                    auto lb = lookup_priv.lower_bound(grid_coords);
+                    if (lb != lookup_priv.end() && !(lookup_priv.key_comp()(grid_coords, lb->first))) {
+                        accum_proxy.addToAccumulator(lb->second, i);
+                    } else {
+                        lookup_priv.emplace_hint(lb, std::move(grid_coords), accum_proxy.buildAccumulator(i));
+                    }
+                }
+
+#pragma omp critical
+                {
+                    for (auto it = lookup_priv.begin(); it != lookup_priv.end(); ++it) {
+                        auto lb = grid_lookup_table_.lower_bound(it->first);
+                        if (lb != grid_lookup_table_.end() && !(grid_lookup_table_.key_comp()(it->first, lb->first))) {
+                            lb->second.mergeWith(it->second);
+                        } else {
+                            bin_iterators_.emplace_back(grid_lookup_table_.emplace_hint(lb, std::move(it->first), std::move(it->second)));
+//                            bin_iterators_.emplace_back(grid_lookup_table_.emplace_hint(lb, std::move(*it)));
+                        }
+                    }
+                }
+            }
+#else
             for (size_t i = 0; i < data_map_.cols(); i++) {
                 GridPoint grid_coords = getPointGridCoordinates(data_map_.col(i));
 
@@ -148,6 +179,7 @@ namespace cilantro {
                     bin_iterators_.emplace_back(grid_lookup_table_.emplace_hint(lb, std::move(grid_coords), accum_proxy.buildAccumulator(i)));
                 }
             }
+#endif
         }
     };
 }

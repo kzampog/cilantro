@@ -62,7 +62,7 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns> AtA(Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns>::Zero());
         Eigen::Matrix<ScalarT,NumUnknowns,1> Atb(Eigen::Matrix<ScalarT,NumUnknowns,1>::Zero());
 
-#ifdef ENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS
+#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
 #pragma omp parallel reduction (internal::MatrixReductions<ScalarT,NumUnknowns,NumUnknowns>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,NumUnknowns,1>::operator+: Atb)
 #endif
         {
@@ -70,7 +70,7 @@ namespace cilantro {
             eq_vecs.template block<Dim*Dim,Dim>(0, 0).setZero();
             eq_vecs.template block<Dim,Dim>(Dim*Dim, 0).setIdentity();
 
-#ifdef ENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS
+#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
 #pragma omp for nowait
 #endif
             for (size_t i = 0; i < src.cols(); i++) {
@@ -146,14 +146,14 @@ namespace cilantro {
             AtA.setZero();
             Atb.setZero();
 
-#ifdef ENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS
+#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
 #pragma omp parallel reduction (internal::MatrixReductions<ScalarT,3,3>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,3,1>::operator+: Atb)
 #endif
             {
                 if (has_point_to_point_terms) {
                     Eigen::Matrix<ScalarT,3,2,Eigen::RowMajor> eq_vecs;
                     eq_vecs.template block<2,2>(1, 0).setIdentity();
-#ifdef ENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS
+#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
 #pragma omp for nowait
 #endif
                     for (size_t i = 0; i < point_to_point_correspondences.size(); i++) {
@@ -175,7 +175,7 @@ namespace cilantro {
 
                 if (has_point_to_plane_terms) {
                     Eigen::Matrix<ScalarT,3,1> eq_vec;
-#ifdef ENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS
+#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
 #pragma omp for nowait
 #endif
                     for (size_t i = 0; i < point_to_plane_correspondences.size(); i++) {
@@ -256,14 +256,14 @@ namespace cilantro {
             // Compute differential
             AtA.setZero();
             Atb.setZero();
-#ifdef ENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS
+#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
 #pragma omp parallel reduction (internal::MatrixReductions<ScalarT,6,6>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,6,1>::operator+: Atb)
 #endif
             {
                 if (has_point_to_point_terms) {
                     Eigen::Matrix<ScalarT,6,3,Eigen::RowMajor> eq_vecs;
                     eq_vecs.template block<3,3>(3, 0).setIdentity();
-#ifdef ENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS
+#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
 #pragma omp for nowait
 #endif
                     for (size_t i = 0; i < point_to_point_correspondences.size(); i++) {
@@ -294,7 +294,7 @@ namespace cilantro {
 
                 if (has_point_to_plane_terms) {
                     Eigen::Matrix<ScalarT,6,1> eq_vec;
-#ifdef ENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS
+#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
 #pragma omp for nowait
 #endif
                     for (size_t i = 0; i < point_to_plane_correspondences.size(); i++) {
@@ -375,7 +375,7 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns> AtA(Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns>::Zero());
         Eigen::Matrix<ScalarT,NumUnknowns,1> Atb(Eigen::Matrix<ScalarT,NumUnknowns,1>::Zero());
 
-#ifdef ENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS
+#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
 #pragma omp parallel reduction (internal::MatrixReductions<ScalarT,NumUnknowns,NumUnknowns>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,NumUnknowns,1>::operator+: Atb)
 #endif
         {
@@ -383,7 +383,7 @@ namespace cilantro {
                 Eigen::Matrix<ScalarT,NumUnknowns,Dim> eq_vecs;
                 eq_vecs.template block<Dim*Dim,Dim>(0, 0).setZero();
                 eq_vecs.template block<Dim,Dim>(Dim*Dim, 0).setIdentity();
-#ifdef ENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS
+#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
 #pragma omp for nowait
 #endif
                 for (size_t i = 0; i < point_to_point_correspondences.size(); i++) {
@@ -404,7 +404,7 @@ namespace cilantro {
 
             if (has_point_to_plane_terms) {
                 Eigen::Matrix<ScalarT,NumUnknowns,1> eq_vec;
-#ifdef ENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS
+#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
 #pragma omp for nowait
 #endif
                 for (size_t i = 0; i < point_to_plane_correspondences.size(); i++) {

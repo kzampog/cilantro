@@ -35,9 +35,9 @@ add_library(${PROJECT_NAME} SHARED ${3rd_src} ${lib_include} ${lib_src})
 target_link_libraries(${PROJECT_NAME} ${Pangolin_LIBRARIES})
 target_compile_options(${PROJECT_NAME} PUBLIC -O3 -march=native -mtune=native)
 
-option(ENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS "Enable OpenMP sum reductions on floating point data" ON)
-if(ENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS)
-    add_definitions(-DENABLE_NON_DETERMINISTIC_OMP_REDUCTIONS)
+option(ENABLE_NON_DETERMINISTIC_PARALLELISM "Enable parallelization that may produce non-deterministic results" ON)
+if(ENABLE_NON_DETERMINISTIC_PARALLELISM)
+    add_definitions(-DENABLE_NON_DETERMINISTIC_PARALLELISM)
 endif()
 
 # Configure Doxyfile

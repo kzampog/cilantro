@@ -12,6 +12,11 @@ namespace cilantro {
 
         inline IndexAccumulator(size_t i) : indices(1,i) {}
 
+        inline IndexAccumulator& mergeWith(const IndexAccumulator &other) {
+            indices.insert(indices.end(), other.indices.begin(), other.indices.end());
+            return *this;
+        }
+
         std::vector<size_t> indices;
     };
 
@@ -42,6 +47,12 @@ namespace cilantro {
         inline PointSumAccumulator(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &point)
                 : pointSum(point), pointCount(1)
         {}
+
+        inline PointSumAccumulator& mergeWith(const PointSumAccumulator &other) {
+            pointSum += other.pointSum;
+            pointCount += other.pointCount;
+            return *this;
+        }
 
         Vector<ScalarT,EigenDim> pointSum;
         size_t pointCount;
@@ -88,6 +99,13 @@ namespace cilantro {
                                          const Eigen::Ref<const Vector<ScalarT,EigenDim>> &normal)
                 : pointSum(point), normalSum(normal), pointCount(1)
         {}
+
+        inline PointNormalSumAccumulator& mergeWith(const PointNormalSumAccumulator &other) {
+            pointSum += other.pointSum;
+            normalSum += other.normalSum;
+            pointCount += other.pointCount;
+            return *this;
+        }
 
         Vector<ScalarT,EigenDim> pointSum;
         Vector<ScalarT,EigenDim> normalSum;
@@ -143,6 +161,13 @@ namespace cilantro {
                 : pointSum(point), colorSum(color), pointCount(1)
         {}
 
+        inline PointColorSumAccumulator& mergeWith(const PointColorSumAccumulator &other) {
+            pointSum += other.pointSum;
+            colorSum += other.colorSum;
+            pointCount += other.pointCount;
+            return *this;
+        }
+
         Vector<ScalarT,EigenDim> pointSum;
         Vector<float,3> colorSum;
         size_t pointCount;
@@ -194,6 +219,14 @@ namespace cilantro {
                                               const Eigen::Ref<const Vector<float,3>> &color)
                 : pointSum(point), normalSum(normal), colorSum(color), pointCount(1)
         {}
+
+        inline PointNormalColorSumAccumulator& mergeWith(const PointNormalColorSumAccumulator &other) {
+            pointSum += other.pointSum;
+            normalSum += other.normalSum;
+            colorSum += other.colorSum;
+            pointCount += other.pointCount;
+            return *this;
+        }
 
         Vector<ScalarT,EigenDim> pointSum;
         Vector<ScalarT,EigenDim> normalSum;
