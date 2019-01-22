@@ -136,8 +136,6 @@ namespace cilantro {
         inline void build_index_(const AccumulatorProxy &accum_proxy) {
             if (data_map_.cols() == 0) return;
 
-            bin_iterators_.reserve(data_map_.cols());
-
 #ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
 #pragma omp parallel
             {
@@ -162,11 +160,18 @@ namespace cilantro {
                         if (lb != grid_lookup_table_.end() && !(grid_lookup_table_.key_comp()(it->first, lb->first))) {
                             lb->second.mergeWith(it->second);
                         } else {
-                            bin_iterators_.emplace_back(grid_lookup_table_.emplace_hint(lb, std::move(it->first), std::move(it->second)));
+                            grid_lookup_table_.emplace_hint(lb, std::move(it->first), std::move(it->second));
+//                            bin_iterators_.emplace_back(grid_lookup_table_.emplace_hint(lb, std::move(it->first), std::move(it->second)));
 //                            bin_iterators_.emplace_back(grid_lookup_table_.emplace_hint(lb, std::move(*it)));
                         }
                     }
                 }
+            }
+
+            bin_iterators_.resize(grid_lookup_table_.size());
+            auto it = grid_lookup_table_.begin();
+            for (size_t i = 0; i < bin_iterators_.size(); i++) {
+                bin_iterators_[i] = it++;
             }
 #else
             for (size_t i = 0; i < data_map_.cols(); i++) {
