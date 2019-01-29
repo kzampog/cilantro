@@ -132,15 +132,16 @@ int main(int argc, char ** argv) {
     std::cout << "Residual computation time: " << timer.getElapsedTime() << "ms" << std::endl;
 
     // Visualization
-    pangolin::CreateWindowAndBind("Rigid ICP example", 1920, 480);
+    const std::string window_name = "Rigid ICP example";
+    pangolin::CreateWindowAndBind(window_name, 1920, 480);
     pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual)
             .AddDisplay(pangolin::Display("initial"))
             .AddDisplay(pangolin::Display("registration"))
             .AddDisplay(pangolin::Display("residuals"));
 
-    cilantro::Visualizer initial_viz("Rigid ICP example", "initial");
-    cilantro::Visualizer registration_viz("Rigid ICP example", "registration");
-    cilantro::Visualizer residuals_viz("Rigid ICP example", "residuals");
+    cilantro::Visualizer initial_viz(window_name, "initial");
+    cilantro::Visualizer registration_viz(window_name, "registration");
+    cilantro::Visualizer residuals_viz(window_name, "residuals");
 
     // Initial state
     initial_viz.registerKeyboardCallback('c', std::bind(color_toggle, std::ref(initial_viz)));

@@ -10,6 +10,7 @@
 #include <Eigen/Core>
 #include <Eigen/Cholesky>
 #include <stdexcept>
+#include "../Util/CompInfo.h"
 
 namespace Spectra {
 

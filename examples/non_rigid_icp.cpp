@@ -123,15 +123,16 @@ int main(int argc, char ** argv) {
     std::cout << "Residual computation time: " << timer.getElapsedTime() << "ms" << std::endl;
 
     // Visualization
-    pangolin::CreateWindowAndBind("Rigid ICP example", 1920, 480);
+    const std::string window_name = "Non-rigid ICP example";
+    pangolin::CreateWindowAndBind(window_name, 1920, 480);
     pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual)
             .AddDisplay(pangolin::Display("initial"))
             .AddDisplay(pangolin::Display("registration"))
             .AddDisplay(pangolin::Display("residuals"));
 
-    cilantro::Visualizer initial_and_warp_viz("Rigid ICP example", "initial");
-    cilantro::Visualizer registration_viz("Rigid ICP example", "registration");
-    cilantro::Visualizer residuals_viz("Rigid ICP example", "residuals");
+    cilantro::Visualizer initial_and_warp_viz(window_name, "initial");
+    cilantro::Visualizer registration_viz(window_name, "registration");
+    cilantro::Visualizer residuals_viz(window_name, "residuals");
 
     // Warp src
     auto warped = src.transformed(tf_est);
