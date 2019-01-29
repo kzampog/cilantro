@@ -186,4 +186,24 @@ namespace cilantro {
     typedef HomogeneousVectorSet<double,3> HomogeneousVectorSet3d;
     typedef HomogeneousVectorSet<float,Eigen::Dynamic> HomogeneousVectorSetXf;
     typedef HomogeneousVectorSet<double,Eigen::Dynamic> HomogeneousVectorSetXd;
+
+    enum struct DataMatrixViewMode { Matrix, MatrixRef, ConstMatrixRef, MatrixMap, ConstMatrixMap };
+
+    template <typename ScalarT, ptrdiff_t EigenDim, DataMatrixViewMode Mode>
+    struct DataMatrixView {};
+
+    template <typename ScalarT, ptrdiff_t EigenDim>
+    struct DataMatrixView<ScalarT,EigenDim,DataMatrixViewMode::Matrix> { typedef VectorSet<ScalarT,EigenDim> Container; };
+
+    template <typename ScalarT, ptrdiff_t EigenDim>
+    struct DataMatrixView<ScalarT,EigenDim,DataMatrixViewMode::MatrixRef> { typedef VectorSet<ScalarT,EigenDim>& Container; };
+
+    template <typename ScalarT, ptrdiff_t EigenDim>
+    struct DataMatrixView<ScalarT,EigenDim,DataMatrixViewMode::ConstMatrixRef> { typedef const VectorSet<ScalarT,EigenDim>& Container; };
+
+    template <typename ScalarT, ptrdiff_t EigenDim>
+    struct DataMatrixView<ScalarT,EigenDim,DataMatrixViewMode::MatrixMap> { typedef DataMatrixMap<ScalarT,EigenDim> Container; };
+
+    template <typename ScalarT, ptrdiff_t EigenDim>
+    struct DataMatrixView<ScalarT,EigenDim,DataMatrixViewMode::ConstMatrixMap> { typedef ConstDataMatrixMap<ScalarT,EigenDim> Container; };
 }
