@@ -38,7 +38,7 @@ target_link_libraries(${PROJECT_NAME} ${Pangolin_LIBRARIES})
 target_compile_options(${PROJECT_NAME} PUBLIC -O3 -march=native -mtune=native)
 
 # Configure preprocessor definitions
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/config.hpp.in" "${CMAKE_CURRENT_BINARY_DIR}/include/${PROJECT_NAME}/config.hpp")
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/config.hpp.in" "${CMAKE_CURRENT_BINARY_DIR}/include/${PROJECT_NAME}/config.hpp")
 
 # Package config files
 
