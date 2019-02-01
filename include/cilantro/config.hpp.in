@@ -1,0 +1,4 @@
+#pragma once
+
+#cmakedefine HAVE_PANGOLIN
+#cmakedefine ENABLE_NON_DETERMINISTIC_PARALLELISM

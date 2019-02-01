@@ -1,6 +1,6 @@
-#ifdef HAVE_PANGOLIN
 #include <cilantro/visualizer.hpp>
 
+#ifdef HAVE_PANGOLIN
 namespace cilantro {
     Visualizer::Visualizer() {
         init_("Window", "Display");

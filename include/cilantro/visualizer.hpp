@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cilantro/config.hpp>
+
 #ifdef HAVE_PANGOLIN
 #include <utility>
 #include <pangolin/display/display_internal.h>

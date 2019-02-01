@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cilantro/config.hpp>
 #include <cilantro/data_containers.hpp>
 #include <cilantro/omp_reductions.hpp>
 

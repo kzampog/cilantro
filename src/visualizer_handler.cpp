@@ -1,7 +1,7 @@
-#ifdef HAVE_PANGOLIN
 #include <cilantro/visualizer_handler.hpp>
 #include <cilantro/visualizer.hpp>
 
+#ifdef HAVE_PANGOLIN
 namespace cilantro {
     VisualizerHandler::VisualizerHandler(Visualizer *visualizer)
             : translationFactor(0.01f),

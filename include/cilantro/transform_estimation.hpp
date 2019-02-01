@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cilantro/config.hpp>
 #include <cilantro/space_transformations.hpp>
 #include <cilantro/correspondence.hpp>
 #include <cilantro/common_pair_evaluators.hpp>

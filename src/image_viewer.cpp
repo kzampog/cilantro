@@ -1,6 +1,6 @@
-#ifdef HAVE_PANGOLIN
 #include <cilantro/image_viewer.hpp>
 
+#ifdef HAVE_PANGOLIN
 namespace cilantro {
     ImageViewer::ImageViewer() {
         init_("Window", "Display");

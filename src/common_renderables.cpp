@@ -1,6 +1,6 @@
-#ifdef HAVE_PANGOLIN
 #include <cilantro/common_renderables.hpp>
 
+#ifdef HAVE_PANGOLIN
 namespace cilantro {
     extern "C" const unsigned char AnonymousPro_ttf[];
 
