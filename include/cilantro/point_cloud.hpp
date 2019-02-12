@@ -316,16 +316,6 @@ namespace cilantro {
             return *this;
         }
 
-        template <class LinearT, class TranslationT>
-        inline PointCloud& transform(const LinearT &linear, const TranslationT &translation) {
-            if (hasNormals()) {
-                transformPointsNormals(linear, translation, points, normals);
-            } else {
-                transformPoints(linear, translation, points);
-            }
-            return *this;
-        }
-
         template <class TransformT>
         inline PointCloud& transform(const TransformT &tform) {
             if (hasNormals()) {
@@ -334,20 +324,6 @@ namespace cilantro {
                 transformPoints(tform, points);
             }
             return *this;
-        }
-
-        template <class LinearT, class TranslationT>
-        inline PointCloud transformed(const LinearT &linear, const TranslationT &translation) const {
-            PointCloud cloud;
-            cloud.points.resize(points.rows(), points.cols());
-            if (hasNormals()) {
-                cloud.normals.resize(normals.rows(), normals.cols());
-                transformPointsNormals(linear, translation, points, normals, cloud.points, cloud.normals);
-            } else {
-                transformPoints(linear, translation, points, cloud.points);
-            }
-            if (hasColors()) cloud.colors = colors;
-            return cloud;
         }
 
         template <class TransformT>
