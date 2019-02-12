@@ -4,8 +4,8 @@
 #include <Eigen/Dense>
 
 namespace cilantro {
-    std::vector<size_t> getPointToClusterIndexMap(const std::vector<std::vector<size_t>> &cluster_to_point,
-                                                  size_t num_points)
+    static std::vector<size_t> getPointToClusterIndexMap(const std::vector<std::vector<size_t>> &cluster_to_point,
+                                                         size_t num_points)
     {
         std::vector<size_t> point_to_segment(num_points, cluster_to_point.size());
         for (size_t i = 0; i < cluster_to_point.size(); i++) {
@@ -16,8 +16,8 @@ namespace cilantro {
         return point_to_segment;
     }
 
-    std::vector<std::vector<size_t>> getClusterToPointIndicesMap(const std::vector<size_t> &point_to_cluster,
-                                                                 size_t num_clusters)
+    static std::vector<std::vector<size_t>> getClusterToPointIndicesMap(const std::vector<size_t> &point_to_cluster,
+                                                                        size_t num_clusters)
     {
         std::vector<std::vector<size_t>> segment_to_point(num_clusters);
         for (size_t i = 0; i < point_to_cluster.size(); i++) {
@@ -26,8 +26,8 @@ namespace cilantro {
         return segment_to_point;
     }
 
-    std::vector<size_t> getUnlabeledPointIndices(const std::vector<std::vector<size_t>> &segment_to_point_map,
-                                                 const std::vector<size_t> &point_to_segment_map)
+    static std::vector<size_t> getUnlabeledPointIndices(const std::vector<std::vector<size_t>> &segment_to_point_map,
+                                                        const std::vector<size_t> &point_to_segment_map)
     {
         const size_t no_label = segment_to_point_map.size();
         std::vector<size_t> res;

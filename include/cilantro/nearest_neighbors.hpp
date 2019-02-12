@@ -54,7 +54,7 @@ namespace cilantro {
     struct KNNNeighborhoodSpecification {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        KNNNeighborhoodSpecification(size_t k = 0) : maxNumberOfNeighbors(k) {}
+        inline KNNNeighborhoodSpecification(size_t k = 0) : maxNumberOfNeighbors(k) {}
 
         size_t maxNumberOfNeighbors;
     };
@@ -63,7 +63,7 @@ namespace cilantro {
     struct RadiusNeighborhoodSpecification {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        RadiusNeighborhoodSpecification(ScalarT r = (ScalarT)0) : radius(r) {}
+        inline RadiusNeighborhoodSpecification(ScalarT r = (ScalarT)0) : radius(r) {}
 
         ScalarT radius;
     };
@@ -72,7 +72,7 @@ namespace cilantro {
     struct KNNInRadiusNeighborhoodSpecification {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        KNNInRadiusNeighborhoodSpecification(size_t k = 0, ScalarT r = (ScalarT)0)
+        inline KNNInRadiusNeighborhoodSpecification(size_t k = 0, ScalarT r = (ScalarT)0)
                 : maxNumberOfNeighbors(k), radius(r)
         {}
 
