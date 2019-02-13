@@ -5,7 +5,6 @@
 #include <cilantro/kd_tree.hpp>
 
 namespace cilantro {
-    enum struct CorrespondenceSearchDirection {FIRST_TO_SECOND, SECOND_TO_FIRST, BOTH};
 
     template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = DistanceEvaluator<ScalarT,ScalarT>, typename CorrValueT = typename EvaluatorT::OutputScalar>
     void findNNCorrespondencesUnidirectional(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
