@@ -34,7 +34,7 @@ namespace cilantro {
                   src_evaluation_features_adaptor_(src_features), evaluator_(evaluator),
                   search_dir_(CorrespondenceSearchDirection::SECOND_TO_FIRST),
                   max_distance_((CorrespondenceScalar)(0.01*0.01)),
-                  inlier_fraction_(1.0), require_reciprocality_(false)
+                  inlier_fraction_(1.0), require_reciprocality_(false), one_to_one_(false)
         {}
 
         CorrespondenceSearchKDTree(SearchFeatureAdaptorT &dst_search_features,
@@ -45,7 +45,7 @@ namespace cilantro {
                   src_evaluation_features_adaptor_(src_eval_features), evaluator_(evaluator),
                   search_dir_(CorrespondenceSearchDirection::SECOND_TO_FIRST),
                   max_distance_((CorrespondenceScalar)(0.01*0.01)),
-                  inlier_fraction_(1.0), require_reciprocality_(false)
+                  inlier_fraction_(1.0), require_reciprocality_(false), one_to_one_(false)
         {}
 
         CorrespondenceSearchKDTree& findCorrespondences() {
@@ -69,6 +69,8 @@ namespace cilantro {
             }
 
             filterCorrespondencesFraction(correspondences_, inlier_fraction_);
+            if (one_to_one_)
+                filterCorrespondencesOneToOne(correspondences_, search_dir_);
 
             return *this;
         }
@@ -145,6 +147,8 @@ namespace cilantro {
             }
 
             filterCorrespondencesFraction(correspondences_, inlier_fraction_);
+            if (one_to_one_)
+                filterCorrespondencesOneToOne(correspondences_, search_dir_);
 
             return *this;
         }
@@ -181,7 +185,14 @@ namespace cilantro {
             return *this;
         }
 
-    private:
+        inline bool getOneToOne() const { return one_to_one_;  }
+
+        inline CorrespondenceSearchKDTree& setOneToOne(bool one_to_one) {
+            one_to_one_ = one_to_one;
+            return *this;
+        }
+
+       private:
         SearchFeatureAdaptorT& dst_search_features_adaptor_;
         SearchFeatureAdaptorT& src_search_features_adaptor_;
 
@@ -197,6 +208,7 @@ namespace cilantro {
         CorrespondenceScalar max_distance_;
         double inlier_fraction_;
         bool require_reciprocality_;
+        bool one_to_one_;
 
         SearchResult correspondences_;
     };

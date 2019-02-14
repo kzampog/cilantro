@@ -3,6 +3,8 @@
 #include <cilantro/data_containers.hpp>
 
 namespace cilantro {
+    enum struct CorrespondenceSearchDirection {FIRST_TO_SECOND, SECOND_TO_FIRST, BOTH};
+
     template <typename ScalarT>
     struct Correspondence {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -34,6 +36,18 @@ namespace cilantro {
                 return std::tie(c1.indexInFirst, c1.indexInSecond) < std::tie(c2.indexInFirst, c2.indexInSecond);
             }
         };
+
+        struct IndexInFirstAndValueLessComparator {
+            inline bool operator()(const Correspondence &c1, const Correspondence &c2) const {
+                return std::tie(c1.indexInFirst, c1.value) < std::tie(c2.indexInFirst, c2.value);
+            }
+        };
+
+        struct IndexInSecondAndValueLessComparator {
+            inline bool operator()(const Correspondence &c1, const Correspondence &c2) const {
+                return std::tie(c1.indexInSecond, c1.value) < std::tie(c2.indexInSecond, c2.value);
+            }
+        };
     };
 
     template <typename ScalarT>
@@ -48,6 +62,40 @@ namespace cilantro {
             std::sort(correspondences.begin(), correspondences.end(), comparator);
             correspondences.erase(correspondences.begin() + std::llround(fraction_to_keep*correspondences.size()), correspondences.end());
         }
+    }
+
+    template <typename ScalarT>
+    void filterCorrespondencesOneToOne(CorrespondenceSet<ScalarT> &correspondences, CorrespondenceSearchDirection search_dir)
+    {
+        CorrespondenceSet<ScalarT> correspondences_copy = correspondences;
+        switch (search_dir)
+        {
+            case CorrespondenceSearchDirection::FIRST_TO_SECOND:
+                correspondences.clear();
+                std::sort(correspondences_copy.begin(), correspondences_copy.end(),
+                          typename Correspondence<ScalarT>::IndexInSecondAndValueLessComparator());
+                correspondences.push_back(correspondences_copy.front());
+                for (const auto &corr : correspondences_copy) {
+                    if (corr.indexInSecond != correspondences.back().indexInSecond) {
+                        correspondences.push_back(corr);
+                    }
+                }
+                break;
+
+            case CorrespondenceSearchDirection::SECOND_TO_FIRST:
+                correspondences.clear();
+                std::sort(correspondences_copy.begin(), correspondences_copy.end(),
+                          typename Correspondence<ScalarT>::IndexInFirstAndValueLessComparator());
+                correspondences.push_back(correspondences_copy.front());
+                for (const auto &corr : correspondences_copy) {
+                    if (corr.indexInFirst != correspondences.back().indexInFirst) {
+                        correspondences.push_back(corr);
+                    }
+                }
+                break;
+            default:
+                break;
+      }
     }
 
     template <typename ScalarT, ptrdiff_t EigenDim, typename CorrValueT = ScalarT>
