@@ -65,11 +65,13 @@ namespace cilantro {
     }
 
     template <typename ScalarT>
-    void filterCorrespondencesOneToOne(CorrespondenceSet<ScalarT> &correspondences, CorrespondenceSearchDirection search_dir)
+    void filterCorrespondencesOneToOne(CorrespondenceSet<ScalarT> &correspondences,
+                                       const CorrespondenceSearchDirection &search_dir)
     {
+        if (correspondences.empty()) return;
+
         CorrespondenceSet<ScalarT> correspondences_copy = correspondences;
-        switch (search_dir)
-        {
+        switch (search_dir) {
             case CorrespondenceSearchDirection::FIRST_TO_SECOND:
                 correspondences.clear();
                 std::sort(correspondences_copy.begin(), correspondences_copy.end(),
@@ -95,7 +97,7 @@ namespace cilantro {
                 break;
             default:
                 break;
-      }
+        }
     }
 
     template <typename ScalarT, ptrdiff_t EigenDim, typename CorrValueT = ScalarT>
