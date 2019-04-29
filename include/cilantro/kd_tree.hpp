@@ -109,7 +109,8 @@ namespace cilantro {
         inline bool full() const { return true; }
 
         inline bool addPoint(ScalarT dist, size_t index) {
-            if (dist < radius_) results_.emplace_back(index, dist);
+            // dist < worstDist() is guaranteed when addPoint is called.
+            results_.emplace_back(index, dist);
             return true;
         }
 
