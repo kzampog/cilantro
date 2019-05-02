@@ -54,11 +54,11 @@ namespace cilantro {
     template <typename ScalarT>
     class KNNSearchResultAdaptor {
     public:
-        KNNSearchResultAdaptor(Neighborhood<ScalarT> &results, size_t k)
+        KNNSearchResultAdaptor(Neighborhood<ScalarT> &results, size_t k, ScalarT max_radius = std::numeric_limits<ScalarT>::max())
                 : results_(results), k_(k), count_(0)
         {
             results_.resize(k_);
-            results_[k_-1].value = std::numeric_limits<ScalarT>::max();
+            results_[k_-1].value = max_radius;
         }
 
         inline size_t size() const { return count_; }
@@ -109,7 +109,8 @@ namespace cilantro {
         inline bool full() const { return true; }
 
         inline bool addPoint(ScalarT dist, size_t index) {
-            if (dist < radius_) results_.emplace_back(index, dist);
+            // dist < worstDist() is guaranteed when addPoint is called.
+            results_.emplace_back(index, dist);
             return true;
         }
 
@@ -261,15 +262,9 @@ namespace cilantro {
                                                ScalarT radius,
                                                Neighborhood<ScalarT> &results) const
         {
-            this->kNNSearch(query_pt, k, results);
-            size_t ind = results.size() - 1;
-            while (ind != static_cast<size_t>(-1) && results[ind].value >= radius) ind--;
-            results.resize(ind+1);
-//            KDTree::radiusSearch(query_pt, radius, neighbors, distances);
-//            if (neighbors.size() > k) {
-//                neighbors.resize(k);
-//                distances.resize(k);
-//            }
+            KNNSearchResultAdaptor<ScalarT> sra(results, k, radius);
+            kd_tree_.findNeighbors(sra, query_pt.data(), params_);
+            results.resize(sra.size());
             return *this;
         }
 
