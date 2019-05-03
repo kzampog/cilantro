@@ -1,8 +1,8 @@
-<p align="center">
-<img src="https://kzampog.github.io/images/cilantro_left.png" width="240" />
-</p>
+<div align = "center">
+    <img src="https://kzampog.github.io/images/cilantro_logo.png" width="240" />
+</div>
 
-# `cilantro`: A Lean and Efficient Library for Point Cloud Data Processing
+## A Lean and Efficient Library for Point Cloud Data Processing
 [![Build Status](https://travis-ci.org/kzampog/cilantro.svg?branch=master)](https://travis-ci.org/kzampog/cilantro) [![Documentation Status](https://readthedocs.org/projects/cilantro/badge/?version=latest)](http://cilantro.readthedocs.io/en/latest/?badge=latest) [![Documentation](https://codedocs.xyz/kzampog/cilantro.svg)](https://codedocs.xyz/kzampog/cilantro/)
 
 `cilantro` is a lean and fast C++ library for working with point cloud data, with emphasis given to the 3D case.
@@ -12,7 +12,6 @@ At the same time, convenience aliases/wrappers for the most common cases are pro
 A high-level description of `cilantro` can be found in our [technical report](https://arxiv.org/abs/1807.00399).
 
 ## Supported functionality
-
 #### Basic operations:
 - General dimension kd-trees (using bundled [nanoflann](https://github.com/jlblancoc/nanoflann))
 - Surface normal and curvature estimation from raw point clouds
