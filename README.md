@@ -1,4 +1,8 @@
-# cilantro
+<p align="center">
+<img src="https://kzampog.github.io/images/cilantro_left.png" width="240" />
+</p>
+
+# `cilantro`: A Lean and Efficient Library for Point Cloud Data Processing
 [![Build Status](https://travis-ci.org/kzampog/cilantro.svg?branch=master)](https://travis-ci.org/kzampog/cilantro) [![Documentation Status](https://readthedocs.org/projects/cilantro/badge/?version=latest)](http://cilantro.readthedocs.io/en/latest/?badge=latest) [![Documentation](https://codedocs.xyz/kzampog/cilantro.svg)](https://codedocs.xyz/kzampog/cilantro/)
 
 `cilantro` is a lean and fast C++ library for working with point cloud data, with emphasis given to the 3D case.

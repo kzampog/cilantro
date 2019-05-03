@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2018 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2019 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -69,6 +69,8 @@ public:
         I.setIdentity();
 
         m_solver.compute(m_mat - sigma * I);
+        if(m_solver.info() != Eigen::Success)
+            throw std::invalid_argument("SparseGenRealShiftSolve: factorization failed with the given shift");
     }
 
     ///

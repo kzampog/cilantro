@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2018 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2019 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -8,8 +8,10 @@
 #define DENSE_SYM_SHIFT_SOLVE_H
 
 #include <Eigen/Core>
-#include <Eigen/Cholesky>
 #include <stdexcept>
+
+#include "../LinAlg/BKLDLT.h"
+#include "../Util/CompInfo.h"
 
 namespace Spectra {
 
@@ -33,7 +35,7 @@ private:
 
     ConstGenericMatrix m_mat;
     const int m_n;
-    Eigen::LDLT<Matrix, Uplo> m_solver;
+    BKLDLT<Scalar> m_solver;
 
 public:
     ///
@@ -65,7 +67,9 @@ public:
     ///
     void set_shift(Scalar sigma)
     {
-        m_solver.compute(m_mat - sigma * Matrix::Identity(m_n, m_n));
+        m_solver.compute(m_mat, Uplo, sigma);
+        if(m_solver.info() != SUCCESSFUL)
+            throw std::invalid_argument("DenseSymShiftSolve: factorization failed with the given shift");
     }
 
     ///
