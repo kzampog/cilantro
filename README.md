@@ -1,10 +1,18 @@
-<div align = "center">
-    <img src="https://kzampog.github.io/images/cilantro_logo.png" width="240" />
+<div>
+    <img src = "https://kzampog.github.io/images/cilantro_logo.png" width="192" alt = "Logo" />
+    <br>
+    <a href = "https://travis-ci.org/kzampog/cilantro">
+        <img src = "https://travis-ci.org/kzampog/cilantro.svg?branch=master" alt = "Build Status" />
+    </a>
+    <a href = "http://cilantro.readthedocs.io/en/latest/?badge=latest">
+        <img src = "https://readthedocs.org/projects/cilantro/badge/?version=latest" alt = "Documentation Status" />
+    </a>
+    <a href = "https://codedocs.xyz/kzampog/cilantro/">
+        <img src = "https://codedocs.xyz/kzampog/cilantro.svg" alt = "Documentation" />
+    </a>
 </div>
 
 ## A Lean and Efficient Library for Point Cloud Data Processing
-[![Build Status](https://travis-ci.org/kzampog/cilantro.svg?branch=master)](https://travis-ci.org/kzampog/cilantro) [![Documentation Status](https://readthedocs.org/projects/cilantro/badge/?version=latest)](http://cilantro.readthedocs.io/en/latest/?badge=latest) [![Documentation](https://codedocs.xyz/kzampog/cilantro.svg)](https://codedocs.xyz/kzampog/cilantro/)
-
 `cilantro` is a lean and fast C++ library for working with point cloud data, with emphasis given to the 3D case.
 It includes efficient implementations for a variety of common operations, providing a clean API and attempting to minimize the amount of boilerplate code.
 The library is extensively templated, enabling operations on data of arbitrary numerical type and dimensionality (where applicable) and featuring a modular/extensible design of the more complex procedures.
@@ -24,7 +32,7 @@ A high-level description of `cilantro` can be found in our [technical report](ht
 - A general dimension convex polytope representation that is computed (using bundled [Qhull](http://www.qhull.org/)) from either vertex or half-space intersection input and allows for easy switching between the respective representations
 - A representation of generic (general dimension) space regions as unions of convex polytopes that implements set operations
 <div align = "center">
-    <img src="https://kzampog.github.io/images/convex.png" width="800" />
+    <img src = "https://kzampog.github.io/images/convex.png" width="800" />
 </div>
 
 #### Clustering:
@@ -33,7 +41,7 @@ A high-level description of `cilantro` can be found in our [technical report](ht
 - Mean-shift clustering with custom kernel support
 - Connected component based point cloud segmentation that supports arbitrary point-wise similarity functions
 <div align = "center">
-    <img src="https://kzampog.github.io/images/conn_comp.png" width="800" />
+    <img src = "https://kzampog.github.io/images/conn_comp.png" width="800" />
 </div>
 
 #### Geometric registration:
@@ -41,9 +49,9 @@ A high-level description of `cilantro` can be found in our [technical report](ht
     - **Rigid** or **affine** alignment under the point-to-point metric (general dimension), point-to-plane metric (2D or 3D), or any combination thereof
     - **Non-rigid** alignment of 2D or 3D point sets, by means of a robustly regularized, **locally rigid** or **locally affine** deformation field, under any combination of the point-to-point and point-to-plane metrics; implementations for both *densely* and *sparsely* (similarly to [DynamicFusion](http://grail.cs.washington.edu/projects/dynamicfusion/)) supported warp fields are provided
 <div align = "center">
-    <img src="https://kzampog.github.io/images/fusion.png" width="800" />
+    <img src = "https://kzampog.github.io/images/fusion.png" width="800" />
     <br>
-    <img src="https://kzampog.github.io/images/non_rigid.png" width="800" />
+    <img src = "https://kzampog.github.io/images/non_rigid.png" width="800" />
 </div>
 
 #### Robust model estimation:
