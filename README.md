@@ -1,5 +1,5 @@
 <div>
-    <img src = "https://kzampog.github.io/images/cilantro_logo.png" width="240" alt = "Logo" />
+    <img src = "https://kzampog.github.io/images/cilantro_logo.png" width="256" alt = "Logo" />
     <br>
     <a href = "https://travis-ci.org/kzampog/cilantro">
         <img src = "https://travis-ci.org/kzampog/cilantro.svg?branch=master" alt = "Build Status" />
