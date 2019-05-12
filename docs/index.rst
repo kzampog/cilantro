@@ -3,9 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. ========
-.. cilantro
-.. ========
+========
+cilantro
+========
 
 .. image:: https://kzampog.github.io/images/cilantro_logo.png
     :width: 300
