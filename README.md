@@ -28,7 +28,7 @@ A high-level description of `cilantro` can be found in our [technical report](ht
 - Basic I/O utilities for 3D point clouds (in PLY format, using bundled [tinyply](https://github.com/ddiakopoulos/tinyply)) and Eigen matrices
 - RGBD image pair to/from point cloud conversion utilities
 
-#### Convex hulls:
+#### Convex hulls and spatial reasoning:
 - A general dimension convex polytope representation that is computed (using bundled [Qhull](http://www.qhull.org/)) from either vertex or half-space intersection input and allows for easy switching between the respective representations
 - A representation of generic (general dimension) space regions as unions of convex polytopes that implements set operations
 <div align = "center">

@@ -7,8 +7,9 @@
 cilantro
 ========
 
-.. image:: https://kzampog.github.io/images/cilantro_logo.png
-    :width: 300
+.. image:: https://kzampog.github.io/images/cilantro_left.png
+    :width: 100
+    :align: center
 
 .. toctree::
    :maxdepth: 2
