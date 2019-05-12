@@ -9,7 +9,6 @@ cilantro
 
 .. image:: https://kzampog.github.io/images/cilantro_left.png
     :width: 75
-    :align: left
 
 .. toctree::
    :maxdepth: 2
