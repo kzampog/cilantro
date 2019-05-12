@@ -47,7 +47,7 @@ A high-level description of `cilantro` can be found in our [technical report](ht
 #### Geometric registration:
 - Multiple generic Iterative Closest Point implementations that support arbitrary correspondence search methods in arbitrary point feature spaces for:
     - **Rigid** or **affine** alignment under the point-to-point metric (general dimension), point-to-plane metric (2D or 3D), or any combination thereof
-    - **Non-rigid** alignment of 2D or 3D point sets, by means of a robustly regularized, **locally rigid** or **locally affine** deformation field, under any combination of the point-to-point and point-to-plane metrics; implementations for both *densely* and *sparsely* (similarly to [DynamicFusion](http://grail.cs.washington.edu/projects/dynamicfusion/)) supported warp fields are provided
+    - **Non-rigid** alignment of 2D or 3D point sets, by means of a robustly regularized, **locally-rigid** or **locally-affine** deformation field, under any combination of the point-to-point and point-to-plane metrics; implementations for both *densely* and *sparsely* (by means of an Embedded Deformation Graph) supported warp fields are provided
 <div align = "center">
     <img src = "https://kzampog.github.io/images/fusion.png" width="800" />
     <br>

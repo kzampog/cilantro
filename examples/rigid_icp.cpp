@@ -124,7 +124,7 @@ int main(int argc, char ** argv) {
     std::cout << "Iterations performed: " << icp.getNumberOfPerformedIterations() << std::endl;
     std::cout << "Has converged: " << icp.hasConverged() << std::endl;
     std::cout << "TRUE transformation:" << std::endl << tf_ref.inverse().matrix() << std::endl;
-    std::cout << "ESTIMATED transformation R:" << std::endl << tf_est.matrix() << std::endl;
+    std::cout << "ESTIMATED transformation:" << std::endl << tf_est.matrix() << std::endl;
 
     timer.start();
     auto residuals = icp.getResiduals();
