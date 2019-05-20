@@ -35,7 +35,7 @@ file(GLOB lib_src ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
 add_library(${PROJECT_NAME} SHARED ${3rd_src} ${lib_include} ${lib_src})
 target_link_libraries(${PROJECT_NAME} ${Pangolin_LIBRARIES})
-target_compile_options(${PROJECT_NAME} PUBLIC)
+target_compile_options(${PROJECT_NAME} PUBLIC -O3)
 
 # Configure preprocessor definitions
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/config.hpp.in" "${CMAKE_CURRENT_BINARY_DIR}/include/${PROJECT_NAME}/config.hpp")
