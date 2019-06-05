@@ -24,7 +24,7 @@ include_directories(include ${CMAKE_CURRENT_BINARY_DIR}/include)
 include_directories(${OTHER_INCLUDES})
 
 # Build options
-option(ENABLE_NATIVE_BUILD_OPTIMIZATIONS "Enable parallelization that may produce non-deterministic results" ON)
+option(ENABLE_NATIVE_BUILD_OPTIMIZATIONS "Enable native build optimization flags" ON)
 option(ENABLE_NON_DETERMINISTIC_PARALLELISM "Enable parallelization that may produce non-deterministic results" ON)
 
 # Build library
