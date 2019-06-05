@@ -102,7 +102,8 @@ private:
     {
         for(Index i = 0; i < m_n; i++)
         {
-            const Index perm = std::abs(m_perm[i]);
+            // Recover the permutation action
+            const Index perm = (m_perm[i] >= 0) ? (m_perm[i]) : (-m_perm[i] - 1);
             if(perm != i)
                 m_permc.push_back(std::make_pair(i, perm));
         }
@@ -148,8 +149,9 @@ private:
         std::swap(coeff(k + 1, k), coeff(r, k));
 
         // Use negative signs to indicate a 2x2 block
-        m_perm[k] = -m_perm[k];
-        m_perm[k + 1] = -m_perm[k + 1];
+        // Also minus one to distinguish a negative zero from a positive zero
+        m_perm[k] = -m_perm[k] - 1;
+        m_perm[k + 1] = -m_perm[k + 1] - 1;
     }
 
     // A[r1, c1:c2] <-> A[r2, c1:c2]
@@ -218,6 +220,8 @@ private:
     // Return true if the resulting pivoting is 1x1, and false if 2x2
     bool permutate_mat(Index k, const Scalar& alpha)
     {
+        using std::abs;
+
         Index r = k, p = k;
         const Scalar lambda = find_lambda(k, r);
 
