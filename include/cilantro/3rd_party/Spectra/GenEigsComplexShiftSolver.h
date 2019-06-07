@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2018 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2019 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -41,6 +41,7 @@ template <typename Scalar = double,
 class GenEigsComplexShiftSolver: public GenEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>
 {
 private:
+    typedef Eigen::Index Index;
     typedef std::complex<Scalar> Complex;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
     typedef Eigen::Matrix<Complex, Eigen::Dynamic, 1> ComplexVector;
@@ -82,7 +83,7 @@ private:
         // Calculate inv(A - r * I) * vj
         Vector v_real(this->m_n), v_imag(this->m_n), OPv_real(this->m_n), OPv_imag(this->m_n);
         const Scalar eps = Eigen::NumTraits<Scalar>::epsilon();
-        for(int i = 0; i < this->m_nev; i++)
+        for(Index i = 0; i < this->m_nev; i++)
         {
             v_real.noalias() = this->m_fac.matrix_V() * this->m_ritz_vec.col(i).real();
             v_imag.noalias() = this->m_fac.matrix_V() * this->m_ritz_vec.col(i).imag();
@@ -141,7 +142,7 @@ public:
     /// \param sigmar  The real part of the shift.
     /// \param sigmai  The imaginary part of the shift.
     ///
-    GenEigsComplexShiftSolver(OpType* op, int nev, int ncv, const Scalar& sigmar, const Scalar& sigmai) :
+    GenEigsComplexShiftSolver(OpType* op, Index nev, Index ncv, const Scalar& sigmar, const Scalar& sigmai) :
         GenEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>(op, NULL, nev, ncv),
         m_sigmar(sigmar), m_sigmai(sigmai)
     {

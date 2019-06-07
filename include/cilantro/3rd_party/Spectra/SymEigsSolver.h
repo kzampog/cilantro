@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2018 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2019 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -141,6 +141,9 @@ template < typename Scalar = double,
            typename OpType = DenseSymMatProd<double> >
 class SymEigsSolver: public SymEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>
 {
+private:
+    typedef Eigen::Index Index;
+
 public:
     ///
     /// Constructor to create a solver object.
@@ -159,7 +162,7 @@ public:
     ///             in each iteration. This parameter must satisfy \f$nev < ncv \le n\f$,
     ///             and is advised to take \f$ncv \ge 2\cdot nev\f$.
     ///
-    SymEigsSolver(OpType* op, int nev, int ncv) :
+    SymEigsSolver(OpType* op, Index nev, Index ncv) :
         SymEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>(op, NULL, nev, ncv)
     {}
 

@@ -26,12 +26,11 @@ template <typename Scalar = double>
 class BKLDLT
 {
 private:
+    typedef Eigen::Index Index;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
     typedef Eigen::Map<Vector> MapVec;
     typedef Eigen::Map<const Vector> MapConstVec;
-
-    typedef typename Matrix::Index Index;
 
     typedef Eigen::Matrix<Index, Eigen::Dynamic, 1> IntVector;
     typedef Eigen::Ref<Vector> GenericVector;

@@ -2,7 +2,7 @@
 //
 // Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
-// Copyright (C) 2016-2018 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2019 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -24,13 +24,12 @@ template <typename Scalar = double>
 class TridiagEigen
 {
 private:
+    typedef Eigen::Index Index;
     // For convenience in adapting the tridiagonal_qr_step() function
     typedef Scalar RealScalar;
 
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
-
-    typedef typename Matrix::Index Index;
 
     typedef Eigen::Ref<Matrix> GenericMatrix;
     typedef const Eigen::Ref<const Matrix> ConstGenericMatrix;
@@ -152,7 +151,7 @@ public:
 
         Index end = m_n - 1;
         Index start = 0;
-        int iter = 0; // total number of iterations
+        Index iter = 0; // total number of iterations
         int info = 0; // 0 for success, 1 for failure
 
         const Scalar considerAsZero = TypeTraits<Scalar>::min();

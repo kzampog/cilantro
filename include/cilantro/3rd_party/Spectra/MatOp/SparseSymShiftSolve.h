@@ -26,6 +26,7 @@ template <typename Scalar, int Uplo = Eigen::Lower, int Flags = 0, typename Stor
 class SparseSymShiftSolve
 {
 private:
+    typedef Eigen::Index Index;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
     typedef Eigen::Map<const Vector> MapConstVec;
     typedef Eigen::Map<Vector> MapVec;
@@ -54,11 +55,11 @@ public:
     ///
     /// Return the number of rows of the underlying matrix.
     ///
-    int rows() const { return m_n; }
+    Index rows() const { return m_n; }
     ///
     /// Return the number of columns of the underlying matrix.
     ///
-    int cols() const { return m_n; }
+    Index cols() const { return m_n; }
 
     ///
     /// Set the real shift \f$\sigma\f$.

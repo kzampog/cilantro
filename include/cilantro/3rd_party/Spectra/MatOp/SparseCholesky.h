@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2018 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2019 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -28,13 +28,14 @@ template <typename Scalar, int Uplo = Eigen::Lower, int Flags = 0, typename Stor
 class SparseCholesky
 {
 private:
+    typedef Eigen::Index Index;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
     typedef Eigen::Map<const Vector> MapConstVec;
     typedef Eigen::Map<Vector> MapVec;
     typedef Eigen::SparseMatrix<Scalar, Flags, StorageIndex> SparseMatrix;
     typedef const Eigen::Ref<const SparseMatrix> ConstGenericSparseMatrix;
 
-    const int m_n;
+    const Index m_n;
     Eigen::SimplicialLLT<SparseMatrix, Uplo> m_decomp;
     int m_info;  // status of the decomposition
 
@@ -61,11 +62,11 @@ public:
     ///
     /// Returns the number of rows of the underlying matrix.
     ///
-    int rows() const { return m_n; }
+    Index rows() const { return m_n; }
     ///
     /// Returns the number of columns of the underlying matrix.
     ///
-    int cols() const { return m_n; }
+    Index cols() const { return m_n; }
 
     ///
     /// Returns the status of the computation.

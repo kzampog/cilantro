@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2018 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2019 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -168,6 +168,7 @@ class SymGEigsSolver<Scalar, SelectionRule, OpType, BOpType, GEIGS_CHOLESKY>:
     public SymEigsBase<Scalar, SelectionRule, SymGEigsCholeskyOp<Scalar, OpType, BOpType>, IdentityBOp>
 {
 private:
+    typedef Eigen::Index Index;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
 
@@ -199,7 +200,7 @@ public:
     ///             in each iteration. This parameter must satisfy \f$nev < ncv \le n\f$,
     ///             and is advised to take \f$ncv \ge 2\cdot nev\f$.
     ///
-    SymGEigsSolver(OpType* op, BOpType* Bop, int nev, int ncv) :
+    SymGEigsSolver(OpType* op, BOpType* Bop, Index nev, Index ncv) :
         SymEigsBase<Scalar, SelectionRule, SymGEigsCholeskyOp<Scalar, OpType, BOpType>, IdentityBOp>(
             new SymGEigsCholeskyOp<Scalar, OpType, BOpType>(*op, *Bop), NULL, nev, ncv
         ),
@@ -214,12 +215,12 @@ public:
         delete this->m_op;
     }
 
-    Matrix eigenvectors(int nvec) const
+    Matrix eigenvectors(Index nvec) const
     {
         Matrix res = SymEigsBase<Scalar, SelectionRule, SymGEigsCholeskyOp<Scalar, OpType, BOpType>, IdentityBOp>::eigenvectors(nvec);
         Vector tmp(res.rows());
-        const int nconv = res.cols();
-        for(int i = 0; i < nconv; i++)
+        const Index nconv = res.cols();
+        for(Index i = 0; i < nconv; i++)
         {
             m_Bop->upper_triangular_solve(&res(0, i), tmp.data());
             res.col(i).noalias() = tmp;
@@ -285,6 +286,9 @@ template < typename Scalar,
 class SymGEigsSolver<Scalar, SelectionRule, OpType, BOpType, GEIGS_REGULAR_INVERSE>:
     public SymEigsBase<Scalar, SelectionRule, SymGEigsRegInvOp<Scalar, OpType, BOpType>, BOpType>
 {
+private:
+    typedef Eigen::Index Index;
+
 public:
     ///
     /// Constructor to create a solver object.
@@ -309,7 +313,7 @@ public:
     ///             in each iteration. This parameter must satisfy \f$nev < ncv \le n\f$,
     ///             and is advised to take \f$ncv \ge 2\cdot nev\f$.
     ///
-    SymGEigsSolver(OpType* op, BOpType* Bop, int nev, int ncv) :
+    SymGEigsSolver(OpType* op, BOpType* Bop, Index nev, Index ncv) :
         SymEigsBase<Scalar, SelectionRule, SymGEigsRegInvOp<Scalar, OpType, BOpType>, BOpType>(
             new SymGEigsRegInvOp<Scalar, OpType, BOpType>(*op, *Bop), Bop, nev, ncv
         )

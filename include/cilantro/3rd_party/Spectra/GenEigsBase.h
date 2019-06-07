@@ -1,4 +1,4 @@
-// Copyright (C) 2018 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2018-2019 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -41,6 +41,7 @@ template < typename Scalar,
 class GenEigsBase
 {
 private:
+    typedef Eigen::Index Index;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
     typedef Eigen::Array<Scalar, Eigen::Dynamic, 1> Array;
@@ -59,11 +60,11 @@ private:
 protected:
     OpType*       m_op;        // object to conduct matrix operation,
                                // e.g. matrix-vector product
-    const int     m_n;         // dimension of matrix A
-    const int     m_nev;       // number of eigenvalues requested
-    const int     m_ncv;       // dimension of Krylov subspace in the Arnoldi method
-    int           m_nmatop;    // number of matrix operations called
-    int           m_niter;     // number of restarting iterations
+    const Index   m_n;         // dimension of matrix A
+    const Index   m_nev;       // number of eigenvalues requested
+    const Index   m_ncv;       // dimension of Krylov subspace in the Arnoldi method
+    Index         m_nmatop;    // number of matrix operations called
+    Index         m_niter;     // number of restarting iterations
 
     ArnoldiFac    m_fac;       // Arnoldi factorization
 
@@ -87,7 +88,7 @@ private:
     static bool is_conj(const Complex& v1, const Complex& v2) { return v1 == Eigen::numext::conj(v2); }
 
     // Implicitly restarted Arnoldi factorization
-    void restart(int k)
+    void restart(Index k)
     {
         using std::norm;
 
@@ -98,7 +99,7 @@ private:
         UpperHessenbergQR<Scalar> decomp_hb(m_ncv);
         Matrix Q = Matrix::Identity(m_ncv, m_ncv);
 
-        for(int i = k; i < m_ncv; i++)
+        for(Index i = k; i < m_ncv; i++)
         {
             if(is_complex(m_ritz_val[i]) && is_conj(m_ritz_val[i], m_ritz_val[i + 1]))
             {
@@ -140,7 +141,7 @@ private:
     }
 
     // Calculates the number of converged Ritz values
-    int num_converged(Scalar tol)
+    Index num_converged(Scalar tol)
     {
         // thresh = tol * max(m_eps23, abs(theta)), theta for Ritz value
         Array thresh = tol * m_ritz_val.head(m_nev).array().abs().max(m_eps23);
@@ -148,16 +149,16 @@ private:
         // Converged "wanted" Ritz values
         m_ritz_conv = (resid < thresh);
 
-        return m_ritz_conv.cast<int>().sum();
+        return m_ritz_conv.cast<Index>().sum();
     }
 
     // Returns the adjusted nev for restarting
-    int nev_adjusted(int nconv)
+    Index nev_adjusted(Index nconv)
     {
         using std::abs;
 
-        int nev_new = m_nev;
-        for(int i = m_nev; i < m_ncv; i++)
+        Index nev_new = m_nev;
+        for(Index i = m_nev; i < m_ncv; i++)
             if(abs(m_ritz_est[i]) < m_near_0)  nev_new++;
 
         // Adjust nev_new, according to dnaup2.f line 660~674 in ARPACK
@@ -192,12 +193,12 @@ private:
         std::vector<int> ind = sorting.index();
 
         // Copy the Ritz values and vectors to m_ritz_val and m_ritz_vec, respectively
-        for(int i = 0; i < m_ncv; i++)
+        for(Index i = 0; i < m_ncv; i++)
         {
             m_ritz_val[i] = evals[ind[i]];
             m_ritz_est[i] = evecs(m_ncv - 1, ind[i]);
         }
-        for(int i = 0; i < m_nev; i++)
+        for(Index i = 0; i < m_nev; i++)
         {
             m_ritz_vec.col(i).noalias() = evecs.col(ind[i]);
         }
@@ -254,7 +255,7 @@ protected:
         ComplexMatrix new_ritz_vec(m_ncv, m_nev);
         BoolArray new_ritz_conv(m_nev);
 
-        for(int i = 0; i < m_nev; i++)
+        for(Index i = 0; i < m_nev; i++)
         {
             new_ritz_val[i] = m_ritz_val[ind[i]];
             new_ritz_vec.col(i).noalias() = m_ritz_vec.col(ind[i]);
@@ -269,7 +270,7 @@ protected:
 public:
     /// \cond
 
-    GenEigsBase(OpType* op, BOpType* Bop, int nev, int ncv) :
+    GenEigsBase(OpType* op, BOpType* Bop, Index nev, Index ncv) :
         m_op(op),
         m_n(m_op->rows()),
         m_nev(nev),
@@ -360,13 +361,13 @@ public:
     ///
     /// \return Number of converged eigenvalues.
     ///
-    int compute(int maxit = 1000, Scalar tol = 1e-10, int sort_rule = LARGEST_MAGN)
+    Index compute(Index maxit = 1000, Scalar tol = 1e-10, int sort_rule = LARGEST_MAGN)
     {
         // The m-step Arnoldi factorization
         m_fac.factorize_from(1, m_ncv, m_nmatop);
         retrieve_ritzpair();
         // Restarting
-        int i, nconv = 0, nev_adj;
+        Index i, nconv = 0, nev_adj;
         for(i = 0; i < maxit; i++)
         {
             nconv = num_converged(tol);
@@ -394,12 +395,12 @@ public:
     ///
     /// Returns the number of iterations used in the computation.
     ///
-    int num_iterations() const { return m_niter; }
+    Index num_iterations() const { return m_niter; }
 
     ///
     /// Returns the number of matrix operations used in the computation.
     ///
-    int num_operations() const { return m_nmatop; }
+    Index num_operations() const { return m_nmatop; }
 
     ///
     /// Returns the converged eigenvalues.
@@ -410,14 +411,14 @@ public:
     ///
     ComplexVector eigenvalues() const
     {
-        const int nconv = m_ritz_conv.cast<int>().sum();
+        const Index nconv = m_ritz_conv.cast<Index>().sum();
         ComplexVector res(nconv);
 
         if(!nconv)
             return res;
 
-        int j = 0;
-        for(int i = 0; i < m_nev; i++)
+        Index j = 0;
+        for(Index i = 0; i < m_nev; i++)
         {
             if(m_ritz_conv[i])
             {
@@ -438,9 +439,9 @@ public:
     /// Returned matrix type will be `Eigen::Matrix<std::complex<Scalar>, ...>`,
     /// depending on the template parameter `Scalar` defined.
     ///
-    ComplexMatrix eigenvectors(int nvec) const
+    ComplexMatrix eigenvectors(Index nvec) const
     {
-        const int nconv = m_ritz_conv.cast<int>().sum();
+        const Index nconv = m_ritz_conv.cast<Index>().sum();
         nvec = std::min(nvec, nconv);
         ComplexMatrix res(m_n, nvec);
 
@@ -448,8 +449,8 @@ public:
             return res;
 
         ComplexMatrix ritz_vec_conv(m_ncv, nvec);
-        int j = 0;
-        for(int i = 0; i < m_nev && j < nvec; i++)
+        Index j = 0;
+        for(Index i = 0; i < m_nev && j < nvec; i++)
         {
             if(m_ritz_conv[i])
             {

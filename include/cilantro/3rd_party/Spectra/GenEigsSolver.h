@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2018 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2019 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -128,6 +128,9 @@ template < typename Scalar = double,
            typename OpType = DenseGenMatProd<double> >
 class GenEigsSolver: public GenEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>
 {
+private:
+    typedef Eigen::Index Index;
+
 public:
     ///
     /// Constructor to create a solver object.
@@ -146,7 +149,7 @@ public:
     ///             in each iteration. This parameter must satisfy \f$nev+2 \le ncv \le n\f$,
     ///             and is advised to take \f$ncv \ge 2\cdot nev + 1\f$.
     ///
-    GenEigsSolver(OpType* op, int nev, int ncv) :
+    GenEigsSolver(OpType* op, Index nev, Index ncv) :
         GenEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>(op, NULL, nev, ncv)
     {}
 };

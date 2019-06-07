@@ -1,4 +1,4 @@
-// Copyright (C) 2017-2018 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2017-2019 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -30,6 +30,7 @@ template <typename Scalar, int Uplo = Eigen::Lower, int Flags = 0, typename Stor
 class SparseRegularInverse
 {
 private:
+    typedef Eigen::Index Index;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
     typedef Eigen::Map<const Vector> MapConstVec;
     typedef Eigen::Map<Vector> MapVec;
@@ -60,11 +61,11 @@ public:
     ///
     /// Return the number of rows of the underlying matrix.
     ///
-    int rows() const { return m_n; }
+    Index rows() const { return m_n; }
     ///
     /// Return the number of columns of the underlying matrix.
     ///
-    int cols() const { return m_n; }
+    Index cols() const { return m_n; }
 
     ///
     /// Perform the solving operation \f$y=B^{-1}x\f$.

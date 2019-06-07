@@ -27,6 +27,7 @@ template <typename Scalar, int Uplo = Eigen::Lower>
 class DenseSymShiftSolve
 {
 private:
+    typedef Eigen::Index Index;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
     typedef Eigen::Map<const Vector> MapConstVec;
@@ -56,11 +57,11 @@ public:
     ///
     /// Return the number of rows of the underlying matrix.
     ///
-    int rows() const { return m_n; }
+    Index rows() const { return m_n; }
     ///
     /// Return the number of columns of the underlying matrix.
     ///
-    int cols() const { return m_n; }
+    Index cols() const { return m_n; }
 
     ///
     /// Set the real shift \f$\sigma\f$.

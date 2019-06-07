@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2018 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2019 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -26,6 +26,7 @@ template <typename Scalar>
 class DenseGenComplexShiftSolve
 {
 private:
+    typedef Eigen::Index Index;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
     typedef Eigen::Map<const Vector> MapConstVec;
@@ -39,7 +40,7 @@ private:
     typedef Eigen::PartialPivLU<ComplexMatrix> ComplexSolver;
 
     ConstGenericMatrix m_mat;
-    const int m_n;
+    const Index m_n;
     ComplexSolver m_solver;
     ComplexVector m_x_cache;
 
@@ -62,11 +63,11 @@ public:
     ///
     /// Return the number of rows of the underlying matrix.
     ///
-    int rows() const { return m_n; }
+    Index rows() const { return m_n; }
     ///
     /// Return the number of columns of the underlying matrix.
     ///
-    int cols() const { return m_n; }
+    Index cols() const { return m_n; }
 
     ///
     /// Set the complex shift \f$\sigma\f$.

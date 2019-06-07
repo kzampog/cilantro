@@ -1,4 +1,4 @@
-// Copyright (C) 2018 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2018-2019 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -33,6 +33,7 @@ template <typename Scalar, typename OpType, typename BOpType>
 class ArnoldiOp
 {
 private:
+    typedef Eigen::Index Index;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
 
     OpType&  m_op;
@@ -44,7 +45,7 @@ public:
         m_op(*op), m_Bop(*Bop), m_cache(op->rows())
     {}
 
-    inline int rows() const { return m_op.rows(); }
+    inline Index rows() const { return m_op.rows(); }
 
     // In generalized eigenvalue problem Ax=lambda*Bx, define the inner product to be <x, y> = x'By.
     // For regular eigenvalue problems, it is the usual inner product <x, y> = x'y
@@ -102,6 +103,7 @@ template <typename Scalar, typename OpType>
 class ArnoldiOp<Scalar, OpType, IdentityBOp>
 {
 private:
+    typedef Eigen::Index Index;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
 
     OpType& m_op;
@@ -111,7 +113,7 @@ public:
         m_op(*op)
     {}
 
-    inline int rows() const { return m_op.rows(); }
+    inline Index rows() const { return m_op.rows(); }
 
     // Compute <x, y> = x'y
     // x and y are two vectors

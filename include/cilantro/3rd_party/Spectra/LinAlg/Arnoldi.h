@@ -1,4 +1,4 @@
-// Copyright (C) 2018 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2018-2019 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -32,6 +32,7 @@ template <typename Scalar, typename ArnoldiOpType>
 class Arnoldi
 {
 private:
+    typedef Eigen::Index Index;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
     typedef Eigen::Map<Matrix> MapMat;
@@ -42,9 +43,9 @@ private:
 protected:
     ArnoldiOpType m_op;       // Operators for the Arnoldi factorization
 
-    const int m_n;            // dimension of A
-    const int m_m;            // maximum dimension of subspace V
-    int       m_k;            // current dimension of subspace V
+    const Index m_n;          // dimension of A
+    const Index m_m;          // maximum dimension of subspace V
+    Index       m_k;          // current dimension of subspace V
 
     Matrix m_fac_V;           // V matrix in the Arnoldi factorization
     Matrix m_fac_H;           // H matrix in the Arnoldi factorization
@@ -57,13 +58,13 @@ protected:
 
     // Given orthonormal basis functions V, find a nonzero vector f such that V'Bf = 0
     // Assume that f has been properly allocated
-    void expand_basis(MapConstMat& V, const int seed, Vector& f, Scalar& fnorm)
+    void expand_basis(MapConstMat& V, const Index seed, Vector& f, Scalar& fnorm)
     {
         using std::sqrt;
 
         const Scalar thresh = m_eps * sqrt(Scalar(m_n));
         Vector Vf(V.cols());
-        for(int iter = 0; iter < 5; iter++)
+        for(Index iter = 0; iter < 5; iter++)
         {
             // Randomly generate a new vector and orthogonalize it against V
             SimpleRandom<Scalar> rng(seed + 123 * iter);
@@ -82,7 +83,7 @@ protected:
     }
 
 public:
-    Arnoldi(const ArnoldiOpType& op, int m) :
+    Arnoldi(const ArnoldiOpType& op, Index m) :
         m_op(op), m_n(op.rows()), m_m(m), m_k(0),
         m_near_0(TypeTraits<Scalar>::min() * Scalar(10)),
         m_eps(Eigen::NumTraits<Scalar>::epsilon())
@@ -95,10 +96,10 @@ public:
     const Matrix& matrix_H() const { return m_fac_H; }
     const Vector& vector_f() const { return m_fac_f; }
     Scalar f_norm() const { return m_beta; }
-    int subspace_dim() const { return m_k; }
+    Index subspace_dim() const { return m_k; }
 
     // Initialize with an operator and an initial vector
-    void init(MapConstVec& v0, int& op_counter)
+    void init(MapConstVec& v0, Index& op_counter)
     {
         m_fac_V.resize(m_n, m_m);
         m_fac_H.resize(m_m, m_m);
@@ -139,7 +140,7 @@ public:
     }
 
     // Arnoldi factorization starting from step-k
-    virtual void factorize_from(int from_k, int to_m, int& op_counter)
+    virtual void factorize_from(Index from_k, Index to_m, Index& op_counter)
     {
         using std::sqrt;
 
@@ -164,7 +165,7 @@ public:
         m_fac_H.rightCols(m_m - from_k).setZero();
         m_fac_H.block(from_k, 0, m_m - from_k, from_k).setZero();
 
-        for(int i = from_k; i <= to_m - 1; i++)
+        for(Index i = from_k; i <= to_m - 1; i++)
         {
             bool restart = false;
             // If beta = 0, then the next V is not full rank
@@ -187,7 +188,7 @@ public:
             m_op.perform_op(&m_fac_V(0, i), w.data());
             op_counter++;
 
-            const int i1 = i + 1;
+            const Index i1 = i + 1;
             // First i+1 columns of V
             MapConstMat Vs(m_fac_V.data(), m_n, i1);
             // h = m_fac_H(0:i, i)
@@ -261,9 +262,9 @@ public:
     void compress_V(const Matrix& Q)
     {
         Matrix Vs(m_n, m_k + 1);
-        for(int i = 0; i < m_k; i++)
+        for(Index i = 0; i < m_k; i++)
         {
-            const int nnz = m_m - m_k + i + 1;
+            const Index nnz = m_m - m_k + i + 1;
             MapConstVec q(&Q(0, i), nnz);
             Vs.col(i).noalias() = m_fac_V.leftCols(nnz) * q;
         }

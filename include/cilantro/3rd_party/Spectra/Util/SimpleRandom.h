@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2018 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2019 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -31,6 +31,7 @@ template <typename Scalar = double>
 class SimpleRandom
 {
 private:
+    typedef Eigen::Index Index;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
 
     const unsigned int m_a;     // multiplier
@@ -72,10 +73,10 @@ public:
 
     // Vector of random numbers of type Scalar
     // Ranging from -0.5 to 0.5
-    Vector random_vec(const int len)
+    Vector random_vec(const Index len)
     {
         Vector res(len);
-        for(int i = 0; i < len; i++)
+        for(Index i = 0; i < len; i++)
         {
             m_rand = next_long_rand(m_rand);
             res[i] = Scalar(m_rand) / Scalar(m_max) - Scalar(0.5);

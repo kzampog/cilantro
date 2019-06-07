@@ -1,4 +1,4 @@
-// Copyright (C) 2018 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2018-2019 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -28,6 +28,7 @@ template <typename Scalar, typename ArnoldiOpType>
 class Lanczos: public Arnoldi<Scalar, ArnoldiOpType>
 {
 private:
+    typedef Eigen::Index Index;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
     typedef Eigen::Map<Matrix> MapMat;
@@ -47,12 +48,12 @@ private:
     using Arnoldi<Scalar, ArnoldiOpType>::m_eps;
 
 public:
-    Lanczos(const ArnoldiOpType& op, int m) :
+    Lanczos(const ArnoldiOpType& op, Index m) :
         Arnoldi<Scalar, ArnoldiOpType>(op, m)
     {}
 
     // Lanczos factorization starting from step-k
-    void factorize_from(int from_k, int to_m, int& op_counter)
+    void factorize_from(Index from_k, Index to_m, Index& op_counter)
     {
         using std::sqrt;
 
@@ -77,7 +78,7 @@ public:
         m_fac_H.rightCols(m_m - from_k).setZero();
         m_fac_H.block(from_k, 0, m_m - from_k, from_k).setZero();
 
-        for(int i = from_k; i <= to_m - 1; i++)
+        for(Index i = from_k; i <= to_m - 1; i++)
         {
             bool restart = false;
             // If beta = 0, then the next V is not full rank
@@ -116,7 +117,7 @@ public:
 
             // f/||f|| is going to be the next column of V, so we need to test
             // whether V'B(f/||f||) ~= 0
-            const int i1 = i + 1;
+            const Index i1 = i + 1;
             MapMat Vs(m_fac_V.data(), m_n, i1); // The first (i+1) columns
             m_op.trans_product(Vs, m_fac_f, Vf.head(i1));
             Scalar ortho_err = Vf.head(i1).cwiseAbs().maxCoeff();

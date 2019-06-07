@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2018 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2019 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -25,6 +25,7 @@ template <typename Scalar, int Flags = 0, typename StorageIndex = int>
 class SparseGenMatProd
 {
 private:
+    typedef Eigen::Index Index;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
     typedef Eigen::Map<const Vector> MapConstVec;
     typedef Eigen::Map<Vector> MapVec;
@@ -48,11 +49,11 @@ public:
     ///
     /// Return the number of rows of the underlying matrix.
     ///
-    int rows() const { return m_mat.rows(); }
+    Index rows() const { return m_mat.rows(); }
     ///
     /// Return the number of columns of the underlying matrix.
     ///
-    int cols() const { return m_mat.cols(); }
+    Index cols() const { return m_mat.cols(); }
 
     ///
     /// Perform the matrix-vector multiplication operation \f$y=Ax\f$.

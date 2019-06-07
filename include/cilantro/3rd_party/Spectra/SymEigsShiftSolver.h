@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2018 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2019 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -159,6 +159,7 @@ template <typename Scalar = double,
 class SymEigsShiftSolver: public SymEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>
 {
 private:
+    typedef Eigen::Index Index;
     typedef Eigen::Array<Scalar, Eigen::Dynamic, 1> Array;
 
     const Scalar m_sigma;
@@ -190,7 +191,7 @@ public:
     ///               and is advised to take \f$ncv \ge 2\cdot nev\f$.
     /// \param sigma  The value of the shift.
     ///
-    SymEigsShiftSolver(OpType* op, int nev, int ncv, Scalar sigma) :
+    SymEigsShiftSolver(OpType* op, Index nev, Index ncv, Scalar sigma) :
         SymEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>(op, NULL, nev, ncv),
         m_sigma(sigma)
     {

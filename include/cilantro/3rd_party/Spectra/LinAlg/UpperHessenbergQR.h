@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2018 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2019 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -44,12 +44,11 @@ template <typename Scalar = double>
 class UpperHessenbergQR
 {
 private:
+    typedef Eigen::Index Index;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
     typedef Eigen::Matrix<Scalar, 1, Eigen::Dynamic> RowVector;
     typedef Eigen::Array<Scalar, Eigen::Dynamic, 1> Array;
-
-    typedef typename Matrix::Index Index;
 
     typedef Eigen::Ref<Matrix> GenericMatrix;
     typedef const Eigen::Ref<const Matrix> ConstGenericMatrix;

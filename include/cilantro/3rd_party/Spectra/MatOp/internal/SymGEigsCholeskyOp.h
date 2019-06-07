@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2018 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2019 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -28,6 +28,7 @@ template < typename Scalar = double,
 class SymGEigsCholeskyOp
 {
 private:
+    typedef Eigen::Index Index;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
 
@@ -49,11 +50,11 @@ public:
     ///
     /// Return the number of rows of the underlying matrix.
     ///
-    int rows() const { return m_Bop.rows(); }
+    Index rows() const { return m_Bop.rows(); }
     ///
     /// Return the number of columns of the underlying matrix.
     ///
-    int cols() const { return m_Bop.rows(); }
+    Index cols() const { return m_Bop.rows(); }
 
     ///
     /// Perform the matrix operation \f$y=L^{-1}A(L')^{-1}x\f$.
