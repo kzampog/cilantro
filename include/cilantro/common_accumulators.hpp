@@ -102,7 +102,11 @@ namespace cilantro {
 
         inline PointNormalSumAccumulator& mergeWith(const PointNormalSumAccumulator &other) {
             pointSum += other.pointSum;
-            normalSum += other.normalSum;
+            if (normalSum.dot(other.normalSum) < (ScalarT)0.0) {
+                normalSum -= other.normalSum;
+            } else {
+                normalSum += other.normalSum;
+            }
             pointCount += other.pointCount;
             return *this;
         }
@@ -222,7 +226,11 @@ namespace cilantro {
 
         inline PointNormalColorSumAccumulator& mergeWith(const PointNormalColorSumAccumulator &other) {
             pointSum += other.pointSum;
-            normalSum += other.normalSum;
+            if (normalSum.dot(other.normalSum) < (ScalarT)0.0) {
+                normalSum -= other.normalSum;
+            } else {
+                normalSum += other.normalSum;
+            }
             colorSum += other.colorSum;
             pointCount += other.pointCount;
             return *this;
