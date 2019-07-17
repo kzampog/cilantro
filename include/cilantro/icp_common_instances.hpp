@@ -81,6 +81,14 @@ namespace cilantro {
                     : DefaultCombinedMetricICPEntities<TransformT,CorrSearchT>(dst_points, src_points),
                       DefaultCombinedMetricICP<TransformT,CorrSearchT>(dst_points, dst_normals, src_points, this->corr_search_, this->point_corr_weight_eval_, this->plane_corr_weight_eval_)
             {}
+
+            SimpleCombinedMetricICPWrapper(const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_points,
+                                           const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_normals,
+                                           const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src_points,
+                                           const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src_normals)
+                    : DefaultCombinedMetricICPEntities<TransformT,CorrSearchT>(dst_points, src_points),
+                      DefaultCombinedMetricICP<TransformT,CorrSearchT>(dst_points, dst_normals, src_points, src_normals, this->corr_search_, this->point_corr_weight_eval_, this->plane_corr_weight_eval_)
+            {}
         };
 
         template <class TransformT, class CorrSearchT>

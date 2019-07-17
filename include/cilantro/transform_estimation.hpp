@@ -120,7 +120,9 @@ namespace cilantro {
                                     size_t max_iter = 1,
                                     typename TransformT::Scalar convergence_tol = (typename TransformT::Scalar)1e-5,
                                     const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
-                                    const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT())
+                                    const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT(),
+                                    const Vector<typename TransformT::Scalar,2>& dst_mean = Vector<typename TransformT::Scalar,2>::Zero(),
+                                    const Vector<typename TransformT::Scalar,2>& src_mean = Vector<typename TransformT::Scalar,2>::Zero())
     {
         typedef typename TransformT::Scalar ScalarT;
 
@@ -134,6 +136,9 @@ namespace cilantro {
         {
             return false;
         }
+
+        const Eigen::Translation<ScalarT,2> t_dst(dst_mean);
+        const Eigen::Translation<ScalarT,2> t_src(-src_mean);
 
         Eigen::Matrix<ScalarT,3,3> AtA;
         Eigen::Matrix<ScalarT,3,1> Atb;
@@ -159,9 +164,9 @@ namespace cilantro {
 #endif
                     for (size_t i = 0; i < point_to_point_correspondences.size(); i++) {
                         const auto& corr = point_to_point_correspondences[i];
-                        const auto d = dst_p.col(corr.indexInFirst);
+                        const auto d = dst_p.col(corr.indexInFirst) - dst_mean;
                         const ScalarT weight = point_to_point_weight*point_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
-                        Vector<ScalarT,2> s = tform*src_p.col(corr.indexInSecond);
+                        Vector<ScalarT,2> s = tform*(src_p.col(corr.indexInSecond) - src_mean);
 
                         eq_vecs(0,0) = -s[1];
                         eq_vecs(0,1) = s[0];
@@ -181,10 +186,10 @@ namespace cilantro {
 #endif
                     for (size_t i = 0; i < point_to_plane_correspondences.size(); i++) {
                         const auto& corr = point_to_plane_correspondences[i];
-                        const auto d = dst_p.col(corr.indexInFirst);
+                        const auto d = dst_p.col(corr.indexInFirst) - dst_mean;
                         const auto n = dst_n.col(corr.indexInFirst);
                         const ScalarT weight = point_to_plane_weight*plane_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
-                        Vector<ScalarT,2> s = tform*src_p.col(corr.indexInSecond);
+                        Vector<ScalarT,2> s = tform*(src_p.col(corr.indexInSecond) - src_mean);
 
                         eq_vec(0) = s[0]*n[1] - s[1]*n[0];
                         eq_vec(1) = n[0];
@@ -207,6 +212,7 @@ namespace cilantro {
             tform.linear() = rot_mat_iter*tform.linear();
             tform.linear() = tform.rotation();
             tform.translation() = rot_mat_iter*tform.translation() + d_theta.template tail<2>();
+            tform = t_dst * tform * t_src;
 
             iter++;
 
@@ -231,7 +237,9 @@ namespace cilantro {
                                     size_t max_iter = 1,
                                     typename TransformT::Scalar convergence_tol = (typename TransformT::Scalar)1e-5,
                                     const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
-                                    const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT())
+                                    const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT(),
+                                    const Vector<typename TransformT::Scalar,3>& dst_mean = Vector<typename TransformT::Scalar,3>::Zero(),
+                                    const Vector<typename TransformT::Scalar,3>& src_mean = Vector<typename TransformT::Scalar,3>::Zero())
     {
         typedef typename TransformT::Scalar ScalarT;
 
@@ -245,6 +253,9 @@ namespace cilantro {
         {
             return false;
         }
+
+        const Eigen::Translation<ScalarT,3> t_dst(dst_mean);
+        const Eigen::Translation<ScalarT,3> t_src(-src_mean);
 
         Eigen::Matrix<ScalarT,6,6> AtA;
         Eigen::Matrix<ScalarT,6,1> Atb;
@@ -269,9 +280,9 @@ namespace cilantro {
 #endif
                     for (size_t i = 0; i < point_to_point_correspondences.size(); i++) {
                         const auto& corr = point_to_point_correspondences[i];
-                        const auto d = dst_p.col(corr.indexInFirst);
+                        const auto d = (dst_p.col(corr.indexInFirst) - dst_mean);
                         const ScalarT weight = point_to_point_weight*point_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
-                        Vector<ScalarT,3> s = tform*src_p.col(corr.indexInSecond);
+                        Vector<ScalarT,3> s = tform*(src_p.col(corr.indexInSecond) - src_mean);
 
                         eq_vecs(0,0) = (ScalarT)0.0;
                         eq_vecs(0,1) = -s[2];
@@ -300,10 +311,10 @@ namespace cilantro {
 #endif
                     for (size_t i = 0; i < point_to_plane_correspondences.size(); i++) {
                         const auto& corr = point_to_plane_correspondences[i];
-                        const auto d = dst_p.col(corr.indexInFirst);
+                        const auto d = dst_p.col(corr.indexInFirst) - dst_mean;
                         const auto n = dst_n.col(corr.indexInFirst);
                         const ScalarT weight = point_to_plane_weight*plane_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
-                        Vector<ScalarT,3> s = tform*src_p.col(corr.indexInSecond);
+                        Vector<ScalarT,3> s = tform*(src_p.col(corr.indexInSecond) - src_mean);
 
                         eq_vec(0) = (n[2]*s[1] - n[1]*s[2]);
                         eq_vec(1) = (n[0]*s[2] - n[2]*s[0]);
@@ -331,6 +342,7 @@ namespace cilantro {
             tform.linear() = rot_mat_iter*tform.linear();
             tform.linear() = tform.rotation();
             tform.translation() = rot_mat_iter*tform.translation() + d_theta.template tail<3>();
+            tform = t_dst * tform * t_src;
 
             iter++;
 
@@ -355,7 +367,9 @@ namespace cilantro {
                                     size_t /*max_iter = 1*/,
                                     typename TransformT::Scalar /*convergence_tol = (typename TransformT::Scalar)1e-5*/,
                                     const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
-                                    const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT())
+                                    const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT(),
+                                    const Vector<typename TransformT::Scalar,TransformT::Dim>& dst_mean = Vector<typename TransformT::Scalar,TransformT::Dim>::Zero(),
+                                    const Vector<typename TransformT::Scalar,TransformT::Dim>& src_mean = Vector<typename TransformT::Scalar,TransformT::Dim>::Zero())
     {
         typedef typename TransformT::Scalar ScalarT;
         enum {
@@ -372,6 +386,9 @@ namespace cilantro {
             tform.setIdentity();
             return false;
         }
+
+        const Eigen::Translation<ScalarT,Dim> t_dst(dst_mean);
+        const Eigen::Translation<ScalarT,Dim> t_src(-src_mean);
 
         Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns> AtA(Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns>::Zero());
         Eigen::Matrix<ScalarT,NumUnknowns,1> Atb(Eigen::Matrix<ScalarT,NumUnknowns,1>::Zero());
@@ -392,11 +409,11 @@ namespace cilantro {
                     const ScalarT weight = point_to_point_weight*point_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
 
                     for (size_t j = 0; j < Dim; j++) {
-                        eq_vecs.template block<Dim,1>(j*Dim, j) = src_p.col(corr.indexInSecond);
+                        eq_vecs.template block<Dim,1>(j*Dim, j) = src_p.col(corr.indexInSecond) - src_mean;
                     }
 
                     Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns> AtA_priv((weight*eq_vecs)*eq_vecs.transpose());
-                    Eigen::Matrix<ScalarT,NumUnknowns,1> Atb_priv(eq_vecs*(weight*dst_p.col(corr.indexInFirst)));
+                    Eigen::Matrix<ScalarT,NumUnknowns,1> Atb_priv(eq_vecs*(weight*(dst_p.col(corr.indexInFirst) - dst_mean)));
 
                     AtA += AtA_priv;
                     Atb += Atb_priv;
@@ -414,12 +431,12 @@ namespace cilantro {
                     const ScalarT weight = point_to_plane_weight*plane_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
 
                     for (size_t j = 0; j < Dim; j++) {
-                        eq_vec.template segment<Dim>(j*Dim) = n[j]*src_p.col(corr.indexInSecond);
+                        eq_vec.template segment<Dim>(j*Dim) = n[j]*(src_p.col(corr.indexInSecond) - src_mean);
                     }
                     eq_vec.template tail<Dim>() = n;
 
                     Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns> AtA_priv((weight*eq_vec)*eq_vec.transpose());
-                    Eigen::Matrix<ScalarT,NumUnknowns,1> Atb_priv((weight*(n.dot(dst_p.col(corr.indexInFirst))))*eq_vec);
+                    Eigen::Matrix<ScalarT,NumUnknowns,1> Atb_priv((weight*(n.dot(dst_p.col(corr.indexInFirst) - src_mean)))*eq_vec);
 
                     AtA += AtA_priv;
                     Atb += Atb_priv;
@@ -431,6 +448,7 @@ namespace cilantro {
 
         tform.linear() = Eigen::Map<Eigen::Matrix<ScalarT,Dim,Dim,Eigen::RowMajor>>(theta.data(), Dim, Dim);
         tform.translation() = theta.template tail<Dim>();
+        tform = t_dst * tform * t_src;
 
         return has_point_to_point_terms*point_to_point_correspondences.size() + has_point_to_plane_terms*point_to_plane_correspondences.size() >= Dim + 1;
     }
@@ -452,7 +470,9 @@ namespace cilantro {
                                      size_t max_iter = 1,
                                      typename TransformT::Scalar convergence_tol = (typename TransformT::Scalar)1e-5,
                                      const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
-                                     const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT())
+                                     const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT(),
+                                     const Vector<typename TransformT::Scalar, 3>& dst_mean = Vector<typename TransformT::Scalar, 3>::Zero(),
+                                     const Vector<typename TransformT::Scalar, 3>& src_mean = Vector<typename TransformT::Scalar, 3>::Zero())
     {
         typedef typename TransformT::Scalar ScalarT;
 
@@ -467,10 +487,8 @@ namespace cilantro {
             return false;
         }
 
-        const Vector<ScalarT, 3> dst_mean = dst_p.rowwise().mean();
-        const Vector<ScalarT, 3> src_mean = src_p.rowwise().mean();
-        const auto t_dst = Eigen::Translation<ScalarT, 3>(dst_mean);
-        const auto t_src = Eigen::Translation<ScalarT, 3>(-src_mean);
+        const Eigen::Translation<ScalarT, 3> t_dst(dst_mean);
+        const Eigen::Translation<ScalarT, 3> t_src(-src_mean);
 
         Eigen::Matrix<ScalarT,6,6> AtA;
         Eigen::Matrix<ScalarT,6,1> Atb;
@@ -541,8 +559,8 @@ namespace cilantro {
             // Update estimate
             ScalarT na = d_theta.template head<3>().norm();
             ScalarT theta = std::atan(na);
-            const auto Ra = Eigen::AngleAxis<ScalarT>(theta, (1 / na) * d_theta.template head<3>());
-            const auto ta = Eigen::Translation<ScalarT, 3>(std::cos(theta) * d_theta.template tail<3>());
+            const Eigen::AngleAxis<ScalarT> Ra(theta, (1 / na) * d_theta.template head<3>());
+            const Eigen::Translation<ScalarT, 3> ta(std::cos(theta) * d_theta.template tail<3>());
             tform = t_dst * Ra * ta * Ra * t_src * tform;
 
             // Check for convergence
