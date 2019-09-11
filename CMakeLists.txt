@@ -23,6 +23,12 @@ set(OTHER_INCLUDES ${EIGEN3_INCLUDE_DIRS} ${Pangolin_INCLUDE_DIRS})
 include_directories(include ${CMAKE_CURRENT_BINARY_DIR}/include)
 include_directories(${OTHER_INCLUDES})
 
+if(_WIN_)
+    option( BUILD_SHARED_LIBS    "Build Shared Library" OFF)
+else()
+    option( BUILD_SHARED_LIBS    "Build Shared Library" ON)
+endif()
+
 # Build options
 option(ENABLE_NATIVE_BUILD_OPTIMIZATIONS "Enable native build optimization flags" ON)
 option(ENABLE_NON_DETERMINISTIC_PARALLELISM "Enable parallelization that may produce non-deterministic results" ON)
@@ -32,7 +38,7 @@ file(GLOB_RECURSE 3rd_src ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd_party/*.c ${CMAKE_
 file(GLOB lib_include ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/*.hpp ${CMAKE_CURRENT_BINARY_DIR}/include/${PROJECT_NAME}/*.hpp)
 file(GLOB lib_src ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
-add_library(${PROJECT_NAME} SHARED ${3rd_src} ${lib_include} ${lib_src})
+add_library(${PROJECT_NAME} ${3rd_src} ${lib_include} ${lib_src})
 target_link_libraries(${PROJECT_NAME} ${Pangolin_LIBRARIES})
 if (ENABLE_NATIVE_BUILD_OPTIMIZATIONS)
 	target_compile_options(${PROJECT_NAME} PUBLIC -O3 -march=native -mtune=native)
@@ -67,7 +73,7 @@ endif()
 # Install target
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/include/${PROJECT_NAME}/config.hpp" DESTINATION ${CMAKE_INSTALL_PREFIX}/include/${PROJECT_NAME})
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
-install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake" DESTINATION ${CMAKECONFIG_INSTALL_DIR})
 install(EXPORT ${PROJECT_NAME}Targets DESTINATION ${CMAKECONFIG_INSTALL_DIR})
