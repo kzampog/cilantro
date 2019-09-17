@@ -2,7 +2,7 @@
 
 #include <cilantro/config.hpp>
 #include <cilantro/data_containers.hpp>
-#include <cilantro/omp_reductions.hpp>
+#include <cilantro/openmp_reductions.hpp>
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>

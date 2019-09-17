@@ -37,7 +37,7 @@
 #include <cilantro/nearest_neighbor_graph_utilities.hpp>
 #include <cilantro/nearest_neighbors.hpp>
 #include <cilantro/normal_estimation.hpp>
-#include <cilantro/omp_reductions.hpp>
+#include <cilantro/openmp_reductions.hpp>
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/principal_component_analysis.hpp>
 #include <cilantro/ransac_base.hpp>

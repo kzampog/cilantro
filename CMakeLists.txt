@@ -24,9 +24,9 @@ include_directories(include ${CMAKE_CURRENT_BINARY_DIR}/include)
 include_directories(${OTHER_INCLUDES})
 
 if(_WIN_)
-    option( BUILD_SHARED_LIBS    "Build Shared Library" OFF)
+    option(BUILD_SHARED_LIBS "Build Shared Library" OFF)
 else()
-    option( BUILD_SHARED_LIBS    "Build Shared Library" ON)
+    option(BUILD_SHARED_LIBS "Build Shared Library" ON)
 endif()
 
 # Build options
@@ -41,9 +41,9 @@ file(GLOB lib_src ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 add_library(${PROJECT_NAME} ${3rd_src} ${lib_include} ${lib_src})
 target_link_libraries(${PROJECT_NAME} ${Pangolin_LIBRARIES})
 if (ENABLE_NATIVE_BUILD_OPTIMIZATIONS)
-	target_compile_options(${PROJECT_NAME} PUBLIC -O3 -march=native -mtune=native)
+    target_compile_options(${PROJECT_NAME} PUBLIC -O3 -march=native -mtune=native)
 else()
-	target_compile_options(${PROJECT_NAME} PUBLIC -O3)
+    target_compile_options(${PROJECT_NAME} PUBLIC -O3)
 endif()
 
 # Configure preprocessor definitions

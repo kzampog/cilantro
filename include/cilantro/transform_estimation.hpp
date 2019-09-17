@@ -4,7 +4,7 @@
 #include <cilantro/space_transformations.hpp>
 #include <cilantro/correspondence.hpp>
 #include <cilantro/common_pair_evaluators.hpp>
-#include <cilantro/omp_reductions.hpp>
+#include <cilantro/openmp_reductions.hpp>
 
 namespace cilantro {
     // Rigid, point-to-point, general dimension, closed form, SVD
