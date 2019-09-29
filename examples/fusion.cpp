@@ -90,7 +90,7 @@ int main(int argc, char ** argv) {
     rp.setPointColor(0.8f, 0.8f, 0.8f);
 
     // Parameters
-    float max_depth = 1.2f;
+    float max_depth = 1.8f;
     float fusion_dist_thresh = 0.01f;
     float occlusion_dist_thresh = 0.025f;
     float radial_factor = -0.5f/(120*120);
@@ -120,7 +120,7 @@ int main(int argc, char ** argv) {
 
         // Localize
         if (!model.isEmpty()) {
-            cilantro::SimpleCombinedMetricRigidProjectiveICP3f icp(model.points, model.normals, frame.points);
+            cilantro::SimpleCombinedMetricRigidProjectiveICP3f icp(model.points, model.normals, frame.points, frame.normals);
             icp.correspondenceSearchEngine().setProjectionExtrinsicMatrix(cam_pose).setMaxDistance(0.1f*0.1f)
                     .setProjectionImageWidth(w).setProjectionImageHeight(h).setProjectionIntrinsicMatrix(K);
             icp.setInitialTransform(cam_pose).setConvergenceTolerance(5e-4f);
