@@ -64,7 +64,10 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,NumUnknowns,1> Atb(Eigen::Matrix<ScalarT,NumUnknowns,1>::Zero());
 
 #ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
-#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,NumUnknowns,NumUnknowns>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,NumUnknowns,1>::operator+: Atb)
+DEFINE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,NumUnknowns)
+DEFINE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
+#pragma omp parallel reduction (+: AtA) reduction (+: Atb)
+//#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,NumUnknowns,NumUnknowns>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,NumUnknowns,1>::operator+: Atb)
 #endif
         {
             Eigen::Matrix<ScalarT,NumUnknowns,Dim> eq_vecs;
@@ -153,7 +156,10 @@ namespace cilantro {
             Atb.setZero();
 
 #ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
-#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,3,3>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,3,1>::operator+: Atb)
+DEFINE_MATRIX_SUM_REDUCTION(ScalarT,3,3)
+DEFINE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
+#pragma omp parallel reduction (+: AtA) reduction (+: Atb)
+//#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,3,3>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,3,1>::operator+: Atb)
 #endif
             {
                 if (has_point_to_point_terms) {
@@ -269,7 +275,10 @@ namespace cilantro {
             AtA.setZero();
             Atb.setZero();
 #ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
-#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,6,6>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,6,1>::operator+: Atb)
+DEFINE_MATRIX_SUM_REDUCTION(ScalarT,6,6)
+DEFINE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
+#pragma omp parallel reduction (+: AtA) reduction (+: Atb)
+//#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,6,6>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,6,1>::operator+: Atb)
 #endif
             {
                 if (has_point_to_point_terms) {
@@ -394,7 +403,10 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,NumUnknowns,1> Atb(Eigen::Matrix<ScalarT,NumUnknowns,1>::Zero());
 
 #ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
-#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,NumUnknowns,NumUnknowns>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,NumUnknowns,1>::operator+: Atb)
+DEFINE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,NumUnknowns)
+DEFINE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
+#pragma omp parallel reduction (+: AtA) reduction (+: Atb)
+//#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,NumUnknowns,NumUnknowns>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,NumUnknowns,1>::operator+: Atb)
 #endif
         {
             if (has_point_to_point_terms) {
@@ -501,7 +513,10 @@ namespace cilantro {
             AtA.setZero();
             Atb.setZero();
 #ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
-#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,6,6>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,6,1>::operator+: Atb)
+DEFINE_MATRIX_SUM_REDUCTION(ScalarT,6,6)
+DEFINE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
+#pragma omp parallel reduction (+: AtA) reduction (+: Atb)
+//#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,6,6>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,6,1>::operator+: Atb)
 #endif
             {
                 if (has_point_to_point_terms) {

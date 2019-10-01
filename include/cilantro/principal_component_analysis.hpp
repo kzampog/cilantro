@@ -19,7 +19,9 @@ namespace cilantro {
                 Vector<ScalarT,EigenDim> sum(Vector<ScalarT,EigenDim>::Zero(data.rows(), 1));
 
 #ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
-#pragma omp parallel for reduction (internal::MatrixReductions<ScalarT,EigenDim,1>::operator+: sum)
+DEFINE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,1)
+#pragma omp parallel for reduction (+: sum)
+//#pragma omp parallel for reduction (internal::MatrixReductions<ScalarT,EigenDim,1>::operator+: sum)
 #endif
                 for (size_t i = 0; i < data.cols(); i++) {
                     sum += data.col(i);
@@ -29,7 +31,9 @@ namespace cilantro {
                 Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov(Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(data.rows(), data.rows()));
 
 #ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
-#pragma omp parallel for reduction (internal::MatrixReductions<ScalarT,EigenDim,EigenDim>::operator+: cov)
+DEFINE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
+#pragma omp parallel for reduction (+: cov)
+//#pragma omp parallel for reduction (internal::MatrixReductions<ScalarT,EigenDim,EigenDim>::operator+: cov)
 #endif
                 for (size_t i = 0; i < data.cols(); i++) {
                     Eigen::Matrix<ScalarT,EigenDim,1> ptc = data.col(i) - mean_;
