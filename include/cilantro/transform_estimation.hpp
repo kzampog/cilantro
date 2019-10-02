@@ -64,9 +64,9 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,NumUnknowns,1> Atb(Eigen::Matrix<ScalarT,NumUnknowns,1>::Zero());
 
 #ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
-DEFINE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,NumUnknowns)
-DEFINE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
-#pragma omp parallel reduction (+: AtA) reduction (+: Atb)
+DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,NumUnknowns)
+DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
+#pragma omp parallel MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,NumUnknowns,AtA) MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1,Atb)
 //#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,NumUnknowns,NumUnknowns>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,NumUnknowns,1>::operator+: Atb)
 #endif
         {
@@ -156,9 +156,9 @@ DEFINE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
             Atb.setZero();
 
 #ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
-DEFINE_MATRIX_SUM_REDUCTION(ScalarT,3,3)
-DEFINE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
-#pragma omp parallel reduction (+: AtA) reduction (+: Atb)
+DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,3)
+DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
+#pragma omp parallel MATRIX_SUM_REDUCTION(ScalarT,3,3,AtA) MATRIX_SUM_REDUCTION(ScalarT,3,1,Atb)
 //#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,3,3>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,3,1>::operator+: Atb)
 #endif
             {
@@ -275,9 +275,9 @@ DEFINE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
             AtA.setZero();
             Atb.setZero();
 #ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
-DEFINE_MATRIX_SUM_REDUCTION(ScalarT,6,6)
-DEFINE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
-#pragma omp parallel reduction (+: AtA) reduction (+: Atb)
+DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,6)
+DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
+#pragma omp parallel MATRIX_SUM_REDUCTION(ScalarT,6,6,AtA) MATRIX_SUM_REDUCTION(ScalarT,6,1,Atb)
 //#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,6,6>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,6,1>::operator+: Atb)
 #endif
             {
@@ -403,9 +403,9 @@ DEFINE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
         Eigen::Matrix<ScalarT,NumUnknowns,1> Atb(Eigen::Matrix<ScalarT,NumUnknowns,1>::Zero());
 
 #ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
-DEFINE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,NumUnknowns)
-DEFINE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
-#pragma omp parallel reduction (+: AtA) reduction (+: Atb)
+DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,NumUnknowns)
+DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
+#pragma omp parallel MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,NumUnknowns,AtA) MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1,Atb)
 //#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,NumUnknowns,NumUnknowns>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,NumUnknowns,1>::operator+: Atb)
 #endif
         {
@@ -513,9 +513,9 @@ DEFINE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
             AtA.setZero();
             Atb.setZero();
 #ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
-DEFINE_MATRIX_SUM_REDUCTION(ScalarT,6,6)
-DEFINE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
-#pragma omp parallel reduction (+: AtA) reduction (+: Atb)
+DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,6)
+DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
+#pragma omp parallel MATRIX_SUM_REDUCTION(ScalarT,6,6,AtA) MATRIX_SUM_REDUCTION(ScalarT,6,1,Atb)
 //#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,6,6>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,6,1>::operator+: Atb)
 #endif
             {
