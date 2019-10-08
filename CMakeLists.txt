@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.9)
 project(cilantro)
 
 # Build setup
@@ -13,15 +13,13 @@ if(Pangolin_FOUND)
     set(HAVE_PANGOLIN ON)
 endif()
 find_package(OpenMP)
-if(OPENMP_FOUND)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif()
+# if(OPENMP_FOUND)
+#     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+#     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+# endif()
 
-set(OTHER_INCLUDES ${EIGEN3_INCLUDE_DIRS} ${Pangolin_INCLUDE_DIRS})
-
-include_directories(include ${CMAKE_CURRENT_BINARY_DIR}/include)
-include_directories(${OTHER_INCLUDES})
+set(OTHER_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIRS} ${Pangolin_INCLUDE_DIRS})
+set(OTHER_LIBRARIES ${EIGEN3_LIBRARIES} ${Pangolin_LIBRARIES})
 
 if(_WIN_)
     option(BUILD_SHARED_LIBS "Build Shared Library" OFF)
@@ -34,12 +32,20 @@ option(ENABLE_NATIVE_BUILD_OPTIMIZATIONS "Enable native build optimization flags
 option(ENABLE_NON_DETERMINISTIC_PARALLELISM "Enable parallelization that may produce non-deterministic results" ON)
 
 # Build library
-file(GLOB_RECURSE 3rd_src ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd_party/*.c ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd_party/*.cpp)
-file(GLOB lib_include ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/*.hpp ${CMAKE_CURRENT_BINARY_DIR}/include/${PROJECT_NAME}/*.hpp)
-file(GLOB lib_src ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+file(GLOB_RECURSE THIRD_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd_party/*.c ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd_party/*.cpp)
+file(GLOB LIB_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/*.hpp ${CMAKE_CURRENT_BINARY_DIR}/include/${PROJECT_NAME}/*.hpp)
+file(GLOB LIB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
-add_library(${PROJECT_NAME} ${3rd_src} ${lib_include} ${lib_src})
-target_link_libraries(${PROJECT_NAME} ${Pangolin_LIBRARIES})
+add_library(${PROJECT_NAME} ${THIRD_SOURCES} ${LIB_HEADERS} ${LIB_SOURCES})
+target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC ${OTHER_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+                                                  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+                                                  $<INSTALL_INTERFACE:include>)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${OTHER_LIBRARIES})
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
+endif()
+
 if (ENABLE_NATIVE_BUILD_OPTIMIZATIONS)
     target_compile_options(${PROJECT_NAME} PUBLIC -O3 -march=native -mtune=native)
 else()
