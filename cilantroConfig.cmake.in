@@ -5,6 +5,10 @@ set(@PROJECT_NAME@_INCLUDE_DIRS "@EXPORT_INCLUDE_DIR@;@OTHER_INCLUDE_DIRS@")
 if(NOT TARGET @PROJECT_NAME@ AND NOT @PROJECT_NAME@_BINARY_DIR)
     include("${PROJECT_CMAKE_DIR}/@PROJECT_NAME@Targets.cmake")
     @ExternConfig@
+    include(CMakeFindDependencyMacro)
+    find_package(Eigen3)
+    @DEPENDS_Pangolin@
+    @DEPENDS_OpenMP@
 endif()
 
 set(@PROJECT_NAME@_LIBRARIES @PROJECT_NAME@)

@@ -8,9 +8,10 @@ set(CMAKE_CXX_STANDARD 11)
 
 # Packages
 find_package(Eigen3 REQUIRED)
-find_package(Pangolin QUIET)
+find_package(Pangolin)
 if(Pangolin_FOUND)
     set(HAVE_PANGOLIN ON)
+    set(DEPENDS_Pangolin "find_dependency(Pangolin)")
 endif()
 find_package(OpenMP)
 # if(OPENMP_FOUND)
@@ -44,6 +45,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${PROJECT_SO
 target_link_libraries(${PROJECT_NAME} PUBLIC ${OTHER_LIBRARIES})
 if(OpenMP_CXX_FOUND)
     target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
+    set(DEPENDS_OpenMP "find_dependency(OpenMP)")
 endif()
 
 if (ENABLE_NATIVE_BUILD_OPTIMIZATIONS)
