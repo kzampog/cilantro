@@ -483,8 +483,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
                                      typename TransformT::Scalar convergence_tol = (typename TransformT::Scalar)1e-5,
                                      const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
                                      const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT(),
-                                     const Vector<typename TransformT::Scalar, 3>& dst_mean = Vector<typename TransformT::Scalar, 3>::Zero(),
-                                     const Vector<typename TransformT::Scalar, 3>& src_mean = Vector<typename TransformT::Scalar, 3>::Zero())
+                                     const Vector<typename TransformT::Scalar,3>& dst_mean = Vector<typename TransformT::Scalar,3>::Zero(),
+                                     const Vector<typename TransformT::Scalar,3>& src_mean = Vector<typename TransformT::Scalar,3>::Zero())
     {
         typedef typename TransformT::Scalar ScalarT;
 
@@ -499,8 +499,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
             return false;
         }
 
-        const Eigen::Translation<ScalarT, 3> t_dst(dst_mean);
-        const Eigen::Translation<ScalarT, 3> t_src(-src_mean);
+        const Eigen::Translation<ScalarT,3> t_dst(dst_mean);
+        const Eigen::Translation<ScalarT,3> t_src(-src_mean);
 
         Eigen::Matrix<ScalarT,6,6> AtA;
         Eigen::Matrix<ScalarT,6,1> Atb;

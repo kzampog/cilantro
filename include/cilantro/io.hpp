@@ -12,7 +12,9 @@ namespace cilantro {
                                    VectorSet<float,3> &colors)
     {
         std::ifstream ss(file_name, std::ios::binary);
-        tinyply::PlyFile file(ss);
+        tinyply::PlyFile file;
+
+        file.parse_header(ss);
 
         const auto& elements = file.get_elements();
 
@@ -31,7 +33,7 @@ namespace cilantro {
         const auto& vertex_props = elements[vertex_element_ind].properties;
 
         bool has_point = false, has_normal = false, has_color = false;
-        tinyply::PlyProperty::Type point_type, normal_type, color_type;
+        tinyply::Type point_type, normal_type, color_type;
         for (size_t i = 0; i < vertex_props.size(); i++) {
             if (vertex_props[i].name == "x") {
                 has_point = true;
@@ -46,48 +48,36 @@ namespace cilantro {
         }
 
         // Data holders
-        std::vector<float> vertex_data_f;
-        std::vector<double> vertex_data_d;
-        std::vector<float> normal_data_f;
-        std::vector<double> normal_data_d;
-        std::vector<uint8_t> color_data;
-
-        if (!has_point) return;
+        std::shared_ptr<tinyply::PlyData> vertex_data, normal_data, color_data;
 
         // Initialize PLY data holders
-        if (point_type == tinyply::PlyProperty::Type::FLOAT32) {
-            file.request_properties_from_element<float>("vertex", {"x", "y", "z"}, vertex_data_f);
-        } else if (point_type == tinyply::PlyProperty::Type::FLOAT64) {
-            file.request_properties_from_element<double>("vertex", {"x", "y", "z"}, vertex_data_d);
-        }
-
-        if (has_normal && normal_type == tinyply::PlyProperty::Type::FLOAT32) {
-            file.request_properties_from_element<float>("vertex", {"nx", "ny", "nz"}, normal_data_f);
-        } else if (has_normal && normal_type == tinyply::PlyProperty::Type::FLOAT64) {
-            file.request_properties_from_element<double>("vertex", {"nx", "ny", "nz"}, normal_data_d);
-        }
-
-        if (has_color && color_type == tinyply::PlyProperty::Type::UINT8) {
-            file.request_properties_from_element("vertex", {"red", "green", "blue"}, color_data);
-        }
+        if (has_point) vertex_data = file.request_properties_from_element("vertex", {"x", "y", "z"});
+        if (has_normal) normal_data = file.request_properties_from_element("vertex", {"nx", "ny", "nz"});
+        if (has_color) color_data = file.request_properties_from_element("vertex", {"red", "green", "blue"});
 
         // Read PLY data
         file.read(ss);
 
         // Populate cloud
-        if (point_type == tinyply::PlyProperty::Type::FLOAT32) {
-            points = ConstDataMatrixMap<float,3>(vertex_data_f).template cast<ScalarT>();
-        } else  if (point_type == tinyply::PlyProperty::Type::FLOAT64) {
-            points = ConstDataMatrixMap<double,3>(vertex_data_d).template cast<ScalarT>();
+        if (has_point) {
+            if (point_type == tinyply::Type::FLOAT32) {
+                points = ConstDataMatrixMap<float,3>((float *)vertex_data->buffer.get(), vertex_data->count).template cast<ScalarT>();
+            } else if (point_type == tinyply::Type::FLOAT64) {
+                points = ConstDataMatrixMap<double,3>((double *)vertex_data->buffer.get(), vertex_data->count).template cast<ScalarT>();
+            }
         }
 
-        if (normal_type == tinyply::PlyProperty::Type::FLOAT32) {
-            normals = ConstDataMatrixMap<float,3>(normal_data_f).template cast<ScalarT>();
-        } else if (normal_type == tinyply::PlyProperty::Type::FLOAT64) {
-            normals = ConstDataMatrixMap<double,3>(normal_data_d).template cast<ScalarT>();
+        if (has_normal) {
+            if (normal_type == tinyply::Type::FLOAT32) {
+                normals = ConstDataMatrixMap<float,3>((float *)normal_data->buffer.get(), normal_data->count).template cast<ScalarT>();
+            } else if (normal_type == tinyply::Type::FLOAT64) {
+                normals = ConstDataMatrixMap<double,3>((double *)normal_data->buffer.get(), normal_data->count).template cast<ScalarT>();
+            }
         }
 
-        colors = ConstDataMatrixMap<uint8_t,3>(color_data).cast<float>()*(1.0f/255.0f);
+        if (has_color) {
+            colors = ConstDataMatrixMap<uint8_t,3>((uint8_t *)color_data->buffer.get(), color_data->count).cast<float>()*(1.0f/255.0f);
+        }
     }
 
     template <typename ScalarT, typename ScalarOutT = ScalarT>
@@ -99,30 +89,47 @@ namespace cilantro {
     {
         tinyply::PlyFile file;
 
-        std::vector<ScalarOutT> vertex_data(3*points.cols());
-        DataMatrixMap<ScalarOutT,3>(vertex_data).eigenMap() = points.template cast<ScalarOutT>();
-        file.add_properties_to_element<ScalarT>("vertex", {"x", "y", "z"}, vertex_data);
-
-        std::vector<ScalarOutT> normal_data;
-        if (normals.cols() == points.cols()) {
-            normal_data.resize(3*normals.cols());
-            DataMatrixMap<ScalarOutT,3>(normal_data).eigenMap() = normals.template cast<ScalarOutT>();
-            file.add_properties_to_element("vertex", {"nx", "ny", "nz"}, normal_data);
+        cilantro::VectorSet<ScalarOutT,3> points_tmp, normals_tmp;
+        if (std::is_same<ScalarT,ScalarOutT>::value == false) {
+            points_tmp = points.template cast<ScalarOutT>();
+            if (points.cols() == normals.cols()) normals_tmp = normals.template cast<ScalarOutT>();
         }
 
-        std::vector<uint8_t> color_data;
+        auto vertex_data = (std::is_same<ScalarT,ScalarOutT>::value) ? ConstVectorSetMatrixMap<ScalarOutT,3>((const ScalarOutT *)points.data(), points.cols()) :
+                                                                       ConstVectorSetMatrixMap<ScalarOutT,3>((const ScalarOutT *)points_tmp.data(), points_tmp.cols());
+
+        if (std::is_same<ScalarOutT,float>::value == true) {
+            file.add_properties_to_element("vertex", {"x", "y", "z"}, tinyply::Type::FLOAT32, vertex_data.cols(), (uint8_t*)vertex_data.data(), tinyply::Type::INVALID, 0);
+        } else if (std::is_same<ScalarOutT,double>::value == true) {
+            file.add_properties_to_element("vertex", {"x", "y", "z"}, tinyply::Type::FLOAT64, vertex_data.cols(), (uint8_t*)vertex_data.data(), tinyply::Type::INVALID, 0);
+        }
+
+        auto normal_data = (std::is_same<ScalarT,ScalarOutT>::value) ? ConstVectorSetMatrixMap<ScalarOutT,3>((const ScalarOutT *)normals.data(), normals.cols()) :
+                                                                       ConstVectorSetMatrixMap<ScalarOutT,3>((const ScalarOutT *)normals_tmp.data(), normals_tmp.cols());
+
+        if (normals.cols() == points.cols()) {
+            if (std::is_same<ScalarOutT,float>::value == true) {
+                file.add_properties_to_element("vertex", {"nx", "ny", "nz"}, tinyply::Type::FLOAT32, normal_data.cols(), (uint8_t*)normal_data.data(), tinyply::Type::INVALID, 0);
+            } else if (std::is_same<ScalarOutT,double>::value == true) {
+                file.add_properties_to_element("vertex", {"nx", "ny", "nz"}, tinyply::Type::FLOAT64, normal_data.cols(), (uint8_t*)normal_data.data(), tinyply::Type::INVALID, 0);
+            }
+        }
+
+        VectorSet<uint8_t,3> color_data;
         if (colors.cols() == points.cols()) {
-            color_data.resize(3*colors.cols());
-            DataMatrixMap<uint8_t,3>(color_data).eigenMap() = (255.0f*colors).cast<uint8_t>();
-            file.add_properties_to_element("vertex", {"red", "green", "blue"}, color_data);
+            color_data = (255.0f*colors).cast<uint8_t>();
+            file.add_properties_to_element("vertex", {"red", "green", "blue"}, tinyply::Type::UINT8, color_data.cols(), (uint8_t*)color_data.data(), tinyply::Type::INVALID, 0);
         }
 
         // Write to file
         std::filebuf fb;
-        fb.open(file_name, std::ios::out | std::ios::binary);
+        if (binary) {
+            fb.open(file_name, std::ios::out | std::ios::binary);
+        } else {
+            fb.open(file_name, std::ios::out);
+        }
         std::ostream output_stream(&fb);
         file.write(output_stream, binary);
-        fb.close();
     }
 
     template<class Matrix>

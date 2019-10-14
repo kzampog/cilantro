@@ -32,7 +32,8 @@ namespace cilantro {
                   point_to_point_weight_((typename TransformT::Scalar)0.0), point_to_plane_weight_((typename TransformT::Scalar)1.0),
                   point_corr_eval_(point_corr_eval), plane_corr_eval_(plane_corr_eval),
                   src_points_trans_(src_points_.rows(), src_points_.cols()),
-                  dst_mean_(dst_points_.rowwise().mean()), src_mean_(src_points_.rowwise().mean()),
+                  dst_mean_((dst_points_.cols() == 0) ? Vector<typename TransformT::Scalar,TransformT::Dim>::Zero() : Vector<typename TransformT::Scalar,TransformT::Dim>(dst_points_.rowwise().mean())),
+                  src_mean_((src_points_.cols() == 0) ? Vector<typename TransformT::Scalar,TransformT::Dim>::Zero() : Vector<typename TransformT::Scalar,TransformT::Dim>(src_points_.rowwise().mean())),
                   has_source_normals_(false)
         {
             this->transform_init_.setIdentity();
@@ -52,7 +53,8 @@ namespace cilantro {
                   point_corr_eval_(point_corr_eval), plane_corr_eval_(plane_corr_eval),
                   src_points_trans_(src_points_.rows(), src_points_.cols()),
                   src_normals_trans_(src_points_.rows(), src_points_.cols()),
-                  dst_mean_(dst_points_.rowwise().mean()), src_mean_(src_points_.rowwise().mean()),
+                  dst_mean_((dst_points_.cols() == 0) ? Vector<typename TransformT::Scalar,TransformT::Dim>::Zero() : Vector<typename TransformT::Scalar,TransformT::Dim>(dst_points_.rowwise().mean())),
+                  src_mean_((src_points_.cols() == 0) ? Vector<typename TransformT::Scalar,TransformT::Dim>::Zero() : Vector<typename TransformT::Scalar,TransformT::Dim>(src_points_.rowwise().mean())),
                   has_source_normals_(true)
         {
             this->transform_init_.setIdentity();
@@ -131,9 +133,9 @@ namespace cilantro {
 
             if (has_source_normals_) {
                 transformNormals(this->transform_, src_normals_, src_normals_trans_);
-                estimateTransformSymmetricMetric(dst_points_, dst_normals_, src_points_trans_, src_normals_trans_, corr_getter_proxy.getPointToPointCorrespondences(), point_to_point_weight_, corr_getter_proxy.getPointToPlaneCorrespondences(), point_to_plane_weight_, tform_iter, max_optimization_iterations_, optimization_convergence_tol_, point_corr_eval_, plane_corr_eval_, dst_mean_, this->transform_ * src_mean_);
+                estimateTransformSymmetricMetric(dst_points_, dst_normals_, src_points_trans_, src_normals_trans_, corr_getter_proxy.getPointToPointCorrespondences(), point_to_point_weight_, corr_getter_proxy.getPointToPlaneCorrespondences(), point_to_plane_weight_, tform_iter, max_optimization_iterations_, optimization_convergence_tol_, point_corr_eval_, plane_corr_eval_, dst_mean_, this->transform_*src_mean_);
             } else {
-                estimateTransformCombinedMetric(dst_points_, dst_normals_, src_points_trans_, corr_getter_proxy.getPointToPointCorrespondences(), point_to_point_weight_, corr_getter_proxy.getPointToPlaneCorrespondences(), point_to_plane_weight_, tform_iter, max_optimization_iterations_, optimization_convergence_tol_, point_corr_eval_, plane_corr_eval_, dst_mean_, this->transform_ * src_mean_);
+                estimateTransformCombinedMetric(dst_points_, dst_normals_, src_points_trans_, corr_getter_proxy.getPointToPointCorrespondences(), point_to_point_weight_, corr_getter_proxy.getPointToPlaneCorrespondences(), point_to_plane_weight_, tform_iter, max_optimization_iterations_, optimization_convergence_tol_, point_corr_eval_, plane_corr_eval_, dst_mean_, this->transform_*src_mean_);
             }
 
             this->transform_ = tform_iter*this->transform_;
