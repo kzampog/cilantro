@@ -96,6 +96,7 @@ namespace cilantro {
 
         std::vector<std::vector<size_t>> segment_to_point_map_tmp(seed_cluster_num);
         for (size_t i = 0; i < current_label.size(); i++) {
+            if (current_label[i] == unassigned) continue;
             const auto ind = seed_repr[current_label[i]];
             if (segment_to_point_map_tmp[ind].size() <= max_segment_size) {
                 segment_to_point_map_tmp[ind].emplace_back(i);
@@ -237,6 +238,7 @@ namespace cilantro {
 
         std::vector<std::vector<size_t>> segment_to_point_map_tmp(seed_cluster_num);
         for (size_t i = 0; i < current_label.size(); i++) {
+            if (current_label[i] == unassigned) continue;
             const auto ind = seed_repr[current_label[i]];
             if (segment_to_point_map_tmp[ind].size() <= max_segment_size) {
                 segment_to_point_map_tmp[ind].emplace_back(i);
