@@ -31,11 +31,10 @@ namespace cilantro {
         std::vector<size_t> frontier_set;
         frontier_set.reserve(neighbors.size());
 
-//        std::vector<std::set<size_t>> ind_per_seed(seeds_ind.size());
-        std::vector<std::vector<size_t>> ind_per_seed(seeds_ind.size());
         std::vector<std::set<size_t>> seeds_to_merge_with(seeds_ind.size());
+        std::vector<char> seed_active(seeds_ind.size(), 0);
 
-#pragma omp parallel for shared (seeds_ind, current_label, ind_per_seed, seeds_to_merge_with) private (frontier_set)
+#pragma omp parallel for shared (seeds_ind, current_label, seed_active, seeds_to_merge_with) private (frontier_set)
         for (size_t i = 0; i < seeds_ind.size(); i++) {
             if (current_label[seeds_ind[i]] != unassigned) continue;
 
@@ -45,17 +44,15 @@ namespace cilantro {
             frontier_set.emplace_back(seeds_ind[i]);
 
             current_label[seeds_ind[i]] = i;
+            seed_active[i] = 1;
 
             while (!frontier_set.empty()) {
                 const size_t curr_seed = frontier_set.back();
                 frontier_set.pop_back();
 
-//                ind_per_seed[i].insert(curr_seed);
-                ind_per_seed[i].emplace_back(curr_seed);
-
                 const Neighborhood<ScalarT>& nn(neighbors[curr_seed]);
                 for (size_t j = 1; j < nn.size(); j++) {
-                    const size_t& curr_lbl = current_label[nn[j].index];
+                    const size_t curr_lbl = current_label[nn[j].index];
                     if (curr_lbl == i || evaluator(curr_seed, nn[j].index, nn[j].value)) {
                         if (curr_lbl == unassigned) {
                             frontier_set.emplace_back(nn[j].index);
@@ -70,27 +67,45 @@ namespace cilantro {
 
         for (size_t i = 0; i < seeds_to_merge_with.size(); i++) {
             for (auto it = seeds_to_merge_with[i].begin(); it != seeds_to_merge_with[i].end(); ++it) {
-                if (*it > i) seeds_to_merge_with[*it].insert(i);
+                seeds_to_merge_with[*it].insert(i);
+            }
+        }
+
+        std::vector<size_t> seed_repr(seeds_ind.size(), unassigned);
+        size_t seed_cluster_num = 0;
+        for (size_t i = 0; i < seeds_to_merge_with.size(); i++) {
+            if (seed_active[i] == 0 || seed_repr[i] != unassigned) continue;
+
+            frontier_set.clear();
+            frontier_set.emplace_back(i);
+            seed_repr[i] = seed_cluster_num;
+
+            while (!frontier_set.empty()) {
+                const size_t curr_seed = frontier_set.back();
+                frontier_set.pop_back();
+                for (auto it = seeds_to_merge_with[curr_seed].begin(); it != seeds_to_merge_with[curr_seed].end(); ++it) {
+                    if (seed_active[i] == 1 && seed_repr[*it] == unassigned) {
+                        frontier_set.emplace_back(*it);
+                        seed_repr[*it] = seed_cluster_num;
+                    }
+                }
+            }
+
+            seed_cluster_num++;
+        }
+
+        std::vector<std::vector<size_t>> segment_to_point_map_tmp(seed_cluster_num);
+        for (size_t i = 0; i < current_label.size(); i++) {
+            const auto ind = seed_repr[current_label[i]];
+            if (segment_to_point_map_tmp[ind].size() <= max_segment_size) {
+                segment_to_point_map_tmp[ind].emplace_back(i);
             }
         }
 
         segment_to_point_map.clear();
-        for (size_t i = seeds_to_merge_with.size() - 1; i != static_cast<size_t>(-1); i--) {
-            if (seeds_to_merge_with[i].empty()) continue;
-            size_t min_seed_ind = *seeds_to_merge_with[i].begin();
-            if (min_seed_ind < i) {
-                for (auto it = seeds_to_merge_with[i].begin(); it != seeds_to_merge_with[i].end(); ++it) {
-                    if (*it < i) seeds_to_merge_with[*it].insert(seeds_to_merge_with[i].begin(), seeds_to_merge_with[i].end());
-                }
-//                seeds_to_merge_with[i].clear();
-            } else {
-                std::set<size_t> curr_cc_ind;
-                for (auto it = seeds_to_merge_with[i].begin(); it != seeds_to_merge_with[i].end(); ++it) {
-                    curr_cc_ind.insert(ind_per_seed[*it].begin(), ind_per_seed[*it].end());
-                }
-                if (curr_cc_ind.size() >= min_segment_size && curr_cc_ind.size() <= max_segment_size) {
-                    segment_to_point_map.emplace_back(curr_cc_ind.begin(), curr_cc_ind.end());
-                }
+        for (size_t i = 0; i < segment_to_point_map_tmp.size(); i++) {
+            if (segment_to_point_map_tmp[i].size() >= min_segment_size && segment_to_point_map_tmp[i].size() <= max_segment_size) {
+                segment_to_point_map.emplace_back(std::move(segment_to_point_map_tmp[i]));
             }
         }
 
@@ -155,13 +170,12 @@ namespace cilantro {
         std::vector<size_t> frontier_set;
         frontier_set.reserve(points.cols());
 
-//        std::vector<std::set<size_t>> ind_per_seed(seeds_ind.size());
-        std::vector<std::vector<size_t>> ind_per_seed(seeds_ind.size());
         std::vector<std::set<size_t>> seeds_to_merge_with(seeds_ind.size());
+        std::vector<char> seed_active(seeds_ind.size(), 0);
 
         Neighborhood<ScalarT> nn;
 
-#pragma omp parallel for shared (seeds_ind, current_label, ind_per_seed, seeds_to_merge_with) private (nn, frontier_set)
+#pragma omp parallel for shared (seeds_ind, current_label, seed_active, seeds_to_merge_with) private (nn, frontier_set)
         for (size_t i = 0; i < seeds_ind.size(); i++) {
             if (current_label[seeds_ind[i]] != unassigned) continue;
 
@@ -171,17 +185,15 @@ namespace cilantro {
             frontier_set.emplace_back(seeds_ind[i]);
 
             current_label[seeds_ind[i]] = i;
+            seed_active[i] = 1;
 
             while (!frontier_set.empty()) {
                 const size_t curr_seed = frontier_set.back();
                 frontier_set.pop_back();
 
-//                ind_per_seed[i].insert(curr_seed);
-                ind_per_seed[i].emplace_back(curr_seed);
-
                 tree.template search<NeighborhoodSpecT>(points.col(curr_seed), nh, nn);
                 for (size_t j = 1; j < nn.size(); j++) {
-                    const size_t& curr_lbl = current_label[nn[j].index];
+                    const size_t curr_lbl = current_label[nn[j].index];
                     if (curr_lbl == i || evaluator(curr_seed, nn[j].index, nn[j].value)) {
                         if (curr_lbl == unassigned) {
                             frontier_set.emplace_back(nn[j].index);
@@ -196,27 +208,45 @@ namespace cilantro {
 
         for (size_t i = 0; i < seeds_to_merge_with.size(); i++) {
             for (auto it = seeds_to_merge_with[i].begin(); it != seeds_to_merge_with[i].end(); ++it) {
-                if (*it > i) seeds_to_merge_with[*it].insert(i);
+                seeds_to_merge_with[*it].insert(i);
+            }
+        }
+
+        std::vector<size_t> seed_repr(seeds_ind.size(), unassigned);
+        size_t seed_cluster_num = 0;
+        for (size_t i = 0; i < seeds_to_merge_with.size(); i++) {
+            if (seed_active[i] == 0 || seed_repr[i] != unassigned) continue;
+
+            frontier_set.clear();
+            frontier_set.emplace_back(i);
+            seed_repr[i] = seed_cluster_num;
+
+            while (!frontier_set.empty()) {
+                const size_t curr_seed = frontier_set.back();
+                frontier_set.pop_back();
+                for (auto it = seeds_to_merge_with[curr_seed].begin(); it != seeds_to_merge_with[curr_seed].end(); ++it) {
+                    if (seed_active[i] == 1 && seed_repr[*it] == unassigned) {
+                        frontier_set.emplace_back(*it);
+                        seed_repr[*it] = seed_cluster_num;
+                    }
+                }
+            }
+
+            seed_cluster_num++;
+        }
+
+        std::vector<std::vector<size_t>> segment_to_point_map_tmp(seed_cluster_num);
+        for (size_t i = 0; i < current_label.size(); i++) {
+            const auto ind = seed_repr[current_label[i]];
+            if (segment_to_point_map_tmp[ind].size() <= max_segment_size) {
+                segment_to_point_map_tmp[ind].emplace_back(i);
             }
         }
 
         segment_to_point_map.clear();
-        for (size_t i = seeds_to_merge_with.size() - 1; i != static_cast<size_t>(-1); i--) {
-            if (seeds_to_merge_with[i].empty()) continue;
-            size_t min_seed_ind = *seeds_to_merge_with[i].begin();
-            if (min_seed_ind < i) {
-                for (auto it = seeds_to_merge_with[i].begin(); it != seeds_to_merge_with[i].end(); ++it) {
-                    if (*it < i) seeds_to_merge_with[*it].insert(seeds_to_merge_with[i].begin(), seeds_to_merge_with[i].end());
-                }
-//                seeds_to_merge_with[i].clear();
-            } else {
-                std::set<size_t> curr_cc_ind;
-                for (auto it = seeds_to_merge_with[i].begin(); it != seeds_to_merge_with[i].end(); ++it) {
-                    curr_cc_ind.insert(ind_per_seed[*it].begin(), ind_per_seed[*it].end());
-                }
-                if (curr_cc_ind.size() >= min_segment_size && curr_cc_ind.size() <= max_segment_size) {
-                    segment_to_point_map.emplace_back(curr_cc_ind.begin(), curr_cc_ind.end());
-                }
+        for (size_t i = 0; i < segment_to_point_map_tmp.size(); i++) {
+            if (segment_to_point_map_tmp[i].size() >= min_segment_size && segment_to_point_map_tmp[i].size() <= max_segment_size) {
+                segment_to_point_map.emplace_back(std::move(segment_to_point_map_tmp[i]));
             }
         }
 
