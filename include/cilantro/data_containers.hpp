@@ -46,13 +46,12 @@ namespace cilantro {
                 : Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>(data, EigenDim, num_points)
         {}
 
-        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == Eigen::Dynamic>::type>
-        DataMatrixMap(ScalarT * data, size_t dim, size_t num_points = 0)
+        DataMatrixMap(ScalarT * data, size_t dim, size_t num_points)
                 : Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>(data, dim, num_points)
         {}
 
         inline Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>& eigenMap() {
-            return (*(Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>> *)this);
+            return (*static_cast<Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>> *>(this));
         }
     };
 
@@ -110,13 +109,12 @@ namespace cilantro {
                 : Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>(data, EigenDim, num_points)
         {}
 
-        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == Eigen::Dynamic>::type>
-        ConstDataMatrixMap(const ScalarT * data, size_t dim, size_t num_points = 0)
+        ConstDataMatrixMap(const ScalarT * data, size_t dim, size_t num_points)
                 : Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>(data, dim, num_points)
         {}
 
-        inline Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>& eigenMap() {
-            return (*(Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>> *)this);
+        inline const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>& eigenMap() {
+            return (*static_cast<Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>> *>(this));
         }
     };
 

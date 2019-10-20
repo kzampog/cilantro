@@ -29,7 +29,7 @@
 #include <cilantro/icp_warp_field_combined_metric_sparse.hpp>
 #include <cilantro/image_point_cloud_conversions.hpp>
 #include <cilantro/image_viewer.hpp>
-#include <cilantro/io.hpp>
+#include <cilantro/io_utilities.hpp>
 #include <cilantro/kd_tree.hpp>
 #include <cilantro/kmeans.hpp>
 #include <cilantro/mean_shift.hpp>
@@ -38,6 +38,7 @@
 #include <cilantro/nearest_neighbors.hpp>
 #include <cilantro/normal_estimation.hpp>
 #include <cilantro/openmp_reductions.hpp>
+#include <cilantro/ply_io.hpp>
 #include <cilantro/point_cloud.hpp>
 #include <cilantro/principal_component_analysis.hpp>
 #include <cilantro/ransac_base.hpp>

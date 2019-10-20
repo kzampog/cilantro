@@ -5,7 +5,7 @@
 #include <cilantro/image_point_cloud_conversions.hpp>
 #include <cilantro/grid_downsampler.hpp>
 #include <cilantro/normal_estimation.hpp>
-#include <cilantro/io.hpp>
+#include <cilantro/ply_io.hpp>
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
@@ -113,7 +113,7 @@ namespace cilantro {
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
         PointCloud(const std::string &file_name) {
-            readPointCloudFromPLYFile<ScalarT>(file_name, points, normals, colors);
+            fromPLYFile(file_name);
         }
 
         inline size_t size() const { return points.cols(); }
@@ -378,13 +378,36 @@ namespace cilantro {
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
         inline PointCloud& fromPLYFile(const std::string &file_name) {
-            readPointCloudFromPLYFile<ScalarT>(file_name, points, normals, colors);
+            PLYReader reader(file_name);
+
+            auto point_data = reader.requestData("vertex", {"x", "y", "z"});
+            auto normal_data = reader.requestData("vertex", {"nx", "ny", "nz"});
+            auto color_data = reader.requestData("vertex", {"red", "green", "blue"});
+
+            reader.readData();
+
+            points = vectorSetFromPLYDataBuffer<ScalarT,3>(point_data, 3);
+            normals = vectorSetFromPLYDataBuffer<ScalarT,3>(normal_data, 3);
+            colors = (1.0f/255.0f)*vectorSetFromPLYDataBuffer<float,3>(color_data, 3);
+
             return *this;
         }
 
         template <typename ScalarOutT = ScalarT, ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
         inline const PointCloud& toPLYFile(const std::string &file_name, bool binary = true) const {
-            writePointCloudToPLYFile<ScalarT,ScalarOutT>(file_name, points, normals, colors, binary);
+            PLYWriter writer(file_name, binary);
+
+            auto point_data = PLYDataBufferFromVectorSet<ScalarT,3,ScalarOutT>(points);
+            auto normal_data = PLYDataBufferFromVectorSet<ScalarT,3,ScalarOutT>(normals);
+            VectorSet3f colors_tmp = 255.0f*colors;
+            auto color_data = PLYDataBufferFromVectorSet<float,3,uint8_t>(colors_tmp);
+
+            writer.addData("vertex", {"x", "y", "z"}, point_data);
+            writer.addData("vertex", {"nx", "ny", "nz"}, normal_data);
+            writer.addData("vertex", {"red", "green", "blue"}, color_data);
+
+            writer.writeData();
+
             return *this;
         }
 
