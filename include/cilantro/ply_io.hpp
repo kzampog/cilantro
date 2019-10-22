@@ -13,7 +13,7 @@ namespace cilantro {
         }
 
         inline bool elementPropertyExists(const std::string &element_key,
-                                          const std::initializer_list<std::string> property_keys)
+                                          const std::initializer_list<std::string> property_keys) const
         {
             const auto elements = ply_file_.get_elements();
             ptrdiff_t element_ind = -1;

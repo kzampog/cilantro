@@ -62,6 +62,26 @@ namespace cilantro {
     typedef DataMatrixMap<float,Eigen::Dynamic> DataMatrixMapXf;
     typedef DataMatrixMap<double,Eigen::Dynamic> DataMatrixMapXd;
 
+    template <typename ScalarT, ptrdiff_t EigenDim>
+    using VectorSetMatrixMap = DataMatrixMap<ScalarT,EigenDim>;
+
+    typedef VectorSetMatrixMap<float,2> VectorSetMatrixMap2f;
+    typedef VectorSetMatrixMap<double,2> VectorSetMatrixMap2d;
+    typedef VectorSetMatrixMap<float,3> VectorSetMatrixMap3f;
+    typedef VectorSetMatrixMap<double,3> VectorSetMatrixMap3d;
+    typedef VectorSetMatrixMap<float,Eigen::Dynamic> VectorSetMatrixMapXf;
+    typedef VectorSetMatrixMap<double,Eigen::Dynamic> VectorSetMatrixMapXd;
+
+    template <typename ScalarT, ptrdiff_t EigenDim>
+    using HomogeneousVectorSetMatrixMap = typename std::conditional<EigenDim == Eigen::Dynamic, DataMatrixMap<ScalarT,EigenDim>, DataMatrixMap<ScalarT,EigenDim+1>>::type;
+
+    typedef HomogeneousVectorSetMatrixMap<float,2> HomogeneousVectorSetMatrixMap2f;
+    typedef HomogeneousVectorSetMatrixMap<double,2> HomogeneousVectorSetMatrixMap2d;
+    typedef HomogeneousVectorSetMatrixMap<float,3> HomogeneousVectorSetMatrixMap3f;
+    typedef HomogeneousVectorSetMatrixMap<double,3> HomogeneousVectorSetMatrixMap3d;
+    typedef HomogeneousVectorSetMatrixMap<float,Eigen::Dynamic> HomogeneousVectorSetMatrixMapXf;
+    typedef HomogeneousVectorSetMatrixMap<double,Eigen::Dynamic> HomogeneousVectorSetMatrixMapXd;
+
     // Read-only Eigen Map (for inputs)
     template <typename ScalarT, ptrdiff_t EigenDim>
     class ConstDataMatrixMap : public Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>> {
