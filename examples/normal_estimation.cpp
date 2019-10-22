@@ -32,10 +32,10 @@ int main(int argc, char ** argv) {
     cilantro::Timer ne_timer;
     ne_timer.start();
 
-//    cloud.normals = ne.estimateNormals(cilantro::KNNInRadiusNeighborhoodSpecification<float>(7, 0.01f));
-//    cloud.normals = ne.estimateNormalsKNNInRadius(7, 0.01f);
-//    cloud.normals = ne.estimateNormalsRadius(0.01f);
-//    cloud.normals = ne.estimateNormalsKNN(7);
+//    cloud.normals = ne.getNormals(cilantro::KNNInRadiusNeighborhoodSpecification<float>(7, 0.01f));
+//    cloud.normals = ne.getNormalsKNNInRadius(7, 0.01f);
+//    cloud.normals = ne.getNormalsRadius(0.01f);
+//    cloud.normals = ne.getNormalsKNN(7);
 
 //    cloud.estimateNormals(tree, cilantro::KNNInRadiusNeighborhoodSpecification<float>(7, 0.01f));
 //    cloud.estimateNormalsKNNInRadius(tree, 7, 0.01f);
