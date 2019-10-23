@@ -380,11 +380,11 @@ namespace cilantro {
             // Check if we can enforce consistency; reference normals take precedence
             if (ref_normals_.data() == NULL) {
                 if (view_point_.allFinite()) {
-                    compute_normals_curvature_view_point_(normals, nh);
+                    compute_normals_curvature_view_point_(normals, curvature, nh);
                     return;
                 }
             } else {
-                compute_normals_curvature_reference_normals_(normals, nh);
+                compute_normals_curvature_reference_normals_(normals, curvature, nh);
                 return;
             }
 
