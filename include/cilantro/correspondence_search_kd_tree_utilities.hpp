@@ -22,8 +22,7 @@ namespace cilantro {
         CorrespondenceSet<CorrValueT> corr_tmp(query_pts.cols());
         std::vector<bool> keep(query_pts.cols());
         Neighborhood<ScalarT> nn;
-        if (ref_is_first)
-        {
+        if (ref_is_first) {
 #pragma omp parallel for shared(corr_tmp) private(nn)
             for (size_t i = 0; i < query_pts.cols(); i++) {
                 ref_tree.kNNInRadiusSearch(query_pts.col(i), 1, max_distance, nn);
@@ -31,9 +30,7 @@ namespace cilantro {
                 if (!nn.empty())
                     corr_tmp[i] = {nn[0].index, i, evaluator(nn[0].index, i, nn[0].value)};
             }
-        }
-        else
-        {
+        } else {
 #pragma omp parallel for shared(corr_tmp) private(nn)
             for (size_t i = 0; i < query_pts.cols(); i++) {
                 ref_tree.kNNInRadiusSearch(query_pts.col(i), 1, max_distance, nn);
@@ -46,7 +43,7 @@ namespace cilantro {
         correspondences.resize(corr_tmp.size());
         size_t count = 0;
         for (size_t i = 0; i < corr_tmp.size(); i++) {
-            if (keep[i]) correspondences[count++] = corr_tmp[i];
+            if (keep[i] && corr_tmp[i].value < max_distance) correspondences[count++] = corr_tmp[i];
         }
         correspondences.resize(count);
     }
