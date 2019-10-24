@@ -59,7 +59,7 @@
 #include <vector>
 
 /** Library version: 0xMmP (M=Major,m=minor,P=patch) */
-#define NANOFLANN_VERSION 0x130
+#define NANOFLANN_VERSION 0x132
 
 // Avoid conflicting declaration of min/max macros in windows headers
 #if !defined(NOMINMAX) &&                                                      \
@@ -469,7 +469,8 @@ struct SO2_Adaptor {
   /** Note: this assumes that input angles are already in the range [-pi,pi] */
   template <typename U, typename V>
   inline DistanceType accum_dist(const U a, const V b, const size_t) const {
-    DistanceType result = DistanceType(), PI = pi_const<DistanceType>();
+    DistanceType result = DistanceType();
+    DistanceType PI = pi_const<DistanceType>();
     result = b - a;
     if (result > PI)
       result -= 2 * PI;

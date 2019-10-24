@@ -66,22 +66,24 @@ namespace cilantro {
 
         GridAccumulator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data,
                         const Eigen::Ref<const Vector<ScalarT,EigenDim>> &bin_size,
-                        const AccumulatorProxy &accum_proxy)
+                        const AccumulatorProxy &accum_proxy,
+                        bool parallel = true)
                 : data_map_(data),
                   bin_size_(bin_size),
                   bin_size_inv_(bin_size_.cwiseInverse())
         {
-            build_index_(accum_proxy);
+            build_index_(accum_proxy, parallel);
         }
 
         GridAccumulator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data,
                         ScalarT bin_size,
-                        const AccumulatorProxy &accum_proxy)
+                        const AccumulatorProxy &accum_proxy,
+                        bool parallel = true)
                 : data_map_(data),
                   bin_size_(Vector<ScalarT,EigenDim>::Constant(data_map_.rows(), 1, bin_size)),
                   bin_size_inv_(bin_size_.cwiseInverse())
         {
-            build_index_(accum_proxy);
+            build_index_(accum_proxy, parallel);
         }
 
         ~GridAccumulator() {}
@@ -134,58 +136,56 @@ namespace cilantro {
         GridBinMap grid_lookup_table_;
         std::vector<GridBinMapIterator> bin_iterators_;
 
-        inline void build_index_(const AccumulatorProxy &accum_proxy) {
+        inline void build_index_(const AccumulatorProxy &accum_proxy, bool parallel) {
             if (data_map_.cols() == 0) return;
 
-#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
+            if (parallel) {
 #pragma omp parallel
-            {
-                GridBinMap lookup_priv;
+                {
+                    GridBinMap lookup_priv;
 
 #pragma omp for nowait
-                for (size_t i = 0; i < data_map_.cols(); i++) {
-                    GridPoint grid_coords = getPointGridCoordinates(data_map_.col(i));
+                    for (size_t i = 0; i < data_map_.cols(); i++) {
+                        GridPoint grid_coords = getPointGridCoordinates(data_map_.col(i));
 
-                    auto lb = lookup_priv.lower_bound(grid_coords);
-                    if (lb != lookup_priv.end() && !(lookup_priv.key_comp()(grid_coords, lb->first))) {
-                        accum_proxy.addToAccumulator(lb->second, i);
-                    } else {
-                        lookup_priv.emplace_hint(lb, std::move(grid_coords), accum_proxy.buildAccumulator(i));
+                        auto lb = lookup_priv.lower_bound(grid_coords);
+                        if (lb != lookup_priv.end() && !(lookup_priv.key_comp()(grid_coords, lb->first))) {
+                            accum_proxy.addToAccumulator(lb->second, i);
+                        } else {
+                            lookup_priv.emplace_hint(lb, std::move(grid_coords), accum_proxy.buildAccumulator(i));
+                        }
                     }
-                }
 
 #pragma omp critical
-                {
-                    for (auto it = lookup_priv.begin(); it != lookup_priv.end(); ++it) {
-                        auto lb = grid_lookup_table_.lower_bound(it->first);
-                        if (lb != grid_lookup_table_.end() && !(grid_lookup_table_.key_comp()(it->first, lb->first))) {
-                            lb->second.mergeWith(it->second);
-                        } else {
-                            grid_lookup_table_.emplace_hint(lb, std::move(it->first), std::move(it->second));
-//                            bin_iterators_.emplace_back(grid_lookup_table_.emplace_hint(lb, std::move(it->first), std::move(it->second)));
-//                            bin_iterators_.emplace_back(grid_lookup_table_.emplace_hint(lb, std::move(*it)));
+                    {
+                        for (auto it = lookup_priv.begin(); it != lookup_priv.end(); ++it) {
+                            auto lb = grid_lookup_table_.lower_bound(it->first);
+                            if (lb != grid_lookup_table_.end() && !(grid_lookup_table_.key_comp()(it->first, lb->first))) {
+                                lb->second.mergeWith(it->second);
+                            } else {
+                                grid_lookup_table_.emplace_hint(lb, std::move(it->first), std::move(it->second));
+                            }
                         }
                     }
                 }
-            }
 
-            bin_iterators_.resize(grid_lookup_table_.size());
-            auto it = grid_lookup_table_.begin();
-            for (size_t i = 0; i < bin_iterators_.size(); i++) {
-                bin_iterators_[i] = it++;
-            }
-#else
-            for (size_t i = 0; i < data_map_.cols(); i++) {
-                GridPoint grid_coords = getPointGridCoordinates(data_map_.col(i));
+                bin_iterators_.resize(grid_lookup_table_.size());
+                auto it = grid_lookup_table_.begin();
+                for (size_t i = 0; i < bin_iterators_.size(); i++) {
+                    bin_iterators_[i] = it++;
+                }
+            } else {
+                for (size_t i = 0; i < data_map_.cols(); i++) {
+                    GridPoint grid_coords = getPointGridCoordinates(data_map_.col(i));
 
-                auto lb = grid_lookup_table_.lower_bound(grid_coords);
-                if (lb != grid_lookup_table_.end() && !(grid_lookup_table_.key_comp()(grid_coords, lb->first))) {
-                    accum_proxy.addToAccumulator(lb->second, i);
-                } else {
-                    bin_iterators_.emplace_back(grid_lookup_table_.emplace_hint(lb, std::move(grid_coords), accum_proxy.buildAccumulator(i)));
+                    auto lb = grid_lookup_table_.lower_bound(grid_coords);
+                    if (lb != grid_lookup_table_.end() && !(grid_lookup_table_.key_comp()(grid_coords, lb->first))) {
+                        accum_proxy.addToAccumulator(lb->second, i);
+                    } else {
+                        bin_iterators_.emplace_back(grid_lookup_table_.emplace_hint(lb, std::move(grid_coords), accum_proxy.buildAccumulator(i)));
+                    }
                 }
             }
-#endif
         }
     };
 }
