@@ -20,31 +20,30 @@ namespace cilantro {
         }
 
         CorrespondenceSet<CorrValueT> corr_tmp(query_pts.cols());
-
-        Neighbor<ScalarT> nn;
-
+        std::vector<bool> keep(query_pts.cols());
+        Neighborhood<ScalarT> nn;
         if (ref_is_first) {
-#pragma omp parallel for shared (corr_tmp) private (nn)
-            for (size_t i = 0; i < corr_tmp.size(); i++) {
-                ref_tree.nearestNeighborSearch(query_pts.col(i), nn);
-                corr_tmp[i].indexInFirst = nn.index;
-                corr_tmp[i].indexInSecond = i;
-                corr_tmp[i].value = evaluator(nn.index, i, nn.value);
+#pragma omp parallel for shared(corr_tmp) private(nn)
+            for (size_t i = 0; i < query_pts.cols(); i++) {
+                ref_tree.kNNInRadiusSearch(query_pts.col(i), 1, max_distance, nn);
+                keep[i] = !nn.empty();
+                if (!nn.empty())
+                    corr_tmp[i] = {nn[0].index, i, evaluator(nn[0].index, i, nn[0].value)};
             }
         } else {
-#pragma omp parallel for shared (corr_tmp) private (nn)
-            for (size_t i = 0; i < corr_tmp.size(); i++) {
-                ref_tree.nearestNeighborSearch(query_pts.col(i), nn);
-                corr_tmp[i].indexInFirst = i;
-                corr_tmp[i].indexInSecond = nn.index;
-                corr_tmp[i].value = evaluator(i, nn.index, nn.value);
+#pragma omp parallel for shared(corr_tmp) private(nn)
+            for (size_t i = 0; i < query_pts.cols(); i++) {
+                ref_tree.kNNInRadiusSearch(query_pts.col(i), 1, max_distance, nn);
+                keep[i] = !nn.empty();
+                if (!nn.empty())
+                    corr_tmp[i] = {i, nn[0].index, evaluator(i, nn[0].index, nn[0].value)};
             }
         }
 
         correspondences.resize(corr_tmp.size());
         size_t count = 0;
         for (size_t i = 0; i < corr_tmp.size(); i++) {
-            if (corr_tmp[i].value < max_distance) correspondences[count++] = corr_tmp[i];
+            if (keep[i] && corr_tmp[i].value < max_distance) correspondences[count++] = corr_tmp[i];
         }
         correspondences.resize(count);
     }
