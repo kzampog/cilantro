@@ -289,7 +289,7 @@ namespace cilantro {
 
     private:
         ConstVectorSetMatrixMap<float,3> vertices;
-        std::vector<std::vector<size_t>> faces;
+        const std::vector<std::vector<size_t>>& faces;
         ConstVectorSetMatrixMap<float,3> vertexNormals;
         ConstVectorSetMatrixMap<float,3> faceNormals;
         ConstVectorSetMatrixMap<float,3> vertexColors;
