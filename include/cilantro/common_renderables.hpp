@@ -40,31 +40,47 @@ namespace cilantro {
 
         typedef PointCloudGPUBufferObjects GPUBuffers;
 
-        PointCloudRenderable(const ConstVectorSetMatrixMap<float,3> &points,
-                             const RenderingProperties &rp = RenderingProperties());
-
-        template <class CloudT, class = typename std::enable_if<HasPoints<CloudT>::value && HasNormals<CloudT>::value && HasColors<CloudT>::value>::type>
-        PointCloudRenderable(const CloudT &cloud, const RenderingProperties &rp = RenderingProperties())
-                : Renderable(rp), points(cloud.points), normals(cloud.normals), colors(cloud.colors)
+        inline PointCloudRenderable(const ConstVectorSetMatrixMap<float,3> &points,
+                                    const RenderingProperties &rp = RenderingProperties())
+                : Renderable(rp), points(points), normals(NULL), colors(NULL), values(NULL)
         {
             if (points.cols() > 0) centroid = points.rowwise().mean();
         }
 
-        PointCloudRenderable& setPointNormals(const ConstVectorSetMatrixMap<float,3> &normals);
+        template <class CloudT, class = typename std::enable_if<HasPoints<CloudT>::value && HasNormals<CloudT>::value && HasColors<CloudT>::value>::type>
+        inline PointCloudRenderable(const CloudT &cloud, const RenderingProperties &rp = RenderingProperties())
+                : Renderable(rp), points(cloud.points), normals(cloud.normals), colors(cloud.colors), values(NULL)
+        {
+            if (points.cols() > 0) centroid = points.rowwise().mean();
+        }
 
-        PointCloudRenderable& setPointColors(const ConstVectorSetMatrixMap<float,3> &colors);
+        inline PointCloudRenderable& setPointNormals(const ConstVectorSetMatrixMap<float,3> &normals) {
+            if (normals.cols() == points.cols()) new (&this->normals) ConstVectorSetMatrixMap<float,3>(normals);
+            buffersUpToDate = false;
+            return *this;
+        }
 
-        PointCloudRenderable& setPointValues(const ConstVectorSetMatrixMap<float,1> &values);
+        inline PointCloudRenderable& setPointColors(const ConstVectorSetMatrixMap<float,3> &colors) {
+            if (colors.cols() == points.cols()) new (&this->colors) ConstVectorSetMatrixMap<float,3>(colors);
+            buffersUpToDate = false;
+            return *this;
+        }
+
+        inline PointCloudRenderable& setPointValues(const ConstVectorSetMatrixMap<float,1> &values) {
+            if (values.cols() == points.cols()) new (&this->values) ConstVectorSetMatrixMap<float,1>(values);
+            buffersUpToDate = false;
+            return *this;
+        }
 
         void updateGPUBuffers(GPUBufferObjects &gl_objects);
 
         void render(GPUBufferObjects &gl_objects);
 
     private:
-        VectorSet<float,3> points;
-        VectorSet<float,3> normals;
-        VectorSet<float,3> colors;
-        VectorSet<float,1> values;
+        ConstVectorSetMatrixMap<float,3> points;
+        ConstVectorSetMatrixMap<float,3> normals;
+        ConstVectorSetMatrixMap<float,3> colors;
+        ConstVectorSetMatrixMap<float,1> values;
     };
 
     struct PointCorrespondencesGPUBufferObjects : public GPUBufferObjects {
@@ -79,15 +95,21 @@ namespace cilantro {
 
         typedef PointCloudGPUBufferObjects GPUBuffers;
 
-        PointCorrespondencesRenderable(const ConstVectorSetMatrixMap<float,3> &dst_points,
-                                       const ConstVectorSetMatrixMap<float,3> &src_points,
-                                       const RenderingProperties &rp = RenderingProperties());
+        inline PointCorrespondencesRenderable(const ConstVectorSetMatrixMap<float,3> &dst_points,
+                                              const ConstVectorSetMatrixMap<float,3> &src_points,
+                                              const RenderingProperties &rp = RenderingProperties())
+                : Renderable(rp), dstPoints(dst_points), srcPoints(src_points)
+        {
+            if (srcPoints.cols() == dstPoints.cols() && srcPoints.cols() > 0) {
+                centroid = 0.5f*(srcPoints + dstPoints).rowwise().mean();
+            }
+        }
 
         template <class CorrT>
-        PointCorrespondencesRenderable(const ConstVectorSetMatrixMap<float,3> &dst_points,
-                                       const ConstVectorSetMatrixMap<float,3> &src_points,
-                                       const CorrT &correspondences,
-                                       const RenderingProperties &rp = RenderingProperties())
+        inline PointCorrespondencesRenderable(const ConstVectorSetMatrixMap<float,3> &dst_points,
+                                              const ConstVectorSetMatrixMap<float,3> &src_points,
+                                              const CorrT &correspondences,
+                                              const RenderingProperties &rp = RenderingProperties())
                 : Renderable(rp)
         {
             if (!correspondences.empty()) {
@@ -104,8 +126,8 @@ namespace cilantro {
         }
 
         template <class CloudT, class = typename std::enable_if<HasPoints<CloudT>::value>::type>
-        PointCorrespondencesRenderable(const CloudT &dst_cloud, const CloudT &src_cloud,
-                                       const RenderingProperties &rp = RenderingProperties())
+        inline PointCorrespondencesRenderable(const CloudT &dst_cloud, const CloudT &src_cloud,
+                                              const RenderingProperties &rp = RenderingProperties())
                 : Renderable(rp), dstPoints(dst_cloud.points), srcPoints(src_cloud.points)
         {
             if (srcPoints.cols() == dstPoints.cols() && srcPoints.cols() > 0) {
@@ -147,8 +169,10 @@ namespace cilantro {
 
         typedef GPUBufferObjects GPUBuffers;
 
-        CoordinateFrameRenderable(const Eigen::Matrix4f &tf = Eigen::Matrix4f::Identity(), float scale = 1.0f,
-                                  const RenderingProperties &rp = RenderingProperties());
+        inline CoordinateFrameRenderable(const Eigen::Matrix4f &tf = Eigen::Matrix4f::Identity(), float scale = 1.0f,
+                                         const RenderingProperties &rp = RenderingProperties())
+                : Renderable(rp, tf.topRightCorner(3,1)), transform(tf), scale(scale)
+        {}
 
         void updateGPUBuffers(GPUBufferObjects &gl_objects);
 
@@ -165,10 +189,13 @@ namespace cilantro {
 
         typedef GPUBufferObjects GPUBuffers;
 
-        CameraFrustumRenderable(size_t width, size_t height, const Eigen::Matrix3f &intrinsics,
-                                const Eigen::Matrix4f &pose = Eigen::Matrix4f::Identity(),
-                                float scale = 1.0f,
-                                const RenderingProperties &rp = RenderingProperties());
+        inline CameraFrustumRenderable(size_t width, size_t height, const Eigen::Matrix3f &intrinsics,
+                                       const Eigen::Matrix4f &pose = Eigen::Matrix4f::Identity(),
+                                       float scale = 1.0f,
+                                       const RenderingProperties &rp = RenderingProperties())
+                : Renderable(rp, pose.topRightCorner(3,1)), width(width), height(height),
+                  inverseIntrinsics(intrinsics.inverse()), pose(pose), scale(scale)
+        {}
 
         void updateGPUBuffers(GPUBufferObjects &gl_objects);
 
@@ -197,50 +224,81 @@ namespace cilantro {
 
         typedef TriangleMeshGPUBufferObjects GPUBuffers;
 
-        TriangleMeshRenderable(const ConstVectorSetMatrixMap<float,3> &vertices,
-                               const std::vector<std::vector<size_t>> &faces,
-                               const RenderingProperties &rp = RenderingProperties());
-
-        template <class CloudT, class = typename std::enable_if<HasPoints<CloudT>::value && HasNormals<CloudT>::value && HasColors<CloudT>::value>::type>
-        TriangleMeshRenderable(const CloudT &vertex_cloud,
-                               const std::vector<std::vector<size_t>> &faces,
-                               const RenderingProperties &rp = RenderingProperties())
-                : Renderable(rp), vertices(vertex_cloud.points), faces(faces)
+        inline TriangleMeshRenderable(const ConstVectorSetMatrixMap<float,3> &vertices,
+                                      const std::vector<std::vector<size_t>> &faces,
+                                      const RenderingProperties &rp = RenderingProperties())
+                : Renderable(rp), vertices(vertices), faces(faces),
+                  vertexNormals(NULL), faceNormals(NULL), vertexColors(NULL), faceColors(NULL), vertexValues(NULL), faceValues(NULL)
         {
-            if (vertex_cloud.points.cols() > 0) centroid = vertex_cloud.points.rowwise().mean();
-            initFaceNormals(vertex_cloud.points, faces);
-            if (vertex_cloud.normals.cols() == vertex_cloud.points.cols()) vertexNormals = vertex_cloud.normals;
-            if (vertex_cloud.colors.cols() ==  vertex_cloud.points.cols()) vertexColors = vertex_cloud.colors;
+            if (vertices.cols() > 0) centroid = vertices.rowwise().mean();
+            // initFaceNormals();
         }
 
-        TriangleMeshRenderable& setVertexNormals(const ConstVectorSetMatrixMap<float,3> &vertex_normals);
+        template <class CloudT, class = typename std::enable_if<HasPoints<CloudT>::value && HasNormals<CloudT>::value && HasColors<CloudT>::value>::type>
+        inline TriangleMeshRenderable(const CloudT &vertex_cloud,
+                                      const std::vector<std::vector<size_t>> &faces,
+                                      const RenderingProperties &rp = RenderingProperties())
+                : Renderable(rp), vertices(vertex_cloud.points), faces(faces),
+                  vertexNormals(NULL), faceNormals(NULL), vertexColors(NULL), faceColors(NULL), vertexValues(NULL), faceValues(NULL)
+        {
+            if (vertex_cloud.points.cols() > 0) centroid = vertex_cloud.points.rowwise().mean();
+            if (vertex_cloud.normals.cols() == vertex_cloud.points.cols()) vertexNormals = vertex_cloud.normals;
+            if (vertex_cloud.colors.cols() ==  vertex_cloud.points.cols()) vertexColors = vertex_cloud.colors;
+            // initFaceNormals();
+        }
 
-        TriangleMeshRenderable& setFaceNormals(const ConstVectorSetMatrixMap<float,3> &face_normals);
+        inline TriangleMeshRenderable& setVertexNormals(const ConstVectorSetMatrixMap<float,3> &vertex_normals) {
+            if (vertex_normals.cols() == vertices.cols()) new (&this->vertexNormals) ConstVectorSetMatrixMap<float,3>(vertex_normals);
+            buffersUpToDate = false;
+            return *this;
+        }
 
-        TriangleMeshRenderable& setVertexColors(const ConstVectorSetMatrixMap<float,3> &vertex_colors);
+        inline TriangleMeshRenderable& setFaceNormals(const ConstVectorSetMatrixMap<float,3> &face_normals) {
+            if (face_normals.cols() == faces.size()) new (&this->faceNormals) ConstVectorSetMatrixMap<float,3>(face_normals);
+            buffersUpToDate = false;
+            return *this;
+        }
 
-        TriangleMeshRenderable& setFaceColors(const ConstVectorSetMatrixMap<float,3> &face_colors);
+        inline TriangleMeshRenderable& setVertexColors(const ConstVectorSetMatrixMap<float,3> &vertex_colors) {
+            if (vertex_colors.cols() == vertices.cols()) new (&this->vertexColors) ConstVectorSetMatrixMap<float,3>(vertex_colors);
+            buffersUpToDate = false;
+            return *this;
+        }
 
-        TriangleMeshRenderable& setVertexValues(const ConstVectorSetMatrixMap<float,1> &vertex_values);
+        inline TriangleMeshRenderable& setFaceColors(const ConstVectorSetMatrixMap<float,3> &face_colors) {
+            if (face_colors.cols() == faces.size()) new (&this->faceColors) ConstVectorSetMatrixMap<float,3>(face_colors);
+            buffersUpToDate = false;
+            return *this;
+        }
 
-        TriangleMeshRenderable& setFaceValues(const ConstVectorSetMatrixMap<float,1> &face_values);
+        inline TriangleMeshRenderable& setVertexValues(const ConstVectorSetMatrixMap<float,1> &vertex_values) {
+            if (vertex_values.cols() == vertices.cols()) new (&this->vertexValues) ConstVectorSetMatrixMap<float,1>(vertex_values);
+            buffersUpToDate = false;
+            return *this;
+        }
+
+        inline TriangleMeshRenderable& setFaceValues(const ConstVectorSetMatrixMap<float,1> &face_values) {
+            if (face_values.cols() == faces.size()) new (&this->faceValues) ConstVectorSetMatrixMap<float,1>(face_values);
+            buffersUpToDate = false;
+            return *this;
+        }
 
         void updateGPUBuffers(GPUBufferObjects &gl_objects);
 
         void render(GPUBufferObjects &gl_objects);
 
     private:
-        VectorSet<float,3> vertices;
+        ConstVectorSetMatrixMap<float,3> vertices;
         std::vector<std::vector<size_t>> faces;
-        VectorSet<float,3> vertexNormals;
-        VectorSet<float,3> faceNormals;
-        VectorSet<float,3> vertexColors;
-        VectorSet<float,3> faceColors;
-        VectorSet<float,1> vertexValues;
-        VectorSet<float,1> faceValues;
+        ConstVectorSetMatrixMap<float,3> vertexNormals;
+        ConstVectorSetMatrixMap<float,3> faceNormals;
+        ConstVectorSetMatrixMap<float,3> vertexColors;
+        ConstVectorSetMatrixMap<float,3> faceColors;
+        ConstVectorSetMatrixMap<float,1> vertexValues;
+        ConstVectorSetMatrixMap<float,1> faceValues;
 
-        void initFaceNormals(const ConstVectorSetMatrixMap<float,3> &vertices,
-                             const std::vector<std::vector<size_t>> &faces);
+        VectorSet<float,3> computedFaceNormals;
+        void initFaceNormals();
     };
 
     struct TextGPUBufferObjects : public GPUBufferObjects {
@@ -256,11 +314,19 @@ namespace cilantro {
 
         typedef TextGPUBufferObjects GPUBuffers;
 
-        TextRenderable(const std::string &text, const Eigen::Ref<const Eigen::Vector3f> &position,
-                       const RenderingProperties &rp = RenderingProperties());
+        inline TextRenderable(const std::string &text, const Eigen::Ref<const Eigen::Vector3f> &position,
+                              const RenderingProperties &rp = RenderingProperties())
+                : Renderable(rp, position), text(text)
+        {
+            drawLast = true;
+        }
 
-        TextRenderable(const std::string &text, float pos_x, float pos_y, float pos_z,
-                       const RenderingProperties &rp = RenderingProperties());
+        inline TextRenderable(const std::string &text, float pos_x, float pos_y, float pos_z,
+                              const RenderingProperties &rp = RenderingProperties())
+                : Renderable(rp, Eigen::Vector3f(pos_x, pos_y, pos_z)), text(text)
+        {
+            drawLast = true;
+        }
 
         void updateGPUBuffers(GPUBufferObjects &gl_objects);
 

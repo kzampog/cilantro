@@ -149,13 +149,13 @@ int main(int argc, char ** argv) {
     initial_viz.addObject<cilantro::PointCloudRenderable>("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
 
     // Registration result
-    src.transform(tf_est);
+    auto src_t = src.transformed(tf_est);
     registration_viz.registerKeyboardCallback('c', std::bind(color_toggle, std::ref(registration_viz)));
     registration_viz.addObject<cilantro::PointCloudRenderable>("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));
-    registration_viz.addObject<cilantro::PointCloudRenderable>("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
+    registration_viz.addObject<cilantro::PointCloudRenderable>("src", src_t, cilantro::RenderingProperties().setPointColor(1,0,0));
 
     // Residuals
-    residuals_viz.addObject<cilantro::PointCloudRenderable>("src", src, cilantro::RenderingProperties().setUseLighting(false))
+    residuals_viz.addObject<cilantro::PointCloudRenderable>("src", src_t, cilantro::RenderingProperties().setUseLighting(false))
             ->setPointValues(residuals);
 
     std::cout << "Press 'c' to toggle point cloud colors" << std::endl;

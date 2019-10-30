@@ -4,31 +4,6 @@
 namespace cilantro {
     extern "C" const unsigned char AnonymousPro_ttf[];
 
-    PointCloudRenderable::PointCloudRenderable(const ConstVectorSetMatrixMap<float,3> &points,
-                                               const RenderingProperties &rp)
-        : Renderable(rp), points(points)
-    {
-        if (points.cols() > 0) centroid = points.rowwise().mean();
-    }
-
-    PointCloudRenderable& PointCloudRenderable::setPointNormals(const ConstVectorSetMatrixMap<float,3> &normals) {
-        if (normals.cols() == points.cols()) this->normals = normals;
-        buffersUpToDate = false;
-        return *this;
-    }
-
-    PointCloudRenderable& PointCloudRenderable::setPointColors(const ConstVectorSetMatrixMap<float,3> &colors) {
-        if (colors.cols() == points.cols()) this->colors = colors;
-        buffersUpToDate = false;
-        return *this;
-    }
-
-    PointCloudRenderable& PointCloudRenderable::setPointValues(const ConstVectorSetMatrixMap<float,1> &values) {
-        if (values.cols() == points.cols()) this->values = values;
-        buffersUpToDate = false;
-        return *this;
-    }
-
     void PointCloudRenderable::updateGPUBuffers(GPUBufferObjects &gl_objects) {
         if (points.cols() == 0) return;
 
@@ -122,16 +97,6 @@ namespace cilantro {
         }
     }
 
-    PointCorrespondencesRenderable::PointCorrespondencesRenderable(const ConstVectorSetMatrixMap<float,3> &dst_points,
-                                                                   const ConstVectorSetMatrixMap<float,3> &src_points,
-                                                                   const RenderingProperties &rp)
-            : Renderable(rp), dstPoints(dst_points), srcPoints(src_points)
-    {
-        if (srcPoints.cols() == dstPoints.cols() && srcPoints.cols() > 0) {
-            centroid = 0.5f*(srcPoints + dstPoints).rowwise().mean();
-        }
-    }
-
     void PointCorrespondencesRenderable::updateGPUBuffers(GPUBufferObjects &gl_objects) {
         if (srcPoints.cols() != dstPoints.cols() || srcPoints.cols() == 0) return;
 
@@ -166,11 +131,6 @@ namespace cilantro {
         pangolin::RenderVbo(gl_buffers->lineEndPointBuffer, GL_LINES);
     }
 
-    CoordinateFrameRenderable::CoordinateFrameRenderable(const Eigen::Matrix4f &tf, float scale,
-                                                         const RenderingProperties &rp)
-            : Renderable(rp, tf.topRightCorner(3,1)), transform(tf), scale(scale)
-    {}
-
     void CoordinateFrameRenderable::updateGPUBuffers(GPUBufferObjects &gl_objects) {}
 
     void CoordinateFrameRenderable::render(GPUBufferObjects &gl_objects) {
@@ -187,13 +147,6 @@ namespace cilantro {
         glPopMatrix();
     }
 
-    CameraFrustumRenderable::CameraFrustumRenderable(size_t width, size_t height, const Eigen::Matrix3f &intrinsics,
-                                                     const Eigen::Matrix4f &pose, float scale,
-                                                     const RenderingProperties &rp)
-            : Renderable(rp, pose.topRightCorner(3,1)), width(width), height(height),
-              inverseIntrinsics(intrinsics.inverse()), pose(pose), scale(scale)
-    {}
-
     void CameraFrustumRenderable::updateGPUBuffers(GPUBufferObjects &gl_objects) {}
 
     void CameraFrustumRenderable::render(GPUBufferObjects &gl_objects) {
@@ -203,51 +156,6 @@ namespace cilantro {
             glColor4f(renderingProperties.lineColor(0), renderingProperties.lineColor(1), renderingProperties.lineColor(2), renderingProperties.opacity);
         glLineWidth(renderingProperties.lineWidth);
         pangolin::glDrawFrustum(inverseIntrinsics, (int)width, (int)height, pose, scale);
-    }
-
-    TriangleMeshRenderable::TriangleMeshRenderable(const ConstVectorSetMatrixMap<float,3> &vertices,
-                                                   const std::vector<std::vector<size_t>> &faces,
-                                                   const RenderingProperties &rp)
-            : Renderable(rp), vertices(vertices), faces(faces)
-    {
-        if (vertices.cols() > 0) centroid = vertices.rowwise().mean();
-        initFaceNormals(vertices, faces);
-    }
-
-    TriangleMeshRenderable& TriangleMeshRenderable::setVertexNormals(const ConstVectorSetMatrixMap<float,3> &vertex_normals) {
-        if (vertex_normals.cols() == vertices.cols()) vertexNormals = vertex_normals;
-        buffersUpToDate = false;
-        return *this;
-    }
-
-    TriangleMeshRenderable& TriangleMeshRenderable::setFaceNormals(const ConstVectorSetMatrixMap<float,3> &face_normals) {
-        if (face_normals.cols() == faces.size()) faceNormals = face_normals;
-        buffersUpToDate = false;
-        return *this;
-    }
-
-    TriangleMeshRenderable& TriangleMeshRenderable::setVertexColors(const ConstVectorSetMatrixMap<float,3> &vertex_colors) {
-        if (vertex_colors.cols() == vertices.cols()) vertexColors = vertex_colors;
-        buffersUpToDate = false;
-        return *this;
-    }
-
-    TriangleMeshRenderable& TriangleMeshRenderable::setFaceColors(const ConstVectorSetMatrixMap<float,3> &face_colors) {
-        if (face_colors.cols() == faces.size()) faceColors = face_colors;
-        buffersUpToDate = false;
-        return *this;
-    }
-
-    TriangleMeshRenderable& TriangleMeshRenderable::setVertexValues(const ConstVectorSetMatrixMap<float,1> &vertex_values) {
-        if (vertex_values.cols() == vertices.cols()) vertexValues = vertex_values;
-        buffersUpToDate = false;
-        return *this;
-    }
-
-    TriangleMeshRenderable& TriangleMeshRenderable::setFaceValues(const ConstVectorSetMatrixMap<float,1> &face_values) {
-        if (face_values.cols() == faces.size()) faceValues = face_values;
-        buffersUpToDate = false;
-        return *this;
     }
 
     void TriangleMeshRenderable::updateGPUBuffers(GPUBufferObjects &gl_objects) {
@@ -267,6 +175,10 @@ namespace cilantro {
         gl_buffers->vertexBuffer.Upload(vertices_flat.data(), sizeof(float)*vertices_flat.cols()*3);
 
         centroid = vertices_flat.rowwise().mean();
+
+        if (renderingProperties.useFaceNormals && faceNormals.cols() != faces.size()) {
+            initFaceNormals();
+        }
 
         // Populate flattened normals
         VectorSet<float,3> normals_flat;
@@ -432,30 +344,15 @@ namespace cilantro {
         }
     }
 
-    void TriangleMeshRenderable::initFaceNormals(const ConstVectorSetMatrixMap<float,3> &vertices,
-                                                 const std::vector<std::vector<size_t>> &faces)
-    {
-        faceNormals.resize(3, faces.size());
+    void TriangleMeshRenderable::initFaceNormals() {
+        computedFaceNormals.resize(3, faces.size());
         for (size_t i = 0; i < faces.size(); i++) {
             const auto pt0(vertices.col(faces[i][0]));
             const auto pt1(vertices.col(faces[i][1]));
             const auto pt2(vertices.col(faces[i][2]));
-            faceNormals.col(i) = ((pt1 - pt0).cross(pt2 - pt0)).normalized();
+            computedFaceNormals.col(i) = ((pt1 - pt0).cross(pt2 - pt0)).normalized();
         }
-    }
-
-    TextRenderable::TextRenderable(const std::string &text, const Eigen::Ref<const Eigen::Vector3f> &position,
-                                   const RenderingProperties &rp)
-            : Renderable(rp, position), text(text)
-    {
-        drawLast = true;
-    }
-
-    TextRenderable::TextRenderable(const std::string &text, float pos_x, float pos_y, float pos_z,
-                                   const RenderingProperties &rp)
-            : Renderable(rp, Eigen::Vector3f(pos_x, pos_y, pos_z)), text(text)
-    {
-        drawLast = true;
+        new (&faceNormals) ConstVectorSetMatrixMap<float,3>(computedFaceNormals);
     }
 
     void TextRenderable::updateGPUBuffers(GPUBufferObjects &gl_objects) {
