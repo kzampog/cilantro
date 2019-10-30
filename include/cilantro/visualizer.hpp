@@ -22,9 +22,10 @@ namespace cilantro {
         ~Visualizer();
 
         template <class RenderableT>
-        std::shared_ptr<RenderableT> addObject(const std::string &name, std::shared_ptr<RenderableT> obj_ptr) {
+        std::shared_ptr<RenderableT> addObject(const std::string &name, const std::shared_ptr<RenderableT> &obj_ptr) {
             gl_context_->MakeCurrent();
-            renderables_[name] = ManagedRenderable(obj_ptr, std::shared_ptr<typename RenderableT::GPUBuffers>(new typename RenderableT::GPUBuffers()));
+            renderables_[name] = ManagedRenderable(std::static_pointer_cast<Renderable>(obj_ptr), std::shared_ptr<typename RenderableT::GPUBuffers>(new typename RenderableT::GPUBuffers()));
+            obj_ptr->resetGPUBufferStatus();
             return obj_ptr;
         }
 
@@ -32,7 +33,7 @@ namespace cilantro {
         std::shared_ptr<RenderableT> addObject(const std::string &name, Args&&... args) {
             gl_context_->MakeCurrent();
             std::shared_ptr<RenderableT> obj_ptr(new RenderableT(std::forward<Args>(args)...));
-            renderables_[name] = ManagedRenderable(obj_ptr, std::shared_ptr<typename RenderableT::GPUBuffers>(new typename RenderableT::GPUBuffers()));
+            renderables_[name] = ManagedRenderable(std::static_pointer_cast<Renderable>(obj_ptr), std::shared_ptr<typename RenderableT::GPUBuffers>(new typename RenderableT::GPUBuffers()));
             return obj_ptr;
         }
 

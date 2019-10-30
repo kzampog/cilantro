@@ -101,6 +101,8 @@ namespace cilantro {
 
         virtual void render(GPUBufferObjects &gl_objects) = 0;
 
+        inline void resetGPUBufferStatus() { buffersUpToDate = false; }
+
         inline void updateGPUBuffersAndRender(GPUBufferObjects &gl_objects) {
             if (!buffersUpToDate) {
                 updateGPUBuffers(gl_objects);
