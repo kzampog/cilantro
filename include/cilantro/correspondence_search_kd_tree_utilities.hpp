@@ -5,7 +5,6 @@
 #include <cilantro/kd_tree.hpp>
 
 namespace cilantro {
-
     template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = DistanceEvaluator<ScalarT,ScalarT>, typename CorrValueT = typename EvaluatorT::OutputScalar>
     void findNNCorrespondencesUnidirectional(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
                                              const KDTree<ScalarT,EigenDim,DistAdaptor> &ref_tree,
@@ -22,28 +21,27 @@ namespace cilantro {
         CorrespondenceSet<CorrValueT> corr_tmp(query_pts.cols());
         std::vector<bool> keep(query_pts.cols());
         Neighborhood<ScalarT> nn;
+        CorrValueT dist;
         if (ref_is_first) {
-#pragma omp parallel for shared(corr_tmp) private(nn)
+#pragma omp parallel for shared(corr_tmp) private(nn, dist)
             for (size_t i = 0; i < query_pts.cols(); i++) {
                 ref_tree.kNNInRadiusSearch(query_pts.col(i), 1, max_distance, nn);
-                keep[i] = !nn.empty();
-                if (!nn.empty())
-                    corr_tmp[i] = {nn[0].index, i, evaluator(nn[0].index, i, nn[0].value)};
+                keep[i] = !nn.empty() && (dist = evaluator(nn[0].index, i, nn[0].value)) < max_distance;
+                if (keep[i]) corr_tmp[i] = {nn[0].index, i, dist};
             }
         } else {
-#pragma omp parallel for shared(corr_tmp) private(nn)
+#pragma omp parallel for shared(corr_tmp) private(nn, dist)
             for (size_t i = 0; i < query_pts.cols(); i++) {
                 ref_tree.kNNInRadiusSearch(query_pts.col(i), 1, max_distance, nn);
-                keep[i] = !nn.empty();
-                if (!nn.empty())
-                    corr_tmp[i] = {i, nn[0].index, evaluator(i, nn[0].index, nn[0].value)};
+                keep[i] = !nn.empty() && (dist = evaluator(i, nn[0].index, nn[0].value)) < max_distance;
+                if (keep[i]) corr_tmp[i] = {i, nn[0].index, dist};
             }
         }
 
         correspondences.resize(corr_tmp.size());
         size_t count = 0;
         for (size_t i = 0; i < corr_tmp.size(); i++) {
-            if (keep[i] && corr_tmp[i].value < max_distance) correspondences[count++] = corr_tmp[i];
+            if (keep[i]) correspondences[count++] = corr_tmp[i];
         }
         correspondences.resize(count);
     }

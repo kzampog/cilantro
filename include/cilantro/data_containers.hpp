@@ -50,7 +50,7 @@ namespace cilantro {
                 : Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>(data, dim, num_points)
         {}
 
-        inline Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>& eigenMap() {
+        inline Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>& base() {
             return (*static_cast<Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>> *>(this));
         }
     };
@@ -133,7 +133,7 @@ namespace cilantro {
                 : Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>(data, dim, num_points)
         {}
 
-        inline const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>& eigenMap() {
+        inline const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>& base() {
             return (*static_cast<Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>> *>(this));
         }
     };

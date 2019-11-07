@@ -153,7 +153,7 @@ namespace cilantro {
             data_buffer->buffer = tinyply::Buffer((uint8_t *)data_matrix.data());
         } else {
             data_buffer->buffer = tinyply::Buffer(data_matrix.rows()*data_matrix.cols()*sizeof(ScalarOutT));
-            DataMatrixMap<ScalarOutT,EigenDim>((ScalarOutT *)data_buffer->buffer.get(), data_matrix.rows(), data_matrix.cols()).eigenMap() = data_matrix.template cast<ScalarOutT>();
+            DataMatrixMap<ScalarOutT,EigenDim>((ScalarOutT *)data_buffer->buffer.get(), data_matrix.rows(), data_matrix.cols()).base() = data_matrix.template cast<ScalarOutT>();
         }
 
         return data_buffer;

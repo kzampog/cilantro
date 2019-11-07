@@ -4,7 +4,6 @@
 #include <cilantro/correspondence_search_kd_tree_utilities.hpp>
 
 namespace cilantro {
-
 //    template <typename T, typename = int>
 //    struct IsIsometry : std::false_type {};
 //

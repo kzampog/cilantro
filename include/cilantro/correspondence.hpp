@@ -83,7 +83,6 @@ namespace cilantro {
                     }
                 }
                 break;
-
             case CorrespondenceSearchDirection::SECOND_TO_FIRST:
                 correspondences.clear();
                 std::sort(correspondences_copy.begin(), correspondences_copy.end(),
