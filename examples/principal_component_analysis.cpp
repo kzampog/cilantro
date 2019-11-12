@@ -1,4 +1,4 @@
-#include <cilantro/principal_component_analysis.hpp>
+#include <cilantro/core/principal_component_analysis.hpp>
 #include <iostream>
 
 int main(int argc, char ** argv) {

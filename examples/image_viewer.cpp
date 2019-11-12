@@ -1,4 +1,4 @@
-#include <cilantro/image_viewer.hpp>
+#include <cilantro/visualization/image_viewer.hpp>
 
 int main( int argc, char* argv[] )
 {

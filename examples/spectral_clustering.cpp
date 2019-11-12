@@ -1,9 +1,8 @@
-#include <cilantro/nearest_neighbor_graph_utilities.hpp>
-#include <cilantro/spectral_clustering.hpp>
-#include <cilantro/point_cloud.hpp>
-#include <cilantro/visualizer.hpp>
-#include <cilantro/common_renderables.hpp>
-#include <cilantro/timer.hpp>
+#include <cilantro/utilities/nearest_neighbor_graph_utilities.hpp>
+#include <cilantro/clustering/spectral_clustering.hpp>
+#include <cilantro/utilities/point_cloud.hpp>
+#include <cilantro/visualization.hpp>
+#include <cilantro/utilities/timer.hpp>
 
 void generate_input_data(cilantro::VectorSet3f &points, Eigen::SparseMatrix<float> &affinities) {
     points.resize(3, 1700);

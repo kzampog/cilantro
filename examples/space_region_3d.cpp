@@ -1,8 +1,7 @@
-#include <cilantro/space_region.hpp>
-#include <cilantro/point_cloud.hpp>
-#include <cilantro/visualizer.hpp>
-#include <cilantro/common_renderables.hpp>
-#include <cilantro/timer.hpp>
+#include <cilantro/spatial/space_region.hpp>
+#include <cilantro/utilities/point_cloud.hpp>
+#include <cilantro/visualization.hpp>
+#include <cilantro/utilities/timer.hpp>
 
 void callback(cilantro::Visualizer &viz, int key) {
     if (key == 'a') {

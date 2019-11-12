@@ -1,8 +1,6 @@
-#include <cilantro/point_cloud.hpp>
-#include <cilantro/image_viewer.hpp>
-#include <cilantro/visualizer.hpp>
-#include <cilantro/common_renderables.hpp>
-#include <cilantro/icp_common_instances.hpp>
+#include <cilantro/utilities/point_cloud.hpp>
+#include <cilantro/visualization.hpp>
+#include <cilantro/registration/icp_common_instances.hpp>
 
 template <typename T>
 void vec_remove(std::vector<T> &vec, const std::vector<size_t> &indices) {

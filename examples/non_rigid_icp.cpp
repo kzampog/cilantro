@@ -1,8 +1,7 @@
-#include <cilantro/icp_common_instances.hpp>
-#include <cilantro/point_cloud.hpp>
-#include <cilantro/visualizer.hpp>
-#include <cilantro/common_renderables.hpp>
-#include <cilantro/timer.hpp>
+#include <cilantro/registration/icp_common_instances.hpp>
+#include <cilantro/utilities/point_cloud.hpp>
+#include <cilantro/visualization.hpp>
+#include <cilantro/utilities/timer.hpp>
 
 void color_toggle(cilantro::Visualizer &viz) {
     cilantro::RenderingProperties rp = viz.getRenderingProperties("dst");

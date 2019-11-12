@@ -1,7 +1,6 @@
-#include <cilantro/multidimensional_scaling.hpp>
-#include <cilantro/visualizer.hpp>
-#include <cilantro/common_renderables.hpp>
-#include <cilantro/timer.hpp>
+#include <cilantro/utilities/multidimensional_scaling.hpp>
+#include <cilantro/visualization.hpp>
+#include <cilantro/utilities/timer.hpp>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846

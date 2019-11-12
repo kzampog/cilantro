@@ -1,5 +1,5 @@
-#include <cilantro/space_region.hpp>
-#include <cilantro/image_viewer.hpp>
+#include <cilantro/spatial/space_region.hpp>
+#include <cilantro/visualization.hpp>
 
 int main(int argc, char ** argv) {
     std::vector<Eigen::Vector2f> vertices;

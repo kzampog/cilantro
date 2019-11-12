@@ -1,7 +1,6 @@
-#include <cilantro/point_cloud.hpp>
-#include <cilantro/ransac_transform_estimator.hpp>
-#include <cilantro/visualizer.hpp>
-#include <cilantro/common_renderables.hpp>
+#include <cilantro/utilities/point_cloud.hpp>
+#include <cilantro/model_estimation/ransac_transform_estimator.hpp>
+#include <cilantro/visualization.hpp>
 
 void callback(unsigned char key, bool &re_estimate, bool &randomize) {
     if (key == 'a') {

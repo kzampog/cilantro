@@ -1,5 +1,5 @@
 #include <iostream>
-#include <cilantro/io_utilities.hpp>
+#include <cilantro/utilities/io_utilities.hpp>
 
 int main(int argc, char ** argv) {
     Eigen::MatrixXf dok(3,4);

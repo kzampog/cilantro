@@ -1,7 +1,6 @@
-#include <cilantro/point_cloud.hpp>
-#include <cilantro/ransac_hyperplane_estimator.hpp>
-#include <cilantro/visualizer.hpp>
-#include <cilantro/common_renderables.hpp>
+#include <cilantro/utilities/point_cloud.hpp>
+#include <cilantro/model_estimation/ransac_hyperplane_estimator.hpp>
+#include <cilantro/visualization.hpp>
 
 void callback(bool &re_estimate) {
     re_estimate = true;

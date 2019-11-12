@@ -1,7 +1,5 @@
-#include <cilantro/point_cloud.hpp>
-#include <cilantro/image_viewer.hpp>
-#include <cilantro/visualizer.hpp>
-#include <cilantro/common_renderables.hpp>
+#include <cilantro/utilities/point_cloud.hpp>
+#include <cilantro/visualization.hpp>
 
 void color_toggle_callback(cilantro::Visualizer &viz, cilantro::RenderingProperties &rp) {
     if (rp.pointColor == cilantro::RenderingProperties::noColor) {

@@ -1,8 +1,6 @@
-#include <cilantro/connected_component_extraction.hpp>
-#include <cilantro/point_cloud.hpp>
-#include <cilantro/visualizer.hpp>
-#include <cilantro/common_renderables.hpp>
-#include <cilantro/timer.hpp>
+#include <cilantro/clustering/connected_component_extraction.hpp>
+#include <cilantro/utilities.hpp>
+#include <cilantro/visualization.hpp>
 
 int main(int argc, char ** argv) {
     if (argc < 2) {

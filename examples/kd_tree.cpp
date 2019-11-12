@@ -1,5 +1,5 @@
 #include <iostream>
-#include <cilantro/kd_tree.hpp>
+#include <cilantro/core/kd_tree.hpp>
 
 int main(int argc, char ** argv) {
     std::vector<Eigen::Vector3f> points;

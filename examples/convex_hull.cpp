@@ -1,7 +1,6 @@
-#include <cilantro/convex_polytope.hpp>
-#include <cilantro/point_cloud.hpp>
-#include <cilantro/visualizer.hpp>
-#include <cilantro/common_renderables.hpp>
+#include <cilantro/spatial/convex_polytope.hpp>
+#include <cilantro/utilities/point_cloud.hpp>
+#include <cilantro/visualization.hpp>
 
 void run_demo() {
     std::vector<Eigen::Vector3f> points;

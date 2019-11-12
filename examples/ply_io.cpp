@@ -1,6 +1,6 @@
 #include <iostream>
 #include <pangolin/utils/file_utils.h>
-#include <cilantro/point_cloud.hpp>
+#include <cilantro/utilities/point_cloud.hpp>
 
 int main(int argc, char **argv) {
     cilantro::PointCloud3f cloud;
