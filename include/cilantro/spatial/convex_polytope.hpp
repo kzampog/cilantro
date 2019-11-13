@@ -139,9 +139,9 @@ namespace cilantro {
             return mask;
         }
 
-        template <typename IdxT>
+        template <typename IdxT = IndexT>
         std::vector<IdxT> getInteriorPointIndices(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
-                                                    ScalarT offset = 0.0) const
+                                                  ScalarT offset = 0.0) const
         {
             std::vector<IdxT> indices;
             indices.reserve(points.cols());
