@@ -3,7 +3,7 @@
 #include <cilantro/spatial/convex_polytope.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, ptrdiff_t EigenDim>
+    template <typename ScalarT, ptrdiff_t EigenDim, typename IndexT = size_t>
     class SpaceRegion {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -13,8 +13,8 @@ namespace cilantro {
         enum { Dimension = EigenDim };
 
         typedef typename std::conditional<EigenDim != Eigen::Dynamic && sizeof(Eigen::Matrix<ptrdiff_t,EigenDim,1>) % 16 == 0,
-                std::vector<ConvexPolytope<ScalarT,EigenDim>,Eigen::aligned_allocator<ConvexPolytope<ScalarT,EigenDim>>>,
-                std::vector<ConvexPolytope<ScalarT,EigenDim>>>::type ConvexPolytopeVector;
+                std::vector<ConvexPolytope<ScalarT,EigenDim,IndexT>,Eigen::aligned_allocator<ConvexPolytope<ScalarT,EigenDim,IndexT>>>,
+                std::vector<ConvexPolytope<ScalarT,EigenDim,IndexT>>>::type ConvexPolytopeVector;
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
         SpaceRegion()
@@ -31,7 +31,7 @@ namespace cilantro {
                   polytopes_(polytopes)
         {}
 
-        SpaceRegion(const ConvexPolytope<ScalarT,EigenDim> &polytope)
+        SpaceRegion(const ConvexPolytope<ScalarT,EigenDim,IndexT> &polytope)
                 : dim_(polytope.getSpaceDimension()), polytopes_(ConvexPolytopeVector(1, polytope))
         {}
 
@@ -59,7 +59,7 @@ namespace cilantro {
             ConvexPolytopeVector res_polytopes;
             for (size_t i = 0; i < polytopes_.size(); i++) {
                 for (size_t j = 0; j < sr.polytopes_.size(); j++) {
-                    ConvexPolytope<ScalarT,EigenDim> poly_tmp(polytopes_[i].intersectionWith(sr.polytopes_[j], compute_topology, simplicial_facets, merge_tol, dist_tol));
+                    ConvexPolytope<ScalarT,EigenDim,IndexT> poly_tmp(polytopes_[i].intersectionWith(sr.polytopes_[j], compute_topology, simplicial_facets, merge_tol, dist_tol));
                     if (!poly_tmp.isEmpty()) {
                         res_polytopes.emplace_back(std::move(poly_tmp));
                     }
@@ -93,7 +93,7 @@ namespace cilantro {
 
             ConvexPolytopeVector res_polytopes;
             for (size_t t = 0; t < tuples.size(); t++) {
-                ConvexPolytope<ScalarT,EigenDim> poly_tmp(tuples[t], compute_topology, simplicial_facets, merge_tol, dist_tol);
+                ConvexPolytope<ScalarT,EigenDim,IndexT> poly_tmp(tuples[t], compute_topology, simplicial_facets, merge_tol, dist_tol);
                 if (!poly_tmp.isEmpty()) {
                     res_polytopes.emplace_back(std::move(poly_tmp));
                 }
@@ -126,7 +126,7 @@ namespace cilantro {
 
             ConvexPolytopeVector res_polytopes;
             for (size_t t = 0; t < tuples.size(); t++) {
-                ConvexPolytope<ScalarT,EigenDim> poly_tmp(tuples[t], dim_, compute_topology, simplicial_facets, merge_tol, dist_tol);
+                ConvexPolytope<ScalarT,EigenDim,IndexT> poly_tmp(tuples[t], dim_, compute_topology, simplicial_facets, merge_tol, dist_tol);
                 if (!poly_tmp.isEmpty()) {
                     res_polytopes.emplace_back(std::move(poly_tmp));
                 }

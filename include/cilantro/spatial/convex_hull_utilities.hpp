@@ -565,14 +565,14 @@ namespace cilantro {
         volume = qh.volume();
     }
 
-    template <typename ScalarT, ptrdiff_t EigenDim>
+    template <typename ScalarT, ptrdiff_t EigenDim, typename IndexT = size_t>
     bool convexHullFromPoints(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
                               VectorSet<ScalarT,EigenDim> &hull_points,
                               HomogeneousVectorSet<ScalarT,EigenDim> &halfspaces,
-                              std::vector<std::vector<size_t>> &facets,
-                              std::vector<std::vector<size_t>> &point_neighbor_facets,
-                              std::vector<std::vector<size_t>> &facet_neighbor_facets,
-                              std::vector<size_t> &hull_point_indices,
+                              std::vector<std::vector<IndexT>> &facets,
+                              std::vector<std::vector<IndexT>> &point_neighbor_facets,
+                              std::vector<std::vector<IndexT>> &facet_neighbor_facets,
+                              std::vector<IndexT> &hull_point_indices,
                               double &area, double &volume,
                               bool simplicial_facets = true,
                               double merge_tol = 0.0)
@@ -634,11 +634,11 @@ namespace cilantro {
         orgQhull::QhullFacetList qh_facets = qh.facetList();
 
         // Establish mapping between hull vertex ids and hull points indices
-        size_t max_id = 0;
+        IndexT max_id = 0;
         for (auto vi = qh.vertexList().begin(); vi != qh.vertexList().end(); ++vi)
             if (max_id < vi->id()) max_id = vi->id();
-        std::vector<size_t> vid_to_ptidx(max_id + 1);
-        size_t k = 0;
+        std::vector<IndexT> vid_to_ptidx(max_id + 1);
+        IndexT k = 0;
         for (auto vi = qh.vertexList().begin(); vi != qh.vertexList().end(); ++vi)
             vid_to_ptidx[vi->id()] = k++;
 
@@ -646,7 +646,7 @@ namespace cilantro {
         max_id = 0;
         for (auto fi = qh_facets.begin(); fi != qh_facets.end(); ++fi)
             if (max_id < fi->id()) max_id = fi->id();
-        std::vector<size_t> fid_to_fidx(max_id + 1);
+        std::vector<IndexT> fid_to_fidx(max_id + 1);
         k = 0;
         for (auto fi = qh_facets.begin(); fi != qh_facets.end(); ++fi)
             fid_to_fidx[fi->id()] = k++;
@@ -657,7 +657,7 @@ namespace cilantro {
         point_neighbor_facets.resize(qh.vertexCount());
         hull_point_indices.resize(qh.vertexCount());
         for (auto vi = qh.vertexList().begin(); vi != qh.vertexList().end(); ++vi) {
-            size_t i = 0;
+            IndexT i = 0;
             for (auto ci = vi->point().begin(); ci != vi->point().end(); ++ci) {
                 hull_points(i++,k) = (ScalarT)(*ci);
             }
@@ -678,7 +678,7 @@ namespace cilantro {
         facets.resize(qh_facets.size());
         facet_neighbor_facets.resize(qh_facets.size());
         for (auto fi = qh_facets.begin(); fi != qh_facets.end(); ++fi) {
-            size_t i = 0;
+            IndexT i = 0;
             for (auto hpi = fi->hyperplane().begin(); hpi != fi->hyperplane().end(); ++hpi) {
                 halfspaces(i++,k) = (ScalarT)(*hpi);
             }

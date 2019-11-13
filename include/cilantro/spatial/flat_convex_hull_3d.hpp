@@ -3,8 +3,8 @@
 #include <cilantro/spatial/convex_polytope.hpp>
 
 namespace cilantro {
-    template <typename ScalarT>
-    class FlatConvexHull3 : public PrincipalComponentAnalysis<ScalarT,3>, public ConvexHull<ScalarT,2> {
+    template <typename ScalarT, typename IndexT = size_t>
+    class FlatConvexHull3 : public PrincipalComponentAnalysis<ScalarT,3>, public ConvexHull<ScalarT,2,IndexT> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -13,7 +13,7 @@ namespace cilantro {
                         bool simplicial_facets = false,
                         double merge_tol = 0.0)
                 : PrincipalComponentAnalysis<ScalarT,3>(points),
-                  ConvexHull<ScalarT,2>(this->template project<2>(points), compute_topology, simplicial_facets, merge_tol),
+                  ConvexHull<ScalarT,2,IndexT>(this->template project<2>(points), compute_topology, simplicial_facets, merge_tol),
                   vertices_3d_(this->template reconstruct<2>(this->vertices_))
         {}
 
@@ -47,7 +47,7 @@ namespace cilantro {
             proj_mat.row(2).setZero();
             proj_mat(2,3) = 1.0;
 
-            ConvexHull<ScalarT,2>::transform(proj_mat*tform*rec_mat);
+            ConvexHull<ScalarT,2,IndexT>::transform(proj_mat*tform*rec_mat);
 
             return *this;
         }

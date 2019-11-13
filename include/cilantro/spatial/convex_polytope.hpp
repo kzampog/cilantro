@@ -4,7 +4,7 @@
 #include <cilantro/core/space_transformations.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, ptrdiff_t EigenDim>
+    template <typename ScalarT, ptrdiff_t EigenDim, typename IndexT = size_t>
     class ConvexPolytope {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -70,7 +70,7 @@ namespace cilantro {
             } else if (dim == input_data.rows() - 1) {
                 init_halfspaces_(input_data, compute_topology, simplicial_facets, merge_tol, dist_tol);
             } else {
-                *this = ConvexPolytope<ScalarT,EigenDim>(dim);
+                *this = ConvexPolytope<ScalarT,EigenDim,IndexT>(dim);
             }
         }
 
@@ -119,7 +119,7 @@ namespace cilantro {
         inline const Vector<ScalarT,EigenDim>& getInteriorPoint() const { return interior_point_; }
 
         inline bool containsPoint(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &point, ScalarT offset = 0.0) const {
-            for (size_t i = 0; i < halfspaces_.cols(); i++) {
+            for (IndexT i = 0; i < halfspaces_.cols(); i++) {
                 if (point.dot(halfspaces_.col(i).head(dim_)) + halfspaces_(dim_,i) > -offset) return false;
             }
             return true;
@@ -133,30 +133,31 @@ namespace cilantro {
                                                                         ScalarT offset = 0.0) const
         {
             Eigen::Matrix<bool,1,Eigen::Dynamic> mask(1,points.cols());
-            for (size_t i = 0; i < points.cols(); i++) {
+            for (IndexT i = 0; i < points.cols(); i++) {
                 mask(i) = containsPoint(points.col(i), offset);
             }
             return mask;
         }
 
-        std::vector<size_t> getInteriorPointIndices(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
+        template <typename IdxT>
+        std::vector<IdxT> getInteriorPointIndices(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
                                                     ScalarT offset = 0.0) const
         {
-            std::vector<size_t> indices;
+            std::vector<IdxT> indices;
             indices.reserve(points.cols());
-            for (size_t i = 0; i < points.cols(); i++) {
+            for (IdxT i = 0; i < points.cols(); i++) {
                 if (containsPoint(points.col(i), offset)) indices.emplace_back(i);
             }
             return indices;
         }
 
-        inline const std::vector<std::vector<size_t>>& getFacetVertexIndices() const { return faces_; }
+        inline const std::vector<std::vector<IndexT>>& getFacetVertexIndices() const { return faces_; }
 
-        inline const std::vector<std::vector<size_t>>& getVertexNeighborFacets() const { return vertex_neighbor_faces_; }
+        inline const std::vector<std::vector<IndexT>>& getVertexNeighborFacets() const { return vertex_neighbor_faces_; }
 
-        inline const std::vector<std::vector<size_t>>& getFacetNeighborFacets() const { return face_neighbor_faces_; }
+        inline const std::vector<std::vector<IndexT>>& getFacetNeighborFacets() const { return face_neighbor_faces_; }
 
-        inline const std::vector<size_t>& getVertexPointIndices() const { return vertex_point_indices_; }
+        inline const std::vector<IndexT>& getVertexPointIndices() const { return vertex_point_indices_; }
 
         ConvexPolytope& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &rotation,
                                   const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,1>> &translation)
@@ -218,13 +219,13 @@ namespace cilantro {
         Vector<ScalarT,EigenDim> interior_point_;
 
         // Topological properties: only available for bounded (full-dimensional) polytopes
-        std::vector<std::vector<size_t>> faces_;
-        std::vector<std::vector<size_t>> vertex_neighbor_faces_;
-        std::vector<std::vector<size_t>> face_neighbor_faces_;
-        std::vector<size_t> vertex_point_indices_;
+        std::vector<std::vector<IndexT>> faces_;
+        std::vector<std::vector<IndexT>> vertex_neighbor_faces_;
+        std::vector<std::vector<IndexT>> face_neighbor_faces_;
+        std::vector<IndexT> vertex_point_indices_;
 
         inline void init_points_(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, bool compute_topology, bool simplicial_facets, double merge_tol) {
-            is_empty_ = (compute_topology) ? !convexHullFromPoints<ScalarT,EigenDim>(points, vertices_, halfspaces_, faces_, vertex_neighbor_faces_, face_neighbor_faces_, vertex_point_indices_, area_, volume_, simplicial_facets, merge_tol)
+            is_empty_ = (compute_topology) ? !convexHullFromPoints<ScalarT,EigenDim,IndexT>(points, vertices_, halfspaces_, faces_, vertex_neighbor_faces_, face_neighbor_faces_, vertex_point_indices_, area_, volume_, simplicial_facets, merge_tol)
                                            : !halfspaceIntersectionFromVertices<ScalarT,EigenDim>(points, vertices_, halfspaces_, area_, volume_, true, merge_tol);
             is_bounded_ = true;
             if (is_empty_) {
@@ -241,7 +242,7 @@ namespace cilantro {
                 volume_ = 0.0;
             } else if (is_bounded_) {
                 if (compute_topology) {
-                    is_empty_ = !convexHullFromPoints<ScalarT,EigenDim>(vertices_, vertices_, halfspaces_, faces_, vertex_neighbor_faces_, face_neighbor_faces_, vertex_point_indices_, area_, volume_, simplicial_facets, merge_tol);
+                    is_empty_ = !convexHullFromPoints<ScalarT,EigenDim,IndexT>(vertices_, vertices_, halfspaces_, faces_, vertex_neighbor_faces_, face_neighbor_faces_, vertex_point_indices_, area_, volume_, simplicial_facets, merge_tol);
                     if (is_empty_) {
                         interior_point_.setConstant(dim_, 1, std::numeric_limits<ScalarT>::quiet_NaN());
                     } else {
@@ -264,8 +265,8 @@ namespace cilantro {
     typedef ConvexPolytope<float,Eigen::Dynamic> ConvexPolytopeXf;
     typedef ConvexPolytope<double,Eigen::Dynamic> ConvexPolytopeXd;
 
-    template <typename ScalarT, ptrdiff_t EigenDim>
-    using ConvexHull = ConvexPolytope<ScalarT,EigenDim>;
+    template <typename ScalarT, ptrdiff_t EigenDim, typename IndexT = size_t>
+    using ConvexHull = ConvexPolytope<ScalarT,EigenDim,IndexT>;
 
     typedef ConvexPolytope<float,2> ConvexHull2f;
     typedef ConvexPolytope<double,2> ConvexHull2d;
