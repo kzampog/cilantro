@@ -5,11 +5,11 @@
 #include <cilantro/core/common_pair_evaluators.hpp>
 
 namespace cilantro {
-    template <typename T>
-    std::vector<size_t> getNNGraphNodeDegrees(const std::vector<std::vector<T>> &adj_list,
-                                              bool remove_self = true)
+    template <typename T, typename DegT = size_t>
+    std::vector<DegT> getNNGraphNodeDegrees(const std::vector<std::vector<T>> &adj_list,
+                                            bool remove_self = true)
     {
-        std::vector<size_t> deg(adj_list.size());
+        std::vector<DegT> deg(adj_list.size());
         if (remove_self) {
 #pragma omp parallel for
             for (size_t i = 0; i < deg.size(); i++) {
