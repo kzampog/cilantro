@@ -10,6 +10,7 @@ namespace cilantro {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         typedef ScalarT Scalar;
+        typedef IndexT Index;
 
         enum { Dimension = EigenDim };
 

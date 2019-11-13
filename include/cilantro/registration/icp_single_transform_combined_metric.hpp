@@ -8,11 +8,8 @@
 namespace cilantro {
     template <class TransformT, class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PointToPlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
     class CombinedMetricSingleTransformICP : public IterativeClosestPointBase<CombinedMetricSingleTransformICP<TransformT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT>,TransformT,CorrespondenceSearchEngineT,VectorSet<typename TransformT::Scalar,1>> {
-
         typedef IterativeClosestPointBase<CombinedMetricSingleTransformICP<TransformT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT>,TransformT,CorrespondenceSearchEngineT,VectorSet<typename TransformT::Scalar,1>> Base;
-
         friend Base;
-
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 

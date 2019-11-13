@@ -7,7 +7,7 @@
 
 namespace cilantro {
     // CRTP base class
-    template <class ModelEstimatorT, class ModelT, typename ResidualScalarT>
+    template <class ModelEstimatorT, class ModelT, typename ResidualScalarT, typename IndexT = size_t>
     class RandomSampleConsensusBase {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -15,6 +15,8 @@ namespace cilantro {
         typedef ModelT Model;
         typedef ResidualScalarT ResidualScalar;
         typedef std::vector<ResidualScalarT> ResidualVector;
+        typedef IndexT Index;
+        typedef std::vector<IndexT> IndexVector;
 
         RandomSampleConsensusBase(size_t sample_size,
                                   size_t inlier_count_thresh,
@@ -74,15 +76,15 @@ namespace cilantro {
             std::mt19937 rng(rd());
 
             // Initialize random permutation
-            std::vector<size_t> perm(num_points);
-            for (size_t i = 0; i < num_points; i++) perm[i] = i;
+            IndexVector perm(num_points);
+            for (Index i = 0; i < num_points; i++) perm[i] = i;
             std::shuffle(perm.begin(), perm.end(), rng);
             auto sample_start_it = perm.begin();
 
             // Random sample results
             Model curr_params;
             ResidualVector curr_residuals;
-            std::vector<size_t> curr_inliers;
+            IndexVector curr_inliers;
 
             iteration_count_ = 0;
             while (iteration_count_ < max_iter_) {
@@ -91,7 +93,7 @@ namespace cilantro {
                     std::shuffle(perm.begin(), perm.end(), rng);
                     sample_start_it = perm.begin();
                 }
-                std::vector<size_t> sample_ind(sample_start_it, sample_start_it + sample_size_);
+                IndexVector sample_ind(sample_start_it, sample_start_it + sample_size_);
                 sample_start_it += sample_size_;
 
                 // Fit model to sample and get its inliers
@@ -99,7 +101,7 @@ namespace cilantro {
                 estimator.computeResiduals(curr_params, curr_residuals);
                 curr_inliers.resize(num_points);
                 size_t k = 0;
-                for (size_t i = 0; i < num_points; i++) {
+                for (Index i = 0; i < num_points; i++) {
                     if (curr_residuals[i] <= inlier_dist_thresh_) curr_inliers[k++] = i;
                 }
                 curr_inliers.resize(k);
@@ -124,7 +126,7 @@ namespace cilantro {
                 estimator.computeResiduals(model_params_, model_residuals_);
                 model_inliers_.resize(num_points);
                 size_t k = 0;
-                for (size_t i = 0; i < num_points; i++){
+                for (Index i = 0; i < num_points; i++){
                     if (model_residuals_[i] <= inlier_dist_thresh_) model_inliers_[k++] = i;
                 }
                 model_inliers_.resize(k);
@@ -145,7 +147,7 @@ namespace cilantro {
 
         inline const ModelEstimatorT& getEstimationResults(Model &model_params,
                                                            ResidualVector &model_residuals,
-                                                           std::vector<size_t> &model_inliers) const
+                                                           IndexVector &model_inliers) const
         {
             model_params = model_params_;
             model_residuals = model_residuals_;
@@ -167,9 +169,9 @@ namespace cilantro {
             return *static_cast<ModelEstimatorT*>(this);
         }
 
-        inline const std::vector<size_t>& getModelInliers() const { return model_inliers_; }
+        inline const IndexVector& getModelInliers() const { return model_inliers_; }
 
-        inline const ModelEstimatorT& getModelInliers(std::vector<size_t> &model_inliers) const {
+        inline const ModelEstimatorT& getModelInliers(IndexVector &model_inliers) const {
             model_inliers = model_inliers_;
             return *static_cast<ModelEstimatorT*>(this);
         }
@@ -180,7 +182,7 @@ namespace cilantro {
 
         inline size_t getNumberOfInliers() const { return model_inliers_.size(); }
 
-    private:
+    protected:
         // Parameters
         size_t sample_size_;
         size_t inlier_count_thresh_;
@@ -192,6 +194,6 @@ namespace cilantro {
         size_t iteration_count_;
         Model model_params_;
         ResidualVector model_residuals_;
-        std::vector<size_t> model_inliers_;
+        IndexVector model_inliers_;
     };
 }

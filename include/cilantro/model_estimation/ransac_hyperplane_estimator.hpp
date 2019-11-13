@@ -4,13 +4,14 @@
 #include <cilantro/core/principal_component_analysis.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, ptrdiff_t EigenDim>
-    class HyperplaneRANSACEstimator : public RandomSampleConsensusBase<HyperplaneRANSACEstimator<ScalarT,EigenDim>,Eigen::Hyperplane<ScalarT,EigenDim>,ScalarT> {
+    template <typename ScalarT, ptrdiff_t EigenDim, typename IndexT = size_t>
+    class HyperplaneRANSACEstimator : public RandomSampleConsensusBase<HyperplaneRANSACEstimator<ScalarT,EigenDim>,Eigen::Hyperplane<ScalarT,EigenDim>,ScalarT,IndexT> {
+        typedef RandomSampleConsensusBase<HyperplaneRANSACEstimator<ScalarT,EigenDim>,Eigen::Hyperplane<ScalarT,EigenDim>,ScalarT,IndexT> Base;
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         HyperplaneRANSACEstimator(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points)
-                : RandomSampleConsensusBase<HyperplaneRANSACEstimator<ScalarT,EigenDim>,Eigen::Hyperplane<ScalarT,EigenDim>,ScalarT>(points.rows(), points.cols()/2 + points.cols()%2, 100, 0.1, true),
+                : Base(points.rows(), points.cols()/2 + points.cols()%2, 100, 0.1, true),
                   points_(points)
         {}
 
@@ -25,7 +26,7 @@ namespace cilantro {
             return model_params;
         }
 
-        HyperplaneRANSACEstimator& estimateModel(const std::vector<size_t> &sample_ind,
+        HyperplaneRANSACEstimator& estimateModel(const typename Base::IndexVector &sample_ind,
                                                  Eigen::Hyperplane<ScalarT,EigenDim> &model_params)
         {
             VectorSet<ScalarT,EigenDim> points(points_.rows(), sample_ind.size());
@@ -36,14 +37,14 @@ namespace cilantro {
             return *this;
         }
 
-        inline Eigen::Hyperplane<ScalarT,EigenDim> estimateModel(const std::vector<size_t> &sample_ind) {
+        inline Eigen::Hyperplane<ScalarT,EigenDim> estimateModel(const typename Base::IndexVector &sample_ind) {
             Eigen::Hyperplane<ScalarT,EigenDim> model_params;
             estimateModel(sample_ind, model_params);
             return model_params;
         }
 
         inline HyperplaneRANSACEstimator& computeResiduals(const Eigen::Hyperplane<ScalarT,EigenDim> &model_params,
-                                                           std::vector<ScalarT> &residuals)
+                                                           typename Base::ResidualVector &residuals)
         {
             residuals.resize(points_.cols());
             for (size_t i = 0; i < points_.cols(); i++) {
@@ -52,8 +53,8 @@ namespace cilantro {
             return *this;
         }
 
-        inline std::vector<ScalarT> computeResiduals(const Eigen::Hyperplane<ScalarT,EigenDim> &model_params) {
-            std::vector<ScalarT> residuals;
+        inline typename Base::ResidualVector computeResiduals(const Eigen::Hyperplane<ScalarT,EigenDim> &model_params) {
+            typename Base::ResidualVector residuals;
             computeResiduals(model_params, residuals);
             return residuals;
         }

@@ -8,11 +8,8 @@
 namespace cilantro {
     template <class TransformT, class CorrespondenceSearchEngineT>
     class PointToPointMetricSingleTransformICP : public IterativeClosestPointBase<PointToPointMetricSingleTransformICP<TransformT,CorrespondenceSearchEngineT>,TransformT,CorrespondenceSearchEngineT,VectorSet<typename TransformT::Scalar,1>> {
-
         typedef IterativeClosestPointBase<PointToPointMetricSingleTransformICP<TransformT,CorrespondenceSearchEngineT>,TransformT,CorrespondenceSearchEngineT,VectorSet<typename TransformT::Scalar,1>> Base;
-
         friend Base;
-
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 

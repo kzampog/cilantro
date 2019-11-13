@@ -9,11 +9,8 @@ namespace cilantro {
     // TransformT is the local motion model
     template <class TransformT, class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PointToPlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegularizationWeightEvaluatorT = RBFKernelWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar,true>>
     class CombinedMetricDenseWarpFieldICP : public IterativeClosestPointBase<CombinedMetricDenseWarpFieldICP<TransformT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,RegularizationWeightEvaluatorT>,TransformSet<TransformT>,CorrespondenceSearchEngineT,VectorSet<typename TransformT::Scalar,1>> {
-
         typedef IterativeClosestPointBase<CombinedMetricDenseWarpFieldICP<TransformT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,RegularizationWeightEvaluatorT>,TransformSet<TransformT>,CorrespondenceSearchEngineT,VectorSet<typename TransformT::Scalar,1>> Base;
-
         friend Base;
-
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 

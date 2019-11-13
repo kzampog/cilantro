@@ -4,13 +4,13 @@
 #include <cilantro/registration/transform_estimation.hpp>
 
 namespace cilantro {
-    template <class TransformT>
-    class TransformRANSACEstimator : public RandomSampleConsensusBase<TransformRANSACEstimator<TransformT>,TransformT,typename TransformT::Scalar> {
+    template <class TransformT, typename IndexT = size_t>
+    class TransformRANSACEstimator : public RandomSampleConsensusBase<TransformRANSACEstimator<TransformT>,TransformT,typename TransformT::Scalar,IndexT> {
+        typedef RandomSampleConsensusBase<TransformRANSACEstimator<TransformT>,TransformT,typename TransformT::Scalar,IndexT> Base;
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         typedef TransformT Transform;
-
         typedef typename TransformT::Scalar Scalar;
 
         enum {
@@ -20,7 +20,7 @@ namespace cilantro {
 
         TransformRANSACEstimator(const ConstVectorSetMatrixMap<Scalar,Dim> &dst_points,
                                  const ConstVectorSetMatrixMap<Scalar,Dim> &src_points)
-                : RandomSampleConsensusBase<TransformRANSACEstimator<TransformT>,TransformT,Scalar>(MinSampleSize, dst_points.cols()/2 + dst_points.cols()%2, 100, (Scalar)0.01, true),
+                : Base(MinSampleSize, dst_points.cols()/2 + dst_points.cols()%2, 100, (Scalar)0.01, true),
                   dst_points_(dst_points),
                   src_points_(src_points)
         {}
@@ -29,7 +29,7 @@ namespace cilantro {
         TransformRANSACEstimator(const ConstVectorSetMatrixMap<Scalar,Dim> &dst_points,
                                  const ConstVectorSetMatrixMap<Scalar,Dim> &src_points,
                                  const CorrespondencesT &corr)
-                : RandomSampleConsensusBase<TransformRANSACEstimator<TransformT>,TransformT,Scalar>(MinSampleSize, corr.size()/2 + corr.size()%2, 100, (Scalar)0.01, true),
+                : Base(MinSampleSize, corr.size()/2 + corr.size()%2, 100, (Scalar)0.01, true),
                   dst_points_tmp_(dst_points.rows(), corr.size()),
                   src_points_tmp_(src_points.rows(), corr.size()),
                   dst_points_(dst_points_tmp_),
@@ -41,11 +41,12 @@ namespace cilantro {
             }
         }
 
+        template <typename IdxT = IndexT>
         TransformRANSACEstimator(const ConstVectorSetMatrixMap<Scalar,Dim> &dst_points,
                                  const ConstVectorSetMatrixMap<Scalar,Dim> &src_points,
-                                 const std::vector<size_t> &dst_ind,
-                                 const std::vector<size_t> &src_ind)
-                : RandomSampleConsensusBase<TransformRANSACEstimator<TransformT>,TransformT,Scalar>(MinSampleSize, dst_ind.size()/2 + dst_ind.size()%2, 100, (Scalar)0.01, true),
+                                 const std::vector<IdxT> &dst_ind,
+                                 const std::vector<IdxT> &src_ind)
+                : Base(MinSampleSize, dst_ind.size()/2 + dst_ind.size()%2, 100, (Scalar)0.01, true),
                   dst_points_tmp_(dst_points.rows(), dst_ind.size()),
                   src_points_tmp_(src_points.rows(), src_ind.size()),
                   dst_points_(dst_points_tmp_),
@@ -68,7 +69,7 @@ namespace cilantro {
             return model_params;
         }
 
-        TransformRANSACEstimator& estimateModel(const std::vector<size_t> &sample_ind,
+        TransformRANSACEstimator& estimateModel(const typename Base::IndexVector &sample_ind,
                                                 TransformT &model_params)
         {
             VectorSet<Scalar,Dim> dst_p(dst_points_.rows(), sample_ind.size());
@@ -81,14 +82,14 @@ namespace cilantro {
             return *this;
         }
 
-        inline TransformT estimateModel(const std::vector<size_t> &sample_ind) {
+        inline TransformT estimateModel(const typename Base::IndexVector &sample_ind) {
             TransformT model_params;
             estimateModel(sample_ind, model_params);
             return model_params;
         }
 
         inline TransformRANSACEstimator& computeResiduals(const TransformT &model_params,
-                                                          std::vector<Scalar> &residuals)
+                                                          typename Base::ResidualVector &residuals)
         {
             residuals.resize(dst_points_.cols());
 #pragma omp parallel for
@@ -98,8 +99,8 @@ namespace cilantro {
             return *this;
         }
 
-        inline std::vector<Scalar> computeResiduals(const TransformT &model_params) {
-            std::vector<Scalar> residuals;
+        inline typename Base::ResidualVector computeResiduals(const TransformT &model_params) {
+            typename Base::ResidualVector residuals;
             computeResiduals(model_params, residuals);
             return residuals;
         }
