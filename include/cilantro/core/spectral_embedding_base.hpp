@@ -4,22 +4,23 @@
 
 namespace cilantro {
     // CRTP base class that holds computed embedding and accessors
-    template <typename ScalarT, ptrdiff_t EigenDim = Eigen::Dynamic, typename Derived = void>
-    struct SpectralEmbeddingBase {
+    template <typename Derived, typename ScalarT, ptrdiff_t EigenDim = Eigen::Dynamic>
+    class SpectralEmbeddingBase {
+    public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         typedef ScalarT Scalar;
 
         enum { Dimension = EigenDim };
 
-        VectorSet<ScalarT,EigenDim> embeddedPoints;
+        inline const VectorSet<ScalarT,EigenDim>& getEmbeddedPoints() const { return embedded_points_; }
 
-        Vector<ScalarT,EigenDim> computedEigenvalues;
+        inline const Vector<ScalarT,EigenDim>& getComputedEigenValues() const { return computed_eigenvalues_; }
 
-        inline const VectorSet<ScalarT,EigenDim>& getEmbeddedPoints() const { return embeddedPoints; }
+        inline size_t getEmbeddingDimension() const { return embedded_points_.rows(); }
 
-        inline const Vector<ScalarT,EigenDim>& getComputedEigenValues() const { return computedEigenvalues; }
-
-        inline size_t getEmbeddingDimension() const { return embeddedPoints.rows(); }
+    protected:
+        VectorSet<ScalarT,EigenDim> embedded_points_;
+        Vector<ScalarT,EigenDim> computed_eigenvalues_;
     };
 }

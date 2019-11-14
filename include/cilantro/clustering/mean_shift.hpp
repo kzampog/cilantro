@@ -84,26 +84,26 @@ namespace cilantro {
 
             for (size_t i = 0; i < shifted_seeds_.cols(); i++) {
                 size_t c;
-                for (c = 0; c < this->clusterToPointIndicesMap.size(); c++) {
-                    if ((shifted_seeds_.col(i) - shifted_seeds_.col(this->clusterToPointIndicesMap[c][0])).squaredNorm() < cluster_tol_sq) break;
+                for (c = 0; c < this->cluster_to_point_indices_map_.size(); c++) {
+                    if ((shifted_seeds_.col(i) - shifted_seeds_.col(this->cluster_to_point_indices_map_[c][0])).squaredNorm() < cluster_tol_sq) break;
                 }
 
-                if (c == this->clusterToPointIndicesMap.size()) {
-                    this->clusterToPointIndicesMap.emplace_back(1, i);
+                if (c == this->cluster_to_point_indices_map_.size()) {
+                    this->cluster_to_point_indices_map_.emplace_back(1, i);
                 } else {
-                    this->clusterToPointIndicesMap[c].emplace_back(i);
+                    this->cluster_to_point_indices_map_[c].emplace_back(i);
                 }
             }
 
-            this->pointToClusterIndexMap.resize(shifted_seeds_.cols());
-            cluster_modes_.resize(data_map_.rows(), this->clusterToPointIndicesMap.size());
-            for (size_t i = 0; i < this->clusterToPointIndicesMap.size(); i++) {
+            this->point_to_cluster_index_map_.resize(shifted_seeds_.cols());
+            cluster_modes_.resize(data_map_.rows(), this->cluster_to_point_indices_map_.size());
+            for (size_t i = 0; i < this->cluster_to_point_indices_map_.size(); i++) {
                 cluster_modes_.col(i).setZero();
-                for (size_t j = 0; j < this->clusterToPointIndicesMap[i].size(); j++) {
-                    cluster_modes_.col(i) += shifted_seeds_.col(this->clusterToPointIndicesMap[i][j]);
-                    this->pointToClusterIndexMap[this->clusterToPointIndicesMap[i][j]] = i;
+                for (size_t j = 0; j < this->cluster_to_point_indices_map_[i].size(); j++) {
+                    cluster_modes_.col(i) += shifted_seeds_.col(this->cluster_to_point_indices_map_[i][j]);
+                    this->point_to_cluster_index_map_[this->cluster_to_point_indices_map_[i][j]] = i;
                 }
-                cluster_modes_.col(i) *= (ScalarT)(1.0)/this->clusterToPointIndicesMap[i].size();
+                cluster_modes_.col(i) *= (ScalarT)(1.0)/this->cluster_to_point_indices_map_[i].size();
             }
 
             return *this;

@@ -380,8 +380,8 @@ namespace cilantro {
                                                      size_t min_segment_size = 1,
                                                      size_t max_segment_size = std::numeric_limits<size_t>::max())
         {
-            extractConnectedComponents<ScalarT,EigenDim,DistAdaptor,NeighborhoodSpecT,PointSimilarityEvaluator>(*kd_tree_ptr_, nh, seeds_ind, this->clusterToPointIndicesMap, evaluator, min_segment_size, max_segment_size);
-            this->pointToClusterIndexMap = cilantro::getPointToClusterIndexMap(this->clusterToPointIndicesMap, points_.cols());
+            extractConnectedComponents<ScalarT,EigenDim,DistAdaptor,NeighborhoodSpecT,PointSimilarityEvaluator>(*kd_tree_ptr_, nh, seeds_ind, this->cluster_to_point_indices_map_, evaluator, min_segment_size, max_segment_size);
+            this->point_to_cluster_index_map_ = cilantro::getPointToClusterIndexMap(this->cluster_to_point_indices_map_, points_.cols());
             return *this;
         }
 
@@ -391,8 +391,8 @@ namespace cilantro {
                                                      size_t min_segment_size = 1,
                                                      size_t max_segment_size = std::numeric_limits<size_t>::max())
         {
-            extractConnectedComponents<ScalarT,EigenDim,DistAdaptor,NeighborhoodSpecT,PointSimilarityEvaluator>(*kd_tree_ptr_, nh, this->clusterToPointIndicesMap, evaluator, min_segment_size, max_segment_size);
-            this->pointToClusterIndexMap = cilantro::getPointToClusterIndexMap(this->clusterToPointIndicesMap, points_.cols());
+            extractConnectedComponents<ScalarT,EigenDim,DistAdaptor,NeighborhoodSpecT,PointSimilarityEvaluator>(*kd_tree_ptr_, nh, this->cluster_to_point_indices_map_, evaluator, min_segment_size, max_segment_size);
+            this->point_to_cluster_index_map_ = cilantro::getPointToClusterIndexMap(this->cluster_to_point_indices_map_, points_.cols());
             return *this;
         }
 

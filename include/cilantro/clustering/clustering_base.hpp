@@ -40,23 +40,24 @@ namespace cilantro {
 
     // CRTP base class that holds clustering results and accessors
     template <typename Derived = void>
-    struct ClusteringBase {
+    class ClusteringBase {
+    public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        std::vector<std::vector<size_t>> clusterToPointIndicesMap;
+        inline const std::vector<std::vector<size_t>>& getClusterToPointIndicesMap() const { return cluster_to_point_indices_map_; }
 
-        std::vector<size_t> pointToClusterIndexMap;
+        inline const std::vector<size_t>& getPointToClusterIndexMap() const { return point_to_cluster_index_map_; }
 
-        inline const std::vector<std::vector<size_t>>& getClusterToPointIndicesMap() const { return clusterToPointIndicesMap; }
+        inline size_t getNumberOfClusters() const { return cluster_to_point_indices_map_.size(); }
 
-        inline const std::vector<size_t>& getPointToClusterIndexMap() const { return pointToClusterIndexMap; }
-
-        inline size_t getNumberOfClusters() const { return clusterToPointIndicesMap.size(); }
-
-        inline size_t getNumberOfPoints() const { return pointToClusterIndexMap.size(); }
+        inline size_t getNumberOfPoints() const { return point_to_cluster_index_map_.size(); }
 
         inline std::vector<size_t> getUnlabeledPointIndices() const {
-            return cilantro::getUnlabeledPointIndices(clusterToPointIndicesMap, pointToClusterIndexMap);
+            return cilantro::getUnlabeledPointIndices(cluster_to_point_indices_map_, point_to_cluster_index_map_);
         }
+
+    protected:
+        std::vector<std::vector<size_t>> cluster_to_point_indices_map_;
+        std::vector<size_t> point_to_cluster_index_map_;
     };
 }

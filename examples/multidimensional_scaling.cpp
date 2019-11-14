@@ -40,8 +40,8 @@ int main(int argc, char ** argv) {
     cilantro::Timer timer;
     timer.start();
 
-//    cilantro::MultidimensionalScaling<float,2> mds(distances);
-    cilantro::MultidimensionalScaling<float> mds(distances_sq, 3, true);
+    cilantro::MultidimensionalScaling<float,2> mds(distances_sq);
+    // cilantro::MultidimensionalScaling<float> mds(distances_sq, 3, true);
 
     timer.stop();
     std::cout << "Elapsed time: " << timer.getElapsedTime() << "ms" << std::endl;
