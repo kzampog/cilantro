@@ -446,14 +446,22 @@ namespace cilantro {
         inline const PointCloud& toPLYFile(const std::string &file_name, bool binary = true) const {
             PLYWriter writer(file_name, binary);
 
-            auto point_data = PLYDataBufferFromVectorSet<ScalarT,3,ScalarOutT>(points);
-            auto normal_data = PLYDataBufferFromVectorSet<ScalarT,3,ScalarOutT>(normals);
-            VectorSet3f colors_tmp = 255.0f*colors;
-            auto color_data = PLYDataBufferFromVectorSet<float,3,uint8_t>(colors_tmp);
-
+            std::shared_ptr<tinyply::PlyData> point_data, normal_data, color_data;
+            VectorSet3f colors_tmp;
+            
+            point_data = PLYDataBufferFromVectorSet<ScalarT,3,ScalarOutT>(points);
             writer.addData("vertex", {"x", "y", "z"}, point_data);
-            writer.addData("vertex", {"nx", "ny", "nz"}, normal_data);
-            writer.addData("vertex", {"red", "green", "blue"}, color_data);
+
+            if (hasNormals()) {
+                normal_data = PLYDataBufferFromVectorSet<ScalarT,3,ScalarOutT>(normals);
+                writer.addData("vertex", {"nx", "ny", "nz"}, normal_data);
+            }
+
+            if (hasColors()) {
+                colors_tmp = 255.0f*colors;
+                color_data = PLYDataBufferFromVectorSet<float,3,uint8_t>(colors_tmp);
+                writer.addData("vertex", {"red", "green", "blue"}, color_data);
+            }
 
             writer.writeData();
 
