@@ -268,6 +268,7 @@ namespace cilantro {
         }
 
         inline PointCloud& estimateNormalsKNN(size_t k, bool use_current_as_ref = false) {
+            use_current_as_ref = use_current_as_ref && hasNormals();
             normals.resize(points.rows(), points.cols());
             if (use_current_as_ref) {
                 NormalEstimation<ScalarT,EigenDim>(points).setReferenceNormals(normals).estimateNormalsKNN(normals, k);
@@ -280,6 +281,7 @@ namespace cilantro {
         inline PointCloud& estimateNormalsKNN(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree,
                                               size_t k, bool use_current_as_ref = false)
         {
+            use_current_as_ref = use_current_as_ref && hasNormals();
             normals.resize(points.rows(), points.cols());
             if (use_current_as_ref) {
                 NormalEstimation<ScalarT,EigenDim>(kd_tree).setReferenceNormals(normals).estimateNormalsKNN(normals, k);
@@ -290,6 +292,7 @@ namespace cilantro {
         }
 
         inline PointCloud& estimateNormalsRadius(ScalarT radius, bool use_current_as_ref = false) {
+            use_current_as_ref = use_current_as_ref && hasNormals();
             normals.resize(points.rows(), points.cols());
             if (use_current_as_ref) {
                 NormalEstimation<ScalarT,EigenDim>(points).setReferenceNormals(normals).estimateNormalsRadius(normals, radius);
@@ -302,6 +305,7 @@ namespace cilantro {
         inline PointCloud& estimateNormalsRadius(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree,
                                                  ScalarT radius, bool use_current_as_ref = false)
         {
+            use_current_as_ref = use_current_as_ref && hasNormals();
             normals.resize(points.rows(), points.cols());
             if (use_current_as_ref) {
                 NormalEstimation<ScalarT,EigenDim>(kd_tree).setReferenceNormals(normals).estimateNormalsRadius(normals, radius);
@@ -312,6 +316,7 @@ namespace cilantro {
         }
 
         inline PointCloud& estimateNormalsKNNInRadius(size_t k, ScalarT radius, bool use_current_as_ref = false) {
+            use_current_as_ref = use_current_as_ref && hasNormals();
             normals.resize(points.rows(), points.cols());
             if (use_current_as_ref) {
                 NormalEstimation<ScalarT,EigenDim>(points).setReferenceNormals(normals).estimateNormalsKNNInRadius(normals, k, radius);
@@ -324,6 +329,7 @@ namespace cilantro {
         inline PointCloud& estimateNormalsKNNInRadius(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree,
                                                       size_t k, ScalarT radius, bool use_current_as_ref = false)
         {
+            use_current_as_ref = use_current_as_ref && hasNormals();
             normals.resize(points.rows(), points.cols());
             if (use_current_as_ref) {
                 NormalEstimation<ScalarT,EigenDim>(kd_tree).setReferenceNormals(normals).estimateNormalsKNNInRadius(normals, k, radius);
@@ -335,6 +341,7 @@ namespace cilantro {
 
         template <typename NeighborhoodSpecT>
         inline PointCloud& estimateNormals(const NeighborhoodSpecT &nh, bool use_current_as_ref = false) {
+            use_current_as_ref = use_current_as_ref && hasNormals();
             normals.resize(points.rows(), points.cols());
             if (use_current_as_ref) {
                 NormalEstimation<ScalarT,EigenDim>(points).setReferenceNormals(normals).estimateNormals(normals, nh);
@@ -348,6 +355,7 @@ namespace cilantro {
         inline PointCloud& estimateNormals(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree,
                                            const NeighborhoodSpecT &nh, bool use_current_as_ref = false)
         {
+            use_current_as_ref = use_current_as_ref && hasNormals();
             normals.resize(points.rows(), points.cols());
             if (use_current_as_ref) {
                 NormalEstimation<ScalarT,EigenDim>(kd_tree).setReferenceNormals(normals).estimateNormals(normals, nh);
