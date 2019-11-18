@@ -98,26 +98,26 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
         return src.cols() >= Dim + 1;
     }
 
-    template <class TransformT, typename CorrValueT = typename TransformT::Scalar>
+    template <class TransformT, typename CorrSetT>
     bool estimateTransformPointToPointMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst,
                                              const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src,
-                                             const CorrespondenceSet<CorrValueT> &corr,
+                                             const CorrSetT &corr,
                                              TransformT &tform)
     {
         VectorSet<typename TransformT::Scalar,TransformT::Dim> dst_corr, src_corr;
-        selectCorrespondingPoints<typename TransformT::Scalar,TransformT::Dim,CorrValueT>(corr, dst, src, dst_corr, src_corr);
+        selectCorrespondingPoints<typename TransformT::Scalar,TransformT::Dim,CorrSetT>(corr, dst, src, dst_corr, src_corr);
         return estimateTransformPointToPointMetric(dst_corr, src_corr, tform);
     }
 
     // Rigid, combined metric, 2D, iterative
-    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
+    template <class TransformT, class PointCorrSetT, class PlaneCorrSetT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
     typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 2,bool>::type
     estimateTransformCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &dst_p,
                                     const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &dst_n,
                                     const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &src_p,
-                                    const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                    const PointCorrSetT &point_to_point_correspondences,
                                     typename TransformT::Scalar point_to_point_weight,
-                                    const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
+                                    const PlaneCorrSetT &point_to_plane_correspondences,
                                     typename TransformT::Scalar point_to_plane_weight,
                                     TransformT &tform,
                                     size_t max_iter = 1,
@@ -230,14 +230,14 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
     }
 
     // Rigid, combined metric, 3D, iterative
-    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
+    template <class TransformT, class PointCorrSetT, class PlaneCorrSetT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
     typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 3,bool>::type
     estimateTransformCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_p,
                                     const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_n,
                                     const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &src_p,
-                                    const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                    const PointCorrSetT &point_to_point_correspondences,
                                     typename TransformT::Scalar point_to_point_weight,
-                                    const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
+                                    const PlaneCorrSetT &point_to_plane_correspondences,
                                     typename TransformT::Scalar point_to_plane_weight,
                                     TransformT &tform,
                                     size_t max_iter = 1,
@@ -363,14 +363,14 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
     }
 
     // Affine, combined metric, general dimension, closed form
-    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
+    template <class TransformT, class PointCorrSetT, class PlaneCorrSetT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
     typename std::enable_if<int(TransformT::Mode) == int(Eigen::Affine) || int(TransformT::Mode) == int(Eigen::AffineCompact),bool>::type
     estimateTransformCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_p,
                                     const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_n,
                                     const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src_p,
-                                    const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                    const PointCorrSetT &point_to_point_correspondences,
                                     typename TransformT::Scalar point_to_point_weight,
-                                    const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
+                                    const PlaneCorrSetT &point_to_plane_correspondences,
                                     typename TransformT::Scalar point_to_plane_weight,
                                     TransformT &tform,
                                     size_t /*max_iter = 1*/,
@@ -468,15 +468,15 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
     // Rigid, combined symmetric metric, 3D, iterative
     // For more details about this method see
     // Szymon Rusinkiewicz. A Symmetric Objective Function for ICP. ACM Transactions on Graphics (Proc. SIGGRAPH) 38(4), July 2019.
-    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
+    template <class TransformT, class PointCorrSetT, class PlaneCorrSetT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
     typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 3,bool>::type
     estimateTransformSymmetricMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_p,
                                      const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_n,
                                      const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &src_p,
                                      const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &src_n,
-                                     const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                     const PointCorrSetT &point_to_point_correspondences,
                                      typename TransformT::Scalar point_to_point_weight,
-                                     const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
+                                     const PlaneCorrSetT &point_to_plane_correspondences,
                                      typename TransformT::Scalar point_to_plane_weight,
                                      TransformT &tform,
                                      size_t max_iter = 1,

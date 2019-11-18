@@ -53,8 +53,8 @@ namespace cilantro {
     template <typename ScalarT>
     using CorrespondenceSet = std::vector<Correspondence<ScalarT>>;
 
-    template <typename ScalarT, class ComparatorT = typename Correspondence<ScalarT>::ValueLessComparator>
-    void filterCorrespondencesFraction(CorrespondenceSet<ScalarT> &correspondences,
+    template <typename CorrSetT, class ComparatorT = typename CorrSetT::value_type::ValueLessComparator>
+    void filterCorrespondencesFraction(CorrSetT &correspondences,
                                        double fraction_to_keep,
                                        const ComparatorT &comparator = ComparatorT())
     {
@@ -64,18 +64,18 @@ namespace cilantro {
         }
     }
 
-    template <typename ScalarT>
-    void filterCorrespondencesOneToOne(CorrespondenceSet<ScalarT> &correspondences,
+    template <typename CorrSetT>
+    void filterCorrespondencesOneToOne(CorrSetT &correspondences,
                                        const CorrespondenceSearchDirection &search_dir)
     {
         if (correspondences.empty()) return;
 
-        CorrespondenceSet<ScalarT> correspondences_copy = correspondences;
+        CorrSetT correspondences_copy = correspondences;
         switch (search_dir) {
             case CorrespondenceSearchDirection::FIRST_TO_SECOND:
                 correspondences.clear();
                 std::sort(correspondences_copy.begin(), correspondences_copy.end(),
-                          typename Correspondence<ScalarT>::IndexInSecondAndValueLessComparator());
+                          typename CorrSetT::value_type::IndexInSecondAndValueLessComparator());
                 correspondences.push_back(correspondences_copy.front());
                 for (const auto &corr : correspondences_copy) {
                     if (corr.indexInSecond != correspondences.back().indexInSecond) {
@@ -86,7 +86,7 @@ namespace cilantro {
             case CorrespondenceSearchDirection::SECOND_TO_FIRST:
                 correspondences.clear();
                 std::sort(correspondences_copy.begin(), correspondences_copy.end(),
-                          typename Correspondence<ScalarT>::IndexInFirstAndValueLessComparator());
+                          typename CorrSetT::value_type::IndexInFirstAndValueLessComparator());
                 correspondences.push_back(correspondences_copy.front());
                 for (const auto &corr : correspondences_copy) {
                     if (corr.indexInFirst != correspondences.back().indexInFirst) {
@@ -99,8 +99,8 @@ namespace cilantro {
         }
     }
 
-    template <typename ScalarT, ptrdiff_t EigenDim, typename CorrValueT = ScalarT>
-    void selectFirstSetCorrespondingPoints(const CorrespondenceSet<CorrValueT> &correspondences,
+    template <typename ScalarT, ptrdiff_t EigenDim, typename CorrSetT>
+    void selectFirstSetCorrespondingPoints(const CorrSetT &correspondences,
                                            const ConstVectorSetMatrixMap<ScalarT,EigenDim> &first,
                                            VectorSet<ScalarT,EigenDim> &first_corr)
     {
@@ -111,8 +111,8 @@ namespace cilantro {
         }
     }
 
-    template <typename ScalarT, ptrdiff_t EigenDim, typename CorrValueT = ScalarT>
-    VectorSet<ScalarT,EigenDim> selectFirstSetCorrespondingPoints(const CorrespondenceSet<CorrValueT> &correspondences,
+    template <typename ScalarT, ptrdiff_t EigenDim, typename CorrSetT>
+    VectorSet<ScalarT,EigenDim> selectFirstSetCorrespondingPoints(const CorrSetT &correspondences,
                                                                   const ConstVectorSetMatrixMap<ScalarT,EigenDim> &first)
     {
         VectorSet<ScalarT,EigenDim> first_corr(first.rows(), correspondences.size());
@@ -123,8 +123,8 @@ namespace cilantro {
         return first_corr;
     }
 
-    template <typename ScalarT, ptrdiff_t EigenDim, typename CorrValueT = ScalarT>
-    void selectSecondSetCorrespondingPoints(const CorrespondenceSet<CorrValueT> &correspondences,
+    template <typename ScalarT, ptrdiff_t EigenDim, typename CorrSetT>
+    void selectSecondSetCorrespondingPoints(const CorrSetT &correspondences,
                                             const ConstVectorSetMatrixMap<ScalarT,EigenDim> &second,
                                             VectorSet<ScalarT,EigenDim> &second_corr)
     {
@@ -135,8 +135,8 @@ namespace cilantro {
         }
     }
 
-    template <typename ScalarT, ptrdiff_t EigenDim, typename CorrValueT = ScalarT>
-    VectorSet<ScalarT,EigenDim> selectSecondSetCorrespondingPoints(const CorrespondenceSet<CorrValueT> &correspondences,
+    template <typename ScalarT, ptrdiff_t EigenDim, typename CorrSetT>
+    VectorSet<ScalarT,EigenDim> selectSecondSetCorrespondingPoints(const CorrSetT &correspondences,
                                                                    const ConstVectorSetMatrixMap<ScalarT,EigenDim> &second)
     {
         VectorSet<ScalarT,EigenDim> second_corr(second.rows(), correspondences.size());
@@ -147,8 +147,8 @@ namespace cilantro {
         return second_corr;
     }
 
-    template <typename ScalarT, ptrdiff_t EigenDim, typename CorrValueT = ScalarT>
-    void selectCorrespondingPoints(const CorrespondenceSet<CorrValueT> &correspondences,
+    template <typename ScalarT, ptrdiff_t EigenDim, typename CorrSetT>
+    void selectCorrespondingPoints(const CorrSetT &correspondences,
                                    const ConstVectorSetMatrixMap<ScalarT,EigenDim> &first,
                                    const ConstVectorSetMatrixMap<ScalarT,EigenDim> &second,
                                    VectorSet<ScalarT,EigenDim> &first_corr,
