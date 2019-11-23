@@ -240,29 +240,31 @@ namespace cilantro {
             return remove(ind_to_remove);
         }
 
+        template <typename GridPointScalarT = ptrdiff_t>
         PointCloud& gridDownsample(ScalarT bin_size, size_t min_points_in_bin = 1, bool parallel = true) {
             if (hasNormals() && hasColors()) {
-                PointsNormalsColorsGridDownsampler<ScalarT,EigenDim>(points, normals, colors, bin_size, parallel).getDownsampledPointsNormalsColors(points, normals, colors, min_points_in_bin);
+                PointsNormalsColorsGridDownsampler<ScalarT,EigenDim,GridPointScalarT>(points, normals, colors, bin_size, parallel).getDownsampledPointsNormalsColors(points, normals, colors, min_points_in_bin);
             } else if (hasNormals()) {
-                PointsNormalsGridDownsampler<ScalarT,EigenDim>(points, normals, bin_size, parallel).getDownsampledPointsNormals(points, normals, min_points_in_bin);
+                PointsNormalsGridDownsampler<ScalarT,EigenDim,GridPointScalarT>(points, normals, bin_size, parallel).getDownsampledPointsNormals(points, normals, min_points_in_bin);
             } else if (hasColors()) {
-                PointsColorsGridDownsampler<ScalarT,EigenDim>(points, colors, bin_size, parallel).getDownsampledPointsColors(points, colors, min_points_in_bin);
+                PointsColorsGridDownsampler<ScalarT,EigenDim,GridPointScalarT>(points, colors, bin_size, parallel).getDownsampledPointsColors(points, colors, min_points_in_bin);
             } else {
-                PointsGridDownsampler<ScalarT,EigenDim>(points, bin_size, parallel).getDownsampledPoints(points, min_points_in_bin);
+                PointsGridDownsampler<ScalarT,EigenDim,GridPointScalarT>(points, bin_size, parallel).getDownsampledPoints(points, min_points_in_bin);
             }
             return *this;
         }
 
+        template <typename GridPointScalarT = ptrdiff_t>
         PointCloud gridDownsampled(ScalarT bin_size, size_t min_points_in_bin = 1, bool parallel = true) const {
             PointCloud res;
             if (hasNormals() && hasColors()) {
-                PointsNormalsColorsGridDownsampler<ScalarT,EigenDim>(points, normals, colors, bin_size, parallel).getDownsampledPointsNormalsColors(res.points, res.normals, res.colors, min_points_in_bin);
+                PointsNormalsColorsGridDownsampler<ScalarT,EigenDim,GridPointScalarT>(points, normals, colors, bin_size, parallel).getDownsampledPointsNormalsColors(res.points, res.normals, res.colors, min_points_in_bin);
             } else if (hasNormals()) {
-                PointsNormalsGridDownsampler<ScalarT,EigenDim>(points, normals, bin_size, parallel).getDownsampledPointsNormals(res.points, res.normals, min_points_in_bin);
+                PointsNormalsGridDownsampler<ScalarT,EigenDim,GridPointScalarT>(points, normals, bin_size, parallel).getDownsampledPointsNormals(res.points, res.normals, min_points_in_bin);
             } else if (hasColors()) {
-                PointsColorsGridDownsampler<ScalarT,EigenDim>(points, colors, bin_size, parallel).getDownsampledPointsColors(res.points, res.colors, min_points_in_bin);
+                PointsColorsGridDownsampler<ScalarT,EigenDim,GridPointScalarT>(points, colors, bin_size, parallel).getDownsampledPointsColors(res.points, res.colors, min_points_in_bin);
             } else {
-                PointsGridDownsampler<ScalarT,EigenDim>(points, bin_size, parallel).getDownsampledPoints(res.points, min_points_in_bin);
+                PointsGridDownsampler<ScalarT,EigenDim,GridPointScalarT>(points, bin_size, parallel).getDownsampledPoints(res.points, min_points_in_bin);
             }
             return res;
         }

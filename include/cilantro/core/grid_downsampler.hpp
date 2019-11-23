@@ -4,13 +4,13 @@
 #include <cilantro/core/common_accumulators.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, ptrdiff_t EigenDim>
-    class PointsGridDownsampler : public GridAccumulator<ScalarT,EigenDim,PointSumAccumulatorProxy<ScalarT,EigenDim>> {
+    template <typename ScalarT, ptrdiff_t EigenDim, typename GridPointScalarT = ptrdiff_t>
+    class PointsGridDownsampler : public GridAccumulator<ScalarT,EigenDim,PointSumAccumulatorProxy<ScalarT,EigenDim>,GridPointScalarT> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         PointsGridDownsampler(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, ScalarT bin_size, bool parallel = true)
-                : GridAccumulator<ScalarT,EigenDim,PointSumAccumulatorProxy<ScalarT,EigenDim>>(points, bin_size, PointSumAccumulatorProxy<ScalarT,EigenDim>(points), parallel)
+                : GridAccumulator<ScalarT,EigenDim,PointSumAccumulatorProxy<ScalarT,EigenDim>,GridPointScalarT>(points, bin_size, PointSumAccumulatorProxy<ScalarT,EigenDim>(points), parallel)
         {}
 
         const PointsGridDownsampler& getDownsampledPoints(VectorSet<ScalarT,EigenDim> &ds_points, size_t min_points_in_bin = 1) const {
@@ -38,15 +38,15 @@ namespace cilantro {
         }
     };
 
-    template <typename ScalarT, ptrdiff_t EigenDim>
-    class PointsNormalsGridDownsampler : public GridAccumulator<ScalarT,EigenDim,PointNormalSumAccumulatorProxy<ScalarT,EigenDim>> {
+    template <typename ScalarT, ptrdiff_t EigenDim, typename GridPointScalarT = ptrdiff_t>
+    class PointsNormalsGridDownsampler : public GridAccumulator<ScalarT,EigenDim,PointNormalSumAccumulatorProxy<ScalarT,EigenDim>,GridPointScalarT> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         PointsNormalsGridDownsampler(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
                                      const ConstVectorSetMatrixMap<ScalarT,EigenDim> &normals,
                                      ScalarT bin_size, bool parallel = true)
-                : GridAccumulator<ScalarT,EigenDim,PointNormalSumAccumulatorProxy<ScalarT,EigenDim>>(points, bin_size, PointNormalSumAccumulatorProxy<ScalarT,EigenDim>(points, normals), parallel)
+                : GridAccumulator<ScalarT,EigenDim,PointNormalSumAccumulatorProxy<ScalarT,EigenDim>,GridPointScalarT>(points, bin_size, PointNormalSumAccumulatorProxy<ScalarT,EigenDim>(points, normals), parallel)
         {}
 
         const PointsNormalsGridDownsampler& getDownsampledPoints(VectorSet<ScalarT,EigenDim> &ds_points, size_t min_points_in_bin = 1) const {
@@ -122,15 +122,15 @@ namespace cilantro {
         }
     };
 
-    template <typename ScalarT, ptrdiff_t EigenDim>
-    class PointsColorsGridDownsampler : public GridAccumulator<ScalarT,EigenDim,PointColorSumAccumulatorProxy<ScalarT,EigenDim>> {
+    template <typename ScalarT, ptrdiff_t EigenDim, typename GridPointScalarT = ptrdiff_t>
+    class PointsColorsGridDownsampler : public GridAccumulator<ScalarT,EigenDim,PointColorSumAccumulatorProxy<ScalarT,EigenDim>,GridPointScalarT> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         PointsColorsGridDownsampler(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
                                     const ConstVectorSetMatrixMap<float,3> &colors,
                                     ScalarT bin_size, bool parallel = true)
-                : GridAccumulator<ScalarT,EigenDim,PointColorSumAccumulatorProxy<ScalarT,EigenDim>>(points, bin_size, PointColorSumAccumulatorProxy<ScalarT,EigenDim>(points, colors), parallel)
+                : GridAccumulator<ScalarT,EigenDim,PointColorSumAccumulatorProxy<ScalarT,EigenDim>,GridPointScalarT>(points, bin_size, PointColorSumAccumulatorProxy<ScalarT,EigenDim>(points, colors), parallel)
         {}
 
         const PointsColorsGridDownsampler& getDownsampledPoints(VectorSet<ScalarT,EigenDim> &ds_points, size_t min_points_in_bin = 1) const {
@@ -206,8 +206,8 @@ namespace cilantro {
         }
     };
 
-    template <typename ScalarT, ptrdiff_t EigenDim>
-    class PointsNormalsColorsGridDownsampler : public GridAccumulator<ScalarT,EigenDim,PointNormalColorSumAccumulatorProxy<ScalarT,EigenDim>> {
+    template <typename ScalarT, ptrdiff_t EigenDim, typename GridPointScalarT = ptrdiff_t>
+    class PointsNormalsColorsGridDownsampler : public GridAccumulator<ScalarT,EigenDim,PointNormalColorSumAccumulatorProxy<ScalarT,EigenDim>,GridPointScalarT> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -215,7 +215,7 @@ namespace cilantro {
                                            const ConstVectorSetMatrixMap<ScalarT,EigenDim> &normals,
                                            const ConstVectorSetMatrixMap<float,3> &colors,
                                            ScalarT bin_size, bool parallel = true)
-                : GridAccumulator<ScalarT,EigenDim,PointNormalColorSumAccumulatorProxy<ScalarT,EigenDim>>(points, bin_size, PointNormalColorSumAccumulatorProxy<ScalarT,EigenDim>(points, normals, colors), parallel)
+                : GridAccumulator<ScalarT,EigenDim,PointNormalColorSumAccumulatorProxy<ScalarT,EigenDim>,GridPointScalarT>(points, bin_size, PointNormalColorSumAccumulatorProxy<ScalarT,EigenDim>(points, normals, colors), parallel)
         {}
 
         const PointsNormalsColorsGridDownsampler& getDownsampledPoints(VectorSet<ScalarT,EigenDim> &ds_points, size_t min_points_in_bin = 1) const {

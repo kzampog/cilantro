@@ -5,30 +5,32 @@
 #include <cilantro/core/data_containers.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, ptrdiff_t EigenDim, ptrdiff_t EigenCoeff>
-    struct EigenVectorComparatorHelper {
-        enum { coeff = EigenDim - EigenCoeff };
+    namespace internal {
+        template <typename ScalarT, ptrdiff_t EigenDim, ptrdiff_t EigenCoeff>
+        struct EigenVectorComparatorHelper {
+            enum { coeff = EigenDim - EigenCoeff };
 
-        static inline bool result(const Eigen::Matrix<ScalarT,EigenDim,1> &p1, const Eigen::Matrix<ScalarT,EigenDim,1> &p2) {
-            if (p1[coeff] < p2[coeff]) return true;
-            if (p2[coeff] < p1[coeff]) return false;
-            return EigenVectorComparatorHelper<ScalarT,EigenDim,EigenCoeff-1>::result(p1, p2);
-        }
-    };
+            static inline bool result(const Eigen::Matrix<ScalarT,EigenDim,1> &p1, const Eigen::Matrix<ScalarT,EigenDim,1> &p2) {
+                if (p1[coeff] < p2[coeff]) return true;
+                if (p2[coeff] < p1[coeff]) return false;
+                return EigenVectorComparatorHelper<ScalarT,EigenDim,EigenCoeff-1>::result(p1, p2);
+            }
+        };
 
-    template <typename ScalarT, ptrdiff_t EigenDim>
-    struct EigenVectorComparatorHelper<ScalarT, EigenDim, 1> {
-        enum { coeff = EigenDim - 1 };
+        template <typename ScalarT, ptrdiff_t EigenDim>
+        struct EigenVectorComparatorHelper<ScalarT, EigenDim, 1> {
+            enum { coeff = EigenDim - 1 };
 
-        static inline bool result(const Eigen::Matrix<ScalarT,EigenDim,1> &p1, const Eigen::Matrix<ScalarT,EigenDim,1> &p2) {
-            return p1[coeff] < p2[coeff];
-        }
-    };
+            static inline bool result(const Eigen::Matrix<ScalarT,EigenDim,1> &p1, const Eigen::Matrix<ScalarT,EigenDim,1> &p2) {
+                return p1[coeff] < p2[coeff];
+            }
+        };
+    }
 
     template <typename ScalarT, ptrdiff_t EigenDim>
     struct EigenVectorComparator {
         inline bool operator()(const Eigen::Matrix<ScalarT,EigenDim,1> &p1, const Eigen::Matrix<ScalarT,EigenDim,1> &p2) const {
-            return EigenVectorComparatorHelper<ScalarT,EigenDim,EigenDim>::result(p1, p2);
+            return internal::EigenVectorComparatorHelper<ScalarT,EigenDim,EigenDim>::result(p1, p2);
         }
     };
 
@@ -43,7 +45,7 @@ namespace cilantro {
         }
     };
 
-    template <typename ScalarT, ptrdiff_t EigenDim, class AccumulatorProxy>
+    template <typename ScalarT, ptrdiff_t EigenDim, class AccumulatorProxy, typename GridPointScalarT = ptrdiff_t>
     class GridAccumulator {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -54,7 +56,7 @@ namespace cilantro {
 
         typedef typename AccumulatorProxy::Accumulator Accumulator;
 
-        typedef Eigen::Matrix<ptrdiff_t,EigenDim,1> GridPoint;
+        typedef Eigen::Matrix<GridPointScalarT,EigenDim,1> GridPoint;
 
         typedef typename std::conditional<(EigenDim != Eigen::Dynamic && sizeof(GridPoint) % 16 == 0) || (Accumulator::EigenAlign > 0),
                 std::map<GridPoint,Accumulator,EigenVectorComparator<typename GridPoint::Scalar,EigenDim>,Eigen::aligned_allocator<std::pair<const GridPoint,Accumulator>>>,
@@ -97,11 +99,7 @@ namespace cilantro {
         inline const std::vector<GridBinMapIterator>& getOccupiedBinIterators() const { return bin_iterators_; }
 
         inline const GridBinMapConstIterator findContainingGridBin(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &point) const {
-            GridPoint grid_coords(data_map_.rows());
-            for (size_t i = 0; i < data_map_.rows(); i++) {
-                grid_coords[i] = std::floor(point[i]*bin_size_inv_[i]);
-            }
-            return grid_lookup_table_.find(grid_coords);
+            return grid_lookup_table_.find(getPointGridCoordinates(point));
         }
 
         inline const GridBinMapConstIterator findContainingGridBin(size_t ind) const {
@@ -109,6 +107,7 @@ namespace cilantro {
         }
 
         inline GridPoint getPointGridCoordinates(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &point) const {
+            // return point.cwiseProduct(bin_size_inv_).array().floor().template cast<typename GridPoint::Scalar>();
             GridPoint grid_coords(data_map_.rows());
             for (size_t i = 0; i < data_map_.rows(); i++) {
                 grid_coords[i] = std::floor(point[i]*bin_size_inv_[i]);
