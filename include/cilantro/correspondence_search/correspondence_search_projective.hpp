@@ -6,7 +6,7 @@
 #include <cilantro/core/image_point_cloud_conversions.hpp>
 
 namespace cilantro {
-    template <class ScalarT, class EvaluationFeatureAdaptorT = PointFeaturesAdaptor<ScalarT,3>, class EvaluatorT = DistanceEvaluator<ScalarT,typename EvaluationFeatureAdaptorT::Scalar>>
+    template <class ScalarT, class EvaluationFeatureAdaptorT = PointFeaturesAdaptor<ScalarT,3>, class EvaluatorT = DistanceEvaluator<ScalarT,typename EvaluationFeatureAdaptorT::Scalar>, typename IndexT = size_t>
     class CorrespondenceSearchProjective {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -122,11 +122,9 @@ namespace cilantro {
         PointFeaturesAdaptor<ScalarT,3>& src_search_features_adaptor_;
 
         EvaluationFeatureAdaptorT& src_evaluation_features_adaptor_;
-
         Evaluator& evaluator_;
 
-        Eigen::Matrix<size_t,Eigen::Dynamic,Eigen::Dynamic> index_map_;
-
+        Eigen::Matrix<IndexT,Eigen::Dynamic,Eigen::Dynamic> index_map_;
         Eigen::Matrix<ScalarT,3,3> projection_intrinsics_;
         size_t projection_image_width_;
         size_t projection_image_height_;
@@ -143,11 +141,11 @@ namespace cilantro {
 
             if (index_map_.rows() != projection_image_width_ || index_map_.cols() != projection_image_height_) {
                 index_map_.resize(projection_image_width_, projection_image_height_);
-                pointsToIndexMap<ScalarT>(dst_points, projection_extrinsics_, projection_intrinsics_, index_map_.data(), projection_image_width_, projection_image_height_);
+                pointsToIndexMap<ScalarT,IndexT>(dst_points, projection_extrinsics_, projection_intrinsics_, index_map_.data(), projection_image_width_, projection_image_height_);
             }
 
             Vector<ScalarT,3> src_pt_trans_cam;
-            const size_t empty = std::numeric_limits<size_t>::max();
+            const IndexT empty = std::numeric_limits<IndexT>::max();
 
             SearchResult corr_tmp(src_points_trans.cols());
             const CorrespondenceScalar value_to_reject = max_distance_ + (CorrespondenceScalar)1.0;
@@ -162,7 +160,7 @@ namespace cilantro {
                 size_t x = (size_t)std::llround(src_pt_trans_cam(0)*projection_intrinsics_(0,0)/src_pt_trans_cam(2) + projection_intrinsics_(0,2));
                 size_t y = (size_t)std::llround(src_pt_trans_cam(1)*projection_intrinsics_(1,1)/src_pt_trans_cam(2) + projection_intrinsics_(1,2));
                 if (x >= projection_image_width_ || y >= projection_image_height_) continue;
-                size_t ind = index_map_(x,y);
+                IndexT ind = index_map_(x,y);
                 if (ind == empty) continue;
                 corr_tmp[i].indexInFirst = ind;
                 corr_tmp[i].indexInSecond = i;

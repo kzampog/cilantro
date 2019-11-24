@@ -857,13 +857,13 @@ namespace cilantro {
         }
     }
 
-    template <typename PointT>
+    template <typename PointT, typename IndexT = size_t>
     void pointsToIndexMap(const ConstVectorSetMatrixMap<PointT,3> &points,
                           const Eigen::Ref<const Eigen::Matrix<PointT,3,3>> &intrinsics,
-                          size_t* index_map_data,
+                          IndexT* index_map_data,
                           size_t image_w, size_t image_h)
     {
-        const size_t empty = std::numeric_limits<size_t>::max();
+        const IndexT empty = std::numeric_limits<IndexT>::max();
 
 #pragma omp parallel
         {
@@ -873,7 +873,7 @@ namespace cilantro {
             }
 
 #pragma omp for
-            for (size_t i = 0; i < points.cols(); i++) {
+            for (IndexT i = 0; i < points.cols(); i++) {
                 if (points(2,i) <= (PointT)0.0) continue;
                 size_t x = (size_t)std::llround(points(0,i)*intrinsics(0,0)/points(2,i) + intrinsics(0,2));
                 size_t y = (size_t)std::llround(points(1,i)*intrinsics(1,1)/points(2,i) + intrinsics(1,2));
@@ -886,15 +886,15 @@ namespace cilantro {
         }
     }
 
-    template <typename PointT>
+    template <typename PointT, typename IndexT = size_t>
     void pointsToIndexMap(const ConstVectorSetMatrixMap<PointT,3> &points,
                           const RigidTransform<PointT,3> &extrinsics,
                           const Eigen::Ref<const Eigen::Matrix<PointT,3,3>> &intrinsics,
-                          size_t* index_map_data,
+                          IndexT* index_map_data,
                           size_t image_w, size_t image_h)
     {
         const RigidTransform<PointT,3> to_cam(extrinsics.inverse());
-        const size_t empty = std::numeric_limits<size_t>::max();
+        const IndexT empty = std::numeric_limits<IndexT>::max();
 
         VectorSet<PointT,3> points_cam(3, points.cols());
 #pragma omp parallel
@@ -910,7 +910,7 @@ namespace cilantro {
             }
 
 #pragma omp for
-            for (size_t i = 0; i < points.cols(); i++) {
+            for (IndexT i = 0; i < points.cols(); i++) {
                 if (points_cam(2,i) <= (PointT)0.0) continue;
                 size_t x = (size_t)std::llround(points_cam(0,i)*intrinsics(0,0)/points_cam(2,i) + intrinsics(0,2));
                 size_t y = (size_t)std::llround(points_cam(1,i)*intrinsics(1,1)/points_cam(2,i) + intrinsics(1,2));

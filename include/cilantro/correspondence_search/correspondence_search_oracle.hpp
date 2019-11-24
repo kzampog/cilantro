@@ -78,7 +78,6 @@ namespace cilantro {
         const CorrespondenceSet<ScalarT>& oracle_correspondences_;
 
         EvaluationFeatureAdaptorT& src_evaluation_features_adaptor_;
-
         Evaluator& evaluator_;
 
         CorrespondenceScalar max_distance_;

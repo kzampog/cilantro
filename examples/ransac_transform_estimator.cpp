@@ -76,7 +76,6 @@ int main(int argc, char **argv) {
             std::cout << "RANSAC iterations: " << te.getNumberOfPerformedIterations() << ", inlier count: " << te.getNumberOfInliers() << std::endl;
 
             src.transform(tform);
-
             viz.addObject<cilantro::PointCloudRenderable>("src", src, cilantro::RenderingProperties().setPointColor(1,0,0));
 
             std::cout << "Press 'd' for a new random pose" << std::endl;

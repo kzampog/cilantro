@@ -196,7 +196,6 @@ namespace cilantro {
         SearchFeatureAdaptorT& src_search_features_adaptor_;
 
         EvaluationFeatureAdaptorT& src_evaluation_features_adaptor_;
-
         Evaluator& evaluator_;
 
         std::shared_ptr<SearchTree> dst_tree_ptr_;

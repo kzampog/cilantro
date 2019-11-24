@@ -82,11 +82,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
                     eq_vecs.template block<Dim,1>(j*Dim, j) = src.col(i);
                 }
 
-                Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns> AtA_priv(eq_vecs*eq_vecs.transpose());
-                Eigen::Matrix<ScalarT,NumUnknowns,1> Atb_priv(eq_vecs*dst.col(i));
-
-                AtA += AtA_priv;
-                Atb += Atb_priv;
+                AtA += eq_vecs*eq_vecs.transpose();
+                Atb += eq_vecs*dst.col(i);
             }
         }
 
@@ -177,11 +174,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
                         eq_vecs(0,0) = -s[1];
                         eq_vecs(0,1) = s[0];
 
-                        Eigen::Matrix<ScalarT,3,3> AtA_priv((weight*eq_vecs)*eq_vecs.transpose());
-                        Eigen::Matrix<ScalarT,3,1> Atb_priv(eq_vecs*(weight*(d - s)));
-
-                        AtA += AtA_priv;
-                        Atb += Atb_priv;
+                        AtA += (weight*eq_vecs)*eq_vecs.transpose();
+                        Atb += eq_vecs*(weight*(d - s));
                     }
                 }
 
@@ -201,11 +195,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
                         eq_vec(1) = n[0];
                         eq_vec(2) = n[1];
 
-                        Eigen::Matrix<ScalarT,3,3> AtA_priv((weight*eq_vec)*eq_vec.transpose());
-                        Eigen::Matrix<ScalarT,3,1> Atb_priv((weight*(n.dot(d - s)))*eq_vec);
-
-                        AtA += AtA_priv;
-                        Atb += Atb_priv;
+                        AtA += (weight*eq_vec)*eq_vec.transpose();
+                        Atb += (weight*(n.dot(d - s)))*eq_vec;
                     }
                 }
             }
@@ -305,11 +296,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
                         eq_vecs(2,1) = s[0];
                         eq_vecs(2,2) = (ScalarT)0.0;
 
-                        Eigen::Matrix<ScalarT,6,6> AtA_priv((weight*eq_vecs)*eq_vecs.transpose());
-                        Eigen::Matrix<ScalarT,6,1> Atb_priv(eq_vecs*(weight*(d - s)));
-
-                        AtA += AtA_priv;
-                        Atb += Atb_priv;
+                        AtA += (weight*eq_vecs)*eq_vecs.transpose();
+                        Atb += eq_vecs*(weight*(d - s));
                     }
                 }
 
@@ -332,11 +320,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
                         eq_vec(4) = n[1];
                         eq_vec(5) = n[2];
 
-                        Eigen::Matrix<ScalarT,6,6> AtA_priv((weight*eq_vec)*eq_vec.transpose());
-                        Eigen::Matrix<ScalarT,6,1> Atb_priv((weight*(n.dot(d - s)))*eq_vec);
-
-                        AtA += AtA_priv;
-                        Atb += Atb_priv;
+                        AtA += (weight*eq_vec)*eq_vec.transpose();
+                        Atb += (weight*(n.dot(d - s)))*eq_vec;
                     }
                 }
             }
@@ -424,11 +409,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
                         eq_vecs.template block<Dim,1>(j*Dim, j) = src_p.col(corr.indexInSecond) - src_mean;
                     }
 
-                    Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns> AtA_priv((weight*eq_vecs)*eq_vecs.transpose());
-                    Eigen::Matrix<ScalarT,NumUnknowns,1> Atb_priv(eq_vecs*(weight*(dst_p.col(corr.indexInFirst) - dst_mean)));
-
-                    AtA += AtA_priv;
-                    Atb += Atb_priv;
+                    AtA += (weight*eq_vecs)*eq_vecs.transpose();
+                    Atb += eq_vecs*(weight*(dst_p.col(corr.indexInFirst) - dst_mean));
                 }
             }
 
@@ -447,11 +429,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
                     }
                     eq_vec.template tail<Dim>() = n;
 
-                    Eigen::Matrix<ScalarT,NumUnknowns,NumUnknowns> AtA_priv((weight*eq_vec)*eq_vec.transpose());
-                    Eigen::Matrix<ScalarT,NumUnknowns,1> Atb_priv((weight*(n.dot(dst_p.col(corr.indexInFirst) - src_mean)))*eq_vec);
-
-                    AtA += AtA_priv;
-                    Atb += Atb_priv;
+                    AtA += (weight*eq_vec)*eq_vec.transpose();
+                    Atb += (weight*(n.dot(dst_p.col(corr.indexInFirst) - dst_mean)))*eq_vec;
                 }
             }
         }
