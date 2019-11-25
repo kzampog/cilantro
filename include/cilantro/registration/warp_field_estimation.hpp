@@ -2,8 +2,8 @@
 
 #include <Eigen/Sparse>
 #include <cilantro/core/space_transformations.hpp>
-#include <cilantro/core/nearest_neighbors.hpp>
-#include <cilantro/core/correspondence.hpp>
+// #include <cilantro/core/nearest_neighbors.hpp>
+// #include <cilantro/core/correspondence.hpp>
 #include <cilantro/core/common_pair_evaluators.hpp>
 
 namespace cilantro {
@@ -93,16 +93,16 @@ namespace cilantro {
     }
 
     // Locally rigid dense warp field, 2D
-    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
+    template <class TransformT, class PointCorrSetT, class PlaneCorrSetT, class RegNeighborhoodSetT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
     typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 2,bool>::type
     estimateDenseWarpFieldCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &dst_p,
                                          const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &dst_n,
                                          const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &src_p,
-                                         const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                         const PointCorrSetT &point_to_point_correspondences,
                                          typename TransformT::Scalar point_to_point_weight,
-                                         const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
+                                         const PlaneCorrSetT &point_to_plane_correspondences,
                                          typename TransformT::Scalar point_to_plane_weight,
-                                         const NeighborhoodSet<typename RegWeightEvaluatorT::InputScalar> &regularization_neighborhoods,
+                                         const RegNeighborhoodSetT &regularization_neighborhoods,
                                          typename TransformT::Scalar regularization_weight,
                                          TransformSet<TransformT> &transforms,
                                          typename TransformT::Scalar huber_boundary = (typename TransformT::Scalar)(1e-4),
@@ -208,7 +208,7 @@ namespace cilantro {
                         const auto& corr = point_to_point_correspondences[i];
                         const auto d = dst_p.col(corr.indexInFirst);
                         const auto s = src_p.col(corr.indexInSecond);
-                        const size_t offset = 3*corr.indexInSecond;
+                        const auto offset = 3*corr.indexInSecond;
                         weight = point_to_point_weight_sqrt*std::sqrt(point_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value));
 
                         const ScalarT cosa = std::cos(tforms_vec[offset]);
@@ -244,7 +244,7 @@ namespace cilantro {
                         const auto d = dst_p.col(corr.indexInFirst);
                         const auto n = dst_n.col(corr.indexInFirst);
                         const auto s = src_p.col(corr.indexInSecond);
-                        const size_t offset = 3*corr.indexInSecond;
+                        const auto offset = 3*corr.indexInSecond;
                         weight = point_to_plane_weight_sqrt*std::sqrt(plane_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value));
 
                         const ScalarT cosa = std::cos(tforms_vec[offset]);
@@ -274,8 +274,8 @@ namespace cilantro {
                     const auto& neighbors = regularization_neighborhoods[i];
 
                     for (size_t j = 1; j < neighbors.size(); j++) {
-                        size_t s_offset = 3*neighbors[0].index;
-                        size_t n_offset = 3*neighbors[j].index;
+                        auto s_offset = 3*neighbors[0].index;
+                        auto n_offset = 3*neighbors[j].index;
                         weight = regularization_weight_sqrt*std::sqrt(reg_evaluator(neighbors[0].index, neighbors[j].index, neighbors[j].value));
 
                         if (n_offset < s_offset) std::swap(s_offset, n_offset);
@@ -347,16 +347,16 @@ namespace cilantro {
     }
 
     // Locally rigid dense warp field, 3D
-    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
+    template <class TransformT, class PointCorrSetT, class PlaneCorrSetT, class RegNeighborhoodSetT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
     typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 3,bool>::type
     estimateDenseWarpFieldCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_p,
                                          const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_n,
                                          const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &src_p,
-                                         const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                         const PointCorrSetT &point_to_point_correspondences,
                                          typename TransformT::Scalar point_to_point_weight,
-                                         const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
+                                         const PlaneCorrSetT &point_to_plane_correspondences,
                                          typename TransformT::Scalar point_to_plane_weight,
-                                         const NeighborhoodSet<typename RegWeightEvaluatorT::InputScalar> &regularization_neighborhoods,
+                                         const RegNeighborhoodSetT &regularization_neighborhoods,
                                          typename TransformT::Scalar regularization_weight,
                                          TransformSet<TransformT> &transforms,
                                          typename TransformT::Scalar huber_boundary = (typename TransformT::Scalar)(1e-4),
@@ -465,7 +465,7 @@ namespace cilantro {
                         const auto& corr = point_to_point_correspondences[i];
                         const auto d = dst_p.col(corr.indexInFirst);
                         const auto s = src_p.col(corr.indexInSecond);
-                        const size_t offset = 6*corr.indexInSecond;
+                        const auto offset = 6*corr.indexInSecond;
                         weight = point_to_point_weight_sqrt*std::sqrt(point_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value));
 
                         internal::computeRotationTerms(tforms_vec[offset], tforms_vec[offset + 1], tforms_vec[offset + 2], rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db, d_rot_coeffs_dc);
@@ -530,7 +530,7 @@ namespace cilantro {
                         const auto d = dst_p.col(corr.indexInFirst);
                         const auto n = dst_n.col(corr.indexInFirst);
                         const auto s = src_p.col(corr.indexInSecond);
-                        const size_t offset = 6*corr.indexInSecond;
+                        const auto offset = 6*corr.indexInSecond;
                         weight = point_to_plane_weight_sqrt*std::sqrt(plane_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value));
 
                         internal::computeRotationTerms(tforms_vec[offset], tforms_vec[offset + 1], tforms_vec[offset + 2], rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db, d_rot_coeffs_dc);
@@ -568,8 +568,8 @@ namespace cilantro {
                     const auto& neighbors = regularization_neighborhoods[i];
 
                     for (size_t j = 1; j < neighbors.size(); j++) {
-                        size_t s_offset = 6*neighbors[0].index;
-                        size_t n_offset = 6*neighbors[j].index;
+                        auto s_offset = 6*neighbors[0].index;
+                        auto n_offset = 6*neighbors[j].index;
                         weight = regularization_weight_sqrt*std::sqrt(reg_evaluator(neighbors[0].index, neighbors[j].index, neighbors[j].value));
 
                         if (n_offset < s_offset) std::swap(s_offset, n_offset);
@@ -668,16 +668,16 @@ namespace cilantro {
     }
 
     // Locally affine dense warp field, general dimension
-    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
+    template <class TransformT, class PointCorrSetT, class PlaneCorrSetT, class RegNeighborhoodSetT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
     typename std::enable_if<int(TransformT::Mode) == int(Eigen::Affine) || int(TransformT::Mode) == int(Eigen::AffineCompact),bool>::type
     estimateDenseWarpFieldCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_p,
                                          const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_n,
                                          const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src_p,
-                                         const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                         const PointCorrSetT &point_to_point_correspondences,
                                          typename TransformT::Scalar point_to_point_weight,
-                                         const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
+                                         const PlaneCorrSetT &point_to_plane_correspondences,
                                          typename TransformT::Scalar point_to_plane_weight,
-                                         const NeighborhoodSet<typename RegWeightEvaluatorT::InputScalar> &regularization_neighborhoods,
+                                         const RegNeighborhoodSetT &regularization_neighborhoods,
                                          typename TransformT::Scalar regularization_weight,
                                          TransformSet<TransformT> &transforms,
                                          typename TransformT::Scalar huber_boundary = (typename TransformT::Scalar)(1e-4),
@@ -799,7 +799,7 @@ namespace cilantro {
                         const auto& corr = point_to_point_correspondences[i];
                         const auto d = dst_p.col(corr.indexInFirst);
                         const auto s = src_p.col(corr.indexInSecond);
-                        const size_t offset = NumUnknownsLocal*corr.indexInSecond;
+                        const auto offset = NumUnknownsLocal*corr.indexInSecond;
                         weight = point_to_point_weight_sqrt*std::sqrt(point_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value));
 
                         auto linear = Eigen::Map<Eigen::Matrix<ScalarT,Dim,Dim,Eigen::RowMajor>>(tforms_vec.data() + offset, Dim, Dim);
@@ -828,7 +828,7 @@ namespace cilantro {
                         const auto d = dst_p.col(corr.indexInFirst);
                         const auto n = dst_n.col(corr.indexInFirst);
                         const auto s = src_p.col(corr.indexInSecond);
-                        const size_t offset = NumUnknownsLocal*corr.indexInSecond;
+                        const auto offset = NumUnknownsLocal*corr.indexInSecond;
                         weight = point_to_plane_weight_sqrt*std::sqrt(plane_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value));
 
                         auto linear = Eigen::Map<Eigen::Matrix<ScalarT,Dim,Dim,Eigen::RowMajor>>(tforms_vec.data() + offset, Dim, Dim);
@@ -861,8 +861,8 @@ namespace cilantro {
                     const auto& neighbors = regularization_neighborhoods[i];
 
                     for (size_t j = 1; j < neighbors.size(); j++) {
-                        size_t s_offset = NumUnknownsLocal*neighbors[0].index;
-                        size_t n_offset = NumUnknownsLocal*neighbors[j].index;
+                        auto s_offset = NumUnknownsLocal*neighbors[0].index;
+                        auto n_offset = NumUnknownsLocal*neighbors[j].index;
                         weight = regularization_weight_sqrt*std::sqrt(reg_evaluator(neighbors[0].index, neighbors[j].index, neighbors[j].value));
 
                         if (n_offset < s_offset) std::swap(s_offset, n_offset);
@@ -920,18 +920,18 @@ namespace cilantro {
     }
 
     // Locally rigid sparse warp field, 2D
-    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class ControlWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
+    template <class TransformT, class PointCorrSetT, class PlaneCorrSetT, class CtrlNeighborhoodSetT, class RegNeighborhoodSetT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class ControlWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
     typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 2,bool>::type
     estimateSparseWarpFieldCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &dst_p,
                                           const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &dst_n,
                                           const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &src_p,
-                                          const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                          const PointCorrSetT &point_to_point_correspondences,
                                           typename TransformT::Scalar point_to_point_weight,
-                                          const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
+                                          const PlaneCorrSetT &point_to_plane_correspondences,
                                           typename TransformT::Scalar point_to_plane_weight,
-                                          const NeighborhoodSet<typename ControlWeightEvaluatorT::InputScalar> &src_to_ctrl_neighborhoods,
+                                          const CtrlNeighborhoodSetT &src_to_ctrl_neighborhoods,
                                           size_t num_ctrl_points,
-                                          const NeighborhoodSet<typename RegWeightEvaluatorT::InputScalar> &regularization_neighborhoods,
+                                          const RegNeighborhoodSetT &regularization_neighborhoods,
                                           typename TransformT::Scalar regularization_weight,
                                           TransformSet<TransformT> &transforms,
                                           typename TransformT::Scalar huber_boundary = (typename TransformT::Scalar)(1e-4),
@@ -959,7 +959,7 @@ namespace cilantro {
         }
 
         // Sort control nodes by index and compute total weight
-        NeighborhoodSet<ScalarT> src_to_ctrl_sorted(src_to_ctrl_neighborhoods.size());
+        CtrlNeighborhoodSetT src_to_ctrl_sorted(src_to_ctrl_neighborhoods.size());
         std::vector<ScalarT> total_weight(src_to_ctrl_sorted.size());
         std::vector<char> has_data_term(src_to_ctrl_neighborhoods.size(), 0);
 #pragma omp parallel shared (src_to_ctrl_sorted, total_weight, has_data_term)
@@ -988,7 +988,7 @@ namespace cilantro {
                         src_to_ctrl_sorted[i][j].value = control_evaluator(i, src_to_ctrl_neighborhoods[i][j].index, src_to_ctrl_neighborhoods[i][j].value);
                         total_weight[i] += src_to_ctrl_sorted[i][j].value;
                     }
-                    std::sort(src_to_ctrl_sorted[i].begin(), src_to_ctrl_sorted[i].end(), typename Neighbor<ScalarT>::IndexLessComparator());
+                    std::sort(src_to_ctrl_sorted[i].begin(), src_to_ctrl_sorted[i].end(), typename CtrlNeighborhoodSetT::value_type::value_type::IndexLessComparator());
                 }
             }
         }
@@ -1085,7 +1085,7 @@ namespace cilantro {
                         angle_curr = (ScalarT)0.0;
                         trans_curr.setZero();
                         for (size_t j = 0; j < ctrl_neighbors.size(); j++) {
-                            const size_t offset = 3*ctrl_neighbors[j].index;
+                            const auto offset = 3*ctrl_neighbors[j].index;
                             angle_curr += ctrl_neighbors[j].value*tforms_vec[offset];
                             trans_curr.noalias() += ctrl_neighbors[j].value*tforms_vec.template segment<2>(offset + 1);
                         }
@@ -1115,7 +1115,7 @@ namespace cilantro {
                         const ScalarT coeff2 = cosa*s[0] - sina*s[1];
 
                         for (size_t j = 0; j < ctrl_neighbors.size(); j++) {
-                            const size_t offset = 3*ctrl_neighbors[j].index;
+                            const auto offset = 3*ctrl_neighbors[j].index;
                             weight = corr_weight_nrm*ctrl_neighbors[j].value;
 
                             nz_ind = outer_ptr[eq_ind] + 3*j;
@@ -1149,7 +1149,7 @@ namespace cilantro {
                         angle_curr = (ScalarT)0.0;
                         trans_curr.setZero();
                         for (size_t j = 0; j < ctrl_neighbors.size(); j++) {
-                            const size_t offset = 3*ctrl_neighbors[j].index;
+                            const auto offset = 3*ctrl_neighbors[j].index;
                             angle_curr += ctrl_neighbors[j].value*tforms_vec[offset];
                             trans_curr.noalias() += ctrl_neighbors[j].value*tforms_vec.template segment<2>(offset + 1);
                         }
@@ -1179,7 +1179,7 @@ namespace cilantro {
                         const ScalarT dot_val = (n[0]*(-sina*s[0] - cosa*s[1]) + n[1]*(cosa*s[0] - sina*s[1]));
 
                         for (size_t j = 0; j < ctrl_neighbors.size(); j++) {
-                            const size_t offset = 3*ctrl_neighbors[j].index;
+                            const auto offset = 3*ctrl_neighbors[j].index;
                             weight = corr_weight_nrm*ctrl_neighbors[j].value;
 
                             // Point to plane
@@ -1204,8 +1204,8 @@ namespace cilantro {
                     const auto& neighbors = regularization_neighborhoods[i];
 
                     for (size_t j = 1; j < neighbors.size(); j++) {
-                        size_t s_offset = 3*neighbors[0].index;
-                        size_t n_offset = 3*neighbors[j].index;
+                        auto s_offset = 3*neighbors[0].index;
+                        auto n_offset = 3*neighbors[j].index;
                         weight = regularization_weight_sqrt*std::sqrt(reg_evaluator(neighbors[0].index, neighbors[j].index, neighbors[j].value));
 
                         if (n_offset < s_offset) std::swap(s_offset, n_offset);
@@ -1277,18 +1277,18 @@ namespace cilantro {
     }
 
     // Locally rigid sparse warp field, 3D
-    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class ControlWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
+    template <class TransformT, class PointCorrSetT, class PlaneCorrSetT, class CtrlNeighborhoodSetT, class RegNeighborhoodSetT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class ControlWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
     typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 3,bool>::type
     estimateSparseWarpFieldCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_p,
                                           const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &dst_n,
                                           const ConstVectorSetMatrixMap<typename TransformT::Scalar,3> &src_p,
-                                          const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                          const PointCorrSetT &point_to_point_correspondences,
                                           typename TransformT::Scalar point_to_point_weight,
-                                          const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
+                                          const PlaneCorrSetT &point_to_plane_correspondences,
                                           typename TransformT::Scalar point_to_plane_weight,
-                                          const NeighborhoodSet<typename ControlWeightEvaluatorT::InputScalar> &src_to_ctrl_neighborhoods,
+                                          const CtrlNeighborhoodSetT &src_to_ctrl_neighborhoods,
                                           size_t num_ctrl_points,
-                                          const NeighborhoodSet<typename RegWeightEvaluatorT::InputScalar> &regularization_neighborhoods,
+                                          const RegNeighborhoodSetT &regularization_neighborhoods,
                                           typename TransformT::Scalar regularization_weight,
                                           TransformSet<TransformT> &transforms,
                                           typename TransformT::Scalar huber_boundary = (typename TransformT::Scalar)(1e-4),
@@ -1316,7 +1316,7 @@ namespace cilantro {
         }
 
         // Sort control nodes by index and compute total weight
-        NeighborhoodSet<ScalarT> src_to_ctrl_sorted(src_to_ctrl_neighborhoods.size());
+        CtrlNeighborhoodSetT src_to_ctrl_sorted(src_to_ctrl_neighborhoods.size());
         std::vector<ScalarT> total_weight(src_to_ctrl_sorted.size());
         std::vector<char> has_data_term(src_to_ctrl_neighborhoods.size(), 0);
 #pragma omp parallel shared (src_to_ctrl_sorted, total_weight, has_data_term)
@@ -1345,7 +1345,7 @@ namespace cilantro {
                         src_to_ctrl_sorted[i][j].value = control_evaluator(i, src_to_ctrl_neighborhoods[i][j].index, src_to_ctrl_neighborhoods[i][j].value);
                         total_weight[i] += src_to_ctrl_sorted[i][j].value;
                     }
-                    std::sort(src_to_ctrl_sorted[i].begin(), src_to_ctrl_sorted[i].end(), typename Neighbor<ScalarT>::IndexLessComparator());
+                    std::sort(src_to_ctrl_sorted[i].begin(), src_to_ctrl_sorted[i].end(), typename CtrlNeighborhoodSetT::value_type::value_type::IndexLessComparator());
                 }
             }
         }
@@ -1445,7 +1445,7 @@ namespace cilantro {
                         angles_curr.setZero();
                         trans_curr.setZero();
                         for (size_t j = 0; j < ctrl_neighbors.size(); j++) {
-                            const size_t offset = 6*ctrl_neighbors[j].index;
+                            const auto offset = 6*ctrl_neighbors[j].index;
                             angles_curr.noalias() += ctrl_neighbors[j].value*tforms_vec.template segment<3>(offset);
                             trans_curr.noalias() += ctrl_neighbors[j].value*tforms_vec.template segment<3>(offset + 3);
                         }
@@ -1474,7 +1474,7 @@ namespace cilantro {
                         eq_ind = 3*i;
 
                         for (size_t j = 0; j < ctrl_neighbors.size(); j++) {
-                            const size_t offset = 6*ctrl_neighbors[j].index;
+                            const auto offset = 6*ctrl_neighbors[j].index;
                             weight = corr_weight_nrm*ctrl_neighbors[j].value;
 
                             nz_ind = outer_ptr[eq_ind] + 6*j;
@@ -1534,7 +1534,7 @@ namespace cilantro {
                         angles_curr.setZero();
                         trans_curr.setZero();
                         for (size_t j = 0; j < ctrl_neighbors.size(); j++) {
-                            const size_t offset = 6*ctrl_neighbors[j].index;
+                            const auto offset = 6*ctrl_neighbors[j].index;
                             angles_curr.noalias() += ctrl_neighbors[j].value*tforms_vec.template segment<3>(offset);
                             trans_curr.noalias() += ctrl_neighbors[j].value*tforms_vec.template segment<3>(offset + 3);
                         }
@@ -1568,7 +1568,7 @@ namespace cilantro {
                         const ScalarT dot3 = n.dot(d_rot_dc_s);
 
                         for (size_t j = 0; j < ctrl_neighbors.size(); j++) {
-                            const size_t offset = 6*ctrl_neighbors[j].index;
+                            const auto offset = 6*ctrl_neighbors[j].index;
                             weight = corr_weight_nrm*ctrl_neighbors[j].value;
 
                             // Point to plane
@@ -1599,8 +1599,8 @@ namespace cilantro {
                     const auto& neighbors = regularization_neighborhoods[i];
 
                     for (size_t j = 1; j < neighbors.size(); j++) {
-                        size_t s_offset = 6*neighbors[0].index;
-                        size_t n_offset = 6*neighbors[j].index;
+                        auto s_offset = 6*neighbors[0].index;
+                        auto n_offset = 6*neighbors[j].index;
                         weight = regularization_weight_sqrt*std::sqrt(reg_evaluator(neighbors[0].index, neighbors[j].index, neighbors[j].value));
 
                         if (n_offset < s_offset) std::swap(s_offset, n_offset);
@@ -1699,18 +1699,18 @@ namespace cilantro {
     }
 
     // Locally affine sparse warp field, general dimension
-    template <class TransformT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class ControlWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
+    template <class TransformT, class PointCorrSetT, class PlaneCorrSetT, class CtrlNeighborhoodSetT, class RegNeighborhoodSetT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class ControlWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
     typename std::enable_if<int(TransformT::Mode) == int(Eigen::Affine) || int(TransformT::Mode) == int(Eigen::AffineCompact),bool>::type
     estimateSparseWarpFieldCombinedMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_p,
                                           const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_n,
                                           const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src_p,
-                                          const CorrespondenceSet<typename PointCorrWeightEvaluatorT::InputScalar> &point_to_point_correspondences,
+                                          const PointCorrSetT &point_to_point_correspondences,
                                           typename TransformT::Scalar point_to_point_weight,
-                                          const CorrespondenceSet<typename PlaneCorrWeightEvaluatorT::InputScalar> &point_to_plane_correspondences,
+                                          const PlaneCorrSetT &point_to_plane_correspondences,
                                           typename TransformT::Scalar point_to_plane_weight,
-                                          const NeighborhoodSet<typename ControlWeightEvaluatorT::InputScalar> &src_to_ctrl_neighborhoods,
+                                          const CtrlNeighborhoodSetT &src_to_ctrl_neighborhoods,
                                           size_t num_ctrl_points,
-                                          const NeighborhoodSet<typename RegWeightEvaluatorT::InputScalar> &regularization_neighborhoods,
+                                          const RegNeighborhoodSetT &regularization_neighborhoods,
                                           typename TransformT::Scalar regularization_weight,
                                           TransformSet<TransformT> &transforms,
                                           typename TransformT::Scalar huber_boundary = (typename TransformT::Scalar)(1e-4),
@@ -1744,7 +1744,7 @@ namespace cilantro {
         }
 
         // Sort control nodes by index and compute total weight
-        NeighborhoodSet<ScalarT> src_to_ctrl_sorted(src_to_ctrl_neighborhoods.size());
+        CtrlNeighborhoodSetT src_to_ctrl_sorted(src_to_ctrl_neighborhoods.size());
         std::vector<ScalarT> total_weight(src_to_ctrl_sorted.size());
         std::vector<char> has_data_term(src_to_ctrl_neighborhoods.size(), 0);
 #pragma omp parallel shared (src_to_ctrl_sorted, total_weight, has_data_term)
@@ -1773,7 +1773,7 @@ namespace cilantro {
                         src_to_ctrl_sorted[i][j].value = control_evaluator(i, src_to_ctrl_neighborhoods[i][j].index, src_to_ctrl_neighborhoods[i][j].value);
                         total_weight[i] += src_to_ctrl_sorted[i][j].value;
                     }
-                    std::sort(src_to_ctrl_sorted[i].begin(), src_to_ctrl_sorted[i].end(), typename Neighbor<ScalarT>::IndexLessComparator());
+                    std::sort(src_to_ctrl_sorted[i].begin(), src_to_ctrl_sorted[i].end(), typename CtrlNeighborhoodSetT::value_type::value_type::IndexLessComparator());
                 }
             }
         }
@@ -1876,7 +1876,7 @@ namespace cilantro {
                         linear_curr.setZero();
                         trans_curr.setZero();
                         for (size_t j = 0; j < ctrl_neighbors.size(); j++) {
-                            const size_t offset = NumUnknownsLocal*ctrl_neighbors[j].index;
+                            const auto offset = NumUnknownsLocal*ctrl_neighbors[j].index;
                             linear_curr.noalias() += ctrl_neighbors[j].value*tforms_vec.template segment<Dim*Dim>(offset);
                             trans_curr.noalias() += ctrl_neighbors[j].value*tforms_vec.template segment<Dim>(offset + Dim*Dim);
                         }
@@ -1900,7 +1900,7 @@ namespace cilantro {
                         eq_ind = Dim*i;
 
                         for (size_t j = 0; j < ctrl_neighbors.size(); j++) {
-                            const size_t offset = NumUnknownsLocal*ctrl_neighbors[j].index;
+                            const auto offset = NumUnknownsLocal*ctrl_neighbors[j].index;
                             weight = corr_weight_nrm*ctrl_neighbors[j].value;
 
                             for (size_t eq = 0; eq < Dim; eq++) {
@@ -1928,7 +1928,7 @@ namespace cilantro {
                         linear_curr.setZero();
                         trans_curr.setZero();
                         for (size_t j = 0; j < ctrl_neighbors.size(); j++) {
-                            const size_t offset = NumUnknownsLocal*ctrl_neighbors[j].index;
+                            const auto offset = NumUnknownsLocal*ctrl_neighbors[j].index;
                             linear_curr.noalias() += ctrl_neighbors[j].value*tforms_vec.template segment<Dim*Dim>(offset);
                             trans_curr.noalias() += ctrl_neighbors[j].value*tforms_vec.template segment<Dim>(offset + Dim*Dim);
                         }
@@ -1953,7 +1953,7 @@ namespace cilantro {
                         eq_ind = num_point_to_point_equations + i;
 
                         for (size_t j = 0; j < ctrl_neighbors.size(); j++) {
-                            const size_t offset = NumUnknownsLocal*ctrl_neighbors[j].index;
+                            const auto offset = NumUnknownsLocal*ctrl_neighbors[j].index;
                             weight = corr_weight_nrm*ctrl_neighbors[j].value;
 
                             nz_ind = outer_ptr[eq_ind] + NumUnknownsLocal*j;
@@ -1982,8 +1982,8 @@ namespace cilantro {
                     const auto& neighbors = regularization_neighborhoods[i];
 
                     for (size_t j = 1; j < neighbors.size(); j++) {
-                        size_t s_offset = NumUnknownsLocal*neighbors[0].index;
-                        size_t n_offset = NumUnknownsLocal*neighbors[j].index;
+                        auto s_offset = NumUnknownsLocal*neighbors[0].index;
+                        auto n_offset = NumUnknownsLocal*neighbors[j].index;
                         weight = regularization_weight_sqrt*std::sqrt(reg_evaluator(neighbors[0].index, neighbors[j].index, neighbors[j].value));
 
                         if (n_offset < s_offset) std::swap(s_offset, n_offset);
