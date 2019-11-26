@@ -4,18 +4,18 @@
 #include <Eigen/Dense>
 
 namespace cilantro {
-    template <typename ScalarT>
+    template <typename ScalarT, typename IndexT = size_t>
     struct Neighbor {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         typedef ScalarT Scalar;
 
-        size_t index;
+        IndexT index;
         ScalarT value;
 
         inline Neighbor() {}
 
-        inline Neighbor(size_t ind, ScalarT dist) : index(ind), value(dist) {}
+        inline Neighbor(IndexT ind, ScalarT dist) : index(ind), value(dist) {}
 
         struct IndexLessComparator {
             inline bool operator()(const Neighbor &nn1, const Neighbor &nn2) const {
@@ -42,41 +42,49 @@ namespace cilantro {
         };
     };
 
-    template <typename ScalarT>
-    using NeighborSet = std::vector<Neighbor<ScalarT>>;
+    template <typename ScalarT, typename IndexT = size_t>
+    using NeighborSet = std::vector<Neighbor<ScalarT,IndexT>>;
 
-    template <typename ScalarT>
-    using Neighborhood = std::vector<Neighbor<ScalarT>>;
+    template <typename ScalarT, typename IndexT = size_t>
+    using Neighborhood = std::vector<Neighbor<ScalarT,IndexT>>;
 
-    template <typename ScalarT>
-    using NeighborhoodSet = std::vector<Neighborhood<ScalarT>>;
+    template <typename ScalarT, typename IndexT = size_t>
+    using NeighborhoodSet = std::vector<Neighborhood<ScalarT,IndexT>>;
 
+    template <typename CountT = size_t>
     struct KNNNeighborhoodSpecification {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        inline KNNNeighborhoodSpecification(size_t k = 0) : maxNumberOfNeighbors(k) {}
+        typedef CountT Size;
 
-        size_t maxNumberOfNeighbors;
+        inline KNNNeighborhoodSpecification(CountT k = (CountT)0) : maxNumberOfNeighbors(k) {}
+
+        CountT maxNumberOfNeighbors;
     };
 
     template <typename ScalarT>
     struct RadiusNeighborhoodSpecification {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        typedef ScalarT Scalar;
+
         inline RadiusNeighborhoodSpecification(ScalarT r = (ScalarT)0) : radius(r) {}
 
         ScalarT radius;
     };
 
-    template <typename ScalarT>
+    template <typename ScalarT, typename CountT = size_t>
     struct KNNInRadiusNeighborhoodSpecification {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        inline KNNInRadiusNeighborhoodSpecification(size_t k = 0, ScalarT r = (ScalarT)0)
+        typedef ScalarT Scalar;
+        typedef CountT Size;
+
+        inline KNNInRadiusNeighborhoodSpecification(CountT k = 0, ScalarT r = (ScalarT)0)
                 : maxNumberOfNeighbors(k), radius(r)
         {}
 
-        size_t maxNumberOfNeighbors;
+        CountT maxNumberOfNeighbors;
         ScalarT radius;
     };
 }

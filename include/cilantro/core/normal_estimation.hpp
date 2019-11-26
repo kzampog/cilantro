@@ -3,24 +3,26 @@
 #include <cilantro/core/kd_tree.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, ptrdiff_t EigenDim>
+    template <typename ScalarT, ptrdiff_t EigenDim, typename IndexT = size_t>
     class NormalEstimation {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         typedef ScalarT Scalar;
+        typedef IndexT Index;
+        typedef KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2,IndexT> SearchTree;
 
         enum { Dimension = EigenDim };
 
         NormalEstimation(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, size_t max_leaf_size = 10)
                 : points_(points),
-                  kd_tree_ptr_(new KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2>(points, max_leaf_size)),
+                  kd_tree_ptr_(new SearchTree(points, max_leaf_size)),
                   kd_tree_owned_(true),
                   view_point_(Vector<ScalarT,EigenDim>::Constant(points_.rows(), 1, std::numeric_limits<ScalarT>::quiet_NaN())),
                   ref_normals_(NULL)
         {}
 
-        NormalEstimation(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree)
+        NormalEstimation(const SearchTree &kd_tree)
                 : points_(kd_tree.getPointsMatrixMap()),
                   kd_tree_ptr_(&kd_tree),
                   kd_tree_owned_(false),
@@ -52,50 +54,56 @@ namespace cilantro {
             return *this;
         }
 
+        template <typename CountT = size_t>
         inline const NormalEstimation& getNormalsAndCurvatureKNN(VectorSet<ScalarT,EigenDim> &normals,
                                                                  VectorSet<ScalarT,1> &curvature,
-                                                                 size_t k) const
+                                                                 CountT k) const
         {
             normals.resize(points_.rows(), points_.cols());
             curvature.resize(1, points_.cols());
-            compute_normals_curvature_(normals, curvature, KNNNeighborhoodSpecification(k));
+            compute_normals_curvature_(normals, curvature, KNNNeighborhoodSpecification<CountT>(k));
             return *this;
         }
 
         // External buffers
+        template <typename CountT = size_t>
         inline const NormalEstimation& estimateNormalsAndCurvatureKNN(VectorSetMatrixMap<ScalarT,EigenDim> normals,
                                                                       VectorSetMatrixMap<ScalarT,1> curvature,
-                                                                      size_t k) const
+                                                                      CountT k) const
         {
-            compute_normals_curvature_(normals, curvature, KNNNeighborhoodSpecification(k));
+            compute_normals_curvature_(normals, curvature, KNNNeighborhoodSpecification<CountT>(k));
             return *this;
         }
 
-        inline VectorSet<ScalarT,EigenDim> getNormalsKNN(size_t k) const {
+        template <typename CountT = size_t>
+        inline VectorSet<ScalarT,EigenDim> getNormalsKNN(CountT k) const {
             VectorSet<ScalarT,EigenDim> normals(points_.rows(), points_.cols());
-            compute_normals_(normals, KNNNeighborhoodSpecification(k));
+            compute_normals_(normals, KNNNeighborhoodSpecification<CountT>(k));
             return normals;
         }
 
         // External buffer
+        template <typename CountT = size_t>
         inline const NormalEstimation& estimateNormalsKNN(VectorSetMatrixMap<ScalarT,EigenDim> normals,
-                                                          size_t k) const
+                                                          CountT k) const
         {
-            compute_normals_(normals, KNNNeighborhoodSpecification(k));
+            compute_normals_(normals, KNNNeighborhoodSpecification<CountT>(k));
             return *this;
         }
 
-        inline VectorSet<ScalarT,1> getCurvatureKNN(size_t k) const {
+        template <typename CountT = size_t>
+        inline VectorSet<ScalarT,1> getCurvatureKNN(CountT k) const {
             VectorSet<ScalarT,1> curvature(1, points_.cols());
-            compute_curvature_(curvature, KNNNeighborhoodSpecification(k));
+            compute_curvature_(curvature, KNNNeighborhoodSpecification<CountT>(k));
             return curvature;
         }
 
         // External buffer
+        template <typename CountT = size_t>
         inline const NormalEstimation& estimateCurvatureKNN(VectorSetMatrixMap<ScalarT,1> curvature,
-                                                            size_t k) const
+                                                            CountT k) const
         {
-            compute_curvature_(curvature, KNNNeighborhoodSpecification(k));
+            compute_curvature_(curvature, KNNNeighborhoodSpecification<CountT>(k));
             return *this;
         }
 
@@ -146,52 +154,58 @@ namespace cilantro {
             return *this;
         }
 
+        template <typename CountT = size_t>
         inline const NormalEstimation& getNormalsAndCurvatureKNNInRadius(VectorSet<ScalarT,EigenDim> &normals,
                                                                          VectorSet<ScalarT,1> &curvature,
-                                                                         size_t k,
+                                                                         CountT k,
                                                                          ScalarT radius) const
         {
             normals.resize(points_.rows(), points_.cols());
             curvature.resize(1, points_.cols());
-            compute_normals_curvature_(normals, curvature, KNNInRadiusNeighborhoodSpecification<ScalarT>(k, radius*radius));
+            compute_normals_curvature_(normals, curvature, KNNInRadiusNeighborhoodSpecification<ScalarT,CountT>(k, radius*radius));
             return *this;
         }
 
         // External buffers
+        template <typename CountT = size_t>
         inline const NormalEstimation& estimateNormalsAndCurvatureKNNInRadius(VectorSetMatrixMap<ScalarT,EigenDim> normals,
                                                                               VectorSetMatrixMap<ScalarT,1> curvature,
-                                                                              size_t k,
+                                                                              CountT k,
                                                                               ScalarT radius) const
         {
-            compute_normals_curvature_(normals, curvature, KNNInRadiusNeighborhoodSpecification<ScalarT>(k, radius*radius));
+            compute_normals_curvature_(normals, curvature, KNNInRadiusNeighborhoodSpecification<ScalarT,CountT>(k, radius*radius));
             return *this;
         }
 
-        inline VectorSet<ScalarT,EigenDim> getNormalsKNNInRadius(size_t k, ScalarT radius) const {
+        template <typename CountT = size_t>
+        inline VectorSet<ScalarT,EigenDim> getNormalsKNNInRadius(CountT k, ScalarT radius) const {
             VectorSet<ScalarT,EigenDim> normals(points_.rows(), points_.cols());
-            compute_normals_(normals, KNNInRadiusNeighborhoodSpecification<ScalarT>(k, radius*radius));
+            compute_normals_(normals, KNNInRadiusNeighborhoodSpecification<ScalarT,CountT>(k, radius*radius));
             return normals;
         }
 
         // External buffer
+        template <typename CountT = size_t>
         inline const NormalEstimation& estimateNormalsKNNInRadius(VectorSetMatrixMap<ScalarT,EigenDim> normals,
-                                                                  size_t k, ScalarT radius) const
+                                                                  CountT k, ScalarT radius) const
         {
-            compute_normals_(normals, KNNInRadiusNeighborhoodSpecification<ScalarT>(k, radius*radius));
+            compute_normals_(normals, KNNInRadiusNeighborhoodSpecification<ScalarT,CountT>(k, radius*radius));
             return *this;
         }
 
-        inline VectorSet<ScalarT,1> getCurvatureKNNInRadius(size_t k, ScalarT radius) const {
+        template <typename CountT = size_t>
+        inline VectorSet<ScalarT,1> getCurvatureKNNInRadius(CountT k, ScalarT radius) const {
             VectorSet<ScalarT,1> curvature(1, points_.cols());
-            compute_curvature_(curvature, KNNInRadiusNeighborhoodSpecification<ScalarT>(k, radius*radius));
+            compute_curvature_(curvature, KNNInRadiusNeighborhoodSpecification<ScalarT,CountT>(k, radius*radius));
             return curvature;
         }
 
         // External buffer
+        template <typename CountT = size_t>
         inline const NormalEstimation& estimateCurvatureKNNInRadius(VectorSetMatrixMap<ScalarT,1> curvature,
-                                                                    size_t k, ScalarT radius) const
+                                                                    CountT k, ScalarT radius) const
         {
-            compute_curvature_(curvature, KNNInRadiusNeighborhoodSpecification<ScalarT>(k, radius*radius));
+            compute_curvature_(curvature, KNNInRadiusNeighborhoodSpecification<ScalarT,CountT>(k, radius*radius));
             return *this;
         }
 
@@ -250,7 +264,7 @@ namespace cilantro {
 
     private:
         ConstVectorSetMatrixMap<ScalarT,EigenDim> points_;
-        const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> *kd_tree_ptr_;
+        const SearchTree *kd_tree_ptr_;
         bool kd_tree_owned_;
         Vector<ScalarT,EigenDim> view_point_;
         ConstVectorSetMatrixMap<ScalarT,EigenDim> ref_normals_;
@@ -271,10 +285,10 @@ namespace cilantro {
                 return;
             }
 
-            Neighborhood<ScalarT> nn;
+            typename SearchTree::NeighborhoodResult nn;
 #pragma omp parallel for shared (normals) private (nn)
             for (size_t i = 0; i < points_.cols(); i++) {
-                kd_tree_ptr_->template search<NeighborhoodSpecT>(points_.col(i), nh, nn);
+                kd_tree_ptr_->search(points_.col(i), nh, nn);
                 if (nn.size() < points_.rows()) {
                     normals.col(i).setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
                     continue;
@@ -303,10 +317,10 @@ namespace cilantro {
         void compute_normals_view_point_(VectorSetMatrixMap<ScalarT,EigenDim> normals,
                                         const NeighborhoodSpecT &nh) const
         {
-            Neighborhood<ScalarT> nn;
+            typename SearchTree::NeighborhoodResult nn;
 #pragma omp parallel for shared (normals) private (nn)
             for (size_t i = 0; i < points_.cols(); i++) {
-                kd_tree_ptr_->template search<NeighborhoodSpecT>(points_.col(i), nh, nn);
+                kd_tree_ptr_->search(points_.col(i), nh, nn);
                 if (nn.size() < points_.rows()) {
                     normals.col(i).setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
                     continue;
@@ -339,10 +353,10 @@ namespace cilantro {
         void compute_normals_reference_normals_(VectorSetMatrixMap<ScalarT,EigenDim> normals,
                                                 const NeighborhoodSpecT &nh) const
         {
-            Neighborhood<ScalarT> nn;
+            typename SearchTree::NeighborhoodResult nn;
 #pragma omp parallel for shared (normals) private (nn)
             for (size_t i = 0; i < points_.cols(); i++) {
-                kd_tree_ptr_->template search<NeighborhoodSpecT>(points_.col(i), nh, nn);
+                kd_tree_ptr_->search(points_.col(i), nh, nn);
                 if (nn.size() < points_.rows()) {
                     normals.col(i).setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
                     // normals.col(i) = ref_normals_.col(i).normalized();
@@ -388,10 +402,10 @@ namespace cilantro {
                 return;
             }
 
-            Neighborhood<ScalarT> nn;
+            typename SearchTree::NeighborhoodResult nn;
 #pragma omp parallel for shared (normals, curvature) private (nn)
             for (size_t i = 0; i < points_.cols(); i++) {
-                kd_tree_ptr_->template search<NeighborhoodSpecT>(points_.col(i), nh, nn);
+                kd_tree_ptr_->search(points_.col(i), nh, nn);
                 if (nn.size() < points_.rows()) {
                     normals.col(i).setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
                     curvature[i] = std::numeric_limits<ScalarT>::quiet_NaN();
@@ -423,10 +437,10 @@ namespace cilantro {
                                                    VectorSetMatrixMap<ScalarT,1> curvature,
                                                    const NeighborhoodSpecT &nh) const
         {
-            Neighborhood<ScalarT> nn;
+            typename SearchTree::NeighborhoodResult nn;
 #pragma omp parallel for shared (normals, curvature) private (nn)
             for (size_t i = 0; i < points_.cols(); i++) {
-                kd_tree_ptr_->template search<NeighborhoodSpecT>(points_.col(i), nh, nn);
+                kd_tree_ptr_->search(points_.col(i), nh, nn);
                 if (nn.size() < points_.rows()) {
                     normals.col(i).setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
                     curvature[i] = std::numeric_limits<ScalarT>::quiet_NaN();
@@ -462,10 +476,10 @@ namespace cilantro {
                                         VectorSetMatrixMap<ScalarT,1> curvature,
                                         const NeighborhoodSpecT &nh) const
         {
-            Neighborhood<ScalarT> nn;
+            typename SearchTree::NeighborhoodResult nn;
 #pragma omp parallel for shared (normals, curvature) private (nn)
             for (size_t i = 0; i < points_.cols(); i++) {
-                kd_tree_ptr_->template search<NeighborhoodSpecT>(points_.col(i), nh, nn);
+                kd_tree_ptr_->search(points_.col(i), nh, nn);
                 if (nn.size() < points_.rows()) {
                     normals.col(i).setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
                     curvature[i] = std::numeric_limits<ScalarT>::quiet_NaN();
@@ -500,10 +514,10 @@ namespace cilantro {
         void compute_curvature_(VectorSetMatrixMap<ScalarT,1> curvature,
                                 const NeighborhoodSpecT &nh) const
         {
-            Neighborhood<ScalarT> nn;
+            typename SearchTree::NeighborhoodResult nn;
 #pragma omp parallel for shared (curvature) private (nn)
             for (size_t i = 0; i < points_.cols(); i++) {
-                kd_tree_ptr_->template search<NeighborhoodSpecT>(points_.col(i), nh, nn);
+                kd_tree_ptr_->search(points_.col(i), nh, nn);
                 if (nn.size() < points_.rows()) {
                     curvature[i] = std::numeric_limits<ScalarT>::quiet_NaN();
                     continue;

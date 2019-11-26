@@ -269,100 +269,106 @@ namespace cilantro {
             return res;
         }
 
-        inline PointCloud& estimateNormalsKNN(size_t k, bool use_current_as_ref = false) {
+        template <typename IndexT = size_t, typename CountT = size_t>
+        inline PointCloud& estimateNormalsKNN(CountT k, bool use_current_as_ref = false) {
             use_current_as_ref = use_current_as_ref && hasNormals();
             normals.resize(points.rows(), points.cols());
             if (use_current_as_ref) {
-                NormalEstimation<ScalarT,EigenDim>(points).setReferenceNormals(normals).estimateNormalsKNN(normals, k);
+                NormalEstimation<ScalarT,EigenDim,IndexT>(points).setReferenceNormals(normals).estimateNormalsKNN(normals, k);
             } else {
-                NormalEstimation<ScalarT,EigenDim>(points).setViewPoint(Vector<ScalarT,EigenDim>::Zero(points.rows(),1)).estimateNormalsKNN(normals, k);
+                NormalEstimation<ScalarT,EigenDim,IndexT>(points).setViewPoint(Vector<ScalarT,EigenDim>::Zero(points.rows(),1)).estimateNormalsKNN(normals, k);
             }
             return *this;
         }
 
-        inline PointCloud& estimateNormalsKNN(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree,
-                                              size_t k, bool use_current_as_ref = false)
+        template <typename IndexT = size_t, typename CountT = size_t>
+        inline PointCloud& estimateNormalsKNN(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2,IndexT> &kd_tree,
+                                              CountT k, bool use_current_as_ref = false)
         {
             use_current_as_ref = use_current_as_ref && hasNormals();
             normals.resize(points.rows(), points.cols());
             if (use_current_as_ref) {
-                NormalEstimation<ScalarT,EigenDim>(kd_tree).setReferenceNormals(normals).estimateNormalsKNN(normals, k);
+                NormalEstimation<ScalarT,EigenDim,IndexT>(kd_tree).setReferenceNormals(normals).estimateNormalsKNN(normals, k);
             } else {
-                NormalEstimation<ScalarT,EigenDim>(kd_tree).setViewPoint(Vector<ScalarT,EigenDim>::Zero(points.rows(),1)).estimateNormalsKNN(normals, k);
+                NormalEstimation<ScalarT,EigenDim,IndexT>(kd_tree).setViewPoint(Vector<ScalarT,EigenDim>::Zero(points.rows(),1)).estimateNormalsKNN(normals, k);
             }
             return *this;
         }
 
+        template <typename IndexT = size_t>
         inline PointCloud& estimateNormalsRadius(ScalarT radius, bool use_current_as_ref = false) {
             use_current_as_ref = use_current_as_ref && hasNormals();
             normals.resize(points.rows(), points.cols());
             if (use_current_as_ref) {
-                NormalEstimation<ScalarT,EigenDim>(points).setReferenceNormals(normals).estimateNormalsRadius(normals, radius);
+                NormalEstimation<ScalarT,EigenDim,IndexT>(points).setReferenceNormals(normals).estimateNormalsRadius(normals, radius);
             } else {
-                NormalEstimation<ScalarT,EigenDim>(points).setViewPoint(Vector<ScalarT,EigenDim>::Zero(points.rows(),1)).estimateNormalsRadius(normals, radius);
+                NormalEstimation<ScalarT,EigenDim,IndexT>(points).setViewPoint(Vector<ScalarT,EigenDim>::Zero(points.rows(),1)).estimateNormalsRadius(normals, radius);
             }
             return *this;
         }
 
-        inline PointCloud& estimateNormalsRadius(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree,
+        template <typename IndexT = size_t>
+        inline PointCloud& estimateNormalsRadius(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2,IndexT> &kd_tree,
                                                  ScalarT radius, bool use_current_as_ref = false)
         {
             use_current_as_ref = use_current_as_ref && hasNormals();
             normals.resize(points.rows(), points.cols());
             if (use_current_as_ref) {
-                NormalEstimation<ScalarT,EigenDim>(kd_tree).setReferenceNormals(normals).estimateNormalsRadius(normals, radius);
+                NormalEstimation<ScalarT,EigenDim,IndexT>(kd_tree).setReferenceNormals(normals).estimateNormalsRadius(normals, radius);
             } else {
-                NormalEstimation<ScalarT,EigenDim>(kd_tree).setViewPoint(Vector<ScalarT,EigenDim>::Zero(points.rows(),1)).estimateNormalsRadius(normals, radius);
+                NormalEstimation<ScalarT,EigenDim,IndexT>(kd_tree).setViewPoint(Vector<ScalarT,EigenDim>::Zero(points.rows(),1)).estimateNormalsRadius(normals, radius);
             }
             return *this;
         }
 
-        inline PointCloud& estimateNormalsKNNInRadius(size_t k, ScalarT radius, bool use_current_as_ref = false) {
+        template <typename IndexT = size_t, typename CountT = size_t>
+        inline PointCloud& estimateNormalsKNNInRadius(CountT k, ScalarT radius, bool use_current_as_ref = false) {
             use_current_as_ref = use_current_as_ref && hasNormals();
             normals.resize(points.rows(), points.cols());
             if (use_current_as_ref) {
-                NormalEstimation<ScalarT,EigenDim>(points).setReferenceNormals(normals).estimateNormalsKNNInRadius(normals, k, radius);
+                NormalEstimation<ScalarT,EigenDim,IndexT>(points).setReferenceNormals(normals).estimateNormalsKNNInRadius(normals, k, radius);
             } else {
-                NormalEstimation<ScalarT,EigenDim>(points).setViewPoint(Vector<ScalarT,EigenDim>::Zero(points.rows(),1)).estimateNormalsKNNInRadius(normals, k, radius);
+                NormalEstimation<ScalarT,EigenDim,IndexT>(points).setViewPoint(Vector<ScalarT,EigenDim>::Zero(points.rows(),1)).estimateNormalsKNNInRadius(normals, k, radius);
             }
             return *this;
         }
 
-        inline PointCloud& estimateNormalsKNNInRadius(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree,
-                                                      size_t k, ScalarT radius, bool use_current_as_ref = false)
+        template <typename IndexT = size_t, typename CountT = size_t>
+        inline PointCloud& estimateNormalsKNNInRadius(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2,IndexT> &kd_tree,
+                                                      CountT k, ScalarT radius, bool use_current_as_ref = false)
         {
             use_current_as_ref = use_current_as_ref && hasNormals();
             normals.resize(points.rows(), points.cols());
             if (use_current_as_ref) {
-                NormalEstimation<ScalarT,EigenDim>(kd_tree).setReferenceNormals(normals).estimateNormalsKNNInRadius(normals, k, radius);
+                NormalEstimation<ScalarT,EigenDim,IndexT>(kd_tree).setReferenceNormals(normals).estimateNormalsKNNInRadius(normals, k, radius);
             } else {
-                NormalEstimation<ScalarT,EigenDim>(kd_tree).setViewPoint(Vector<ScalarT,EigenDim>::Zero(points.rows(),1)).estimateNormalsKNNInRadius(normals, k, radius);
+                NormalEstimation<ScalarT,EigenDim,IndexT>(kd_tree).setViewPoint(Vector<ScalarT,EigenDim>::Zero(points.rows(),1)).estimateNormalsKNNInRadius(normals, k, radius);
             }
             return *this;
         }
 
-        template <typename NeighborhoodSpecT>
+        template <typename IndexT = size_t, typename NeighborhoodSpecT>
         inline PointCloud& estimateNormals(const NeighborhoodSpecT &nh, bool use_current_as_ref = false) {
             use_current_as_ref = use_current_as_ref && hasNormals();
             normals.resize(points.rows(), points.cols());
             if (use_current_as_ref) {
-                NormalEstimation<ScalarT,EigenDim>(points).setReferenceNormals(normals).estimateNormals(normals, nh);
+                NormalEstimation<ScalarT,EigenDim,IndexT>(points).setReferenceNormals(normals).estimateNormals(normals, nh);
             } else {
-                NormalEstimation<ScalarT,EigenDim>(points).setViewPoint(Vector<ScalarT,EigenDim>::Zero(points.rows(),1)).estimateNormals(normals, nh);
+                NormalEstimation<ScalarT,EigenDim,IndexT>(points).setViewPoint(Vector<ScalarT,EigenDim>::Zero(points.rows(),1)).estimateNormals(normals, nh);
             }
             return *this;
         }
 
-        template <typename NeighborhoodSpecT>
-        inline PointCloud& estimateNormals(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> &kd_tree,
+        template <typename IndexT = size_t, typename NeighborhoodSpecT>
+        inline PointCloud& estimateNormals(const KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2,IndexT> &kd_tree,
                                            const NeighborhoodSpecT &nh, bool use_current_as_ref = false)
         {
             use_current_as_ref = use_current_as_ref && hasNormals();
             normals.resize(points.rows(), points.cols());
             if (use_current_as_ref) {
-                NormalEstimation<ScalarT,EigenDim>(kd_tree).setReferenceNormals(normals).estimateNormals(normals, nh);
+                NormalEstimation<ScalarT,EigenDim,IndexT>(kd_tree).setReferenceNormals(normals).estimateNormals(normals, nh);
             } else {
-                NormalEstimation<ScalarT,EigenDim>(kd_tree).setViewPoint(Vector<ScalarT,EigenDim>::Zero(points.rows(),1)).estimateNormals(normals, nh);
+                NormalEstimation<ScalarT,EigenDim,IndexT>(kd_tree).setViewPoint(Vector<ScalarT,EigenDim>::Zero(points.rows(),1)).estimateNormals(normals, nh);
             }
             return *this;
         }

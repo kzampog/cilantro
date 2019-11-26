@@ -154,7 +154,7 @@ namespace cilantro {
                 corr_tmp[i].value = value_to_reject;
             }
 #pragma omp parallel for private (src_pt_trans_cam)
-            for (size_t i = 0; i < src_points_trans.cols(); i++) {
+            for (IndexT i = 0; i < src_points_trans.cols(); i++) {
                 src_pt_trans_cam = projection_extrinsics_inv_*src_points_trans.col(i);
                 if (src_pt_trans_cam(2) <= (ScalarT)0.0) continue;
                 size_t x = (size_t)std::llround(src_pt_trans_cam(0)*projection_intrinsics_(0,0)/src_pt_trans_cam(2) + projection_intrinsics_(0,2));

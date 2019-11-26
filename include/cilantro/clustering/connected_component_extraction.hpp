@@ -192,7 +192,7 @@ namespace cilantro {
                 const size_t curr_seed = frontier_set.back();
                 frontier_set.pop_back();
 
-                tree.template search<NeighborhoodSpecT>(points.col(curr_seed), nh, nn);
+                tree.search(points.col(curr_seed), nh, nn);
                 for (size_t j = 1; j < nn.size(); j++) {
                     const size_t curr_lbl = current_label[nn[j].index];
                     if (curr_lbl == i || evaluator(curr_seed, nn[j].index, nn[j].value)) {

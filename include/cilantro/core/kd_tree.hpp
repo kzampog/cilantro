@@ -51,22 +51,22 @@ namespace cilantro {
         using SO3 = nanoflann::SO3_Adaptor<typename DataAdaptor::coord_t, DataAdaptor, typename DataAdaptor::coord_t>;
     };
 
-    template <typename ScalarT>
+    template <typename ScalarT, typename IndexT = size_t, typename CountT = size_t>
     class KNNSearchResultAdaptor {
     public:
-        KNNSearchResultAdaptor(Neighborhood<ScalarT> &results, size_t k, ScalarT max_radius = std::numeric_limits<ScalarT>::max())
+        KNNSearchResultAdaptor(Neighborhood<ScalarT,IndexT> &results, CountT k, ScalarT max_radius = std::numeric_limits<ScalarT>::max())
                 : results_(results), k_(k), count_(0)
         {
             results_.resize(k_);
             results_[k_-1].value = max_radius;
         }
 
-        inline size_t size() const { return count_; }
+        inline CountT size() const { return count_; }
 
         inline bool full() const { return count_ == k_; }
 
-        inline bool addPoint(ScalarT dist, size_t index) {
-            size_t i;
+        inline bool addPoint(ScalarT dist, IndexT index) {
+            CountT i;
             for (i = count_; i > 0; --i) {
                 if (results_[i-1].value > dist) {
                     if (i < k_) {
@@ -89,26 +89,26 @@ namespace cilantro {
         inline ScalarT worstDist() const { return results_[k_-1].value; }
 
     private:
-        Neighborhood<ScalarT>& results_;
-        const size_t k_;
-        size_t count_;
+        Neighborhood<ScalarT,IndexT>& results_;
+        const CountT k_;
+        CountT count_;
     };
 
 
-    template <typename ScalarT>
+    template <typename ScalarT, typename IndexT = size_t, typename CountT = size_t>
     class RadiusSearchResultAdaptor {
     public:
-        RadiusSearchResultAdaptor(Neighborhood<ScalarT> &results, ScalarT radius)
+        RadiusSearchResultAdaptor(Neighborhood<ScalarT,IndexT> &results, ScalarT radius)
                 : results_(results), radius_(radius)
         {
             results_.clear();
         }
 
-        inline size_t size() const { return results_.size(); }
+        inline CountT size() const { return results_.size(); }
 
         inline bool full() const { return true; }
 
-        inline bool addPoint(ScalarT dist, size_t index) {
+        inline bool addPoint(ScalarT dist, IndexT index) {
             // dist < worstDist() is guaranteed when addPoint is called.
             results_.emplace_back(index, dist);
             return true;
@@ -117,16 +117,22 @@ namespace cilantro {
         inline ScalarT worstDist() const { return radius_; }
 
     private:
-        Neighborhood<ScalarT>& results_;
+        Neighborhood<ScalarT,IndexT>& results_;
         const ScalarT radius_;
     };
 
-    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
+    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename IndexT = size_t>
     class KDTree {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         typedef ScalarT Scalar;
+        typedef IndexT Index;
+
+        typedef Neighbor<ScalarT,IndexT> NeighborResult;
+        typedef Neighborhood<ScalarT,IndexT> NeighborhoodResult;
+        typedef NeighborSet<ScalarT,IndexT> NeighborSetResult;
+        typedef NeighborhoodSet<ScalarT,IndexT> NeighborhoodSetResult;
 
         enum { Dimension = EigenDim };
 
@@ -147,23 +153,23 @@ namespace cilantro {
 
         // Do not call if tree is empty!
         inline const KDTree& nearestNeighborSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt,
-                                                   Neighbor<ScalarT> &result) const
+                                                   NeighborResult &result) const
         {
             kd_tree_.knnSearch(query_pt.data(), 1, &result.index, &result.value);
             return *this;
         }
 
         // Do not call if tree is empty!
-        inline Neighbor<ScalarT> nearestNeighborSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt) const
+        inline NeighborResult nearestNeighborSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt) const
         {
-            Neighbor<ScalarT> result;
+            NeighborResult result;
             kd_tree_.knnSearch(query_pt.data(), 1, &result.index, &result.value);
             return result;
         }
 
         // Do not call if tree is empty!
         const KDTree& nearestNeighborSearch(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
-                                            Neighborhood<ScalarT> &results) const
+                                            NeighborhoodResult &results) const
         {
             results.resize(query_pts.cols());
 #pragma omp parallel for shared (results)
@@ -181,27 +187,30 @@ namespace cilantro {
             return results;
         }
 
+        template <typename CountT = size_t>
         inline const KDTree& kNNSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt,
-                                       size_t k,
-                                       Neighborhood<ScalarT> &results) const
+                                       CountT k,
+                                       NeighborhoodResult &results) const
         {
-            KNNSearchResultAdaptor<ScalarT> sra(results, k);
+            KNNSearchResultAdaptor<ScalarT,IndexT,CountT> sra(results, k);
             kd_tree_.findNeighbors(sra, query_pt.data(), params_);
             results.resize(sra.size());
             return *this;
         }
 
-        inline Neighborhood<ScalarT> kNNSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt,
-                                               size_t k) const
+        template <typename CountT = size_t>
+        inline NeighborhoodResult kNNSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt,
+                                            CountT k) const
         {
-            Neighborhood<ScalarT> results;
+            NeighborhoodResult results;
             kNNSearch(query_pt, k, results);
             return results;
         }
 
+        template <typename CountT = size_t>
         const KDTree& kNNSearch(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
-                                size_t k,
-                                NeighborhoodSet<ScalarT> &results) const
+                                CountT k,
+                                NeighborhoodSetResult &results) const
         {
             results.resize(query_pts.cols());
 #pragma omp parallel for shared (results)
@@ -211,35 +220,36 @@ namespace cilantro {
             return *this;
         }
 
-        inline NeighborhoodSet<ScalarT> kNNSearch(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
-                                                  size_t k) const
+        template <typename CountT = size_t>
+        inline NeighborhoodSetResult kNNSearch(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
+                                               CountT k) const
         {
-            NeighborhoodSet<ScalarT> results;
+            NeighborhoodSetResult results;
             kNNSearch(query_pts, k, results);
             return results;
         }
 
         inline const KDTree& radiusSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt,
                                           ScalarT radius,
-                                          Neighborhood<ScalarT> &results) const
+                                          NeighborhoodResult &results) const
         {
-            RadiusSearchResultAdaptor<ScalarT> sra(results, radius);
+            RadiusSearchResultAdaptor<ScalarT,IndexT,size_t> sra(results, radius);
             kd_tree_.findNeighbors(sra, query_pt.data(), params_);
-            std::sort(results.begin(), results.end(), typename Neighbor<ScalarT>::ValueLessComparator());
+            std::sort(results.begin(), results.end(), typename NeighborResult::ValueLessComparator());
             return *this;
         }
 
-        inline Neighborhood<ScalarT> radiusSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt,
-                                                  ScalarT radius) const
+        inline NeighborhoodResult radiusSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt,
+                                               ScalarT radius) const
         {
-            Neighborhood<ScalarT> results;
+            NeighborhoodResult results;
             radiusSearch(query_pt, radius, results);
             return results;
         }
 
         const KDTree& radiusSearch(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
                                    ScalarT radius,
-                                   NeighborhoodSet<ScalarT> &results) const
+                                   NeighborhoodSetResult &results) const
         {
             results.resize(query_pts.cols());
 #pragma omp parallel for shared (results)
@@ -249,38 +259,41 @@ namespace cilantro {
             return *this;
         }
 
-        inline NeighborhoodSet<ScalarT> radiusSearch(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
-                                                     ScalarT radius) const
+        inline NeighborhoodSetResult radiusSearch(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
+                                                  ScalarT radius) const
         {
-            NeighborhoodSet<ScalarT> results;
+            NeighborhoodSetResult results;
             radiusSearch(query_pts, radius, results);
             return results;
         }
 
+        template <typename CountT = size_t>
         inline const KDTree& kNNInRadiusSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt,
-                                               size_t k,
+                                               CountT k,
                                                ScalarT radius,
-                                               Neighborhood<ScalarT> &results) const
+                                               NeighborhoodResult &results) const
         {
-            KNNSearchResultAdaptor<ScalarT> sra(results, k, radius);
+            KNNSearchResultAdaptor<ScalarT,IndexT,CountT> sra(results, k, radius);
             kd_tree_.findNeighbors(sra, query_pt.data(), params_);
             results.resize(sra.size());
             return *this;
         }
 
-        inline Neighborhood<ScalarT> kNNInRadiusSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt,
-                                                       size_t k,
-                                                       ScalarT radius) const
+        template <typename CountT = size_t>
+        inline NeighborhoodResult kNNInRadiusSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt,
+                                                    CountT k,
+                                                    ScalarT radius) const
         {
-            Neighborhood<ScalarT> results;
+            NeighborhoodResult results;
             kNNInRadiusSearch(query_pt, k, radius, results);
             return results;
         }
 
+        template <typename CountT = size_t>
         const KDTree& kNNInRadiusSearch(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
-                                        size_t k,
+                                        CountT k,
                                         ScalarT radius,
-                                        NeighborhoodSet<ScalarT> &results) const
+                                        NeighborhoodSetResult &results) const
         {
             results.resize(query_pts.cols());
 #pragma omp parallel for shared (results)
@@ -290,97 +303,90 @@ namespace cilantro {
             return *this;
         }
 
-        inline NeighborhoodSet<ScalarT> kNNInRadiusSearch(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
-                                                          size_t k,
-                                                          ScalarT radius) const
+        template <typename CountT = size_t>
+        inline NeighborhoodSetResult kNNInRadiusSearch(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
+                                                       CountT k,
+                                                       ScalarT radius) const
         {
-            NeighborhoodSet<ScalarT> results;
+            NeighborhoodSetResult results;
             kNNInRadiusSearch(query_pts, k, radius, results);
             return results;
         }
 
-        template <typename NeighborhoodSpecT>
-        inline typename std::enable_if<std::is_same<NeighborhoodSpecT,KNNNeighborhoodSpecification>::value,const KDTree&>::type
-        search(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt,
-               const NeighborhoodSpecT &nh,
-               Neighborhood<ScalarT> &results) const
+        template <typename CountT = size_t>
+        inline const KDTree& search(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt,
+                                    const KNNNeighborhoodSpecification<CountT> &nh,
+                                    NeighborhoodResult &results) const
         {
             kNNSearch(query_pt, nh.maxNumberOfNeighbors, results);
             return *this;
         }
 
-        template <typename NeighborhoodSpecT>
-        inline typename std::enable_if<std::is_same<NeighborhoodSpecT,KNNNeighborhoodSpecification>::value,const KDTree&>::type
-        search(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
-               const NeighborhoodSpecT &nh,
-               NeighborhoodSet<ScalarT> &results) const
+        template <typename CountT = size_t>
+        inline const KDTree& search(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
+                                    const KNNNeighborhoodSpecification<CountT> &nh,
+                                    NeighborhoodSetResult &results) const
         {
             kNNSearch(query_pts, nh.maxNumberOfNeighbors, results);
             return *this;
         }
 
-        template <typename NeighborhoodSpecT>
-        inline typename std::enable_if<std::is_same<NeighborhoodSpecT,RadiusNeighborhoodSpecification<ScalarT>>::value,const KDTree&>::type
-        search(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt,
-               const NeighborhoodSpecT &nh,
-               Neighborhood<ScalarT> &results) const
+        inline const KDTree& search(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt,
+                                    const RadiusNeighborhoodSpecification<ScalarT> &nh,
+                                    NeighborhoodResult &results) const
         {
             radiusSearch(query_pt, nh.radius, results);
             return *this;
         }
 
-        template <typename NeighborhoodSpecT>
-        inline typename std::enable_if<std::is_same<NeighborhoodSpecT,RadiusNeighborhoodSpecification<ScalarT>>::value,const KDTree&>::type
-        search(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
-               const NeighborhoodSpecT &nh,
-               NeighborhoodSet<ScalarT> &results) const
+        inline const KDTree& search(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
+                                    const RadiusNeighborhoodSpecification<ScalarT> &nh,
+                                    NeighborhoodSetResult &results) const
         {
             radiusSearch(query_pts, nh.radius, results);
             return *this;
         }
 
-        template <typename NeighborhoodSpecT>
-        inline typename std::enable_if<std::is_same<NeighborhoodSpecT,KNNInRadiusNeighborhoodSpecification<ScalarT>>::value,const KDTree&>::type
-        search(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt,
-               const NeighborhoodSpecT &nh,
-               Neighborhood<ScalarT> &results) const
+        template <typename CountT = size_t>
+        inline const KDTree& search(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt,
+                                    const KNNInRadiusNeighborhoodSpecification<ScalarT,CountT> &nh,
+                                    NeighborhoodResult &results) const
         {
             kNNInRadiusSearch(query_pt, nh.maxNumberOfNeighbors, nh.radius, results);
             return *this;
         }
 
-        template <typename NeighborhoodSpecT>
-        inline typename std::enable_if<std::is_same<NeighborhoodSpecT,KNNInRadiusNeighborhoodSpecification<ScalarT>>::value,const KDTree&>::type
-        search(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
-               const NeighborhoodSpecT &nh,
-               NeighborhoodSet<ScalarT> &results) const
+        template <typename CountT = size_t>
+        inline const KDTree& search(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
+                                    const KNNInRadiusNeighborhoodSpecification<ScalarT,CountT> &nh,
+                                    NeighborhoodSetResult &results) const
         {
             kNNInRadiusSearch(query_pts, nh.maxNumberOfNeighbors, nh.radius, results);
             return *this;
         }
 
         template <typename PointT, typename NeighborhoodSpecT>
-        inline typename std::enable_if<PointT::ColsAtCompileTime == 1,Neighborhood<ScalarT>>::type
+        inline typename std::enable_if<PointT::ColsAtCompileTime == 1,NeighborhoodResult>::type
         search(const PointT &query_pt,
                const NeighborhoodSpecT &nh) const
         {
-            Neighborhood<ScalarT> res;
+            NeighborhoodResult res;
             search(query_pt, nh, res);
             return res;
         }
 
         template <typename PointsT, typename NeighborhoodSpecT>
-        inline typename std::enable_if<PointsT::ColsAtCompileTime == Eigen::Dynamic,NeighborhoodSet<ScalarT>>::type
+        inline typename std::enable_if<PointsT::ColsAtCompileTime == Eigen::Dynamic,NeighborhoodSetResult>::type
         search(const PointsT &query_pts,
                const NeighborhoodSpecT &nh) const
         {
-            NeighborhoodSet<ScalarT> res;
+            NeighborhoodSetResult res;
             search(query_pts, nh, res);
             return res;
         }
 
     private:
-        typedef nanoflann::KDTreeSingleIndexAdaptor<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>, KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>, EigenDim> TreeType_;
+        typedef nanoflann::KDTreeSingleIndexAdaptor<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>,KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>,EigenDim,IndexT> TreeType_;
 
         ConstVectorSetMatrixMap<ScalarT,EigenDim> data_map_;
         const KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> data_adaptor_;

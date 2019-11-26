@@ -26,14 +26,14 @@ namespace cilantro {
         return segment_to_point;
     }
 
-    static std::vector<size_t> getUnlabeledPointIndices(const std::vector<std::vector<size_t>> &segment_to_point_map,
-                                                        const std::vector<size_t> &point_to_segment_map)
+    static std::vector<size_t> getUnlabeledPointIndices(const std::vector<std::vector<size_t>> &cluster_to_point,
+                                                        const std::vector<size_t> &point_to_cluster)
     {
-        const size_t no_label = segment_to_point_map.size();
+        const size_t no_label = cluster_to_point.size();
         std::vector<size_t> res;
-        res.reserve(point_to_segment_map.size());
-        for (size_t i = 0; i < point_to_segment_map.size(); i++) {
-            if (point_to_segment_map[i] == no_label) res.emplace_back(i);
+        res.reserve(point_to_cluster.size());
+        for (size_t i = 0; i < point_to_cluster.size(); i++) {
+            if (point_to_cluster[i] == no_label) res.emplace_back(i);
         }
         return res;
     }

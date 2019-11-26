@@ -3,34 +3,38 @@
 #include <cilantro/core/data_containers.hpp>
 
 namespace cilantro {
+    template <typename IndexT = size_t>
     struct IndexAccumulator {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        typedef IndexT Index;
 
         enum {EigenAlign = 0};
 
         inline IndexAccumulator() {}
 
-        inline IndexAccumulator(size_t i) : indices(1,i) {}
+        inline IndexAccumulator(IndexT i) : indices(1,i) {}
 
         inline IndexAccumulator& mergeWith(const IndexAccumulator &other) {
             indices.insert(indices.end(), other.indices.begin(), other.indices.end());
             return *this;
         }
 
-        std::vector<size_t> indices;
+        std::vector<IndexT> indices;
     };
 
+    template <typename IndexT = size_t>
     class IndexAccumulatorProxy {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        typedef IndexAccumulator Accumulator;
+        typedef IndexAccumulator<IndexT> Accumulator;
 
-        inline Accumulator buildAccumulator(size_t i) const {
+        inline Accumulator buildAccumulator(IndexT i) const {
             return Accumulator(i);
         }
 
-        inline Accumulator& addToAccumulator(Accumulator& accum, size_t i) const {
+        inline Accumulator& addToAccumulator(Accumulator& accum, IndexT i) const {
             accum.indices.emplace_back(i);
             return accum;
         }
