@@ -444,6 +444,120 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
         return has_point_to_point_terms*point_to_point_correspondences.size() + has_point_to_plane_terms*point_to_plane_correspondences.size() >= Dim + 1;
     }
 
+    // Rigid, combined symmetric metric, 2D, iterative
+    // For more details about this method see
+    // Szymon Rusinkiewicz. A Symmetric Objective Function for ICP. ACM Transactions on Graphics (Proc. SIGGRAPH) 38(4), July 2019.
+    template <class TransformT, class PointCorrSetT, class PlaneCorrSetT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
+    typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 2,bool>::type
+    estimateTransformSymmetricMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &dst_p,
+                                     const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &dst_n,
+                                     const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &src_p,
+                                     const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &src_n,
+                                     const PointCorrSetT &point_to_point_correspondences,
+                                     typename TransformT::Scalar point_to_point_weight,
+                                     const PlaneCorrSetT &point_to_plane_correspondences,
+                                     typename TransformT::Scalar point_to_plane_weight,
+                                     TransformT &tform,
+                                     size_t max_iter = 1,
+                                     typename TransformT::Scalar convergence_tol = (typename TransformT::Scalar)1e-5,
+                                     const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
+                                     const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT(),
+                                     const Vector<typename TransformT::Scalar,2>& dst_mean = Vector<typename TransformT::Scalar,2>::Zero(),
+                                     const Vector<typename TransformT::Scalar,2>& src_mean = Vector<typename TransformT::Scalar,2>::Zero())
+    {
+        typedef typename TransformT::Scalar ScalarT;
+
+        tform.setIdentity();
+
+        const bool has_point_to_point_terms = !point_to_point_correspondences.empty() && (point_to_point_weight > (ScalarT)0.0);
+        const bool has_point_to_plane_terms = !point_to_plane_correspondences.empty() && (point_to_plane_weight > (ScalarT)0.0);
+
+        if ((!has_point_to_point_terms && !has_point_to_plane_terms) ||
+            (has_point_to_plane_terms && dst_p.cols() != dst_n.cols()))
+        {
+            return false;
+        }
+
+        const Eigen::Translation<ScalarT,2> t_dst(dst_mean);
+        const Eigen::Translation<ScalarT,2> t_src(-src_mean);
+        Eigen::Matrix<ScalarT,2,2> flip;
+        flip << 0, -1, 1, 0;
+
+        Eigen::Matrix<ScalarT,3,3> AtA;
+        Eigen::Matrix<ScalarT,3,1> Atb;
+
+        Eigen::Matrix<ScalarT,3,1> d_theta;
+
+        for (size_t iter = 0; iter < max_iter; ++iter) {
+            // Compute differential
+            AtA.setZero();
+            Atb.setZero();
+#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
+DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,3)
+DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
+#pragma omp parallel MATRIX_SUM_REDUCTION(ScalarT,3,3,AtA) MATRIX_SUM_REDUCTION(ScalarT,3,1,Atb)
+//#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,6,6>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,6,1>::operator+: Atb)
+#endif
+            {
+                if (has_point_to_point_terms) {
+                    Eigen::Matrix<ScalarT,3,2,Eigen::RowMajor> eq_vecs;
+                    eq_vecs.template bottomRows<2>().setIdentity();
+#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
+#pragma omp for nowait
+#endif
+                    for (size_t i = 0; i < point_to_point_correspondences.size(); i++) {
+                        const auto& corr = point_to_point_correspondences[i];
+                        const Vector<ScalarT,2> d = dst_p.col(corr.indexInFirst) - dst_mean;
+                        const ScalarT weight = point_to_point_weight * point_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
+                        const Vector<ScalarT,2> s = tform * (src_p.col(corr.indexInSecond) - src_mean);
+
+                        eq_vecs(0,0) = -(s[1] + d[1]);
+                        eq_vecs(0,1) = s[0] + d[0];
+
+                        AtA += weight * eq_vecs * eq_vecs.transpose();
+                        Atb += weight * eq_vecs * (d - s);
+                    }
+                }
+
+                if (has_point_to_plane_terms) {
+                    Eigen::Matrix<ScalarT,3,1> eq_vec;
+#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
+#pragma omp for nowait
+#endif
+                    for (size_t i = 0; i < point_to_plane_correspondences.size(); i++) {
+                        const auto& corr = point_to_plane_correspondences[i];
+                        const ScalarT weight = point_to_plane_weight * plane_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
+                        const Vector<ScalarT,2> d = dst_p.col(corr.indexInFirst) - dst_mean;
+                        const Vector<ScalarT,2> n = dst_n.col(corr.indexInFirst) + src_n.col(corr.indexInSecond);
+                        const Vector<ScalarT,2> s = tform * (src_p.col(corr.indexInSecond) - src_mean);
+
+                        eq_vec(0) = (flip * (d + s)).dot(n);
+                        eq_vec.template tail<2>() = n;
+
+                        AtA += weight * eq_vec * eq_vec.transpose();
+                        Atb += weight * (n.dot(d - s)) * eq_vec;
+                    }
+                }
+            }
+
+            d_theta.noalias() = AtA.ldlt().solve(Atb);
+
+            // Update estimate
+            const ScalarT theta = std::atan(d_theta(0));
+            const Eigen::Rotation2D<ScalarT> Ra(theta);
+            const Eigen::Translation<ScalarT, 2> ta(std::cos(theta) * d_theta.template tail<2>());
+            tform = Ra * ta * Ra * tform;
+
+            // Check for convergence
+            if (d_theta.norm() < convergence_tol) {
+                tform = t_dst * tform * t_src;
+                return true;
+            }
+        }
+        tform = t_dst * tform * t_src;
+        return false;
+    }
+
     // Rigid, combined symmetric metric, 3D, iterative
     // For more details about this method see
     // Szymon Rusinkiewicz. A Symmetric Objective Function for ICP. ACM Transactions on Graphics (Proc. SIGGRAPH) 38(4), July 2019.
