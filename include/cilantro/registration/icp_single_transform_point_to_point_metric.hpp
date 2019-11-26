@@ -44,10 +44,10 @@ namespace cilantro {
             TransformT tform_iter;
             estimateTransformPointToPointMetric(dst_points_, src_points_trans_, corr_getter_proxy.getPointToPointCorrespondences(), tform_iter);
 
-            this->transform_ = tform_iter*this->transform_;
             if (int(Base::Transform::Mode) == int(Eigen::Isometry)) {
-                this->transform_.linear() = this->transform_.rotation();
+                tform_iter.linear() = tform_iter.rotation();
             }
+            this->transform_ = tform_iter*this->transform_;
             this->last_delta_norm_ = std::sqrt((tform_iter.linear() - TransformT::LinearMatrixType::Identity()).squaredNorm() + tform_iter.translation().squaredNorm());
         }
 
