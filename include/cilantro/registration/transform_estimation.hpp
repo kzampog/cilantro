@@ -669,12 +669,15 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
             ScalarT theta = std::atan(na);
             const Eigen::AngleAxis<ScalarT> Ra(theta, (1 / na) * d_theta.template head<3>());
             const Eigen::Translation<ScalarT, 3> ta(std::cos(theta) * d_theta.template tail<3>());
-            tform = t_dst * Ra * ta * Ra * t_src * tform;
+            tform = Ra * ta * Ra * tform;
 
             // Check for convergence
-            if (d_theta.norm() < convergence_tol) return true;
+            if (d_theta.norm() < convergence_tol) {
+                tform = t_dst * tform * t_src;
+                return true;
+            }
         }
-
+        tform = t_dst * tform * t_src;
         return false;
     }
 }
