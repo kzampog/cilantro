@@ -125,7 +125,7 @@ namespace cilantro {
 
         // Symmetric metric is only implemented for the rigid 3D case
         template <typename TformT = TransformT>
-        typename std::enable_if<int(TformT::Mode) == int(Eigen::Isometry) && TformT::Dim == 3,void>::type updateEstimate() {
+        typename std::enable_if<int(TformT::Mode) == int(Eigen::Isometry) && (TformT::Dim == 3 || TformT::Dim == 2),void>::type updateEstimate() {
             transformPoints(this->transform_, src_points_, src_points_trans_);
             CorrespondenceSearchCombinedMetricAdaptor<CorrespondenceSearchEngineT> corr_getter_proxy(this->correspondence_search_engine_);
             TransformT tform_iter;
@@ -145,7 +145,7 @@ namespace cilantro {
         }
 
         template <typename TformT = TransformT>
-        typename std::enable_if<int(TformT::Mode) != int(Eigen::Isometry) || TformT::Dim != 3,void>::type updateEstimate() {
+        typename std::enable_if<int(TformT::Mode) != int(Eigen::Isometry) || (TformT::Dim != 3 && TformT::Dim != 2),void>::type updateEstimate() {
             transformPoints(this->transform_, src_points_, src_points_trans_);
             CorrespondenceSearchCombinedMetricAdaptor<CorrespondenceSearchEngineT> corr_getter_proxy(this->correspondence_search_engine_);
             TransformT tform_iter;
