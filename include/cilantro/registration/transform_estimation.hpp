@@ -139,6 +139,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
 
         const Eigen::Translation<ScalarT,2> t_dst(dst_mean);
         const Eigen::Translation<ScalarT,2> t_src(-src_mean);
+        Eigen::Matrix<ScalarT,2,2> flip;
+        flip << 0, -1, 1, 0;
 
         Eigen::Matrix<ScalarT,3,3> AtA;
         Eigen::Matrix<ScalarT,3,1> Atb;
@@ -146,12 +148,10 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
         Eigen::Matrix<ScalarT,2,2> rot_mat_iter;
         Eigen::Matrix<ScalarT,3,1> d_theta;
 
-        size_t iter = 0;
-        while (iter < max_iter) {
+        for (size_t iter = 0; iter < max_iter; ++iter) {
             // Compute differential
             AtA.setZero();
             Atb.setZero();
-
 #ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
 DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,3)
 DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
@@ -161,21 +161,21 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
             {
                 if (has_point_to_point_terms) {
                     Eigen::Matrix<ScalarT,3,2,Eigen::RowMajor> eq_vecs;
-                    eq_vecs.template block<2,2>(1, 0).setIdentity();
+                    eq_vecs.template bottomRows<2>().setIdentity();
 #ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
 #pragma omp for nowait
 #endif
                     for (size_t i = 0; i < point_to_point_correspondences.size(); i++) {
                         const auto& corr = point_to_point_correspondences[i];
-                        const auto d = dst_p.col(corr.indexInFirst) - dst_mean;
-                        const ScalarT weight = point_to_point_weight*point_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
-                        Vector<ScalarT,2> s = tform*(src_p.col(corr.indexInSecond) - src_mean);
+                        const Vector<ScalarT,2> d = dst_p.col(corr.indexInFirst) - dst_mean;
+                        const ScalarT weight = point_to_point_weight * point_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
+                        const Vector<ScalarT,2> s = tform * (src_p.col(corr.indexInSecond) - src_mean);
 
-                        eq_vecs(0,0) = -s[1];
-                        eq_vecs(0,1) = s[0];
+                        eq_vecs(0,0) = -(s[1] + d[1]);
+                        eq_vecs(0,1) = s[0] + d[0];
 
-                        AtA += (weight*eq_vecs)*eq_vecs.transpose();
-                        Atb += eq_vecs*(weight*(d - s));
+                        AtA += weight * eq_vecs * eq_vecs.transpose();
+                        Atb += weight * eq_vecs * (d - s);
                     }
                 }
 
@@ -186,17 +186,16 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
 #endif
                     for (size_t i = 0; i < point_to_plane_correspondences.size(); i++) {
                         const auto& corr = point_to_plane_correspondences[i];
-                        const auto d = dst_p.col(corr.indexInFirst) - dst_mean;
-                        const auto n = dst_n.col(corr.indexInFirst);
-                        const ScalarT weight = point_to_plane_weight*plane_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
-                        Vector<ScalarT,2> s = tform*(src_p.col(corr.indexInSecond) - src_mean);
+                        const ScalarT weight = point_to_plane_weight * plane_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
+                        const Vector<ScalarT,2> d = dst_p.col(corr.indexInFirst) - dst_mean;
+                        const Vector<ScalarT,2> n = dst_n.col(corr.indexInFirst);
+                        const Vector<ScalarT,2> s = tform * (src_p.col(corr.indexInSecond) - src_mean);
 
-                        eq_vec(0) = s[0]*n[1] - s[1]*n[0];
-                        eq_vec(1) = n[0];
-                        eq_vec(2) = n[1];
+                        eq_vec(0) = (d + s).dot(flip * n);
+                        eq_vec.template tail<2>() = n;
 
-                        AtA += (weight*eq_vec)*eq_vec.transpose();
-                        Atb += (weight*(n.dot(d - s)))*eq_vec;
+                        AtA += weight * eq_vec * eq_vec.transpose();
+                        Atb += weight * (n.dot(d - s)) * eq_vec;
                     }
                 }
             }
@@ -204,18 +203,19 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
             d_theta.noalias() = AtA.ldlt().solve(Atb);
 
             // Update estimate
-            rot_mat_iter.noalias() = Eigen::Rotation2D<ScalarT>(d_theta[0]).toRotationMatrix();
-
-            tform.linear() = rot_mat_iter*tform.linear();
-            tform.linear() = tform.rotation();
-            tform.translation() = rot_mat_iter*tform.translation() + d_theta.template tail<2>();
-            tform = t_dst * tform * t_src;
-
-            iter++;
+            const ScalarT theta = std::atan(d_theta(0));
+            const ScalarT denom = std::sqrt(1 + d_theta(0) * d_theta(0));
+            const Eigen::Rotation2D<ScalarT> Ra(theta);
+            const Eigen::Translation<ScalarT, 2> ta(std::cos(theta) * d_theta.template tail<2>());
+            tform = Ra * ta * Ra * tform;
 
             // Check for convergence
-            if (d_theta.norm() < convergence_tol) return true;
+            if (d_theta.norm() < convergence_tol) {
+                tform = t_dst * tform * t_src;
+                return true;
+            }
         }
+        tform = t_dst * tform * t_src;
 
         return false;
     }
@@ -260,8 +260,7 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
         Eigen::Matrix<ScalarT,3,3> rot_mat_iter;
         Eigen::Matrix<ScalarT,6,1> d_theta;
 
-        size_t iter = 0;
-        while (iter < max_iter) {
+        for (size_t iter = 0; iter < max_iter; ++iter) {
             // Compute differential
             AtA.setZero();
             Atb.setZero();
@@ -274,30 +273,30 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
             {
                 if (has_point_to_point_terms) {
                     Eigen::Matrix<ScalarT,6,3,Eigen::RowMajor> eq_vecs;
-                    eq_vecs.template block<3,3>(3, 0).setIdentity();
+                    eq_vecs.template bottomRows<3>().setIdentity();
 #ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
 #pragma omp for nowait
 #endif
                     for (size_t i = 0; i < point_to_point_correspondences.size(); i++) {
                         const auto& corr = point_to_point_correspondences[i];
-                        const auto d = (dst_p.col(corr.indexInFirst) - dst_mean);
-                        const ScalarT weight = point_to_point_weight*point_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
-                        Vector<ScalarT,3> s = tform*(src_p.col(corr.indexInSecond) - src_mean);
+                        const Vector<ScalarT,3> d = dst_p.col(corr.indexInFirst) - dst_mean;
+                        const ScalarT weight = point_to_point_weight * point_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
+                        const Vector<ScalarT,3> s = tform * (src_p.col(corr.indexInSecond) - src_mean);
 
                         eq_vecs(0,0) = (ScalarT)0.0;
-                        eq_vecs(0,1) = -s[2];
-                        eq_vecs(0,2) = s[1];
-
-                        eq_vecs(1,0) = s[2];
                         eq_vecs(1,1) = (ScalarT)0.0;
-                        eq_vecs(1,2) = -s[0];
-
-                        eq_vecs(2,0) = -s[1];
-                        eq_vecs(2,1) = s[0];
                         eq_vecs(2,2) = (ScalarT)0.0;
 
-                        AtA += (weight*eq_vecs)*eq_vecs.transpose();
-                        Atb += eq_vecs*(weight*(d - s));
+                        eq_vecs(0,1) = -(d[2] + s[2]);
+                        eq_vecs(0,2) = (d[1] + s[1]);
+                        eq_vecs(1,2) = -(d[0] + s[0]);
+
+                        eq_vecs(1,0) = -eq_vecs(0, 1);
+                        eq_vecs(2,0) = -eq_vecs(0, 2);
+                        eq_vecs(2,1) = -eq_vecs(1, 2);
+
+                        AtA += weight * eq_vecs * eq_vecs.transpose();
+                        Atb += weight * eq_vecs * (d - s);
                     }
                 }
 
@@ -308,20 +307,16 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
 #endif
                     for (size_t i = 0; i < point_to_plane_correspondences.size(); i++) {
                         const auto& corr = point_to_plane_correspondences[i];
-                        const auto d = dst_p.col(corr.indexInFirst) - dst_mean;
-                        const auto n = dst_n.col(corr.indexInFirst);
                         const ScalarT weight = point_to_plane_weight*plane_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
-                        Vector<ScalarT,3> s = tform*(src_p.col(corr.indexInSecond) - src_mean);
+                        const Vector<ScalarT,3> d = dst_p.col(corr.indexInFirst) - dst_mean;
+                        const Vector<ScalarT,3> n = dst_n.col(corr.indexInFirst);
+                        const Vector<ScalarT,3> s = tform*(src_p.col(corr.indexInSecond) - src_mean);
 
-                        eq_vec(0) = (n[2]*s[1] - n[1]*s[2]);
-                        eq_vec(1) = (n[0]*s[2] - n[2]*s[0]);
-                        eq_vec(2) = (n[1]*s[0] - n[0]*s[1]);
-                        eq_vec(3) = n[0];
-                        eq_vec(4) = n[1];
-                        eq_vec(5) = n[2];
+                        eq_vec.template head<3>() = (d + s).cross(n);
+                        eq_vec.template tail<3>() = n;
 
-                        AtA += (weight*eq_vec)*eq_vec.transpose();
-                        Atb += (weight*(n.dot(d - s)))*eq_vec;
+                        AtA += weight*eq_vec*eq_vec.transpose();
+                        Atb += weight*(n.dot(d - s))*eq_vec;
                     }
                 }
             }
@@ -329,21 +324,19 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
             d_theta.noalias() = AtA.ldlt().solve(Atb);
 
             // Update estimate
-            rot_mat_iter.noalias() = (Eigen::AngleAxis<ScalarT>(d_theta[2], Eigen::Matrix<ScalarT,3,1>::UnitZ()) *
-                                      Eigen::AngleAxis<ScalarT>(d_theta[1], Eigen::Matrix<ScalarT,3,1>::UnitY()) *
-                                      Eigen::AngleAxis<ScalarT>(d_theta[0], Eigen::Matrix<ScalarT,3,1>::UnitX())).matrix();
-
-            tform.linear() = rot_mat_iter*tform.linear();
-            tform.linear() = tform.rotation();
-            tform.translation() = rot_mat_iter*tform.translation() + d_theta.template tail<3>();
-            tform = t_dst * tform * t_src;
-
-            iter++;
+            ScalarT na = d_theta.template head<3>().norm();
+            ScalarT theta = std::atan(na);
+            const Eigen::AngleAxis<ScalarT> Ra(theta, (1 / na) * d_theta.template head<3>());
+            const Eigen::Translation<ScalarT, 3> ta(std::cos(theta) * d_theta.template tail<3>());
+            tform = Ra * ta * Ra * tform;
 
             // Check for convergence
-            if (d_theta.norm() < convergence_tol) return true;
+            if (d_theta.norm() < convergence_tol) {
+                tform = t_dst * tform * t_src;
+                return true;
+            }
         }
-
+        tform = t_dst * tform * t_src;
         return false;
     }
 
@@ -442,6 +435,120 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
         tform = t_dst * tform * t_src;
 
         return has_point_to_point_terms*point_to_point_correspondences.size() + has_point_to_plane_terms*point_to_plane_correspondences.size() >= Dim + 1;
+    }
+
+    // Rigid, combined symmetric metric, 2D, iterative
+    // For more details about this method see
+    // Szymon Rusinkiewicz. A Symmetric Objective Function for ICP. ACM Transactions on Graphics (Proc. SIGGRAPH) 38(4), July 2019.
+    template <class TransformT, class PointCorrSetT, class PlaneCorrSetT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
+    typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry) && TransformT::Dim == 2,bool>::type
+    estimateTransformSymmetricMetric(const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &dst_p,
+                                     const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &dst_n,
+                                     const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &src_p,
+                                     const ConstVectorSetMatrixMap<typename TransformT::Scalar,2> &src_n,
+                                     const PointCorrSetT &point_to_point_correspondences,
+                                     typename TransformT::Scalar point_to_point_weight,
+                                     const PlaneCorrSetT &point_to_plane_correspondences,
+                                     typename TransformT::Scalar point_to_plane_weight,
+                                     TransformT &tform,
+                                     size_t max_iter = 1,
+                                     typename TransformT::Scalar convergence_tol = (typename TransformT::Scalar)1e-5,
+                                     const PointCorrWeightEvaluatorT &point_corr_evaluator = PointCorrWeightEvaluatorT(),
+                                     const PlaneCorrWeightEvaluatorT &plane_corr_evaluator = PlaneCorrWeightEvaluatorT(),
+                                     const Vector<typename TransformT::Scalar,2>& dst_mean = Vector<typename TransformT::Scalar,2>::Zero(),
+                                     const Vector<typename TransformT::Scalar,2>& src_mean = Vector<typename TransformT::Scalar,2>::Zero())
+    {
+        typedef typename TransformT::Scalar ScalarT;
+
+        tform.setIdentity();
+
+        const bool has_point_to_point_terms = !point_to_point_correspondences.empty() && (point_to_point_weight > (ScalarT)0.0);
+        const bool has_point_to_plane_terms = !point_to_plane_correspondences.empty() && (point_to_plane_weight > (ScalarT)0.0);
+
+        if ((!has_point_to_point_terms && !has_point_to_plane_terms) ||
+            (has_point_to_plane_terms && dst_p.cols() != dst_n.cols()))
+        {
+            return false;
+        }
+
+        const Eigen::Translation<ScalarT,2> t_dst(dst_mean);
+        const Eigen::Translation<ScalarT,2> t_src(-src_mean);
+        Eigen::Matrix<ScalarT,2,2> flip;
+        flip << 0, -1, 1, 0;
+
+        Eigen::Matrix<ScalarT,3,3> AtA;
+        Eigen::Matrix<ScalarT,3,1> Atb;
+
+        Eigen::Matrix<ScalarT,3,1> d_theta;
+
+        for (size_t iter = 0; iter < max_iter; ++iter) {
+            // Compute differential
+            AtA.setZero();
+            Atb.setZero();
+#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
+DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,3)
+DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
+#pragma omp parallel MATRIX_SUM_REDUCTION(ScalarT,3,3,AtA) MATRIX_SUM_REDUCTION(ScalarT,3,1,Atb)
+//#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,3,3>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,3,1>::operator+: Atb)
+#endif
+            {
+                if (has_point_to_point_terms) {
+                    Eigen::Matrix<ScalarT,3,2,Eigen::RowMajor> eq_vecs;
+                    eq_vecs.template bottomRows<2>().setIdentity();
+#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
+#pragma omp for nowait
+#endif
+                    for (size_t i = 0; i < point_to_point_correspondences.size(); i++) {
+                        const auto& corr = point_to_point_correspondences[i];
+                        const Vector<ScalarT,2> d = dst_p.col(corr.indexInFirst) - dst_mean;
+                        const ScalarT weight = point_to_point_weight * point_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
+                        const Vector<ScalarT,2> s = tform * (src_p.col(corr.indexInSecond) - src_mean);
+
+                        eq_vecs(0,0) = -(s[1] + d[1]);
+                        eq_vecs(0,1) = s[0] + d[0];
+
+                        AtA += weight * eq_vecs * eq_vecs.transpose();
+                        Atb += weight * eq_vecs * (d - s);
+                    }
+                }
+
+                if (has_point_to_plane_terms) {
+                    Eigen::Matrix<ScalarT,3,1> eq_vec;
+#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
+#pragma omp for nowait
+#endif
+                    for (size_t i = 0; i < point_to_plane_correspondences.size(); i++) {
+                        const auto& corr = point_to_plane_correspondences[i];
+                        const ScalarT weight = point_to_plane_weight * plane_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
+                        const Vector<ScalarT,2> d = dst_p.col(corr.indexInFirst) - dst_mean;
+                        const Vector<ScalarT,2> n = dst_n.col(corr.indexInFirst) + src_n.col(corr.indexInSecond);
+                        const Vector<ScalarT,2> s = tform * (src_p.col(corr.indexInSecond) - src_mean);
+
+                        eq_vec(0) = (flip * (d + s)).dot(n);
+                        eq_vec.template tail<2>() = n;
+
+                        AtA += weight * eq_vec * eq_vec.transpose();
+                        Atb += weight * (n.dot(d - s)) * eq_vec;
+                    }
+                }
+            }
+
+            d_theta.noalias() = AtA.ldlt().solve(Atb);
+
+            // Update estimate
+            const ScalarT theta = std::atan(d_theta(0));
+            const Eigen::Rotation2D<ScalarT> Ra(theta);
+            const Eigen::Translation<ScalarT, 2> ta(std::cos(theta) * d_theta.template tail<2>());
+            tform = Ra * ta * Ra * tform;
+
+            // Check for convergence
+            if (d_theta.norm() < convergence_tol) {
+                tform = t_dst * tform * t_src;
+                return true;
+            }
+        }
+        tform = t_dst * tform * t_src;
+        return false;
     }
 
     // Rigid, combined symmetric metric, 3D, iterative
@@ -555,12 +662,15 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
             ScalarT theta = std::atan(na);
             const Eigen::AngleAxis<ScalarT> Ra(theta, (1 / na) * d_theta.template head<3>());
             const Eigen::Translation<ScalarT, 3> ta(std::cos(theta) * d_theta.template tail<3>());
-            tform = t_dst * Ra * ta * Ra * t_src * tform;
+            tform = Ra * ta * Ra * tform;
 
             // Check for convergence
-            if (d_theta.norm() < convergence_tol) return true;
+            if (d_theta.norm() < convergence_tol) {
+                tform = t_dst * tform * t_src;
+                return true;
+            }
         }
-
+        tform = t_dst * tform * t_src;
         return false;
     }
 }
