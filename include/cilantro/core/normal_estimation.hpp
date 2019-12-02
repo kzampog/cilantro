@@ -1,9 +1,10 @@
 #pragma once
 
+#include <cilantro/core/covariance.hpp>
 #include <cilantro/core/kd_tree.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, ptrdiff_t EigenDim, typename IndexT = size_t>
+    template <typename ScalarT, ptrdiff_t EigenDim, typename IndexT = size_t, typename CovarianceT = Covariance<ScalarT, EigenDim>>
     class NormalEstimation {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -33,6 +34,9 @@ namespace cilantro {
         ~NormalEstimation() {
             if (kd_tree_owned_) delete kd_tree_ptr_;
         }
+
+        inline const CovarianceT& getCovarianceMethod() const { return compute_mean_and_covariance_; }
+        inline CovarianceT& getCovarianceMethod() { return compute_mean_and_covariance_; }
 
         // Used for rudimentary normal consistency
         // Enforces normals to point towards the given view point
@@ -268,6 +272,7 @@ namespace cilantro {
         bool kd_tree_owned_;
         Vector<ScalarT,EigenDim> view_point_;
         ConstVectorSetMatrixMap<ScalarT,EigenDim> ref_normals_;
+        CovarianceT compute_mean_and_covariance_;
 
         // Normals only, no normal consistency unless view point or reference normals were set
         template <typename NeighborhoodSpecT>
@@ -286,26 +291,15 @@ namespace cilantro {
             }
 
             typename SearchTree::NeighborhoodResult nn;
-#pragma omp parallel for shared (normals) private (nn)
+            Vector<ScalarT,EigenDim> mean;
+            Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov;
+#pragma omp parallel for shared (normals) private (nn, mean, cov)
             for (size_t i = 0; i < points_.cols(); i++) {
                 kd_tree_ptr_->search(points_.col(i), nh, nn);
-                if (nn.size() < points_.rows()) {
+                if (!compute_mean_and_covariance_(points_, nn, mean, cov)) {
                     normals.col(i).setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
                     continue;
                 }
-
-                Vector<ScalarT,EigenDim> mean(Vector<ScalarT,EigenDim>::Zero(points_.rows(), 1));
-                for (size_t j = 0; j < nn.size(); j++) {
-                    mean += points_.col(nn[j].index);
-                }
-                mean *= (ScalarT)(1.0)/(nn.size());
-
-                Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov(Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(points_.rows(), points_.rows()));
-                for (size_t j = 0; j < nn.size(); j++) {
-                    Vector<ScalarT,EigenDim> tmp = points_.col(nn[j].index) - mean;
-                    cov += tmp*tmp.transpose();
-                }
-                cov *= (ScalarT)(1.0)/(nn.size() - 1);
 
                 Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(cov);
                 normals.col(i) = eig.eigenvectors().col(0);
@@ -318,26 +312,15 @@ namespace cilantro {
                                         const NeighborhoodSpecT &nh) const
         {
             typename SearchTree::NeighborhoodResult nn;
-#pragma omp parallel for shared (normals) private (nn)
+            Vector<ScalarT,EigenDim> mean;
+            Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov;
+#pragma omp parallel for shared (normals) private (nn, mean, cov)
             for (size_t i = 0; i < points_.cols(); i++) {
                 kd_tree_ptr_->search(points_.col(i), nh, nn);
-                if (nn.size() < points_.rows()) {
+                if (!compute_mean_and_covariance_(points_, nn, mean, cov)) {
                     normals.col(i).setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
                     continue;
                 }
-
-                Vector<ScalarT,EigenDim> mean(Vector<ScalarT,EigenDim>::Zero(points_.rows(), 1));
-                for (size_t j = 0; j < nn.size(); j++) {
-                    mean += points_.col(nn[j].index);
-                }
-                mean *= (ScalarT)(1.0)/(nn.size());
-
-                Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov(Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(points_.rows(), points_.rows()));
-                for (size_t j = 0; j < nn.size(); j++) {
-                    Vector<ScalarT,EigenDim> tmp = points_.col(nn[j].index) - mean;
-                    cov += tmp*tmp.transpose();
-                }
-                cov *= (ScalarT)(1.0)/(nn.size() - 1);
 
                 Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(cov);
                 if (eig.eigenvectors().col(0).dot(view_point_ - points_.col(i)) < (ScalarT)0.0) {
@@ -354,27 +337,16 @@ namespace cilantro {
                                                 const NeighborhoodSpecT &nh) const
         {
             typename SearchTree::NeighborhoodResult nn;
-#pragma omp parallel for shared (normals) private (nn)
+            Vector<ScalarT,EigenDim> mean;
+            Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov;
+#pragma omp parallel for shared (normals) private (nn, mean, cov)
             for (size_t i = 0; i < points_.cols(); i++) {
                 kd_tree_ptr_->search(points_.col(i), nh, nn);
-                if (nn.size() < points_.rows()) {
+                if (!compute_mean_and_covariance_(points_, nn, mean, cov)) {
                     normals.col(i).setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
                     // normals.col(i) = ref_normals_.col(i).normalized();
                     continue;
                 }
-
-                Vector<ScalarT,EigenDim> mean(Vector<ScalarT,EigenDim>::Zero(points_.rows(), 1));
-                for (size_t j = 0; j < nn.size(); j++) {
-                    mean += points_.col(nn[j].index);
-                }
-                mean *= (ScalarT)(1.0)/(nn.size());
-
-                Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov(Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(points_.rows(), points_.rows()));
-                for (size_t j = 0; j < nn.size(); j++) {
-                    Vector<ScalarT,EigenDim> tmp = points_.col(nn[j].index) - mean;
-                    cov += tmp*tmp.transpose();
-                }
-                cov *= (ScalarT)(1.0)/(nn.size() - 1);
 
                 Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(cov);
                 if (eig.eigenvectors().col(0).dot(ref_normals_.col(i)) < (ScalarT)0.0) {
@@ -403,27 +375,16 @@ namespace cilantro {
             }
 
             typename SearchTree::NeighborhoodResult nn;
-#pragma omp parallel for shared (normals, curvature) private (nn)
+            Vector<ScalarT,EigenDim> mean;
+            Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov;
+#pragma omp parallel for shared (normals, curvature) private (nn, mean, cov)
             for (size_t i = 0; i < points_.cols(); i++) {
                 kd_tree_ptr_->search(points_.col(i), nh, nn);
-                if (nn.size() < points_.rows()) {
+                if (!compute_mean_and_covariance_(points_, nn, mean, cov)) {
                     normals.col(i).setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
                     curvature[i] = std::numeric_limits<ScalarT>::quiet_NaN();
                     continue;
                 }
-
-                Vector<ScalarT,EigenDim> mean(Vector<ScalarT,EigenDim>::Zero(points_.rows(), 1));
-                for (size_t j = 0; j < nn.size(); j++) {
-                    mean += points_.col(nn[j].index);
-                }
-                mean *= (ScalarT)(1.0)/(nn.size());
-
-                Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov(Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(points_.rows(), points_.rows()));
-                for (size_t j = 0; j < nn.size(); j++) {
-                    Vector<ScalarT,EigenDim> tmp = points_.col(nn[j].index) - mean;
-                    cov += tmp*tmp.transpose();
-                }
-                cov *= (ScalarT)(1.0)/(nn.size() - 1);
 
                 Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(cov);
                 normals.col(i) = eig.eigenvectors().col(0);
@@ -438,27 +399,16 @@ namespace cilantro {
                                                    const NeighborhoodSpecT &nh) const
         {
             typename SearchTree::NeighborhoodResult nn;
-#pragma omp parallel for shared (normals, curvature) private (nn)
+            Vector<ScalarT,EigenDim> mean;
+            Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov;
+#pragma omp parallel for shared (normals, curvature) private (nn, mean, cov)
             for (size_t i = 0; i < points_.cols(); i++) {
                 kd_tree_ptr_->search(points_.col(i), nh, nn);
-                if (nn.size() < points_.rows()) {
+                if (!compute_mean_and_covariance_(points_, nn, mean, cov)) {
                     normals.col(i).setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
                     curvature[i] = std::numeric_limits<ScalarT>::quiet_NaN();
                     continue;
                 }
-
-                Vector<ScalarT,EigenDim> mean(Vector<ScalarT,EigenDim>::Zero(points_.rows(), 1));
-                for (size_t j = 0; j < nn.size(); j++) {
-                    mean += points_.col(nn[j].index);
-                }
-                mean *= (ScalarT)(1.0)/(nn.size());
-
-                Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov(Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(points_.rows(), points_.rows()));
-                for (size_t j = 0; j < nn.size(); j++) {
-                    Vector<ScalarT,EigenDim> tmp = points_.col(nn[j].index) - mean;
-                    cov += tmp*tmp.transpose();
-                }
-                cov *= (ScalarT)(1.0)/(nn.size() - 1);
 
                 Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(cov);
                 if (eig.eigenvectors().col(0).dot(view_point_ - points_.col(i)) < (ScalarT)0.0) {
@@ -477,27 +427,16 @@ namespace cilantro {
                                         const NeighborhoodSpecT &nh) const
         {
             typename SearchTree::NeighborhoodResult nn;
-#pragma omp parallel for shared (normals, curvature) private (nn)
+            Vector<ScalarT,EigenDim> mean;
+            Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov;
+#pragma omp parallel for shared (normals, curvature) private (nn, mean, cov)
             for (size_t i = 0; i < points_.cols(); i++) {
                 kd_tree_ptr_->search(points_.col(i), nh, nn);
-                if (nn.size() < points_.rows()) {
+                if (!compute_mean_and_covariance_(points_, nn, mean, cov)) {
                     normals.col(i).setConstant(std::numeric_limits<ScalarT>::quiet_NaN());
                     curvature[i] = std::numeric_limits<ScalarT>::quiet_NaN();
                     continue;
                 }
-
-                Vector<ScalarT,EigenDim> mean(Vector<ScalarT,EigenDim>::Zero(points_.rows(), 1));
-                for (size_t j = 0; j < nn.size(); j++) {
-                    mean += points_.col(nn[j].index);
-                }
-                mean *= (ScalarT)(1.0)/(nn.size());
-
-                Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov(Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(points_.rows(), points_.rows()));
-                for (size_t j = 0; j < nn.size(); j++) {
-                    Vector<ScalarT,EigenDim> tmp = points_.col(nn[j].index) - mean;
-                    cov += tmp*tmp.transpose();
-                }
-                cov *= (ScalarT)(1.0)/(nn.size() - 1);
 
                 Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(cov);
                 if (eig.eigenvectors().col(0).dot(ref_normals_.col(i)) < (ScalarT)0.0) {
@@ -515,26 +454,15 @@ namespace cilantro {
                                 const NeighborhoodSpecT &nh) const
         {
             typename SearchTree::NeighborhoodResult nn;
-#pragma omp parallel for shared (curvature) private (nn)
+            Vector<ScalarT,EigenDim> mean;
+            Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov;
+#pragma omp parallel for shared (curvature) private (nn, mean, cov)
             for (size_t i = 0; i < points_.cols(); i++) {
                 kd_tree_ptr_->search(points_.col(i), nh, nn);
-                if (nn.size() < points_.rows()) {
+                if (!compute_mean_and_covariance_(points_, nn, mean, cov)) {
                     curvature[i] = std::numeric_limits<ScalarT>::quiet_NaN();
                     continue;
                 }
-
-                Vector<ScalarT,EigenDim> mean(Vector<ScalarT,EigenDim>::Zero(points_.rows(), 1));
-                for (size_t j = 0; j < nn.size(); j++) {
-                    mean += points_.col(nn[j].index);
-                }
-                mean *= (ScalarT)(1.0)/(nn.size());
-
-                Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov(Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(points_.rows(), points_.rows()));
-                for (size_t j = 0; j < nn.size(); j++) {
-                    Vector<ScalarT,EigenDim> tmp = points_.col(nn[j].index) - mean;
-                    cov += tmp*tmp.transpose();
-                }
-                cov *= (ScalarT)(1.0)/(nn.size() - 1);
 
                 Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(cov, Eigen::EigenvaluesOnly);
                 curvature[i] = eig.eigenvalues()[0]/eig.eigenvalues().sum();
