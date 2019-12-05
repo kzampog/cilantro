@@ -69,8 +69,9 @@ namespace cilantro {
 
             using NeighborT = typename NeighborhoodResultIteratorT::value_type;
 
-            std::vector<NeighborT> subset(points.rows() + 1);
-            const size_t h = static_cast<size_t>(std::ceil(std::max((ScalarT)0.5, outlier_rate_) * (size + EigenDim + 1)));
+            std::vector<NeighborT> subset(points.rows());
+            size_t h = static_cast<size_t>(std::ceil(outlier_rate_ * (size + EigenDim + 1)));
+            if (h > size) h = size - 1;
             Vector<ScalarT,EigenDim> best_mean;
             Eigen::Matrix<ScalarT,EigenDim,EigenDim> best_cov;
             ScalarT best_determinant = std::numeric_limits<ScalarT>::max();
@@ -120,7 +121,7 @@ namespace cilantro {
         inline ScalarT getOutlierRate() const { return outlier_rate_; }
 
         inline MinimumCovarianceDeterminant& setOutlierRate(int outlier_rate) {
-            outlier_rate_ = outlier_rate;
+            outlier_rate_ = std::max((ScalarT)0.5, outlier_rate);
             return *this;
         }
 
