@@ -33,7 +33,7 @@ namespace cilantro {
         typedef ValueT InputScalar;
         typedef WeightT OutputScalar;
 
-        inline const WeightT operator()(ValueT) const { return (WeightT)1; }
+        inline constexpr WeightT operator()(ValueT) const { return (WeightT)1; }
 
         template <class PointT>
         inline constexpr WeightT operator()(const PointT&, const PointT&, ValueT) const { return (WeightT)1; }
