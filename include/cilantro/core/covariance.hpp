@@ -2,9 +2,9 @@
 
 #include <algorithm>
 #include <limits>
-#include <map>
 
 #include <cilantro/core/data_containers.hpp>
+#include <cilantro/core/nearest_neighbors.hpp>
 #include <cilantro/utilities/random.hpp>
 
 namespace cilantro {
@@ -19,7 +19,7 @@ namespace cilantro {
         inline bool operator()(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov) const {
             if (points.cols() < points.rows()) return false;
             mean = points.rowwise().mean();
-            auto centered = points.rowwise() - mean;  // Lazy evaluation
+            auto centered = points.colwise() - mean;  // Lazy evaluation
             cov.noalias() =  (ScalarT)(1.0)/(points.cols() - 1) * (centered * centered.transpose());
             return true;
         }
@@ -57,6 +57,13 @@ namespace cilantro {
 
         MinimumCovarianceDeterminant() = default;
 
+        inline bool operator()(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov) const {
+            Neighborhood<ScalarT> neighbors(points.cols());
+            int count = 0;
+            std::generate(neighbors.begin(), neighbors.end(), [&count]() mutable { return Neighbor<ScalarT>(count++, 0); });
+            return (*this)(points, neighbors, mean, cov);
+        }
+
         template <typename NeighborhoodResultIteratorT>
         inline bool operator()(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, NeighborhoodResultIteratorT begin, NeighborhoodResultIteratorT end, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov) const {
             const int first_idx = begin->index;
@@ -79,10 +86,8 @@ namespace cilantro {
                 std::generate(subset.begin(), subset.end(), [&begin, &end, &random]() { return *random(begin, end); });
                 compute_mean_and_covariance_(points, subset.begin(), subset.end(), mean, cov);
                 for (int l = 0; l < num_refinements_; ++l) {
-                    std::map<size_t, ScalarT> index_to_distance = mahalanobisDistance(points, begin, end, mean, cov.inverse());
-                    std::partial_sort(begin, begin + h, end, [&index_to_distance](const NeighborT& a, const NeighborT& b) {
-                        return index_to_distance[a.index] < index_to_distance[b.index];
-                    });
+                    mahalanobisDistance(points, begin, end, mean, cov.inverse());
+                    std::partial_sort(begin, begin + h, end, typename NeighborT::ValueLessComparator());
                     compute_mean_and_covariance_(points, begin, begin + h, mean, cov);
                 }
                 ScalarT determinant = cov.determinant();
@@ -94,6 +99,7 @@ namespace cilantro {
             }
             mean = best_mean;
             cov = best_cov;
+            mahalanobisDistance(points, begin, end, mean, cov.inverse());
             if (chi_square_threshold_ <= 0) return true;
             auto demeaned = points.col(first_idx) - mean;
             return demeaned.transpose() * cov.inverse() * demeaned <= chi_square_threshold_;
@@ -134,13 +140,11 @@ namespace cilantro {
 
     protected:
         template <typename NeighborhoodResultIteratorT>
-        std::map<size_t, ScalarT> mahalanobisDistance(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, NeighborhoodResultIteratorT begin, NeighborhoodResultIteratorT end, const Vector<ScalarT,EigenDim> &mean, const Eigen::Matrix<ScalarT,EigenDim,EigenDim> &cov_inverse) const {
-            std::map<size_t, ScalarT> index_to_distance;
-            std::transform(begin, end, std::inserter(index_to_distance, index_to_distance.begin()), [&points, &mean, &cov_inverse](const typename NeighborhoodResultIteratorT::value_type &n) {
+        void mahalanobisDistance(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, NeighborhoodResultIteratorT begin, NeighborhoodResultIteratorT end, const Vector<ScalarT,EigenDim> &mean, const Eigen::Matrix<ScalarT,EigenDim,EigenDim> &cov_inverse) const {
+            std::for_each(begin, end, [&points, &mean, &cov_inverse](typename NeighborhoodResultIteratorT::value_type &n) {
                 auto demeaned = points.col(n.index) - mean;
-                return std::make_pair(n.index, demeaned.transpose() * cov_inverse * demeaned);
+                n.value = demeaned.transpose() * cov_inverse * demeaned;
             });
-            return index_to_distance;
         }
 
         // The number of random trials to take:
