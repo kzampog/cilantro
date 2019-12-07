@@ -326,7 +326,7 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
             // Update estimate
             ScalarT na = d_theta.template head<3>().norm();
             ScalarT theta = std::atan(na);
-            const Eigen::AngleAxis<ScalarT> Ra(theta, (1 / na) * d_theta.template head<3>());
+            const Eigen::AngleAxis<ScalarT> Ra(theta, d_theta.template head<3>().stableNormalized());
             const Eigen::Translation<ScalarT, 3> ta(std::cos(theta) * d_theta.template tail<3>());
             tform = Ra * ta * Ra * tform;
 
@@ -660,7 +660,7 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
             // Update estimate
             ScalarT na = d_theta.template head<3>().norm();
             ScalarT theta = std::atan(na);
-            const Eigen::AngleAxis<ScalarT> Ra(theta, (1 / na) * d_theta.template head<3>());
+            const Eigen::AngleAxis<ScalarT> Ra(theta, d_theta.template head<3>().stableNormalized());
             const Eigen::Translation<ScalarT, 3> ta(std::cos(theta) * d_theta.template tail<3>());
             tform = Ra * ta * Ra * tform;
 
