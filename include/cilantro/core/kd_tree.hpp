@@ -136,6 +136,8 @@ namespace cilantro {
 
         enum { Dimension = EigenDim };
 
+        typedef nanoflann::KDTreeSingleIndexAdaptor<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>,KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>,EigenDim,IndexT> InternalTree;
+
         KDTree(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data, size_t max_leaf_size = 10)
                 : data_map_(data),
                   data_adaptor_(data_map_),
@@ -149,7 +151,9 @@ namespace cilantro {
 
         inline const ConstVectorSetMatrixMap<ScalarT,EigenDim>& getPointsMatrixMap() const { return data_map_; }
 
-        inline bool isEmpty() const { return data_map_.cols() > 0; }
+        inline bool isEmpty() const { return data_map_.cols() == 0; }
+
+        inline const InternalTree& nanoflannTree() const { return kd_tree_; }
 
         // Do not call if tree is empty!
         inline const KDTree& nearestNeighborSearch(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &query_pt,
@@ -386,11 +390,9 @@ namespace cilantro {
         }
 
     private:
-        typedef nanoflann::KDTreeSingleIndexAdaptor<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>,KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>,EigenDim,IndexT> TreeType_;
-
         ConstVectorSetMatrixMap<ScalarT,EigenDim> data_map_;
         const KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> data_adaptor_;
-        TreeType_ kd_tree_;
+        InternalTree kd_tree_;
         nanoflann::SearchParams params_;
     };
 
