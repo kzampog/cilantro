@@ -10,7 +10,8 @@ namespace cilantro {
         struct EigenVectorComparatorHelper {
             enum { coeff = EigenDim - EigenCoeff };
 
-            static inline bool result(const Eigen::Matrix<ScalarT,EigenDim,1> &p1, const Eigen::Matrix<ScalarT,EigenDim,1> &p2) {
+            template <typename VectorT1, typename VectorT2>
+            static inline bool result(const VectorT1 &p1, const VectorT2 &p2) {
                 if (p1[coeff] < p2[coeff]) return true;
                 if (p2[coeff] < p1[coeff]) return false;
                 return EigenVectorComparatorHelper<ScalarT,EigenDim,EigenCoeff-1>::result(p1, p2);
@@ -21,7 +22,8 @@ namespace cilantro {
         struct EigenVectorComparatorHelper<ScalarT, EigenDim, 1> {
             enum { coeff = EigenDim - 1 };
 
-            static inline bool result(const Eigen::Matrix<ScalarT,EigenDim,1> &p1, const Eigen::Matrix<ScalarT,EigenDim,1> &p2) {
+            template <typename VectorT1, typename VectorT2>
+            static inline bool result(const VectorT1 &p1, const VectorT2 &p2) {
                 return p1[coeff] < p2[coeff];
             }
         };
@@ -29,14 +31,16 @@ namespace cilantro {
 
     template <typename ScalarT, ptrdiff_t EigenDim>
     struct EigenVectorComparator {
-        inline bool operator()(const Eigen::Matrix<ScalarT,EigenDim,1> &p1, const Eigen::Matrix<ScalarT,EigenDim,1> &p2) const {
+        template <typename VectorT1, typename VectorT2>
+        inline bool operator()(const VectorT1 &p1, const VectorT2 &p2) const {
             return internal::EigenVectorComparatorHelper<ScalarT,EigenDim,EigenDim>::result(p1, p2);
         }
     };
 
     template <typename ScalarT>
     struct EigenVectorComparator<ScalarT, Eigen::Dynamic> {
-        inline bool operator()(const Eigen::Matrix<ScalarT,Eigen::Dynamic,1> &p1, const Eigen::Matrix<ScalarT,Eigen::Dynamic,1> &p2) const {
+        template <typename VectorT1, typename VectorT2>
+        inline bool operator()(const VectorT1 &p1, const VectorT2 &p2) const {
             for (size_t i = 0; i < p1.rows() - 1; i++) {
                 if (p1[i] < p2[i]) return true;
                 if (p2[i] < p1[i]) return false;
