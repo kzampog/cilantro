@@ -7,7 +7,15 @@ set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_STANDARD 11)
 
 # Packages
-find_package(Eigen3 REQUIRED)
+find_package(Eigen3 REQUIRED NO_MODULE)
+# below is a workaround for some buggy Eigen exports which managed to get into some distros
+if(NOT TARGET Eigen3::Eigen)
+    message("Eigen has buggy exported package, but headers are found: ${EIGEN3_INCLUDE_DIRS}. Applying workaround.")
+    add_library(Eigen INTERFACE IMPORTED GLOBAL)
+    target_include_directories(Eigen INTERFACE "${EIGEN3_INCLUDE_DIRS}")
+    add_library(Eigen3::Eigen ALIAS Eigen)
+endif()
+
 find_package(Pangolin QUIET)
 if(Pangolin_FOUND)
     set(HAVE_PANGOLIN ON)
