@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 # Packages
 find_package(Eigen3 REQUIRED)
-find_package(Pangolin)
+find_package(Pangolin QUIET)
 if(Pangolin_FOUND)
     set(HAVE_PANGOLIN ON)
     set(DEPENDS_Pangolin "find_dependency(Pangolin)")
