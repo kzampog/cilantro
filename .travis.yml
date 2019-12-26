@@ -6,8 +6,8 @@ before_install:
   - sudo apt -qq update && sudo apt install g++-7 libglew-dev
   - sudo unlink /usr/bin/gcc && sudo ln -s /usr/bin/gcc-7 /usr/bin/gcc
   - sudo unlink /usr/bin/g++ && sudo ln -s /usr/bin/g++-7 /usr/bin/g++
-  - wget https://github.com/eigenteam/eigen-git-mirror/archive/master.zip -O eigen.zip && unzip eigen.zip
-  - mkdir -p eigen-git-mirror-master/build && cd eigen-git-mirror-master/build && cmake .. && make -j8 && sudo make install && cd ../..
+  - wget https://gitlab.com/libeigen/eigen/-/archive/master/eigen-master.zip -O eigen.zip && unzip eigen.zip
+  - mkdir -p eigen-master/build && cd eigen-master/build && cmake .. && make -j8 && sudo make install && cd ../..
   - wget https://github.com/stevenlovegrove/Pangolin/archive/master.zip -O Pangolin.zip && unzip Pangolin.zip
   - mkdir -p Pangolin-master/build && cd Pangolin-master/build && cmake .. && make -j8 && sudo make install && cd ../..
 
