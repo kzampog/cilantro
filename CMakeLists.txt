@@ -7,8 +7,16 @@ set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_STANDARD 11)
 
 # Packages
-find_package(Eigen3 REQUIRED)
-find_package(Pangolin)
+find_package(Eigen3 REQUIRED NO_MODULE)
+# below is a workaround for some buggy Eigen exports which managed to get into some distros
+if(NOT TARGET Eigen3::Eigen)
+    message("Eigen has buggy exported package, but headers are found: ${EIGEN3_INCLUDE_DIRS}. Applying workaround.")
+    add_library(Eigen INTERFACE IMPORTED GLOBAL)
+    target_include_directories(Eigen INTERFACE "${EIGEN3_INCLUDE_DIRS}")
+    add_library(Eigen3::Eigen ALIAS Eigen)
+endif()
+
+find_package(Pangolin QUIET)
 if(Pangolin_FOUND)
     set(HAVE_PANGOLIN ON)
     set(DEPENDS_Pangolin "find_dependency(Pangolin)")
@@ -19,8 +27,8 @@ find_package(OpenMP)
 #     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 # endif()
 
-set(OTHER_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIRS} ${Pangolin_INCLUDE_DIRS})
-set(OTHER_LIBRARIES ${EIGEN3_LIBRARIES} ${Pangolin_LIBRARIES})
+set(OTHER_INCLUDE_DIRS ${Pangolin_INCLUDE_DIRS})
+set(OTHER_LIBRARIES ${Pangolin_LIBRARIES})
 
 if(_WIN_)
     option(BUILD_SHARED_LIBS "Build Shared Library" OFF)
@@ -42,7 +50,7 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC ${OTHER_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
                                                   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
                                                   $<INSTALL_INTERFACE:include>)
-target_link_libraries(${PROJECT_NAME} PUBLIC ${OTHER_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${OTHER_LIBRARIES} Eigen3::Eigen)
 if(OpenMP_CXX_FOUND)
     target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
     set(DEPENDS_OpenMP "find_dependency(OpenMP)")
