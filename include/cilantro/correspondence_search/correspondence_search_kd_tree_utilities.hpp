@@ -23,14 +23,14 @@ namespace cilantro {
         Neighborhood<ScalarT> nn;
         CorrValueT dist;
         if (ref_is_first) {
-#pragma omp parallel for shared(corr_tmp) private(nn, dist)
+#pragma omp parallel for shared(corr_tmp) private(nn, dist) schedule(dynamic, 256)
             for (size_t i = 0; i < query_pts.cols(); i++) {
                 ref_tree.kNNInRadiusSearch(query_pts.col(i), 1, max_distance, nn);
                 keep[i] = !nn.empty() && (dist = evaluator(nn[0].index, i, nn[0].value)) < max_distance;
                 if (keep[i]) corr_tmp[i] = {nn[0].index, i, dist};
             }
         } else {
-#pragma omp parallel for shared(corr_tmp) private(nn, dist)
+#pragma omp parallel for shared(corr_tmp) private(nn, dist) schedule(dynamic, 256)
             for (size_t i = 0; i < query_pts.cols(); i++) {
                 ref_tree.kNNInRadiusSearch(query_pts.col(i), 1, max_distance, nn);
                 keep[i] = !nn.empty() && (dist = evaluator(i, nn[0].index, nn[0].value)) < max_distance;

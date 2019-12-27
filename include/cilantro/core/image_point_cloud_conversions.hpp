@@ -721,7 +721,7 @@ namespace cilantro {
                 depth_data[i] = (typename DepthConverterT::RawDepth)0;
             }
 
-#pragma omp for
+#pragma omp for schedule(dynamic, 256)
             for (size_t i = 0; i < points.cols(); i++) {
                 if (points(2,i) <= (typename DepthConverterT::MetricDepth)0.0) continue;
                 size_t x = (size_t)std::llround(points(0,i)*intrinsics(0,0)/points(2,i) + intrinsics(0,2));
@@ -756,7 +756,7 @@ namespace cilantro {
             }
 
             Vector<typename DepthConverterT::MetricDepth,3> pt_cam;
-#pragma omp for
+#pragma omp for schedule(dynamic, 256)
             for (size_t i = 0; i < points.cols(); i++) {
                 pt_cam.noalias() = to_cam*points.col(i);
                 if (pt_cam(2) <= (typename DepthConverterT::MetricDepth)0.0) continue;
@@ -793,7 +793,7 @@ namespace cilantro {
                 depth_data[i] = (typename DepthConverterT::RawDepth)0;
             }
 
-#pragma omp for
+#pragma omp for schedule(dynamic, 256)
             for (size_t i = 0; i < points.cols(); i++) {
                 if (points(2,i) <= (typename DepthConverterT::MetricDepth)0.0) continue;
                 size_t x = (size_t)std::llround(points(0,i)*intrinsics(0,0)/points(2,i) + intrinsics(0,2));
@@ -836,7 +836,7 @@ namespace cilantro {
             }
 
             Vector<typename DepthConverterT::MetricDepth,3> pt_cam;
-#pragma omp for
+#pragma omp for schedule(dynamic, 256)
             for (size_t i = 0; i < points.cols(); i++) {
                 pt_cam.noalias() = to_cam*points.col(i);
                 if (pt_cam(2) <= (typename DepthConverterT::MetricDepth)0.0) continue;
@@ -872,7 +872,7 @@ namespace cilantro {
                 index_map_data[i] = empty;
             }
 
-#pragma omp for
+#pragma omp for schedule(dynamic, 256)
             for (IndexT i = 0; i < points.cols(); i++) {
                 if (points(2,i) <= (PointT)0.0) continue;
                 size_t x = (size_t)std::llround(points(0,i)*intrinsics(0,0)/points(2,i) + intrinsics(0,2));
@@ -909,7 +909,7 @@ namespace cilantro {
                 points_cam.col(i).noalias() = to_cam*points.col(i);
             }
 
-#pragma omp for
+#pragma omp for schedule(dynamic, 256)
             for (IndexT i = 0; i < points.cols(); i++) {
                 if (points_cam(2,i) <= (PointT)0.0) continue;
                 size_t x = (size_t)std::llround(points_cam(0,i)*intrinsics(0,0)/points_cam(2,i) + intrinsics(0,2));

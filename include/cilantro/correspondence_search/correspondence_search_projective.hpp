@@ -149,22 +149,26 @@ namespace cilantro {
 
             SearchResult corr_tmp(src_points_trans.cols());
             const CorrespondenceScalar value_to_reject = max_distance_ + (CorrespondenceScalar)1.0;
-#pragma omp parallel for
-            for (size_t i = 0; i < corr_tmp.size(); i++) {
-                corr_tmp[i].value = value_to_reject;
-            }
-#pragma omp parallel for private (src_pt_trans_cam)
-            for (IndexT i = 0; i < src_points_trans.cols(); i++) {
-                src_pt_trans_cam = projection_extrinsics_inv_*src_points_trans.col(i);
-                if (src_pt_trans_cam(2) <= (ScalarT)0.0) continue;
-                size_t x = (size_t)std::llround(src_pt_trans_cam(0)*projection_intrinsics_(0,0)/src_pt_trans_cam(2) + projection_intrinsics_(0,2));
-                size_t y = (size_t)std::llround(src_pt_trans_cam(1)*projection_intrinsics_(1,1)/src_pt_trans_cam(2) + projection_intrinsics_(1,2));
-                if (x >= projection_image_width_ || y >= projection_image_height_) continue;
-                IndexT ind = index_map_(x,y);
-                if (ind == empty) continue;
-                corr_tmp[i].indexInFirst = ind;
-                corr_tmp[i].indexInSecond = i;
-                corr_tmp[i].value = evaluator_(ind, i, (src_points_trans.col(i) - dst_points.col(ind)).squaredNorm());
+
+#pragma omp parallel
+            {
+#pragma omp for
+                for (size_t i = 0; i < corr_tmp.size(); i++) {
+                    corr_tmp[i].value = value_to_reject;
+                }
+#pragma omp for private(src_pt_trans_cam) schedule(dynamic, 256)
+                for (IndexT i = 0; i < src_points_trans.cols(); i++) {
+                    src_pt_trans_cam = projection_extrinsics_inv_*src_points_trans.col(i);
+                    if (src_pt_trans_cam(2) <= (ScalarT)0.0) continue;
+                    size_t x = (size_t)std::llround(src_pt_trans_cam(0)*projection_intrinsics_(0,0)/src_pt_trans_cam(2) + projection_intrinsics_(0,2));
+                    size_t y = (size_t)std::llround(src_pt_trans_cam(1)*projection_intrinsics_(1,1)/src_pt_trans_cam(2) + projection_intrinsics_(1,2));
+                    if (x >= projection_image_width_ || y >= projection_image_height_) continue;
+                    IndexT ind = index_map_(x,y);
+                    if (ind == empty) continue;
+                    corr_tmp[i].indexInFirst = ind;
+                    corr_tmp[i].indexInSecond = i;
+                    corr_tmp[i].value = evaluator_(ind, i, (src_points_trans.col(i) - dst_points.col(ind)).squaredNorm());
+                }
             }
 
             correspondences.resize(corr_tmp.size());
