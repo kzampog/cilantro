@@ -144,9 +144,7 @@ namespace cilantro {
                 pointsToIndexMap<ScalarT,IndexT>(dst_points, projection_extrinsics_, projection_intrinsics_, index_map_.data(), projection_image_width_, projection_image_height_);
             }
 
-            Vector<ScalarT,3> src_pt_trans_cam;
             const IndexT empty = std::numeric_limits<IndexT>::max();
-
             SearchResult corr_tmp(src_points_trans.cols());
             const CorrespondenceScalar value_to_reject = max_distance_ + (CorrespondenceScalar)1.0;
 
@@ -156,9 +154,11 @@ namespace cilantro {
                 for (size_t i = 0; i < corr_tmp.size(); i++) {
                     corr_tmp[i].value = value_to_reject;
                 }
-#pragma omp for private(src_pt_trans_cam) schedule(dynamic, 256)
+
+                Vector<ScalarT,3> src_pt_trans_cam;
+#pragma omp for schedule(dynamic, 256)
                 for (IndexT i = 0; i < src_points_trans.cols(); i++) {
-                    src_pt_trans_cam = projection_extrinsics_inv_*src_points_trans.col(i);
+                    src_pt_trans_cam.noalias() = projection_extrinsics_inv_*src_points_trans.col(i);
                     if (src_pt_trans_cam(2) <= (ScalarT)0.0) continue;
                     size_t x = (size_t)std::llround(src_pt_trans_cam(0)*projection_intrinsics_(0,0)/src_pt_trans_cam(2) + projection_intrinsics_(0,2));
                     size_t y = (size_t)std::llround(src_pt_trans_cam(1)*projection_intrinsics_(1,1)/src_pt_trans_cam(2) + projection_intrinsics_(1,2));
