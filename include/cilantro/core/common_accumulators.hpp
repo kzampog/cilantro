@@ -34,7 +34,7 @@ namespace cilantro {
             return Accumulator(i);
         }
 
-        inline Accumulator& addToAccumulator(Accumulator& accum, IndexT i) const {
+        inline Accumulator& addToAccumulator(Accumulator &accum, IndexT i) const {
             accum.indices.emplace_back(i);
             return accum;
         }
@@ -77,7 +77,7 @@ namespace cilantro {
             return Accumulator(points_.col(i));
         }
 
-        inline Accumulator& addToAccumulator(Accumulator& accum, size_t i) const {
+        inline Accumulator& addToAccumulator(Accumulator &accum, size_t i) const {
             accum.pointSum += points_.col(i);
             accum.pointCount++;
             return accum;
@@ -136,7 +136,7 @@ namespace cilantro {
             return Accumulator(points_.col(i), normals_.col(i));
         }
 
-        inline Accumulator& addToAccumulator(Accumulator& accum, size_t i) const {
+        inline Accumulator& addToAccumulator(Accumulator &accum, size_t i) const {
             accum.pointSum += points_.col(i);
             if (accum.normalSum.dot(normals_.col(i)) < (ScalarT)0.0) {
                 accum.normalSum -= normals_.col(i);
@@ -197,7 +197,7 @@ namespace cilantro {
             return Accumulator(points_.col(i), colors_.col(i));
         }
 
-        inline Accumulator& addToAccumulator(Accumulator& accum, size_t i) const {
+        inline Accumulator& addToAccumulator(Accumulator &accum, size_t i) const {
             accum.pointSum += points_.col(i);
             accum.colorSum += colors_.col(i);
             accum.pointCount++;
@@ -263,7 +263,7 @@ namespace cilantro {
             return Accumulator(points_.col(i), normals_.col(i), colors_.col(i));
         }
 
-        inline Accumulator& addToAccumulator(Accumulator& accum, size_t i) const {
+        inline Accumulator& addToAccumulator(Accumulator &accum, size_t i) const {
             accum.pointSum += points_.col(i);
             if (accum.normalSum.dot(normals_.col(i)) < (ScalarT)0.0) {
                 accum.normalSum -= normals_.col(i);
