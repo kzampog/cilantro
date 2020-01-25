@@ -6,14 +6,53 @@
 #include <cilantro/core/data_containers.hpp>
 
 namespace cilantro {
+    namespace internal {
+        // From tinyply example-utils.hpp
+        struct MemoryBuffer : public std::streambuf {
+            char * p_start {nullptr};
+            char * p_end {nullptr};
+            size_t size;
+
+            MemoryBuffer(char const * first_elem, size_t size)
+                    : p_start(const_cast<char*>(first_elem)), p_end(p_start + size), size(size)
+            {
+                setg(p_start, p_start, p_end);
+            }
+
+            pos_type seekoff(off_type off, std::ios_base::seekdir dir, std::ios_base::openmode which) override {
+                if (dir == std::ios_base::cur) gbump(static_cast<int>(off));
+                else setg(p_start, (dir == std::ios_base::beg ? p_start : p_end) + off, p_end);
+                return gptr() - p_start;
+            }
+
+            pos_type seekpos(pos_type pos, std::ios_base::openmode which) override {
+                return seekoff(pos, std::ios_base::beg, which);
+            }
+        };
+
+        // From tinyply example-utils.hpp
+        struct MemoryStream : virtual MemoryBuffer, public std::istream {
+            MemoryStream(char const * first_elem, size_t size)
+                    : MemoryBuffer(first_elem, size), std::istream(static_cast<std::streambuf*>(this))
+            {}
+        };
+    }
+
     class PLYReader {
     public:
-        inline PLYReader(const std::string &file_path) : input_stream_(file_path, std::ios::binary) {
-            ply_file_.parse_header(input_stream_);
+        inline PLYReader(const std::string &file_path, bool preload = true) {
+            if (preload) {
+                preload_data_(file_path);
+                input_stream_.reset(new internal::MemoryStream((char*)preloaded_data_.data(), preloaded_data_.size()));
+            } else {
+                input_stream_.reset(new std::ifstream(file_path, std::ios::binary));
+            }
+
+            ply_file_.parse_header(*input_stream_);
         }
 
         inline bool elementPropertyExists(const std::string &element_key,
-                                          const std::initializer_list<std::string> property_keys) const
+                                          const std::vector<std::string> property_keys) const
         {
             const auto elements = ply_file_.get_elements();
             ptrdiff_t element_ind = -1;
@@ -37,7 +76,7 @@ namespace cilantro {
         }
 
         inline std::shared_ptr<tinyply::PlyData> requestData(const std::string &element_key,
-                                                             const std::initializer_list<std::string> property_keys,
+                                                             const std::vector<std::string> property_keys,
                                                              const uint32_t list_size_hint = 0)
         {
             if (!elementPropertyExists(element_key, property_keys)) return std::shared_ptr<tinyply::PlyData>();
@@ -45,20 +84,33 @@ namespace cilantro {
         }
 
         inline void readData() {
-            ply_file_.read(input_stream_);
+            ply_file_.read(*input_stream_);
+            preloaded_data_.clear();
         }
 
     private:
-        std::ifstream input_stream_;
+        std::vector<uint8_t> preloaded_data_;
+        std::unique_ptr<std::istream> input_stream_;
         tinyply::PlyFile ply_file_;
+
+        inline void preload_data_(const std::string &file_path) {
+            std::ifstream file(file_path, std::ios::binary);
+            file.seekg(0, std::ios::end);
+            size_t size_bytes = file.tellg();
+            file.seekg(0, std::ios::beg);
+            preloaded_data_.resize(size_bytes);
+            file.read((char*)preloaded_data_.data(), size_bytes);
+        }
     };
 
     class PLYWriter {
     public:
-        inline PLYWriter(const std::string &file_path, bool binary = true) : file_path_(file_path), binary_(binary) {}
+        inline PLYWriter(const std::string &file_path, bool binary = true) 
+                : file_path_(file_path), binary_(binary)
+        {}
 
         inline PLYWriter& addData(const std::string &element_key,
-                                  const std::initializer_list<std::string> property_keys,
+                                  const std::vector<std::string> property_keys,
                                   const std::shared_ptr<tinyply::PlyData> &data_buffer,
                                   const tinyply::Type list_type = tinyply::Type::INVALID,
                                   const size_t list_count = 0)
@@ -118,6 +170,8 @@ namespace cilantro {
                 break;
             case tinyply::Type::FLOAT64:
                 data_matrix = ConstVectorSetMatrixMap<double,EigenDim>((double *)data_buffer->buffer.get(), dim, data_buffer->count).template cast<ScalarT>();
+                break;
+            default:
                 break;
         }
 

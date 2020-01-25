@@ -113,8 +113,8 @@ namespace cilantro {
         }
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
-        PointCloud(const std::string &file_name) {
-            fromPLYFile(file_name);
+        PointCloud(const std::string &file_name, bool preload = true) {
+            fromPLYFile(file_name, preload);
         }
 
         inline size_t size() const { return points.cols(); }
@@ -434,8 +434,8 @@ namespace cilantro {
         }
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == 3>::type>
-        inline PointCloud& fromPLYFile(const std::string &file_name) {
-            PLYReader reader(file_name);
+        inline PointCloud& fromPLYFile(const std::string &file_name, bool preload = true) {
+            PLYReader reader(file_name, preload);
 
             auto point_data = reader.requestData("vertex", {"x", "y", "z"});
             auto normal_data = reader.requestData("vertex", {"nx", "ny", "nz"});
