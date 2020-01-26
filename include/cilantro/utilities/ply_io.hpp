@@ -13,26 +13,26 @@ namespace cilantro {
             char * p_end {nullptr};
             size_t size;
 
-            MemoryBuffer(char const * first_elem, size_t size)
+            inline MemoryBuffer(char const * first_elem, size_t size)
                     : p_start(const_cast<char*>(first_elem)), p_end(p_start + size), size(size)
             {
                 setg(p_start, p_start, p_end);
             }
 
-            pos_type seekoff(off_type off, std::ios_base::seekdir dir, std::ios_base::openmode which) override {
+            inline pos_type seekoff(off_type off, std::ios_base::seekdir dir, std::ios_base::openmode which) override {
                 if (dir == std::ios_base::cur) gbump(static_cast<int>(off));
                 else setg(p_start, (dir == std::ios_base::beg ? p_start : p_end) + off, p_end);
                 return gptr() - p_start;
             }
 
-            pos_type seekpos(pos_type pos, std::ios_base::openmode which) override {
+            inline pos_type seekpos(pos_type pos, std::ios_base::openmode which) override {
                 return seekoff(pos, std::ios_base::beg, which);
             }
         };
 
         // From tinyply example-utils.hpp
         struct MemoryStream : virtual MemoryBuffer, public std::istream {
-            MemoryStream(char const * first_elem, size_t size)
+            inline MemoryStream(char const * first_elem, size_t size)
                     : MemoryBuffer(first_elem, size), std::istream(static_cast<std::streambuf*>(this))
             {}
         };
@@ -52,7 +52,7 @@ namespace cilantro {
         }
 
         inline bool elementPropertyExists(const std::string &element_key,
-                                          const std::vector<std::string> property_keys) const
+                                          const std::vector<std::string> &property_keys) const
         {
             const auto elements = ply_file_.get_elements();
             ptrdiff_t element_ind = -1;
@@ -76,7 +76,7 @@ namespace cilantro {
         }
 
         inline std::shared_ptr<tinyply::PlyData> requestData(const std::string &element_key,
-                                                             const std::vector<std::string> property_keys,
+                                                             const std::vector<std::string> &property_keys,
                                                              const uint32_t list_size_hint = 0)
         {
             if (!elementPropertyExists(element_key, property_keys)) return std::shared_ptr<tinyply::PlyData>();
@@ -110,7 +110,7 @@ namespace cilantro {
         {}
 
         inline PLYWriter& addData(const std::string &element_key,
-                                  const std::vector<std::string> property_keys,
+                                  const std::vector<std::string> &property_keys,
                                   const std::shared_ptr<tinyply::PlyData> &data_buffer,
                                   const tinyply::Type list_type = tinyply::Type::INVALID,
                                   const size_t list_count = 0)
