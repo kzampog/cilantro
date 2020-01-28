@@ -105,7 +105,7 @@ namespace cilantro {
 
     class PLYWriter {
     public:
-        inline PLYWriter(const std::string &file_path, bool binary = true) 
+        inline PLYWriter(const std::string &file_path, bool binary = true)
                 : file_path_(file_path), binary_(binary)
         {}
 
