@@ -131,6 +131,7 @@ namespace cilantro {
             }
             std::ostream output_stream(&fb);
             ply_file_.write(output_stream, binary_);
+            data_buffers_.clear();
         }
 
     private:
