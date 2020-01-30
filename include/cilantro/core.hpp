@@ -12,5 +12,6 @@
 #include <cilantro/core/normal_estimation.hpp>
 #include <cilantro/core/openmp_reductions.hpp>
 #include <cilantro/core/principal_component_analysis.hpp>
+#include <cilantro/core/random.hpp>
 #include <cilantro/core/space_transformations.hpp>
 #include <cilantro/core/spectral_embedding_base.hpp>

@@ -4,7 +4,7 @@
 #include <limits>
 #include <cilantro/core/data_containers.hpp>
 #include <cilantro/core/nearest_neighbors.hpp>
-#include <cilantro/utilities/random.hpp>
+#include <cilantro/core/random.hpp>
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
