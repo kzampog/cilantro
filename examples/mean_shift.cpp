@@ -6,32 +6,32 @@
 cilantro::VectorSet3f generate_input_data() {
     std::default_random_engine generator;
     std::normal_distribution<float> distribution(0.0f,1.0f);
-    
+
     size_t cluster_size = 500;
     size_t cluster_num = 3;
     cilantro::VectorSet<float,3> points(3, cluster_num*cluster_size);
     cilantro::VectorSet<float,3> offsets(3, cluster_num);
-    
+
     for (size_t j = 0; j < points.cols(); j++) {
         for (size_t i = 0; i < points.rows(); i++) {
             points(i,j) = distribution(generator);
         }
     }
     points.row(2).array() += 10.0f;
-    
+
     for (size_t j = 0; j < offsets.cols(); j++) {
         for (size_t i = 0; i < offsets.rows(); i++) {
             offsets(i,j) = distribution(generator);
         }
         offsets.col(j) = 2.5f*offsets.col(j).normalized();
     }
-    
+
     for (size_t i = 0; i < cluster_num; i++) {
         for (size_t j = 0; j < cluster_size; j++) {
             points.col(i*cluster_size + j) += offsets.col(i);
         }
     }
-    
+
     return points;
 }
 
@@ -52,7 +52,7 @@ int main(int argc, char ** argv) {
     std::cout << "Clustering time: " << timer.getElapsedTime() << "ms" << std::endl;
     std::cout << "Number of clusters: " << ms.getNumberOfClusters() << std::endl;
     std::cout << "Performed mean shift iterations: " << ms.getNumberOfPerformedIterations() << std::endl;
-    
+
     const auto& cpi = ms.getClusterToPointIndicesMap();
     size_t mins = points.cols(), maxs = 0;
     for (size_t i = 0; i < cpi.size(); i++) {
@@ -72,7 +72,7 @@ int main(int argc, char ** argv) {
     for (size_t i = 0; i < colors.cols(); i++) {
         colors.col(i) = color_map.col(idx_map[i]);
     }
-    
+
     // Visualize result
     pangolin::CreateWindowAndBind("MeanShift demo",1280,480);
     pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual)

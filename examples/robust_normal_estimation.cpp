@@ -45,6 +45,7 @@ int main(int argc, char ** argv) {
     cilantro::Timer ne_timer;
     ne_timer.start();
     cilantro::NormalEstimation<float, 3, size_t, cilantro::MinimumCovarianceDeterminant<float, 3>> ne(tree);
+    ne.setViewPoint(Eigen::Vector3f::Zero());
     ne.getCovarianceMethod().setChiSquareThreshold(6.25).setNumberOfTrials(2).setNumberOfRefinements(1);  // 90% confidence ellipsoid
     cloud.normals = ne.getNormalsKNN(12);
 

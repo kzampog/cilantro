@@ -43,6 +43,9 @@ namespace cilantro {
         inline Matrix& matrix() { return *static_cast<Matrix *>(this); }
         inline const Matrix& matrix() const { return *static_cast<const Matrix *>(this); }
 
+        inline Matrix& linear() { return *static_cast<Matrix *>(this); }
+        inline const Matrix& linear() const { return *static_cast<const Matrix *>(this); }
+
         Matrix rotation() const {
             Eigen::JacobiSVD<Matrix> svd(matrix(), Eigen::ComputeFullU | Eigen::ComputeFullV);
             if ((svd.matrixU()*svd.matrixV()).determinant() < (ScalarT)0.0) {

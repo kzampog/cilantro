@@ -17,9 +17,9 @@ void generate_input_data(cilantro::VectorSet3f &original_points,
         original_points(1,i) = std::sin((2.0f*M_PI*i)/num_points);
         original_points(2,i) = 0.1f*std::sin(10.0f*(2.0f*M_PI*i)/num_points);
     }
-    
+
     values = original_points.row(2);
-    
+
     dist_sq.resize(num_points, num_points);
     for (size_t i = 0; i < original_points.cols(); i++) {
         for (size_t j = 0; j < original_points.cols(); j++) {
@@ -34,7 +34,7 @@ int main(int argc, char ** argv) {
     cilantro::VectorSet<float,1> values;
     Eigen::MatrixXf distances_sq;
     generate_input_data(points, values, distances_sq);
-    
+
     std::cout << "Number of points: " << distances_sq.rows() << std::endl;
 
     cilantro::Timer timer;

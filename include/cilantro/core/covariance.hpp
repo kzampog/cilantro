@@ -2,13 +2,11 @@
 
 #include <algorithm>
 #include <limits>
-
 #include <cilantro/core/data_containers.hpp>
 #include <cilantro/core/nearest_neighbors.hpp>
 #include <cilantro/utilities/random.hpp>
 
 namespace cilantro {
-
     template <typename ScalarT, ptrdiff_t EigenDim>
     class Covariance {
     public:
@@ -50,7 +48,7 @@ namespace cilantro {
         }
     };
 
-    template <typename ScalarT, ptrdiff_t EigenDim, typename CovarianceT=Covariance<ScalarT, EigenDim>>
+    template <typename ScalarT, ptrdiff_t EigenDim, typename CovarianceT = Covariance<ScalarT, EigenDim>, typename RandomGeneratorT = std::default_random_engine>
     class MinimumCovarianceDeterminant {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -72,7 +70,7 @@ namespace cilantro {
             if (size < points.rows()) return false;
             if (size == points.rows()) return compute_mean_and_covariance_(points, begin, end, mean, cov);
 
-            random_selector<> random {};
+            RandomElementSelector<RandomGeneratorT> random {};
 
             using NeighborT = typename NeighborhoodResultIteratorT::value_type;
 
