@@ -3,6 +3,7 @@
 #include <cilantro/core/common_accumulators.hpp>
 #include <cilantro/core/common_pair_evaluators.hpp>
 #include <cilantro/core/correspondence.hpp>
+#include <cilantro/core/covariance.hpp>
 #include <cilantro/core/data_containers.hpp>
 #include <cilantro/core/grid_accumulator.hpp>
 #include <cilantro/core/grid_downsampler.hpp>

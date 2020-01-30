@@ -22,7 +22,7 @@ A high-level description of `cilantro` can be found in our [technical report](ht
 ## Supported functionality
 #### Basic operations:
 - General dimension kd-trees (using bundled [nanoflann](https://github.com/jlblancoc/nanoflann))
-- Surface normal and curvature estimation from raw point clouds
+- Surface normal and curvature (robust) estimation from raw point clouds
 - General dimension grid-based point cloud resampling
 - Principal Component Analysis
 - Basic I/O utilities for 3D point clouds (in PLY format, using bundled [tinyply](https://github.com/ddiakopoulos/tinyply)) and Eigen matrices
