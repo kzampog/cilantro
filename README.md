@@ -1,6 +1,8 @@
-<div>
-    <img src = "https://kzampog.github.io/images/cilantro_logo.png" width="256" alt = "Logo" />
-    <br>
+<div align = "center">
+    <img src = "https://kzampog.github.io/images/cilantro_logo.png" width="300" alt = "Logo" />
+</div>
+
+<div align = "center">
     <a href = "https://travis-ci.org/kzampog/cilantro">
         <img src = "https://travis-ci.org/kzampog/cilantro.svg?branch=master" alt = "Build Status" />
     </a>
@@ -9,6 +11,9 @@
     </a>
     <a href = "https://codedocs.xyz/kzampog/cilantro/">
         <img src = "https://codedocs.xyz/kzampog/cilantro.svg" alt = "Documentation" />
+    </a>
+    <a href = "https://github.com/kzampog/cilantro/blob/master/LICENSE">
+        <img src = "https://img.shields.io/github/license/kzampog/cilantro" alt = "License" />
     </a>
 </div>
 
