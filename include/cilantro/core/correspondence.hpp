@@ -5,19 +5,19 @@
 namespace cilantro {
     enum struct CorrespondenceSearchDirection {FIRST_TO_SECOND, SECOND_TO_FIRST, BOTH};
 
-    template <typename ScalarT>
+    template <typename ScalarT, typename IndexT = size_t>
     struct Correspondence {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         typedef ScalarT Scalar;
 
-        size_t indexInFirst;
-        size_t indexInSecond;
+        IndexT indexInFirst;
+        IndexT indexInSecond;
         ScalarT value;
 
         Correspondence() {}
 
-        Correspondence(size_t i, size_t j, ScalarT val) : indexInFirst(i), indexInSecond(j), value(val) {}
+        Correspondence(IndexT i, IndexT j, ScalarT val) : indexInFirst(i), indexInSecond(j), value(val) {}
 
         struct ValueLessComparator {
             inline bool operator()(const Correspondence &c1, const Correspondence &c2) const {

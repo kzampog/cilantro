@@ -2,8 +2,6 @@
 
 #include <Eigen/Sparse>
 #include <cilantro/core/space_transformations.hpp>
-// #include <cilantro/core/nearest_neighbors.hpp>
-// #include <cilantro/core/correspondence.hpp>
 #include <cilantro/core/common_pair_evaluators.hpp>
 
 namespace cilantro {

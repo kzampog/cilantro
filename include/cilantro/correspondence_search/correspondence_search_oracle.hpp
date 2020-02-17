@@ -17,7 +17,7 @@ namespace cilantro {
 
         typedef CorrespondenceSet<ScalarT> OracleCorrespondences;
 
-        CorrespondenceSearchOracle(const CorrespondenceSet<ScalarT> &correspondences,
+        CorrespondenceSearchOracle(const OracleCorrespondences &correspondences,
                                    EvaluationFeatureAdaptorT &src_eval_features,
                                    EvaluatorT &evaluator)
                 : oracle_correspondences_(correspondences),
@@ -75,7 +75,7 @@ namespace cilantro {
         }
 
     private:
-        const CorrespondenceSet<ScalarT>& oracle_correspondences_;
+        const OracleCorrespondences& oracle_correspondences_;
 
         EvaluationFeatureAdaptorT& src_evaluation_features_adaptor_;
         Evaluator& evaluator_;
