@@ -1,16 +1,14 @@
 #pragma once
 
-#include <cilantro/core/correspondence.hpp>
 #include <cilantro/core/common_pair_evaluators.hpp>
-#include <cilantro/core/kd_tree.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = DistanceEvaluator<ScalarT,ScalarT>, typename CorrValueT = typename EvaluatorT::OutputScalar>
+    template <typename ScalarT, ptrdiff_t EigenDim, typename TreeT, typename CorrSetT, class EvaluatorT = DistanceEvaluator<ScalarT,ScalarT>>
     void findNNCorrespondencesUnidirectional(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
-                                             const KDTree<ScalarT,EigenDim,DistAdaptor> &ref_tree,
+                                             const TreeT &ref_tree,
                                              bool ref_is_first,
-                                             CorrespondenceSet<CorrValueT> &correspondences,
-                                             CorrValueT max_distance,
+                                             CorrSetT &correspondences,
+                                             typename EvaluatorT::OutputScalar max_distance,
                                              const EvaluatorT &evaluator = EvaluatorT())
     {
         if (ref_tree.getPointsMatrixMap().cols() == 0) {
@@ -18,10 +16,10 @@ namespace cilantro {
             return;
         }
 
-        CorrespondenceSet<CorrValueT> corr_tmp(query_pts.cols());
+        CorrSetT corr_tmp(query_pts.cols());
         std::vector<bool> keep(query_pts.cols());
-        Neighborhood<ScalarT> nn;
-        CorrValueT dist;
+        typename TreeT::NeighborhoodResult nn;
+        typename EvaluatorT::OutputScalar dist;
         if (ref_is_first) {
 #pragma omp parallel for shared(corr_tmp) private(nn, dist) schedule(dynamic, 256)
             for (size_t i = 0; i < query_pts.cols(); i++) {
@@ -46,33 +44,33 @@ namespace cilantro {
         correspondences.resize(count);
     }
 
-    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = DistanceEvaluator<ScalarT,ScalarT>, typename CorrValueT = typename EvaluatorT::OutputScalar>
-    inline CorrespondenceSet<CorrValueT> findNNCorrespondencesUnidirectional(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
-                                                                             const KDTree<ScalarT,EigenDim,DistAdaptor> &ref_tree,
-                                                                             bool ref_is_first,
-                                                                             CorrValueT max_distance,
-                                                                             const EvaluatorT &evaluator = EvaluatorT())
+    template <typename ScalarT, ptrdiff_t EigenDim, typename TreeT, typename CorrSetT, class EvaluatorT = DistanceEvaluator<ScalarT,ScalarT>>
+    inline CorrSetT findNNCorrespondencesUnidirectional(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
+                                                        const TreeT &ref_tree,
+                                                        bool ref_is_first,
+                                                        typename EvaluatorT::OutputScalar max_distance,
+                                                        const EvaluatorT &evaluator = EvaluatorT())
     {
-        CorrespondenceSet<CorrValueT> corr_set;
-        findNNCorrespondencesUnidirectional<ScalarT,EigenDim,DistAdaptor,EvaluatorT,CorrValueT>(query_pts, ref_tree, ref_is_first, corr_set, max_distance, evaluator);
+        CorrSetT corr_set;
+        findNNCorrespondencesUnidirectional<ScalarT,EigenDim>(query_pts, ref_tree, ref_is_first, corr_set, max_distance, evaluator);
         return corr_set;
     }
 
-    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = DistanceEvaluator<ScalarT,ScalarT>, typename CorrValueT = typename EvaluatorT::OutputScalar>
+    template <typename ScalarT, ptrdiff_t EigenDim, typename FirstTreeT, typename SecondTreeT, typename CorrSetT, class EvaluatorT = DistanceEvaluator<ScalarT,ScalarT>>
     void findNNCorrespondencesBidirectional(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &first_points,
                                             const ConstVectorSetMatrixMap<ScalarT,EigenDim> &second_points,
-                                            const KDTree<ScalarT,EigenDim,DistAdaptor> &first_tree,
-                                            const KDTree<ScalarT,EigenDim,DistAdaptor> &second_tree,
-                                            CorrespondenceSet<CorrValueT> &correspondences,
-                                            CorrValueT max_distance,
+                                            const FirstTreeT &first_tree,
+                                            const SecondTreeT &second_tree,
+                                            CorrSetT &correspondences,
+                                            typename EvaluatorT::OutputScalar max_distance,
                                             bool require_reciprocal = false,
                                             const EvaluatorT &evaluator = EvaluatorT())
     {
-        CorrespondenceSet<CorrValueT> corr_first_to_second, corr_second_to_first;
-        findNNCorrespondencesUnidirectional<ScalarT,EigenDim,DistAdaptor,EvaluatorT,CorrValueT>(first_points, second_tree, false, corr_first_to_second, max_distance, evaluator);
-        findNNCorrespondencesUnidirectional<ScalarT,EigenDim,DistAdaptor,EvaluatorT,CorrValueT>(second_points, first_tree, true, corr_second_to_first, max_distance, evaluator);
+        CorrSetT corr_first_to_second, corr_second_to_first;
+        findNNCorrespondencesUnidirectional<ScalarT,EigenDim>(first_points, second_tree, false, corr_first_to_second, max_distance, evaluator);
+        findNNCorrespondencesUnidirectional<ScalarT,EigenDim>(second_points, first_tree, true, corr_second_to_first, max_distance, evaluator);
 
-        typename Correspondence<CorrValueT>::IndicesLexicographicalComparator comparator;
+        typename CorrSetT::value_type::IndicesLexicographicalComparator comparator;
 
 #pragma omp parallel sections
         {
@@ -83,7 +81,7 @@ namespace cilantro {
         }
 
         correspondences.clear();
-        correspondences.reserve(corr_first_to_second.size()+corr_second_to_first.size());
+        correspondences.reserve(corr_first_to_second.size() + corr_second_to_first.size());
 
         if (require_reciprocal) {
             std::set_intersection(corr_first_to_second.begin(), corr_first_to_second.end(),
@@ -96,17 +94,17 @@ namespace cilantro {
         }
     }
 
-    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, class EvaluatorT = DistanceEvaluator<ScalarT,ScalarT>, typename CorrValueT = typename EvaluatorT::OutputScalar>
-    inline CorrespondenceSet<CorrValueT> findNNCorrespondencesBidirectional(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &first_points,
-                                                                            const ConstVectorSetMatrixMap<ScalarT,EigenDim> &second_points,
-                                                                            const KDTree<ScalarT,EigenDim,DistAdaptor> &first_tree,
-                                                                            const KDTree<ScalarT,EigenDim,DistAdaptor> &second_tree,
-                                                                            CorrValueT max_distance,
-                                                                            bool require_reciprocal = false,
-                                                                            const EvaluatorT &evaluator = EvaluatorT())
+    template <typename ScalarT, ptrdiff_t EigenDim, typename FirstTreeT, typename SecondTreeT, typename CorrSetT, class EvaluatorT = DistanceEvaluator<ScalarT,ScalarT>>
+    inline CorrSetT findNNCorrespondencesBidirectional(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &first_points,
+                                                       const ConstVectorSetMatrixMap<ScalarT,EigenDim> &second_points,
+                                                       const FirstTreeT &first_tree,
+                                                       const SecondTreeT &second_tree,
+                                                       typename EvaluatorT::OutputScalar max_distance,
+                                                       bool require_reciprocal = false,
+                                                       const EvaluatorT &evaluator = EvaluatorT())
     {
-        CorrespondenceSet<CorrValueT> corr_set;
-        findNNCorrespondencesBidirectional<ScalarT,EigenDim,DistAdaptor,EvaluatorT,CorrValueT>(first_points, second_points, first_tree, second_tree, corr_set, max_distance, require_reciprocal, evaluator);
+        CorrSetT corr_set;
+        findNNCorrespondencesBidirectional<ScalarT,EigenDim>(first_points, second_points, first_tree, second_tree, corr_set, max_distance, require_reciprocal, evaluator);
         return corr_set;
     }
 }

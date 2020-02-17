@@ -2,8 +2,8 @@
 
 #include <cilantro/core/correspondence.hpp>
 #include <cilantro/core/common_pair_evaluators.hpp>
-#include <cilantro/correspondence_search/common_transformable_feature_adaptors.hpp>
 #include <cilantro/core/image_point_cloud_conversions.hpp>
+#include <cilantro/correspondence_search/common_transformable_feature_adaptors.hpp>
 
 namespace cilantro {
     template <class ScalarT, class EvaluationFeatureAdaptorT = PointFeaturesAdaptor<ScalarT,3>, class EvaluatorT = DistanceEvaluator<ScalarT,typename EvaluationFeatureAdaptorT::Scalar>, typename IndexT = size_t>
@@ -15,7 +15,9 @@ namespace cilantro {
 
         typedef typename EvaluatorT::OutputScalar CorrespondenceScalar;
 
-        typedef CorrespondenceSet<CorrespondenceScalar> SearchResult;
+        typedef IndexT CorrespondenceIndex;
+
+        typedef CorrespondenceSet<CorrespondenceScalar,CorrespondenceIndex> SearchResult;
 
         template <class EvalFeatAdaptorT = EvaluationFeatureAdaptorT, class = typename std::enable_if<std::is_same<EvalFeatAdaptorT,PointFeaturesAdaptor<ScalarT,3>>::value>::type>
         CorrespondenceSearchProjective(PointFeaturesAdaptor<ScalarT,3> &dst_points,

@@ -4,7 +4,7 @@
 #include <cilantro/core/common_pair_evaluators.hpp>
 
 namespace cilantro {
-    template <class ScalarT, class EvaluationFeatureAdaptorT, class EvaluatorT = DistanceEvaluator<ScalarT,typename EvaluationFeatureAdaptorT::Scalar>>
+    template <class ScalarT, class EvaluationFeatureAdaptorT, class EvaluatorT = DistanceEvaluator<ScalarT,typename EvaluationFeatureAdaptorT::Scalar>, typename IndexT = size_t>
     class CorrespondenceSearchOracle {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -13,9 +13,11 @@ namespace cilantro {
 
         typedef typename EvaluatorT::OutputScalar CorrespondenceScalar;
 
-        typedef CorrespondenceSet<CorrespondenceScalar> SearchResult;
+        typedef IndexT CorrespondenceIndex;
 
-        typedef CorrespondenceSet<ScalarT> OracleCorrespondences;
+        typedef CorrespondenceSet<CorrespondenceScalar,CorrespondenceIndex> SearchResult;
+
+        typedef CorrespondenceSet<ScalarT,CorrespondenceIndex> OracleCorrespondences;
 
         CorrespondenceSearchOracle(const OracleCorrespondences &correspondences,
                                    EvaluationFeatureAdaptorT &src_eval_features,

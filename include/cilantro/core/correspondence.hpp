@@ -10,6 +10,7 @@ namespace cilantro {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         typedef ScalarT Scalar;
+        typedef IndexT Index;
 
         IndexT indexInFirst;
         IndexT indexInSecond;
@@ -50,8 +51,8 @@ namespace cilantro {
         };
     };
 
-    template <typename ScalarT>
-    using CorrespondenceSet = std::vector<Correspondence<ScalarT>>;
+    template <typename ScalarT, typename IndexT = size_t>
+    using CorrespondenceSet = std::vector<Correspondence<ScalarT, IndexT>>;
 
     template <typename CorrSetT, class ComparatorT = typename CorrSetT::value_type::ValueLessComparator>
     void filterCorrespondencesFraction(CorrSetT &correspondences,
