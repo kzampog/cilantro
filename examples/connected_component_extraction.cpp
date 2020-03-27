@@ -1,5 +1,6 @@
 #include <cilantro/clustering/connected_component_extraction.hpp>
-#include <cilantro/utilities.hpp>
+#include <cilantro/utilities/point_cloud.hpp>
+#include <cilantro/utilities/timer.hpp>
 #include <cilantro/visualization.hpp>
 
 int main(int argc, char ** argv) {
