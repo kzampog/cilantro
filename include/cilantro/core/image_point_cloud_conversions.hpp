@@ -61,6 +61,10 @@ namespace cilantro {
                             VectorSet<typename DepthConverterT::MetricDepth,3> &points,
                             bool keep_invalid = false)
     {
+        using MetricDepth = typename DepthConverterT::MetricDepth;
+
+        const Eigen::Matrix<MetricDepth,3,3,Eigen::RowMajor> intrinsics_inv = intrinsics.inverse();
+
         if (keep_invalid) {
             points.resize(3, image_w*image_h);
             size_t k;
@@ -68,34 +72,30 @@ namespace cilantro {
             for (size_t y = 0; y < image_h; y++) {
                 k = y*image_w;
                 for (size_t x = 0; x < image_w; x++) {
-                    typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
-                    points(0,k) = (x - intrinsics(0,2))*z/intrinsics(0,0);
-                    points(1,k) = (y - intrinsics(1,2))*z/intrinsics(1,1);
-                    points(2,k) = z;
+                    const MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
+                    points.col(k).noalias() = intrinsics_inv*Vector<MetricDepth,3>(z*x, z*y, z);
                     k++;
                 }
             }
         } else {
-            VectorSet<typename DepthConverterT::MetricDepth,3> points_tmp(3, image_w*image_h);
+            VectorSet<MetricDepth,3> points_tmp(3, image_w*image_h);
             size_t k;
             size_t valid_count = 0;
 #pragma omp parallel for private (k) reduction (+: valid_count)
             for (size_t y = 0; y < image_h; y++) {
                 k = y*image_w;
                 for (size_t x = 0; x < image_w; x++) {
-                    typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
-                    points_tmp(0,k) = (x - intrinsics(0,2))*z/intrinsics(0,0);
-                    points_tmp(1,k) = (y - intrinsics(1,2))*z/intrinsics(1,1);
-                    points_tmp(2,k) = z;
+                    const MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
+                    points_tmp.col(k).noalias() = intrinsics_inv*Vector<MetricDepth,3>(z*x, z*y, z);
                     k++;
-                    valid_count += z > (typename DepthConverterT::MetricDepth)0.0;
+                    valid_count += z > (MetricDepth)0.0;
                 }
             }
 
             k = 0;
             points.resize(3, valid_count);
             for (size_t i = 0; i < points_tmp.cols(); i++) {
-                if (points_tmp(2,i) > (typename DepthConverterT::MetricDepth)0.0) points.col(k++) = points_tmp.col(i);
+                if (points_tmp(2,i) > (MetricDepth)0.0) points.col(k++) = points_tmp.col(i);
             }
         }
     }
@@ -109,6 +109,10 @@ namespace cilantro {
                             VectorSet<typename DepthConverterT::MetricDepth,3> &points,
                             bool keep_invalid = false)
     {
+        using MetricDepth = typename DepthConverterT::MetricDepth;
+
+        const Eigen::Matrix<MetricDepth,3,3,Eigen::RowMajor> intrinsics_inv = intrinsics.inverse();
+
         if (keep_invalid) {
             points.resize(3, image_w*image_h);
             size_t k;
@@ -116,31 +120,29 @@ namespace cilantro {
             for (size_t y = 0; y < image_h; y++) {
                 k = y*image_w;
                 for (size_t x = 0; x < image_w; x++) {
-                    typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
-                    points.col(k++).noalias() = extrinsics*Vector<typename DepthConverterT::MetricDepth,3>((x - intrinsics(0,2))*z/intrinsics(0,0), (y - intrinsics(1,2))*z/intrinsics(1,1), z);
+                    const MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
+                    points.col(k++).noalias() = extrinsics*intrinsics_inv*Vector<MetricDepth,3>(z*x, z*y, z);
                 }
             }
         } else {
-            VectorSet<typename DepthConverterT::MetricDepth,3> points_tmp(3, image_w*image_h);
+            VectorSet<MetricDepth,3> points_tmp(3, image_w*image_h);
             size_t k;
             size_t valid_count = 0;
 #pragma omp parallel for private (k) reduction (+: valid_count)
             for (size_t y = 0; y < image_h; y++) {
                 k = y*image_w;
                 for (size_t x = 0; x < image_w; x++) {
-                    typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
-                    points_tmp(0,k) = (x - intrinsics(0,2))*z/intrinsics(0,0);
-                    points_tmp(1,k) = (y - intrinsics(1,2))*z/intrinsics(1,1);
-                    points_tmp(2,k) = z;
+                    const MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
+                    points_tmp.col(k).noalias() = intrinsics_inv*Vector<MetricDepth,3>(z*x, z*y, z);
                     k++;
-                    valid_count += z > (typename DepthConverterT::MetricDepth)0.0;
+                    valid_count += z > (MetricDepth)0.0;
                 }
             }
 
             k = 0;
             points.resize(3, valid_count);
             for (size_t i = 0; i < points_tmp.cols(); i++) {
-                if (points_tmp(2,i) > (typename DepthConverterT::MetricDepth)0.0) points.col(k++) = points_tmp.col(i);
+                if (points_tmp(2,i) > (MetricDepth)0.0) points.col(k++) = points_tmp.col(i);
             }
 
 #pragma omp parallel for
@@ -159,9 +161,13 @@ namespace cilantro {
                                    VectorSet<typename DepthConverterT::MetricDepth,3> &normals,
                                    bool keep_invalid = false)
     {
+        using MetricDepth = typename DepthConverterT::MetricDepth;
+
+        const Eigen::Matrix<MetricDepth,3,3,Eigen::RowMajor> intrinsics_inv = intrinsics.inverse();
+
         if (keep_invalid) {
             points.resize(3, image_w*image_h);
-            normals.setConstant(3, points.cols(), std::numeric_limits<typename DepthConverterT::MetricDepth>::quiet_NaN());
+            normals.setConstant(3, points.cols(), std::numeric_limits<MetricDepth>::quiet_NaN());
 
 #pragma omp parallel
             {
@@ -170,10 +176,8 @@ namespace cilantro {
                 for (size_t y = 0; y < image_h; y++) {
                     k = y*image_w;
                     for (size_t x = 0; x < image_w; x++) {
-                        typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
-                        points(0,k) = (x - intrinsics(0,2))*z/intrinsics(0,0);
-                        points(1,k) = (y - intrinsics(1,2))*z/intrinsics(1,1);
-                        points(2,k) = z;
+                        const MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
+                        points.col(k).noalias() = intrinsics_inv*Vector<MetricDepth,3>(z*x, z*y, z);
                         k++;
                     }
                 }
@@ -182,11 +186,11 @@ namespace cilantro {
                 for (size_t y = 1; y < image_h - 1; y++) {
                     for (size_t x = 1; x < image_w - 1; x++) {
                         k = y*image_w + x;
-                        if (points(2,k) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points(2,k+1) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points(2,k-1) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points(2,k+image_w) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points(2,k-image_w) > (typename DepthConverterT::MetricDepth)0.0)
+                        if (points(2,k) > (MetricDepth)0.0 &&
+                            points(2,k+1) > (MetricDepth)0.0 &&
+                            points(2,k-1) > (MetricDepth)0.0 &&
+                            points(2,k+image_w) > (MetricDepth)0.0 &&
+                            points(2,k-image_w) > (MetricDepth)0.0)
                         {
                             normals.col(k).noalias() = (points.col(k+image_w) - points.col(k-image_w)).cross(points.col(k+1) - points.col(k-1)).normalized();
                         }
@@ -194,8 +198,8 @@ namespace cilantro {
                 }
             }
         } else {
-            VectorSet<typename DepthConverterT::MetricDepth,3> points_tmp(3, image_w*image_h);
-            VectorSet<typename DepthConverterT::MetricDepth,3> normals_tmp(VectorSet<typename DepthConverterT::MetricDepth,3>::Constant(3, points_tmp.cols(), std::numeric_limits<typename DepthConverterT::MetricDepth>::quiet_NaN()));
+            VectorSet<MetricDepth,3> points_tmp(3, image_w*image_h);
+            VectorSet<MetricDepth,3> normals_tmp(VectorSet<MetricDepth,3>::Constant(3, points_tmp.cols(), std::numeric_limits<MetricDepth>::quiet_NaN()));
             size_t valid_count = 0;
 
 #pragma omp parallel
@@ -205,10 +209,8 @@ namespace cilantro {
                 for (size_t y = 0; y < image_h; y++) {
                     k = y*image_w;
                     for (size_t x = 0; x < image_w; x++) {
-                        typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
-                        points_tmp(0,k) = (x - intrinsics(0,2))*z/intrinsics(0,0);
-                        points_tmp(1,k) = (y - intrinsics(1,2))*z/intrinsics(1,1);
-                        points_tmp(2,k) = z;
+                        const MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
+                        points_tmp.col(k).noalias() = intrinsics_inv*Vector<MetricDepth,3>(z*x, z*y, z);
                         k++;
                     }
                 }
@@ -217,11 +219,11 @@ namespace cilantro {
                 for (size_t y = 1; y < image_h - 1; y++) {
                     for (size_t x = 1; x < image_w - 1; x++) {
                         k = y*image_w + x;
-                        if (points_tmp(2,k) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points_tmp(2,k+1) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points_tmp(2,k-1) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points_tmp(2,k+image_w) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points_tmp(2,k-image_w) > (typename DepthConverterT::MetricDepth)0.0)
+                        if (points_tmp(2,k) > (MetricDepth)0.0 &&
+                            points_tmp(2,k+1) > (MetricDepth)0.0 &&
+                            points_tmp(2,k-1) > (MetricDepth)0.0 &&
+                            points_tmp(2,k+image_w) > (MetricDepth)0.0 &&
+                            points_tmp(2,k-image_w) > (MetricDepth)0.0)
                         {
                             normals_tmp.col(k).noalias() = (points_tmp.col(k+image_w) - points_tmp.col(k-image_w)).cross(points_tmp.col(k+1) - points_tmp.col(k-1)).normalized();
                             valid_count += 1;
@@ -253,9 +255,13 @@ namespace cilantro {
                                    VectorSet<typename DepthConverterT::MetricDepth,3> &normals,
                                    bool keep_invalid = false)
     {
+        using MetricDepth = typename DepthConverterT::MetricDepth;
+
+        const Eigen::Matrix<MetricDepth,3,3,Eigen::RowMajor> intrinsics_inv = intrinsics.inverse();
+
         if (keep_invalid) {
             points.resize(3, image_w*image_h);
-            normals.setConstant(3, points.cols(), std::numeric_limits<typename DepthConverterT::MetricDepth>::quiet_NaN());
+            normals.setConstant(3, points.cols(), std::numeric_limits<MetricDepth>::quiet_NaN());
 
 #pragma omp parallel
             {
@@ -264,10 +270,8 @@ namespace cilantro {
                 for (size_t y = 0; y < image_h; y++) {
                     k = y*image_w;
                     for (size_t x = 0; x < image_w; x++) {
-                        typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
-                        points(0,k) = (x - intrinsics(0,2))*z/intrinsics(0,0);
-                        points(1,k) = (y - intrinsics(1,2))*z/intrinsics(1,1);
-                        points(2,k) = z;
+                        const MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
+                        points.col(k).noalias() = intrinsics_inv*Vector<MetricDepth,3>(z*x, z*y, z);
                         k++;
                     }
                 }
@@ -276,11 +280,11 @@ namespace cilantro {
                 for (size_t y = 1; y < image_h - 1; y++) {
                     for (size_t x = 1; x < image_w - 1; x++) {
                         k = y*image_w + x;
-                        if (points(2,k) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points(2,k+1) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points(2,k-1) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points(2,k+image_w) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points(2,k-image_w) > (typename DepthConverterT::MetricDepth)0.0)
+                        if (points(2,k) > (MetricDepth)0.0 &&
+                            points(2,k+1) > (MetricDepth)0.0 &&
+                            points(2,k-1) > (MetricDepth)0.0 &&
+                            points(2,k+image_w) > (MetricDepth)0.0 &&
+                            points(2,k-image_w) > (MetricDepth)0.0)
                         {
                             normals.col(k).noalias() = (points.col(k+image_w) - points.col(k-image_w)).cross(points.col(k+1) - points.col(k-1)).normalized();
                         }
@@ -294,8 +298,8 @@ namespace cilantro {
                 }
             }
         } else {
-            VectorSet<typename DepthConverterT::MetricDepth,3> points_tmp(3, image_w*image_h);
-            VectorSet<typename DepthConverterT::MetricDepth,3> normals_tmp(VectorSet<typename DepthConverterT::MetricDepth,3>::Constant(3, points_tmp.cols(), std::numeric_limits<typename DepthConverterT::MetricDepth>::quiet_NaN()));
+            VectorSet<MetricDepth,3> points_tmp(3, image_w*image_h);
+            VectorSet<MetricDepth,3> normals_tmp(VectorSet<MetricDepth,3>::Constant(3, points_tmp.cols(), std::numeric_limits<MetricDepth>::quiet_NaN()));
             size_t valid_count = 0;
 
 #pragma omp parallel
@@ -305,10 +309,8 @@ namespace cilantro {
                 for (size_t y = 0; y < image_h; y++) {
                     k = y*image_w;
                     for (size_t x = 0; x < image_w; x++) {
-                        typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
-                        points_tmp(0,k) = (x - intrinsics(0,2))*z/intrinsics(0,0);
-                        points_tmp(1,k) = (y - intrinsics(1,2))*z/intrinsics(1,1);
-                        points_tmp(2,k) = z;
+                        const MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
+                        points_tmp.col(k).noalias() = intrinsics_inv*Vector<MetricDepth,3>(z*x, z*y, z);
                         k++;
                     }
                 }
@@ -317,11 +319,11 @@ namespace cilantro {
                 for (size_t y = 1; y < image_h - 1; y++) {
                     for (size_t x = 1; x < image_w - 1; x++) {
                         k = y*image_w + x;
-                        if (points_tmp(2,k) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points_tmp(2,k+1) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points_tmp(2,k-1) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points_tmp(2,k+image_w) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points_tmp(2,k-image_w) > (typename DepthConverterT::MetricDepth)0.0)
+                        if (points_tmp(2,k) > (MetricDepth)0.0 &&
+                            points_tmp(2,k+1) > (MetricDepth)0.0 &&
+                            points_tmp(2,k-1) > (MetricDepth)0.0 &&
+                            points_tmp(2,k+image_w) > (MetricDepth)0.0 &&
+                            points_tmp(2,k-image_w) > (MetricDepth)0.0)
                         {
                             normals_tmp.col(k).noalias() = (points_tmp.col(k+image_w) - points_tmp.col(k-image_w)).cross(points_tmp.col(k+1) - points_tmp.col(k-1)).normalized();
                             valid_count += 1;
@@ -359,6 +361,10 @@ namespace cilantro {
                                   VectorSet<float,3> &colors,
                                   bool keep_invalid = false)
     {
+        using MetricDepth = typename DepthConverterT::MetricDepth;
+
+        const Eigen::Matrix<MetricDepth,3,3,Eigen::RowMajor> intrinsics_inv = intrinsics.inverse();
+
         const float color_mult = 1.0f/255.0f;
 
         if (keep_invalid) {
@@ -369,10 +375,8 @@ namespace cilantro {
             for (size_t y = 0; y < image_h; y++) {
                 k = y*image_w;
                 for (size_t x = 0; x < image_w; x++) {
-                    typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
-                    points(0,k) = (x - intrinsics(0,2))*z/intrinsics(0,0);
-                    points(1,k) = (y - intrinsics(1,2))*z/intrinsics(1,1);
-                    points(2,k) = z;
+                    const MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
+                    points.col(k).noalias() = intrinsics_inv*Vector<MetricDepth,3>(z*x, z*y, z);
                     colors(0,k) = color_mult*static_cast<float>(rgb_data[3*k]);
                     colors(1,k) = color_mult*static_cast<float>(rgb_data[3*k + 1]);
                     colors(2,k) = color_mult*static_cast<float>(rgb_data[3*k + 2]);
@@ -380,7 +384,7 @@ namespace cilantro {
                 }
             }
         } else {
-            VectorSet<typename DepthConverterT::MetricDepth,3> points_tmp(3, image_w*image_h);
+            VectorSet<MetricDepth,3> points_tmp(3, image_w*image_h);
             VectorSet<float,3> colors_tmp(3, image_w*image_h);
             size_t k;
             size_t valid_count = 0;
@@ -388,15 +392,13 @@ namespace cilantro {
             for (size_t y = 0; y < image_h; y++) {
                 k = y*image_w;
                 for (size_t x = 0; x < image_w; x++) {
-                    typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
-                    points_tmp(0,k) = (x - intrinsics(0,2))*z/intrinsics(0,0);
-                    points_tmp(1,k) = (y - intrinsics(1,2))*z/intrinsics(1,1);
-                    points_tmp(2,k) = z;
+                    const MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
+                    points_tmp.col(k).noalias() = intrinsics_inv*Vector<MetricDepth,3>(z*x, z*y, z);
                     colors_tmp(0,k) = color_mult*static_cast<float>(rgb_data[3*k]);
                     colors_tmp(1,k) = color_mult*static_cast<float>(rgb_data[3*k + 1]);
                     colors_tmp(2,k) = color_mult*static_cast<float>(rgb_data[3*k + 2]);
                     k++;
-                    valid_count += z > (typename DepthConverterT::MetricDepth)0.0;
+                    valid_count += z > (MetricDepth)0.0;
                 }
             }
 
@@ -404,7 +406,7 @@ namespace cilantro {
             points.resize(3, valid_count);
             colors.resize(3, valid_count);
             for (size_t i = 0; i < points_tmp.cols(); i++) {
-                if (points_tmp(2,i) > (typename DepthConverterT::MetricDepth)0.0) {
+                if (points_tmp(2,i) > (MetricDepth)0.0) {
                     points.col(k) = points_tmp.col(i);
                     colors.col(k) = colors_tmp.col(i);
                     k++;
@@ -424,6 +426,10 @@ namespace cilantro {
                                   VectorSet<float,3> &colors,
                                   bool keep_invalid = false)
     {
+        using MetricDepth = typename DepthConverterT::MetricDepth;
+
+        const Eigen::Matrix<MetricDepth,3,3,Eigen::RowMajor> intrinsics_inv = intrinsics.inverse();
+
         const float color_mult = 1.0f/255.0f;
 
         if (keep_invalid) {
@@ -434,8 +440,8 @@ namespace cilantro {
             for (size_t y = 0; y < image_h; y++) {
                 k = y*image_w;
                 for (size_t x = 0; x < image_w; x++) {
-                    typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
-                    points.col(k).noalias() = extrinsics*Vector<typename DepthConverterT::MetricDepth,3>((x - intrinsics(0,2))*z/intrinsics(0,0), (y - intrinsics(1,2))*z/intrinsics(1,1), z);
+                    const MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
+                    points.col(k).noalias() = extrinsics*intrinsics_inv*Vector<MetricDepth,3>(z*x, z*y, z);
                     colors(0,k) = color_mult*static_cast<float>(rgb_data[3*k]);
                     colors(1,k) = color_mult*static_cast<float>(rgb_data[3*k + 1]);
                     colors(2,k) = color_mult*static_cast<float>(rgb_data[3*k + 2]);
@@ -443,7 +449,7 @@ namespace cilantro {
                 }
             }
         } else {
-            VectorSet<typename DepthConverterT::MetricDepth,3> points_tmp(3, image_w*image_h);
+            VectorSet<MetricDepth,3> points_tmp(3, image_w*image_h);
             VectorSet<float,3> colors_tmp(3, image_w*image_h);
             size_t k;
             size_t valid_count = 0;
@@ -451,15 +457,13 @@ namespace cilantro {
             for (size_t y = 0; y < image_h; y++) {
                 k = y*image_w;
                 for (size_t x = 0; x < image_w; x++) {
-                    typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
-                    points_tmp(0,k) = (x - intrinsics(0,2))*z/intrinsics(0,0);
-                    points_tmp(1,k) = (y - intrinsics(1,2))*z/intrinsics(1,1);
-                    points_tmp(2,k) = z;
+                    const MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
+                    points_tmp.col(k).noalias() = intrinsics_inv*Vector<MetricDepth,3>(z*x, z*y, z);
                     colors_tmp(0,k) = color_mult*static_cast<float>(rgb_data[3*k]);
                     colors_tmp(1,k) = color_mult*static_cast<float>(rgb_data[3*k + 1]);
                     colors_tmp(2,k) = color_mult*static_cast<float>(rgb_data[3*k + 2]);
                     k++;
-                    valid_count += z > (typename DepthConverterT::MetricDepth)0.0;
+                    valid_count += z > (MetricDepth)0.0;
                 }
             }
 
@@ -467,7 +471,7 @@ namespace cilantro {
             points.resize(3, valid_count);
             colors.resize(3, valid_count);
             for (size_t i = 0; i < points_tmp.cols(); i++) {
-                if (points_tmp(2,i) > (typename DepthConverterT::MetricDepth)0.0) {
+                if (points_tmp(2,i) > (MetricDepth)0.0) {
                     points.col(k) = points_tmp.col(i);
                     colors.col(k) = colors_tmp.col(i);
                     k++;
@@ -492,12 +496,16 @@ namespace cilantro {
                                          VectorSet<float,3> &colors,
                                          bool keep_invalid = false)
     {
+        using MetricDepth = typename DepthConverterT::MetricDepth;
+
+        const Eigen::Matrix<MetricDepth,3,3,Eigen::RowMajor> intrinsics_inv = intrinsics.inverse();
+
         const float color_mult = 1.0f/255.0f;
 
         if (keep_invalid) {
             points.resize(3, image_w*image_h);
             colors.resize(3, points.cols());
-            normals.setConstant(3, points.cols(), std::numeric_limits<typename DepthConverterT::MetricDepth>::quiet_NaN());
+            normals.setConstant(3, points.cols(), std::numeric_limits<MetricDepth>::quiet_NaN());
 
 #pragma omp parallel
             {
@@ -506,10 +514,8 @@ namespace cilantro {
                 for (size_t y = 0; y < image_h; y++) {
                     k = y*image_w;
                     for (size_t x = 0; x < image_w; x++) {
-                        typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
-                        points(0,k) = (x - intrinsics(0,2))*z/intrinsics(0,0);
-                        points(1,k) = (y - intrinsics(1,2))*z/intrinsics(1,1);
-                        points(2,k) = z;
+                        const MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
+                        points.col(k).noalias() = intrinsics_inv*Vector<MetricDepth,3>(z*x, z*y, z);
                         colors(0,k) = color_mult*static_cast<float>(rgb_data[3*k]);
                         colors(1,k) = color_mult*static_cast<float>(rgb_data[3*k + 1]);
                         colors(2,k) = color_mult*static_cast<float>(rgb_data[3*k + 2]);
@@ -520,11 +526,11 @@ namespace cilantro {
                 for (size_t y = 1; y < image_h - 1; y++) {
                     for (size_t x = 1; x < image_w - 1; x++) {
                         k = y*image_w + x;
-                        if (points(2,k) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points(2,k+1) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points(2,k-1) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points(2,k+image_w) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points(2,k-image_w) > (typename DepthConverterT::MetricDepth)0.0)
+                        if (points(2,k) > (MetricDepth)0.0 &&
+                            points(2,k+1) > (MetricDepth)0.0 &&
+                            points(2,k-1) > (MetricDepth)0.0 &&
+                            points(2,k+image_w) > (MetricDepth)0.0 &&
+                            points(2,k-image_w) > (MetricDepth)0.0)
                         {
                             normals.col(k).noalias() = (points.col(k+image_w) - points.col(k-image_w)).cross(points.col(k+1) - points.col(k-1)).normalized();
                         }
@@ -532,9 +538,9 @@ namespace cilantro {
                 }
             }
         } else {
-            VectorSet<typename DepthConverterT::MetricDepth,3> points_tmp(3, image_w*image_h);
+            VectorSet<MetricDepth,3> points_tmp(3, image_w*image_h);
             VectorSet<float,3> colors_tmp(3, points_tmp.cols());
-            VectorSet<typename DepthConverterT::MetricDepth,3> normals_tmp(VectorSet<typename DepthConverterT::MetricDepth,3>::Constant(3, points_tmp.cols(), std::numeric_limits<typename DepthConverterT::MetricDepth>::quiet_NaN()));
+            VectorSet<MetricDepth,3> normals_tmp(VectorSet<MetricDepth,3>::Constant(3, points_tmp.cols(), std::numeric_limits<MetricDepth>::quiet_NaN()));
             size_t valid_count = 0;
 
 #pragma omp parallel
@@ -544,10 +550,8 @@ namespace cilantro {
                 for (size_t y = 0; y < image_h; y++) {
                     k = y*image_w;
                     for (size_t x = 0; x < image_w; x++) {
-                        typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
-                        points_tmp(0,k) = (x - intrinsics(0,2))*z/intrinsics(0,0);
-                        points_tmp(1,k) = (y - intrinsics(1,2))*z/intrinsics(1,1);
-                        points_tmp(2,k) = z;
+                        const MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
+                        points_tmp.col(k).noalias() = intrinsics_inv*Vector<MetricDepth,3>(z*x, z*y, z);
                         colors_tmp(0,k) = color_mult*static_cast<float>(rgb_data[3*k]);
                         colors_tmp(1,k) = color_mult*static_cast<float>(rgb_data[3*k + 1]);
                         colors_tmp(2,k) = color_mult*static_cast<float>(rgb_data[3*k + 2]);
@@ -559,11 +563,11 @@ namespace cilantro {
                 for (size_t y = 1; y < image_h - 1; y++) {
                     for (size_t x = 1; x < image_w - 1; x++) {
                         k = y*image_w + x;
-                        if (points_tmp(2,k) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points_tmp(2,k+1) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points_tmp(2,k-1) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points_tmp(2,k+image_w) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points_tmp(2,k-image_w) > (typename DepthConverterT::MetricDepth)0.0)
+                        if (points_tmp(2,k) > (MetricDepth)0.0 &&
+                            points_tmp(2,k+1) > (MetricDepth)0.0 &&
+                            points_tmp(2,k-1) > (MetricDepth)0.0 &&
+                            points_tmp(2,k+image_w) > (MetricDepth)0.0 &&
+                            points_tmp(2,k-image_w) > (MetricDepth)0.0)
                         {
                             normals_tmp.col(k).noalias() = (points_tmp.col(k+image_w) - points_tmp.col(k-image_w)).cross(points_tmp.col(k+1) - points_tmp.col(k-1)).normalized();
                             valid_count += 1;
@@ -599,12 +603,16 @@ namespace cilantro {
                                          VectorSet<float,3> &colors,
                                          bool keep_invalid = false)
     {
+        using MetricDepth = typename DepthConverterT::MetricDepth;
+
+        const Eigen::Matrix<MetricDepth,3,3,Eigen::RowMajor> intrinsics_inv = intrinsics.inverse();
+
         const float color_mult = 1.0f/255.0f;
 
         if (keep_invalid) {
             points.resize(3, image_w*image_h);
             colors.resize(3, points.cols());
-            normals.setConstant(3, points.cols(), std::numeric_limits<typename DepthConverterT::MetricDepth>::quiet_NaN());
+            normals.setConstant(3, points.cols(), std::numeric_limits<MetricDepth>::quiet_NaN());
 
 #pragma omp parallel
             {
@@ -613,10 +621,8 @@ namespace cilantro {
                 for (size_t y = 0; y < image_h; y++) {
                     k = y*image_w;
                     for (size_t x = 0; x < image_w; x++) {
-                        typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
-                        points(0,k) = (x - intrinsics(0,2))*z/intrinsics(0,0);
-                        points(1,k) = (y - intrinsics(1,2))*z/intrinsics(1,1);
-                        points(2,k) = z;
+                        const MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
+                        points.col(k).noalias() = intrinsics_inv*Vector<MetricDepth,3>(z*x, z*y, z);
                         colors(0,k) = color_mult*static_cast<float>(rgb_data[3*k]);
                         colors(1,k) = color_mult*static_cast<float>(rgb_data[3*k + 1]);
                         colors(2,k) = color_mult*static_cast<float>(rgb_data[3*k + 2]);
@@ -628,11 +634,11 @@ namespace cilantro {
                 for (size_t y = 1; y < image_h - 1; y++) {
                     for (size_t x = 1; x < image_w - 1; x++) {
                         k = y*image_w + x;
-                        if (points(2,k) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points(2,k+1) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points(2,k-1) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points(2,k+image_w) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points(2,k-image_w) > (typename DepthConverterT::MetricDepth)0.0)
+                        if (points(2,k) > (MetricDepth)0.0 &&
+                            points(2,k+1) > (MetricDepth)0.0 &&
+                            points(2,k-1) > (MetricDepth)0.0 &&
+                            points(2,k+image_w) > (MetricDepth)0.0 &&
+                            points(2,k-image_w) > (MetricDepth)0.0)
                         {
                             normals.col(k).noalias() = (points.col(k+image_w) - points.col(k-image_w)).cross(points.col(k+1) - points.col(k-1)).normalized();
                         }
@@ -646,9 +652,9 @@ namespace cilantro {
                 }
             }
         } else {
-            VectorSet<typename DepthConverterT::MetricDepth,3> points_tmp(3, image_w*image_h);
+            VectorSet<MetricDepth,3> points_tmp(3, image_w*image_h);
             VectorSet<float,3> colors_tmp(3, points_tmp.cols());
-            VectorSet<typename DepthConverterT::MetricDepth,3> normals_tmp(VectorSet<typename DepthConverterT::MetricDepth,3>::Constant(3, points_tmp.cols(), std::numeric_limits<typename DepthConverterT::MetricDepth>::quiet_NaN()));
+            VectorSet<MetricDepth,3> normals_tmp(VectorSet<MetricDepth,3>::Constant(3, points_tmp.cols(), std::numeric_limits<MetricDepth>::quiet_NaN()));
             size_t valid_count = 0;
 
 #pragma omp parallel
@@ -658,10 +664,8 @@ namespace cilantro {
                 for (size_t y = 0; y < image_h; y++) {
                     k = y*image_w;
                     for (size_t x = 0; x < image_w; x++) {
-                        typename DepthConverterT::MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
-                        points_tmp(0,k) = (x - intrinsics(0,2))*z/intrinsics(0,0);
-                        points_tmp(1,k) = (y - intrinsics(1,2))*z/intrinsics(1,1);
-                        points_tmp(2,k) = z;
+                        const MetricDepth z = depth_converter.getMetricValue(depth_data[k]);
+                        points_tmp.col(k).noalias() = intrinsics_inv*Vector<MetricDepth,3>(z*x, z*y, z);
                         colors_tmp(0,k) = color_mult*static_cast<float>(rgb_data[3*k]);
                         colors_tmp(1,k) = color_mult*static_cast<float>(rgb_data[3*k + 1]);
                         colors_tmp(2,k) = color_mult*static_cast<float>(rgb_data[3*k + 2]);
@@ -673,11 +677,11 @@ namespace cilantro {
                 for (size_t y = 1; y < image_h - 1; y++) {
                     for (size_t x = 1; x < image_w - 1; x++) {
                         k = y*image_w + x;
-                        if (points_tmp(2,k) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points_tmp(2,k+1) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points_tmp(2,k-1) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points_tmp(2,k+image_w) > (typename DepthConverterT::MetricDepth)0.0 &&
-                            points_tmp(2,k-image_w) > (typename DepthConverterT::MetricDepth)0.0)
+                        if (points_tmp(2,k) > (MetricDepth)0.0 &&
+                            points_tmp(2,k+1) > (MetricDepth)0.0 &&
+                            points_tmp(2,k-1) > (MetricDepth)0.0 &&
+                            points_tmp(2,k+image_w) > (MetricDepth)0.0 &&
+                            points_tmp(2,k-image_w) > (MetricDepth)0.0)
                         {
                             normals_tmp.col(k).noalias() = (points_tmp.col(k+image_w) - points_tmp.col(k-image_w)).cross(points_tmp.col(k+1) - points_tmp.col(k-1)).normalized();
                             valid_count += 1;
@@ -714,23 +718,30 @@ namespace cilantro {
                             typename DepthConverterT::RawDepth* depth_data,
                             size_t image_w, size_t image_h)
     {
+        using MetricDepth = typename DepthConverterT::MetricDepth;
+        using RawDepth = typename DepthConverterT::RawDepth;
+
+        const Vector<MetricDepth,3> intr0 = intrinsics.row(0);
+        const Vector<MetricDepth,3> intr1 = intrinsics.row(1);
+
 #pragma omp parallel
         {
 #pragma omp for
             for (size_t i = 0; i < image_w*image_h; i++) {
-                depth_data[i] = (typename DepthConverterT::RawDepth)0;
+                depth_data[i] = (RawDepth)0;
             }
 
 #pragma omp for schedule(dynamic, 256)
             for (size_t i = 0; i < points.cols(); i++) {
-                if (points(2,i) <= (typename DepthConverterT::MetricDepth)0.0) continue;
-                size_t x = (size_t)std::llround(points(0,i)*intrinsics(0,0)/points(2,i) + intrinsics(0,2));
-                size_t y = (size_t)std::llround(points(1,i)*intrinsics(1,1)/points(2,i) + intrinsics(1,2));
+                if (points(2,i) <= (MetricDepth)0.0) continue;
+                const MetricDepth inv_z = (MetricDepth)1.0/points(2,i);
+                const size_t x = (size_t)std::llround(inv_z*intr0.dot(points.col(i)));
+                const size_t y = (size_t)std::llround(inv_z*intr1.dot(points.col(i)));
                 if (x >= image_w || y >= image_h) continue;
-                size_t ind = y*image_w + x;
-                typename DepthConverterT::RawDepth depth_val = depth_converter.getRawValue(points(2,i));
-                if (depth_val > (typename DepthConverterT::RawDepth)0 &&
-                    (depth_data[ind] == (typename DepthConverterT::RawDepth)0 || depth_val < depth_data[ind]))
+                const size_t ind = y*image_w + x;
+                const RawDepth depth_val = depth_converter.getRawValue(points(2,i));
+                if (depth_val > (RawDepth)0 &&
+                    (depth_data[ind] == (RawDepth)0 || depth_val < depth_data[ind]))
                 {
                     depth_data[ind] = depth_val;
                 }
@@ -746,27 +757,34 @@ namespace cilantro {
                             typename DepthConverterT::RawDepth* depth_data,
                             size_t image_w, size_t image_h)
     {
-        const RigidTransform<typename DepthConverterT::MetricDepth,3> to_cam(extrinsics.inverse());
+        using MetricDepth = typename DepthConverterT::MetricDepth;
+        using RawDepth = typename DepthConverterT::RawDepth;
+
+        const Vector<MetricDepth,3> intr0 = intrinsics.row(0);
+        const Vector<MetricDepth,3> intr1 = intrinsics.row(1);
+
+        const RigidTransform<MetricDepth,3> to_cam(extrinsics.inverse());
 
 #pragma omp parallel
         {
 #pragma omp for
             for (size_t i = 0; i < image_w*image_h; i++) {
-                depth_data[i] = (typename DepthConverterT::RawDepth)0;
+                depth_data[i] = (RawDepth)0;
             }
 
-            Vector<typename DepthConverterT::MetricDepth,3> pt_cam;
+            Vector<MetricDepth,3> pt_cam;
 #pragma omp for schedule(dynamic, 256)
             for (size_t i = 0; i < points.cols(); i++) {
                 pt_cam.noalias() = to_cam*points.col(i);
-                if (pt_cam(2) <= (typename DepthConverterT::MetricDepth)0.0) continue;
-                size_t x = (size_t)std::llround(pt_cam(0)*intrinsics(0,0)/pt_cam(2) + intrinsics(0,2));
-                size_t y = (size_t)std::llround(pt_cam(1)*intrinsics(1,1)/pt_cam(2) + intrinsics(1,2));
+                if (pt_cam[2] <= (MetricDepth)0.0) continue;
+                const MetricDepth inv_z = (MetricDepth)1.0/pt_cam[2];
+                const size_t x = (size_t)std::llround(inv_z*intr0.dot(pt_cam));
+                const size_t y = (size_t)std::llround(inv_z*intr1.dot(pt_cam));
                 if (x >= image_w || y >= image_h) continue;
-                size_t ind = y*image_w + x;
-                typename DepthConverterT::RawDepth depth_val = depth_converter.getRawValue(pt_cam(2));
-                if (depth_val > (typename DepthConverterT::RawDepth)0 &&
-                    (depth_data[ind] == (typename DepthConverterT::RawDepth)0 || depth_val < depth_data[ind]))
+                const size_t ind = y*image_w + x;
+                const RawDepth depth_val = depth_converter.getRawValue(pt_cam[2]);
+                if (depth_val > (RawDepth)0 &&
+                    (depth_data[ind] == (RawDepth)0 || depth_val < depth_data[ind]))
                 {
                     depth_data[ind] = depth_val;
                 }
@@ -783,6 +801,12 @@ namespace cilantro {
                                   typename DepthConverterT::RawDepth* depth_data,
                                   size_t image_w, size_t image_h)
     {
+        using MetricDepth = typename DepthConverterT::MetricDepth;
+        using RawDepth = typename DepthConverterT::RawDepth;
+
+        const Vector<MetricDepth,3> intr0 = intrinsics.row(0);
+        const Vector<MetricDepth,3> intr1 = intrinsics.row(1);
+
 #pragma omp parallel
         {
 #pragma omp for
@@ -790,19 +814,20 @@ namespace cilantro {
                 rgb_data[3*i] = (unsigned char)0;
                 rgb_data[3*i + 1] = (unsigned char)0;
                 rgb_data[3*i + 2] = (unsigned char)0;
-                depth_data[i] = (typename DepthConverterT::RawDepth)0;
+                depth_data[i] = (RawDepth)0;
             }
 
 #pragma omp for schedule(dynamic, 256)
             for (size_t i = 0; i < points.cols(); i++) {
-                if (points(2,i) <= (typename DepthConverterT::MetricDepth)0.0) continue;
-                size_t x = (size_t)std::llround(points(0,i)*intrinsics(0,0)/points(2,i) + intrinsics(0,2));
-                size_t y = (size_t)std::llround(points(1,i)*intrinsics(1,1)/points(2,i) + intrinsics(1,2));
+                if (points(2,i) <= (MetricDepth)0.0) continue;
+                const MetricDepth inv_z = (MetricDepth)1.0/points(2,i);
+                const size_t x = (size_t)std::llround(inv_z*intr0.dot(points.col(i)));
+                const size_t y = (size_t)std::llround(inv_z*intr1.dot(points.col(i)));
                 if (x >= image_w || y >= image_h) continue;
-                size_t ind = y*image_w + x;
-                typename DepthConverterT::RawDepth depth_val = depth_converter.getRawValue(points(2,i));
-                if (depth_val > (typename DepthConverterT::RawDepth)0 &&
-                    (depth_data[ind] == (typename DepthConverterT::RawDepth)0 || depth_val < depth_data[ind]))
+                const size_t ind = y*image_w + x;
+                const RawDepth depth_val = depth_converter.getRawValue(points(2,i));
+                if (depth_val > (RawDepth)0 &&
+                    (depth_data[ind] == (RawDepth)0 || depth_val < depth_data[ind]))
                 {
                     rgb_data[3*ind] = static_cast<unsigned char>(255.0f*colors(0,i));
                     rgb_data[3*ind + 1] = static_cast<unsigned char>(255.0f*colors(1,i));
@@ -823,7 +848,13 @@ namespace cilantro {
                                   typename DepthConverterT::RawDepth* depth_data,
                                   size_t image_w, size_t image_h)
     {
-        const RigidTransform<typename DepthConverterT::MetricDepth,3> to_cam(extrinsics.inverse());
+        using MetricDepth = typename DepthConverterT::MetricDepth;
+        using RawDepth = typename DepthConverterT::RawDepth;
+
+        const Vector<MetricDepth,3> intr0 = intrinsics.row(0);
+        const Vector<MetricDepth,3> intr1 = intrinsics.row(1);
+
+        const RigidTransform<MetricDepth,3> to_cam(extrinsics.inverse());
 
 #pragma omp parallel
         {
@@ -832,21 +863,22 @@ namespace cilantro {
                 rgb_data[3*i] = (unsigned char)0;
                 rgb_data[3*i + 1] = (unsigned char)0;
                 rgb_data[3*i + 2] = (unsigned char)0;
-                depth_data[i] = (typename DepthConverterT::RawDepth)0;
+                depth_data[i] = (RawDepth)0;
             }
 
-            Vector<typename DepthConverterT::MetricDepth,3> pt_cam;
+            Vector<MetricDepth,3> pt_cam;
 #pragma omp for schedule(dynamic, 256)
             for (size_t i = 0; i < points.cols(); i++) {
                 pt_cam.noalias() = to_cam*points.col(i);
-                if (pt_cam(2) <= (typename DepthConverterT::MetricDepth)0.0) continue;
-                size_t x = (size_t)std::llround(pt_cam(0)*intrinsics(0,0)/pt_cam(2) + intrinsics(0,2));
-                size_t y = (size_t)std::llround(pt_cam(1)*intrinsics(1,1)/pt_cam(2) + intrinsics(1,2));
+                if (pt_cam[2] <= (MetricDepth)0.0) continue;
+                const MetricDepth inv_z = (MetricDepth)1.0/pt_cam[2];
+                const size_t x = (size_t)std::llround(inv_z*intr0.dot(pt_cam));
+                const size_t y = (size_t)std::llround(inv_z*intr1.dot(pt_cam));
                 if (x >= image_w || y >= image_h) continue;
-                size_t ind = y*image_w + x;
-                typename DepthConverterT::RawDepth depth_val = depth_converter.getRawValue(pt_cam(2));
-                if (depth_val > (typename DepthConverterT::RawDepth)0 &&
-                    (depth_data[ind] == (typename DepthConverterT::RawDepth)0 || depth_val < depth_data[ind]))
+                const size_t ind = y*image_w + x;
+                const RawDepth depth_val = depth_converter.getRawValue(pt_cam[2]);
+                if (depth_val > (RawDepth)0 &&
+                    (depth_data[ind] == (RawDepth)0 || depth_val < depth_data[ind]))
                 {
                     rgb_data[3*ind] = static_cast<unsigned char>(255.0f*colors(0,i));
                     rgb_data[3*ind + 1] = static_cast<unsigned char>(255.0f*colors(1,i));
@@ -865,6 +897,9 @@ namespace cilantro {
     {
         const IndexT empty = std::numeric_limits<IndexT>::max();
 
+        const Vector<PointT,3> intr0 = intrinsics.row(0);
+        const Vector<PointT,3> intr1 = intrinsics.row(1);
+
 #pragma omp parallel
         {
 #pragma omp for
@@ -875,10 +910,11 @@ namespace cilantro {
 #pragma omp for schedule(dynamic, 256)
             for (IndexT i = 0; i < points.cols(); i++) {
                 if (points(2,i) <= (PointT)0.0) continue;
-                size_t x = (size_t)std::llround(points(0,i)*intrinsics(0,0)/points(2,i) + intrinsics(0,2));
-                size_t y = (size_t)std::llround(points(1,i)*intrinsics(1,1)/points(2,i) + intrinsics(1,2));
+                const PointT inv_z = (PointT)1.0/points(2,i);
+                const size_t x = (size_t)std::llround(inv_z*intr0.dot(points.col(i)));
+                const size_t y = (size_t)std::llround(inv_z*intr1.dot(points.col(i)));
                 if (x >= image_w || y >= image_h) continue;
-                size_t ind = y*image_w + x;
+                const size_t ind = y*image_w + x;
                 if (index_map_data[ind] == empty || points(2,i) < points(2,index_map_data[ind])) {
                     index_map_data[ind] = i;
                 }
@@ -893,8 +929,12 @@ namespace cilantro {
                           IndexT* index_map_data,
                           size_t image_w, size_t image_h)
     {
-        const RigidTransform<PointT,3> to_cam(extrinsics.inverse());
         const IndexT empty = std::numeric_limits<IndexT>::max();
+
+        const Vector<PointT,3> intr0 = intrinsics.row(0);
+        const Vector<PointT,3> intr1 = intrinsics.row(1);
+
+        const RigidTransform<PointT,3> to_cam(extrinsics.inverse());
 
         VectorSet<PointT,3> points_cam(3, points.cols());
 #pragma omp parallel
@@ -912,10 +952,11 @@ namespace cilantro {
 #pragma omp for schedule(dynamic, 256)
             for (IndexT i = 0; i < points.cols(); i++) {
                 if (points_cam(2,i) <= (PointT)0.0) continue;
-                size_t x = (size_t)std::llround(points_cam(0,i)*intrinsics(0,0)/points_cam(2,i) + intrinsics(0,2));
-                size_t y = (size_t)std::llround(points_cam(1,i)*intrinsics(1,1)/points_cam(2,i) + intrinsics(1,2));
+                const PointT inv_z = (PointT)1.0/points_cam(2,i);
+                const size_t x = (size_t)std::llround(inv_z*intr0.dot(points_cam.col(i)));
+                const size_t y = (size_t)std::llround(inv_z*intr1.dot(points_cam.col(i)));
                 if (x >= image_w || y >= image_h) continue;
-                size_t ind = y*image_w + x;
+                const size_t ind = y*image_w + x;
                 if (index_map_data[ind] == empty || points_cam(2,i) < points_cam(2,index_map_data[ind])) {
                     index_map_data[ind] = i;
                 }
