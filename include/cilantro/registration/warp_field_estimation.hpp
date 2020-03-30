@@ -309,7 +309,6 @@ namespace cilantro {
             AtA = At*At.transpose();
             Atb.noalias() = At*b;
 
-//            solver.compute(AtA);
             if (iter == 0) solver.analyzePattern(AtA);
             solver.factorize(AtA);
             delta = solver.solve(Atb);
@@ -324,8 +323,6 @@ namespace cilantro {
                 curr_delta_sq = delta.template segment<3>(3*i).squaredNorm();
                 if (curr_delta_sq > max_delta_sq) max_delta_sq = curr_delta_sq;
             }
-
-//            std::cout << iter << ": " << std::sqrt(max_delta_sq) << std::endl;
 
             if (max_delta_sq < gn_conv_tol_sq) {
                 has_converged = true;
@@ -627,7 +624,6 @@ namespace cilantro {
             AtA = At*At.transpose();
             Atb.noalias() = At*b;
 
-//            solver.compute(AtA);
             if (iter == 0) solver.analyzePattern(AtA);
             solver.factorize(AtA);
             delta = solver.solve(Atb);
@@ -642,8 +638,6 @@ namespace cilantro {
                 curr_delta_sq = delta.template segment<6>(6*i).squaredNorm();
                 if (curr_delta_sq > max_delta_sq) max_delta_sq = curr_delta_sq;
             }
-
-//            std::cout << iter << ": " << std::sqrt(max_delta_sq) << std::endl;
 
             if (max_delta_sq < gn_conv_tol_sq) {
                 has_converged = true;
@@ -882,7 +876,6 @@ namespace cilantro {
             AtA = At*At.transpose();
             Atb.noalias() = At*b;
 
-//            solver.compute(AtA);
             if (iter == 0) solver.analyzePattern(AtA);
             solver.factorize(AtA);
             delta = solver.solve(Atb);
@@ -897,8 +890,6 @@ namespace cilantro {
                 curr_delta_sq = delta.template segment<NumUnknownsLocal>(NumUnknownsLocal*i).squaredNorm();
                 if (curr_delta_sq > max_delta_sq) max_delta_sq = curr_delta_sq;
             }
-
-//            std::cout << iter << ": " << std::sqrt(max_delta_sq) << std::endl;
 
             if (max_delta_sq < gn_conv_tol_sq) {
                 has_converged = true;
@@ -1239,7 +1230,6 @@ namespace cilantro {
             AtA = At*At.transpose();
             Atb.noalias() = At*b;
 
-//            solver.compute(AtA);
             if (iter == 0) solver.analyzePattern(AtA);
             solver.factorize(AtA);
             delta = solver.solve(Atb);
@@ -1254,8 +1244,6 @@ namespace cilantro {
                 curr_delta_sq = delta.template segment<3>(3*i).squaredNorm();
                 if (curr_delta_sq > max_delta_sq) max_delta_sq = curr_delta_sq;
             }
-
-//            std::cout << iter << ": " << std::sqrt(max_delta_sq) << std::endl;
 
             if (max_delta_sq < gn_conv_tol_sq) {
                 has_converged = true;
@@ -1658,7 +1646,6 @@ namespace cilantro {
             AtA = At*At.transpose();
             Atb.noalias() = At*b;
 
-//            solver.compute(AtA);
             if (iter == 0) solver.analyzePattern(AtA);
             solver.factorize(AtA);
             delta = solver.solve(Atb);
@@ -1673,8 +1660,6 @@ namespace cilantro {
                 curr_delta_sq = delta.template segment<6>(6*i).squaredNorm();
                 if (curr_delta_sq > max_delta_sq) max_delta_sq = curr_delta_sq;
             }
-
-//            std::cout << iter << ": " << std::sqrt(max_delta_sq) << std::endl;
 
             if (max_delta_sq < gn_conv_tol_sq) {
                 has_converged = true;
@@ -2003,7 +1988,6 @@ namespace cilantro {
             AtA = At*At.transpose();
             Atb.noalias() = At*b;
 
-//            solver.compute(AtA);
             if (iter == 0) solver.analyzePattern(AtA);
             solver.factorize(AtA);
             delta = solver.solve(Atb);
@@ -2018,8 +2002,6 @@ namespace cilantro {
                 curr_delta_sq = delta.template segment<NumUnknownsLocal>(NumUnknownsLocal*i).squaredNorm();
                 if (curr_delta_sq > max_delta_sq) max_delta_sq = curr_delta_sq;
             }
-
-//            std::cout << iter << ": " << std::sqrt(max_delta_sq) << std::endl;
 
             if (max_delta_sq < gn_conv_tol_sq) {
                 has_converged = true;

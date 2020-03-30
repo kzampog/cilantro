@@ -249,7 +249,7 @@ namespace cilantro {
         {
             std::vector<IdxT> indices;
             indices.reserve(points.cols());
-            for (IdxT i = 0; i < points.cols(); i++) {
+            for (size_t i = 0; i < points.cols(); i++) {
                 if (containsPoint(points.col(i), offset)) indices.emplace_back(i);
             }
             return indices;

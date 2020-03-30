@@ -120,7 +120,7 @@ namespace cilantro {
         inline const Vector<ScalarT,EigenDim>& getInteriorPoint() const { return interior_point_; }
 
         inline bool containsPoint(const Eigen::Ref<const Vector<ScalarT,EigenDim>> &point, ScalarT offset = 0.0) const {
-            for (IndexT i = 0; i < halfspaces_.cols(); i++) {
+            for (size_t i = 0; i < halfspaces_.cols(); i++) {
                 if (point.dot(halfspaces_.col(i).head(dim_)) + halfspaces_(dim_,i) > -offset) return false;
             }
             return true;
@@ -134,7 +134,7 @@ namespace cilantro {
                                                                         ScalarT offset = 0.0) const
         {
             Eigen::Matrix<bool,1,Eigen::Dynamic> mask(1,points.cols());
-            for (IndexT i = 0; i < points.cols(); i++) {
+            for (size_t i = 0; i < points.cols(); i++) {
                 mask(i) = containsPoint(points.col(i), offset);
             }
             return mask;
@@ -146,7 +146,7 @@ namespace cilantro {
         {
             std::vector<IdxT> indices;
             indices.reserve(points.cols());
-            for (IdxT i = 0; i < points.cols(); i++) {
+            for (size_t i = 0; i < points.cols(); i++) {
                 if (containsPoint(points.col(i), offset)) indices.emplace_back(i);
             }
             return indices;

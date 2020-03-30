@@ -12,6 +12,7 @@ namespace cilantro {
                                              const EvaluatorT &evaluator = EvaluatorT())
     {
         using CorrIndexT = typename CorrSetT::value_type::Index;
+        using CorrScalarT = typename CorrSetT::value_type::Scalar;
 
         if (ref_tree.getPointsMatrixMap().cols() == 0) {
             correspondences.clear();
@@ -24,17 +25,17 @@ namespace cilantro {
         typename EvaluatorT::OutputScalar dist;
         if (ref_is_first) {
 #pragma omp parallel for shared(corr_tmp) private(nn, dist) schedule(dynamic, 256)
-            for (CorrIndexT i = 0; i < query_pts.cols(); i++) {
+            for (size_t i = 0; i < query_pts.cols(); i++) {
                 ref_tree.kNNInRadiusSearch(query_pts.col(i), 1, max_distance, nn);
                 keep[i] = !nn.empty() && (dist = evaluator(nn[0].index, i, nn[0].value)) < max_distance;
-                if (keep[i]) corr_tmp[i] = {nn[0].index, i, dist};
+                if (keep[i]) corr_tmp[i] = {static_cast<CorrIndexT>(nn[0].index), static_cast<CorrIndexT>(i), static_cast<CorrScalarT>(dist)};
             }
         } else {
 #pragma omp parallel for shared(corr_tmp) private(nn, dist) schedule(dynamic, 256)
-            for (CorrIndexT i = 0; i < query_pts.cols(); i++) {
+            for (size_t i = 0; i < query_pts.cols(); i++) {
                 ref_tree.kNNInRadiusSearch(query_pts.col(i), 1, max_distance, nn);
                 keep[i] = !nn.empty() && (dist = evaluator(i, nn[0].index, nn[0].value)) < max_distance;
-                if (keep[i]) corr_tmp[i] = {i, nn[0].index, dist};
+                if (keep[i]) corr_tmp[i] = {static_cast<CorrIndexT>(i), static_cast<CorrIndexT>(nn[0].index), static_cast<CorrScalarT>(dist)};
             }
         }
 

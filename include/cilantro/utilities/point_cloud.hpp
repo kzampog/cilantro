@@ -31,7 +31,7 @@ namespace cilantro {
                 : points(points), normals(normals), colors(colors)
         {}
 
-        template <typename IndexT = size_t>
+        template <typename IndexT>
         PointCloud(const PointCloud<ScalarT,EigenDim> &cloud,
                    const std::vector<IndexT> &indices,
                    bool negate = false)
@@ -39,7 +39,7 @@ namespace cilantro {
             std::set<IndexT> indices_set;
             if (negate) {
                 std::vector<IndexT> full_indices(cloud.size());
-                for (IndexT i = 0; i < cloud.size(); i++) full_indices[i] = i;
+                for (size_t i = 0; i < cloud.size(); i++) full_indices[i] = static_cast<IndexT>(i);
                 std::set<IndexT> indices_to_discard(indices.begin(), indices.end());
                 std::set_difference(full_indices.begin(), full_indices.end(), indices_to_discard.begin(), indices_to_discard.end(), std::inserter(indices_set, indices_set.begin()));
             } else {
@@ -148,7 +148,7 @@ namespace cilantro {
             return *this;
         }
 
-        template <typename IndexT = size_t>
+        template <typename IndexT>
         PointCloud& remove(const std::vector<IndexT> &indices) {
             if (indices.empty()) return *this;
 

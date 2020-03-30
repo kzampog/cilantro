@@ -150,6 +150,9 @@ namespace cilantro {
             SearchResult corr_tmp(src_points_trans.cols());
             const CorrespondenceScalar value_to_reject = max_distance_ + (CorrespondenceScalar)1.0;
 
+            const Vector<ScalarT,3> intr0 = projection_intrinsics_.row(0);
+            const Vector<ScalarT,3> intr1 = projection_intrinsics_.row(1);
+
 #pragma omp parallel
             {
 #pragma omp for
@@ -159,16 +162,17 @@ namespace cilantro {
 
                 Vector<ScalarT,3> src_pt_trans_cam;
 #pragma omp for schedule(dynamic, 256)
-                for (IndexT i = 0; i < src_points_trans.cols(); i++) {
+                for (size_t i = 0; i < src_points_trans.cols(); i++) {
                     src_pt_trans_cam.noalias() = projection_extrinsics_inv_*src_points_trans.col(i);
-                    if (src_pt_trans_cam(2) <= (ScalarT)0.0) continue;
-                    size_t x = (size_t)std::llround(src_pt_trans_cam(0)*projection_intrinsics_(0,0)/src_pt_trans_cam(2) + projection_intrinsics_(0,2));
-                    size_t y = (size_t)std::llround(src_pt_trans_cam(1)*projection_intrinsics_(1,1)/src_pt_trans_cam(2) + projection_intrinsics_(1,2));
+                    if (src_pt_trans_cam[2] <= (ScalarT)0.0) continue;
+                    const ScalarT inv_z = (ScalarT)1.0/src_pt_trans_cam[2];
+                    const size_t x = (size_t)std::llround(inv_z*intr0.dot(src_pt_trans_cam));
+                    const size_t y = (size_t)std::llround(inv_z*intr1.dot(src_pt_trans_cam));
                     if (x >= projection_image_width_ || y >= projection_image_height_) continue;
-                    IndexT ind = index_map_(x,y);
+                    const IndexT ind = index_map_(x,y);
                     if (ind == empty) continue;
                     corr_tmp[i].indexInFirst = ind;
-                    corr_tmp[i].indexInSecond = i;
+                    corr_tmp[i].indexInSecond = static_cast<IndexT>(i);
                     corr_tmp[i].value = evaluator_(ind, i, (src_points_trans.col(i) - dst_points.col(ind)).squaredNorm());
                 }
             }

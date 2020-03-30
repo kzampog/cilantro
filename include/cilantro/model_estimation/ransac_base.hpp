@@ -77,7 +77,7 @@ namespace cilantro {
 
             // Initialize random permutation
             IndexVector perm(num_points);
-            for (Index i = 0; i < num_points; i++) perm[i] = i;
+            for (size_t i = 0; i < num_points; i++) perm[i] = static_cast<IndexT>(i);
             std::shuffle(perm.begin(), perm.end(), rng);
             auto sample_start_it = perm.begin();
 
@@ -101,8 +101,8 @@ namespace cilantro {
                 estimator.computeResiduals(curr_params, curr_residuals);
                 curr_inliers.resize(num_points);
                 size_t k = 0;
-                for (Index i = 0; i < num_points; i++) {
-                    if (curr_residuals[i] <= inlier_dist_thresh_) curr_inliers[k++] = i;
+                for (size_t i = 0; i < num_points; i++) {
+                    if (curr_residuals[i] <= inlier_dist_thresh_) curr_inliers[k++] = static_cast<IndexT>(i);
                 }
                 curr_inliers.resize(k);
 
@@ -126,8 +126,8 @@ namespace cilantro {
                 estimator.computeResiduals(model_params_, model_residuals_);
                 model_inliers_.resize(num_points);
                 size_t k = 0;
-                for (Index i = 0; i < num_points; i++){
-                    if (model_residuals_[i] <= inlier_dist_thresh_) model_inliers_[k++] = i;
+                for (size_t i = 0; i < num_points; i++){
+                    if (model_residuals_[i] <= inlier_dist_thresh_) model_inliers_[k++] = static_cast<IndexT>(i);
                 }
                 model_inliers_.resize(k);
             }

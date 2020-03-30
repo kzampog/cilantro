@@ -908,7 +908,7 @@ namespace cilantro {
             }
 
 #pragma omp for schedule(dynamic, 256)
-            for (IndexT i = 0; i < points.cols(); i++) {
+            for (size_t i = 0; i < points.cols(); i++) {
                 if (points(2,i) <= (PointT)0.0) continue;
                 const PointT inv_z = (PointT)1.0/points(2,i);
                 const size_t x = (size_t)std::llround(inv_z*intr0.dot(points.col(i)));
@@ -916,7 +916,7 @@ namespace cilantro {
                 if (x >= image_w || y >= image_h) continue;
                 const size_t ind = y*image_w + x;
                 if (index_map_data[ind] == empty || points(2,i) < points(2,index_map_data[ind])) {
-                    index_map_data[ind] = i;
+                    index_map_data[ind] = static_cast<IndexT>(i);
                 }
             }
         }
@@ -950,7 +950,7 @@ namespace cilantro {
             }
 
 #pragma omp for schedule(dynamic, 256)
-            for (IndexT i = 0; i < points.cols(); i++) {
+            for (size_t i = 0; i < points.cols(); i++) {
                 if (points_cam(2,i) <= (PointT)0.0) continue;
                 const PointT inv_z = (PointT)1.0/points_cam(2,i);
                 const size_t x = (size_t)std::llround(inv_z*intr0.dot(points_cam.col(i)));
@@ -958,7 +958,7 @@ namespace cilantro {
                 if (x >= image_w || y >= image_h) continue;
                 const size_t ind = y*image_w + x;
                 if (index_map_data[ind] == empty || points_cam(2,i) < points_cam(2,index_map_data[ind])) {
-                    index_map_data[ind] = i;
+                    index_map_data[ind] = static_cast<IndexT>(i);
                 }
             }
         }
