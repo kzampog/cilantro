@@ -4,60 +4,94 @@
 #include <Eigen/Dense>
 
 namespace cilantro {
-    static std::vector<size_t> getPointToClusterIndexMap(const std::vector<std::vector<size_t>> &cluster_to_point,
+    template <typename ClusterIndexT = size_t, typename PointIndexT = size_t>
+    std::vector<ClusterIndexT> getPointToClusterIndexMap(const std::vector<std::vector<PointIndexT>> &cluster_to_point,
                                                          size_t num_points)
     {
-        std::vector<size_t> point_to_segment(num_points, cluster_to_point.size());
+        // cluster_to_point.size() signifies unlabeled point
+        std::vector<ClusterIndexT> point_to_segment(num_points, cluster_to_point.size());
         for (size_t i = 0; i < cluster_to_point.size(); i++) {
             for (size_t j = 0; j < cluster_to_point[i].size(); j++) {
-                point_to_segment[cluster_to_point[i][j]] = i;
+                point_to_segment[cluster_to_point[i][j]] = static_cast<ClusterIndexT>(i);
             }
         }
         return point_to_segment;
     }
 
-    static std::vector<std::vector<size_t>> getClusterToPointIndicesMap(const std::vector<size_t> &point_to_cluster,
-                                                                        size_t num_clusters)
+    // Cluster indices in point_to_cluster are in [0, num_clusters - 1];
+    // a cluster index >= num_clusters signifies unlabeled point
+    template <typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    std::vector<std::vector<PointIndexT>> getClusterToPointIndicesMap(const std::vector<ClusterIndexT> &point_to_cluster,
+                                                                      size_t num_clusters)
     {
-        std::vector<std::vector<size_t>> segment_to_point(num_clusters);
+        const ClusterIndexT first_invalid_cluster_idx = static_cast<ClusterIndexT>(num_clusters);
+        std::vector<std::vector<PointIndexT>> cluster_to_point(num_clusters);
         for (size_t i = 0; i < point_to_cluster.size(); i++) {
-            segment_to_point[point_to_cluster[i]].emplace_back(i);
+            if (point_to_cluster[i] < first_invalid_cluster_idx) cluster_to_point[point_to_cluster[i]].emplace_back(i);
         }
-        return segment_to_point;
+        return cluster_to_point;
     }
 
-    static std::vector<size_t> getUnlabeledPointIndices(const std::vector<std::vector<size_t>> &cluster_to_point,
-                                                        const std::vector<size_t> &point_to_cluster)
+    // Cluster indices in point_to_cluster are in [0, num_clusters - 1];
+    // a cluster index >= num_clusters signifies unlabeled point
+    template <typename PointIndexT, typename ClusterIndexT>
+    std::vector<PointIndexT> getLabeledPointIndices(const std::vector<ClusterIndexT> &point_to_cluster,
+                                                    size_t num_clusters)
     {
-        const size_t no_label = cluster_to_point.size();
-        std::vector<size_t> res;
-        res.reserve(point_to_cluster.size());
+        const ClusterIndexT first_invalid_cluster_idx = static_cast<ClusterIndexT>(num_clusters);
+        std::vector<PointIndexT> res;
         for (size_t i = 0; i < point_to_cluster.size(); i++) {
-            if (point_to_cluster[i] == no_label) res.emplace_back(i);
+            if (point_to_cluster[i] < first_invalid_cluster_idx) res.emplace_back(i);
+        }
+        return res;
+    }
+
+    // Cluster indices in point_to_cluster are in [0, num_clusters - 1];
+    // a cluster index >= num_clusters signifies unlabeled point
+    template <typename PointIndexT, typename ClusterIndexT>
+    std::vector<PointIndexT> getUnlabeledPointIndices(const std::vector<ClusterIndexT> &point_to_cluster,
+                                                      size_t num_clusters)
+    {
+        const ClusterIndexT first_invalid_cluster_idx = static_cast<ClusterIndexT>(num_clusters);
+        std::vector<PointIndexT> res;
+        for (size_t i = 0; i < point_to_cluster.size(); i++) {
+            if (point_to_cluster[i] >= first_invalid_cluster_idx) res.emplace_back(i);
         }
         return res;
     }
 
     // CRTP base class that holds clustering results and accessors
-    template <typename Derived = void>
+    template <typename Derived, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
     class ClusteringBase {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        inline const std::vector<std::vector<size_t>>& getClusterToPointIndicesMap() const { return cluster_to_point_indices_map_; }
+        typedef PointIndexT PointIndex;
+        typedef ClusterIndexT ClusterIndex;
 
-        inline const std::vector<size_t>& getPointToClusterIndexMap() const { return point_to_cluster_index_map_; }
+        typedef std::vector<std::vector<PointIndexT>> ClusterToPointIndicesMap;
+        typedef std::vector<ClusterIndexT> PointToClusterIndexMap;
+
+        inline const ClusterToPointIndicesMap& getClusterToPointIndicesMap() const { return cluster_to_point_indices_map_; }
+
+        inline const PointToClusterIndexMap& getPointToClusterIndexMap() const { return point_to_cluster_index_map_; }
 
         inline size_t getNumberOfClusters() const { return cluster_to_point_indices_map_.size(); }
 
         inline size_t getNumberOfPoints() const { return point_to_cluster_index_map_.size(); }
 
-        inline std::vector<size_t> getUnlabeledPointIndices() const {
-            return cilantro::getUnlabeledPointIndices(cluster_to_point_indices_map_, point_to_cluster_index_map_);
+        template <typename IndexT = PointIndexT>
+        inline std::vector<IndexT> getLabeledPointIndices() const {
+            return cilantro::getLabeledPointIndices<IndexT>(point_to_cluster_index_map_, cluster_to_point_indices_map_.size());
+        }
+
+        template <typename IndexT = PointIndexT>
+        inline std::vector<IndexT> getUnlabeledPointIndices() const {
+            return cilantro::getUnlabeledPointIndices<IndexT>(point_to_cluster_index_map_, cluster_to_point_indices_map_.size());
         }
 
     protected:
-        std::vector<std::vector<size_t>> cluster_to_point_indices_map_;
-        std::vector<size_t> point_to_cluster_index_map_;
+        ClusterToPointIndicesMap cluster_to_point_indices_map_;
+        PointToClusterIndexMap point_to_cluster_index_map_;
     };
 }
