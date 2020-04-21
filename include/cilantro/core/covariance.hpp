@@ -131,7 +131,7 @@ namespace cilantro {
 
         inline ScalarT getChiSquareThreshold() const { return chi_square_threshold_; }
 
-        inline MinimumCovarianceDeterminant& setChiSquareThreshold(int chi_square_threshold) {
+        inline MinimumCovarianceDeterminant& setChiSquareThreshold(ScalarT chi_square_threshold) {
             chi_square_threshold_ = chi_square_threshold;
             return *this;
         }
