@@ -46,7 +46,7 @@ namespace cilantro {
         };
     }
 
-    enum struct GraphLaplacianType {UNNORMALIZED, NORMALIZED_SYMMETRIC, NORMALIZED_RANDOM_WALK};
+    enum struct GraphLaplacianType { UNNORMALIZED, NORMALIZED_SYMMETRIC, NORMALIZED_RANDOM_WALK };
 
     template <class VectorT>
     size_t estimateNumberOfClustersEigengap(const VectorT &eigenvalues,

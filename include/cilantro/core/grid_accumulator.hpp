@@ -49,7 +49,7 @@ namespace cilantro {
         }
     };
 
-    template <typename ScalarT, ptrdiff_t EigenDim, class AccumulatorProxy, typename GridPointScalarT = ptrdiff_t>
+    template <typename ScalarT, ptrdiff_t EigenDim, class AccumulatorProxyT, typename GridPointScalarT = ptrdiff_t>
     class GridAccumulator {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -58,7 +58,11 @@ namespace cilantro {
 
         enum { Dimension = EigenDim };
 
-        typedef typename AccumulatorProxy::Accumulator Accumulator;
+        typedef typename AccumulatorProxyT::Accumulator Accumulator;
+
+        typedef AccumulatorProxyT AccumulatorProxy;
+
+        typedef GridPointScalarT GridPointScalar;
 
         typedef Eigen::Matrix<GridPointScalarT,EigenDim,1> GridPoint;
 

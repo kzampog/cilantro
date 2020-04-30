@@ -5,7 +5,7 @@
 #include <cilantro/core/nearest_neighbors.hpp>
 
 namespace cilantro {
-    struct KDTreeDataAdaptors {
+    namespace KDTreeDataAdaptors {
         // Eigen Map to nanoflann adaptor class
         template <class ScalarT, ptrdiff_t EigenDim>
         struct EigenMap {
@@ -32,7 +32,7 @@ namespace cilantro {
             template <class BBOX>
             bool kdtree_get_bbox(BBOX& /*bb*/) const { return false; }
         };
-    };
+    }
 
     struct KDTreeDistanceAdaptors {
         template <class DataAdaptor>

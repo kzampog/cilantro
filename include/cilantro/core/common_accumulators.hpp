@@ -9,7 +9,7 @@ namespace cilantro {
 
         typedef IndexT Index;
 
-        enum {EigenAlign = 0};
+        enum { EigenAlign = 0 };
 
         inline IndexAccumulator() {}
 
@@ -44,7 +44,11 @@ namespace cilantro {
     struct PointSumAccumulator {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        enum {EigenAlign = (EigenDim != Eigen::Dynamic) && (sizeof(Vector<ScalarT,EigenDim>) % 16 == 0)};
+        typedef ScalarT Scalar;
+
+        enum { Dimension = EigenDim };
+
+        enum { EigenAlign = (EigenDim != Eigen::Dynamic) && (sizeof(Vector<ScalarT,EigenDim>) % 16 == 0) };
 
         inline PointSumAccumulator(size_t dim = 0) : pointSum(Vector<ScalarT,EigenDim>::Zero(dim,1)), pointCount(0) {}
 
@@ -91,7 +95,11 @@ namespace cilantro {
     struct PointNormalSumAccumulator {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        enum {EigenAlign = (EigenDim != Eigen::Dynamic) && (sizeof(Vector<ScalarT,EigenDim>) % 16 == 0)};
+        typedef ScalarT Scalar;
+
+        enum { Dimension = EigenDim };
+
+        enum { EigenAlign = (EigenDim != Eigen::Dynamic) && (sizeof(Vector<ScalarT,EigenDim>) % 16 == 0) };
 
         inline PointNormalSumAccumulator(size_t dim = 0)
                 : pointSum(Vector<ScalarT,EigenDim>::Zero(dim,1)),
@@ -156,7 +164,11 @@ namespace cilantro {
     struct PointColorSumAccumulator {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        enum {EigenAlign = (EigenDim != Eigen::Dynamic) && (sizeof(Vector<ScalarT,EigenDim>) % 16 == 0)};
+        typedef ScalarT Scalar;
+
+        enum { Dimension = EigenDim };
+
+        enum { EigenAlign = (EigenDim != Eigen::Dynamic) && (sizeof(Vector<ScalarT,EigenDim>) % 16 == 0) };
 
         inline PointColorSumAccumulator(size_t dim = 0)
                 : pointSum(Vector<ScalarT,EigenDim>::Zero(dim,1)),
@@ -213,7 +225,11 @@ namespace cilantro {
     struct PointNormalColorSumAccumulator {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        enum {EigenAlign = (EigenDim != Eigen::Dynamic) && (sizeof(Vector<ScalarT,EigenDim>) % 16 == 0)};
+        typedef ScalarT Scalar;
+
+        enum { Dimension = EigenDim };
+
+        enum { EigenAlign = (EigenDim != Eigen::Dynamic) && (sizeof(Vector<ScalarT,EigenDim>) % 16 == 0) };
 
         inline PointNormalColorSumAccumulator(size_t dim = 0)
                 : pointSum(Vector<ScalarT,EigenDim>::Zero(dim,1)),

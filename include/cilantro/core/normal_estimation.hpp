@@ -11,6 +11,7 @@ namespace cilantro {
 
         typedef ScalarT Scalar;
         typedef IndexT Index;
+        typedef CovarianceT Covariance;
         typedef KDTree<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2,IndexT> SearchTree;
 
         enum { Dimension = EigenDim };

@@ -5,8 +5,10 @@
 
 namespace cilantro {
     // Copied from https://gist.github.com/cbsmith/5538174
-    template <typename RandomGenerator = std::default_random_engine>
+    template <typename RandomGeneratorT = std::default_random_engine>
     struct RandomElementSelector {
+        typedef RandomGeneratorT RandomGenerator;
+
         // On most platforms, you probably want to use
         // std::random_device("/dev/urandom")()
         RandomElementSelector(RandomGenerator g = RandomGenerator(std::random_device()()))

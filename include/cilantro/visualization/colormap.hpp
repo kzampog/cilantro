@@ -3,7 +3,7 @@
 #include <cilantro/core/data_containers.hpp>
 
 namespace cilantro {
-    enum struct ColormapType {JET, GRAY, BLUE2RED};
+    enum struct ColormapType { JET, GRAY, BLUE2RED };
 
     template <typename ValueT>
     VectorSet<float,3> colormap(const ConstVectorSetMatrixMap<ValueT,1> &scalars,

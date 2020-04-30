@@ -12,6 +12,10 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        typedef ScalarT Scalar;
+
+        enum { Dimension = EigenDim };
+
         Covariance() = default;
 
         inline bool operator()(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov) const {
@@ -52,6 +56,14 @@ namespace cilantro {
     class MinimumCovarianceDeterminant {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        typedef ScalarT Scalar;
+
+        enum { Dimension = EigenDim };
+
+        typedef CovarianceT Covariance;
+
+        typedef RandomGeneratorT RandomGenerator;
 
         MinimumCovarianceDeterminant() = default;
 
