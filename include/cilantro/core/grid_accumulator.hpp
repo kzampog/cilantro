@@ -1,7 +1,6 @@
 #pragma once
 
 #include <map>
-#include <cilantro/config.hpp>
 #include <cilantro/core/data_containers.hpp>
 
 namespace cilantro {
