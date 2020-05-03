@@ -92,7 +92,7 @@ namespace cilantro {
         };
 
         template <class TransformT, class CorrSearchT>
-        using DefaultCombinedMetricDenseWarpFieldICP = CombinedMetricDenseWarpFieldICP<TransformT,CorrSearchT,UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>,UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>,RBFKernelWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar,true>>;
+        using DefaultCombinedMetricDenseWarpFieldICP = CombinedMetricDenseWarpFieldICP<TransformT,CorrSearchT,NeighborhoodSet<typename TransformT::Scalar>,UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>,UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>,RBFKernelWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar,true>>;
 
         template <class TransformT, class CorrSearchT>
         class DefaultCombinedMetricDenseWarpFieldICPEntities {
@@ -126,12 +126,12 @@ namespace cilantro {
                                                          const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src_points,
                                                          const std::vector<NeighborSet<typename TransformT::Scalar>> &regularization_neighborhoods)
                     : DefaultCombinedMetricDenseWarpFieldICPEntities<TransformT,CorrSearchT>(dst_points, src_points),
-                      DefaultCombinedMetricDenseWarpFieldICP<TransformT,CorrSearchT>(dst_points, dst_normals, src_points, this->corr_search_, this->point_corr_weight_eval_, this->plane_corr_weight_eval_, regularization_neighborhoods, this->reg_weight_eval_)
+                      DefaultCombinedMetricDenseWarpFieldICP<TransformT,CorrSearchT>(dst_points, dst_normals, src_points, this->corr_search_, regularization_neighborhoods, this->point_corr_weight_eval_, this->plane_corr_weight_eval_, this->reg_weight_eval_)
             {}
         };
 
         template <class TransformT, class CorrSearchT>
-        using DefaultCombinedMetricSparseWarpFieldICP = CombinedMetricSparseWarpFieldICP<TransformT,CorrSearchT,UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>,UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>,RBFKernelWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar,true>,RBFKernelWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar,true>>;
+        using DefaultCombinedMetricSparseWarpFieldICP = CombinedMetricSparseWarpFieldICP<TransformT,CorrSearchT,NeighborhoodSet<typename TransformT::Scalar>,NeighborhoodSet<typename TransformT::Scalar>,UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>,UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>,RBFKernelWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar,true>,RBFKernelWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar,true>>;
 
         template <class TransformT, class CorrSearchT>
         class DefaultCombinedMetricSparseWarpFieldICPEntities {
@@ -169,7 +169,7 @@ namespace cilantro {
                                                           size_t num_control_nodes,
                                                           const std::vector<NeighborSet<typename TransformT::Scalar>> &control_regularization_neighborhoods)
                     : DefaultCombinedMetricSparseWarpFieldICPEntities<TransformT,CorrSearchT>(dst_points, src_points),
-                      DefaultCombinedMetricSparseWarpFieldICP<TransformT,CorrSearchT>(dst_points, dst_normals, src_points, this->corr_search_, this->point_corr_weight_eval_, this->plane_corr_weight_eval_, src_to_control_neighborhoods, num_control_nodes, this->control_weight_eval_, control_regularization_neighborhoods, this->reg_weight_eval_)
+                      DefaultCombinedMetricSparseWarpFieldICP<TransformT,CorrSearchT>(dst_points, dst_normals, src_points, this->corr_search_, src_to_control_neighborhoods, num_control_nodes, control_regularization_neighborhoods, this->point_corr_weight_eval_, this->plane_corr_weight_eval_, this->control_weight_eval_, this->reg_weight_eval_)
             {}
         };
 

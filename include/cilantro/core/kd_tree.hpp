@@ -32,9 +32,9 @@ namespace cilantro {
             template <class BBOX>
             bool kdtree_get_bbox(BBOX& /*bb*/) const { return false; }
         };
-    }
+    } // namespace KDTreeDataAdaptors
 
-    struct KDTreeDistanceAdaptors {
+    namespace KDTreeDistanceAdaptors {
         template <class DataAdaptor>
         using L1 = nanoflann::L1_Adaptor<typename DataAdaptor::coord_t, DataAdaptor, typename DataAdaptor::coord_t>;
 
@@ -49,7 +49,7 @@ namespace cilantro {
 
         template <class DataAdaptor>
         using SO3 = nanoflann::SO3_Adaptor<typename DataAdaptor::coord_t, DataAdaptor, typename DataAdaptor::coord_t>;
-    };
+    } // namespace KDTreeDistanceAdaptors
 
     template <typename ScalarT, typename IndexT = size_t, typename CountT = size_t>
     class KNNSearchResultAdaptor {
@@ -185,8 +185,8 @@ namespace cilantro {
 
         // Do not call if tree is empty!
         // Unlike the other batch searches, this one returns a flat vector of Neighbor
-        inline NeighborSet<ScalarT> nearestNeighborSearch(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts) const {
-            NeighborSet<ScalarT> results;
+        inline NeighborhoodResult nearestNeighborSearch(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts) const {
+            NeighborhoodResult results;
             nearestNeighborSearch(query_pts, results);
             return results;
         }

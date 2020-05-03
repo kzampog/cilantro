@@ -7,9 +7,9 @@
 
 namespace cilantro {
     // TransformT is the local motion model
-    template <class TransformT, class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PointToPlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class ControlWeightEvaluatorT = RBFKernelWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar,true>, class RegularizationWeightEvaluatorT = RBFKernelWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar,true>>
-    class CombinedMetricSparseWarpFieldICP : public IterativeClosestPointBase<CombinedMetricSparseWarpFieldICP<TransformT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,ControlWeightEvaluatorT,RegularizationWeightEvaluatorT>,TransformSet<TransformT>,CorrespondenceSearchEngineT,VectorSet<typename TransformT::Scalar,1>> {
-        typedef IterativeClosestPointBase<CombinedMetricSparseWarpFieldICP<TransformT,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,ControlWeightEvaluatorT,RegularizationWeightEvaluatorT>,TransformSet<TransformT>,CorrespondenceSearchEngineT,VectorSet<typename TransformT::Scalar,1>> Base;
+    template <class TransformT, class CorrespondenceSearchEngineT, class SrcToCtrlNeighborhoodSetT, class CtrlRegNeighborhoodSetT, class PointToPointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PointToPlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class ControlWeightEvaluatorT = RBFKernelWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar,true>, class RegularizationWeightEvaluatorT = RBFKernelWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar,true>>
+    class CombinedMetricSparseWarpFieldICP : public IterativeClosestPointBase<CombinedMetricSparseWarpFieldICP<TransformT,CorrespondenceSearchEngineT,SrcToCtrlNeighborhoodSetT,CtrlRegNeighborhoodSetT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,ControlWeightEvaluatorT,RegularizationWeightEvaluatorT>,TransformSet<TransformT>,CorrespondenceSearchEngineT,VectorSet<typename TransformT::Scalar,1>> {
+        typedef IterativeClosestPointBase<CombinedMetricSparseWarpFieldICP<TransformT,CorrespondenceSearchEngineT,SrcToCtrlNeighborhoodSetT,CtrlRegNeighborhoodSetT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,ControlWeightEvaluatorT,RegularizationWeightEvaluatorT>,TransformSet<TransformT>,CorrespondenceSearchEngineT,VectorSet<typename TransformT::Scalar,1>> Base;
         friend Base;
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -26,12 +26,12 @@ namespace cilantro {
                                          const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &dst_n,
                                          const ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> &src_p,
                                          CorrespondenceSearchEngineT &corr_engine,
+                                         const SrcToCtrlNeighborhoodSetT &src_to_ctrl_neighborhoods,
+                                         size_t num_ctrl_nodes,
+                                         const CtrlRegNeighborhoodSetT &ctrl_regularization_neighborhoods,
                                          PointToPointCorrWeightEvaluatorT &point_corr_eval,
                                          PointToPlaneCorrWeightEvaluatorT &plane_corr_eval,
-                                         const NeighborhoodSet<typename TransformT::Scalar> &src_to_ctrl_neighborhoods,
-                                         size_t num_ctrl_nodes,
                                          ControlWeightEvaluatorT &control_eval,
-                                         const NeighborhoodSet<typename TransformT::Scalar> &ctrl_regularization_neighborhoods,
                                          RegularizationWeightEvaluatorT &reg_eval)
                 : Base(corr_engine),
                   dst_points_(dst_p), dst_normals_(dst_n), src_points_(src_p),
@@ -126,9 +126,9 @@ namespace cilantro {
         ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> dst_points_;
         ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> dst_normals_;
         ConstVectorSetMatrixMap<typename TransformT::Scalar,TransformT::Dim> src_points_;
-        const NeighborhoodSet<typename TransformT::Scalar>& src_to_ctrl_neighborhoods_;
+        const SrcToCtrlNeighborhoodSetT& src_to_ctrl_neighborhoods_;
         size_t num_ctrl_nodes_;
-        const NeighborhoodSet<typename TransformT::Scalar>& ctrl_regularization_neighborhoods_;
+        const CtrlRegNeighborhoodSetT& ctrl_regularization_neighborhoods_;
 
         typename TransformT::Scalar point_to_point_weight_;
         typename TransformT::Scalar point_to_plane_weight_;
