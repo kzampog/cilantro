@@ -173,7 +173,12 @@ namespace cilantro {
 
         inline pangolin::View* getDisplay() const { return display_; }
 
-        inline pangolin::OpenGlRenderState* getRenderState() const { return gl_render_state_.get(); }
+        inline const std::shared_ptr<pangolin::OpenGlRenderState>& getRenderState() const { return gl_render_state_; }
+
+        inline Visualizer& setRenderState(const std::shared_ptr<pangolin::OpenGlRenderState>& render_state) {
+            gl_render_state_ = render_state;
+            return *this;
+        }
 
         inline VisualizerHandler* getInputHandler() const { return input_handler_.get(); }
 

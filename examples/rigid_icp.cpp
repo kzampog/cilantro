@@ -142,6 +142,10 @@ int main(int argc, char ** argv) {
     cilantro::Visualizer registration_viz(window_name, "registration");
     cilantro::Visualizer residuals_viz(window_name, "residuals");
 
+    // Keep viewpoints in sync
+    registration_viz.setRenderState(initial_viz.getRenderState());
+    residuals_viz.setRenderState(initial_viz.getRenderState());
+
     // Initial state
     initial_viz.registerKeyboardCallback('c', std::bind(color_toggle, std::ref(initial_viz)));
     initial_viz.addObject<cilantro::PointCloudRenderable>("dst", dst, cilantro::RenderingProperties().setPointColor(0,0,1));

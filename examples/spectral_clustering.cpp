@@ -77,6 +77,9 @@ int main(int argc, char ** argv) {
     viz2.addObject<cilantro::PointCloudRenderable>("cloud_seg", points, cilantro::RenderingProperties().setPointSize(5.0f))
             ->setPointColors(colors);
 
+    // Keep viewpoints in sync
+    viz2.setRenderState(viz1.getRenderState());
+
     while (!viz1.wasStopped() && !viz2.wasStopped()) {
         viz1.clearRenderArea();
         viz1.render();

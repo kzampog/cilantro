@@ -35,6 +35,9 @@ int main(int argc, char ** argv) {
     cilantro::Visualizer viz2("VoxelGrid demo", "disp2");
     viz2.addObject<cilantro::PointCloudRenderable>("cloud_d", cloud_d, cilantro::RenderingProperties());
 
+    // Keep viewpoints in sync
+    viz2.setRenderState(viz1.getRenderState());
+
     std::cout << "Press 'n' to toggle rendering of normals" << std::endl;
     while (!viz1.wasStopped() && !viz2.wasStopped()) {
         viz1.clearRenderArea();

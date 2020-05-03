@@ -20,7 +20,7 @@ namespace cilantro {
               ortho_far(100.0f),
               perspective_projection(visualizer->gl_render_state_->GetProjectionMatrix()),
               default_model_view(visualizer->gl_render_state_->GetModelViewMatrix()),
-              cam_state(visualizer->gl_render_state_.get()),
+              // cam_state(visualizer->gl_render_state_.get()),
               enforce_up(pangolin::AxisNone),
               cameraspec(pangolin::CameraSpecOpenGl),
               last_z(0.8)
@@ -35,7 +35,7 @@ namespace cilantro {
         switch (key) {
             case 'r':
             case 'R':
-                cam_state->SetModelViewMatrix(default_model_view);
+                visualizer->gl_render_state_->SetModelViewMatrix(default_model_view);
                 break;
             case '+':
                 visualizer->gl_context_->MakeCurrent();
@@ -77,10 +77,10 @@ namespace cilantro {
             case 'P':
                 if (ortho) {
                     ortho = false;
-                    cam_state->SetProjectionMatrix(perspective_projection);
+                    visualizer->gl_render_state_->SetProjectionMatrix(perspective_projection);
                 } else {
                     ortho = true;
-                    cam_state->SetProjectionMatrix(pangolin::ProjectionMatrixOrthographic(ortho_left, ortho_right, ortho_bottom, ortho_top, ortho_near, ortho_far));
+                    visualizer->gl_render_state_->SetProjectionMatrix(pangolin::ProjectionMatrixOrthographic(ortho_left, ortho_right, ortho_bottom, ortho_top, ortho_near, ortho_far));
                 }
                 break;
             case 'l':
@@ -114,7 +114,7 @@ namespace cilantro {
     void VisualizerHandler::PixelUnproject(pangolin::View& view, pangolin::GLprecision winx, pangolin::GLprecision winy, pangolin::GLprecision winz, pangolin::GLprecision Pc[3])
     {
         const GLint viewport[4] = {view.v.l,view.v.b,view.v.w,view.v.h};
-        const pangolin::OpenGlMatrix proj = cam_state->GetProjectionMatrix();
+        const pangolin::OpenGlMatrix proj = visualizer->gl_render_state_->GetProjectionMatrix();
         pangolin::glUnProject(winx, winy, winz, pangolin::Identity4d, proj.m, viewport, &Pc[0], &Pc[1], &Pc[2]);
     }
 
@@ -139,7 +139,7 @@ namespace cilantro {
         p[0] = winx; p[1] = winy; p[2] = mindepth;
         PixelUnproject(view, winx, winy, mindepth, Pc);
 
-        const pangolin::OpenGlMatrix mv = cam_state->GetModelViewMatrix();
+        const pangolin::OpenGlMatrix mv = visualizer->gl_render_state_->GetModelViewMatrix();
 
         pangolin::GLprecision T_wc[3*4];
         pangolin::LieSE3from4x4(T_wc, mv.Inverse().m );
@@ -189,7 +189,7 @@ namespace cilantro {
                 ortho_right *= 1.0f + ((button == pangolin::MouseWheelUp) ? -1.0f : 1.0f) * zoomFraction;
                 ortho_bottom *= 1.0f + ((button == pangolin::MouseWheelUp) ? -1.0f : 1.0f) * zoomFraction;
                 ortho_top *= 1.0f + ((button == pangolin::MouseWheelUp) ? -1.0f : 1.0f) * zoomFraction;
-                cam_state->SetProjectionMatrix(pangolin::ProjectionMatrixOrthographic(ortho_left,ortho_right,ortho_bottom,ortho_top,ortho_near,ortho_far));
+                visualizer->gl_render_state_->SetProjectionMatrix(pangolin::ProjectionMatrixOrthographic(ortho_left,ortho_right,ortho_bottom,ortho_top,ortho_near,ortho_far));
             } else {
                 pangolin::LieSetIdentity(T_nc);
                 const pangolin::GLprecision t[3] = { 0,0,(button==pangolin::MouseWheelUp?1:-1)*100*translationFactor};
@@ -200,7 +200,7 @@ namespace cilantro {
                     const pangolin::GLprecision s = (button==pangolin::MouseWheelUp?-1.0:1.0) * zoomFraction;
                     pangolin::MatMul<3,1>(T_nc+(3*3), s);
                 }
-                pangolin::OpenGlMatrix& spec = cam_state->GetModelViewMatrix();
+                pangolin::OpenGlMatrix& spec = visualizer->gl_render_state_->GetModelViewMatrix();
                 pangolin::LieMul4x4bySE3<>(spec.m,T_nc,spec.m);
             }
         }
@@ -218,7 +218,7 @@ namespace cilantro {
 
         if( mag < 50.0f*50.0f )
         {
-            pangolin::OpenGlMatrix& mv = cam_state->GetModelViewMatrix();
+            pangolin::OpenGlMatrix& mv = visualizer->gl_render_state_->GetModelViewMatrix();
             const pangolin::GLprecision* up = pangolin::AxisDirectionVector[enforce_up];
             pangolin::GLprecision T_nc[3*4];
             pangolin::LieSetIdentity(T_nc);
@@ -231,7 +231,7 @@ namespace cilantro {
                 // Try to correct for different coordinate conventions.
                 pangolin::GLprecision aboutx = -rf * delta[1];
                 pangolin::GLprecision abouty = rf * delta[0];
-                pangolin::OpenGlMatrix& pm = cam_state->GetProjectionMatrix();
+                pangolin::OpenGlMatrix& pm = visualizer->gl_render_state_->GetProjectionMatrix();
                 abouty *= -pm.m[2 * 4 + 3];
 
                 pangolin::Rotation<>(T_nc, aboutx, abouty, (pangolin::GLprecision)0.0);
@@ -270,7 +270,7 @@ namespace cilantro {
                 pangolin::GLprecision abouty = -rf * delta[0];
 
                 // Try to correct for different coordinate conventions.
-                if(cam_state->GetProjectionMatrix().m[2*4+3] <= 0) {
+                if(visualizer->gl_render_state_->GetProjectionMatrix().m[2*4+3] <= 0) {
                     abouty *= -1;
                 }
 
@@ -331,7 +331,7 @@ namespace cilantro {
                 const pangolin::GLprecision ry = -p1 / 1000;
 
                 pangolin::Rotation<>(T_nc,rx, ry, (pangolin::GLprecision)0.0);
-                pangolin::OpenGlMatrix& spec = cam_state->GetModelViewMatrix();
+                pangolin::OpenGlMatrix& spec = visualizer->gl_render_state_->GetModelViewMatrix();
                 pangolin::LieMul4x4bySE3<>(spec.m,T_nc,spec.m);
             }else{
                 const pangolin::GLprecision scrolly = p2/10;
@@ -344,7 +344,7 @@ namespace cilantro {
                     pangolin::LieSetTranslation<>(T_nc,rot_center);
                     pangolin::MatMul<3,1>(T_nc+(3*3), -scrolly * zoomFraction);
                 }
-                pangolin::OpenGlMatrix& spec = cam_state->GetModelViewMatrix();
+                pangolin::OpenGlMatrix& spec = visualizer->gl_render_state_->GetModelViewMatrix();
                 pangolin::LieMul4x4bySE3<>(spec.m,T_nc,spec.m);
             }
         }else if(inType == pangolin::InputSpecialRotate) {
@@ -359,7 +359,7 @@ namespace cilantro {
             pangolin::LieSetIdentity<>(T_n2);
             pangolin::LieSetTranslation<>(T_n2,rot_center);
             pangolin::LieMulSE3(T_nc, T_n2, T_2c );
-            pangolin::OpenGlMatrix& spec = cam_state->GetModelViewMatrix();
+            pangolin::OpenGlMatrix& spec = visualizer->gl_render_state_->GetModelViewMatrix();
             pangolin::LieMul4x4bySE3<>(spec.m,T_nc,spec.m);
         }
     }
@@ -367,7 +367,7 @@ namespace cilantro {
     void VisualizerHandler::SetPerspectiveProjectionMatrix(const pangolin::OpenGlMatrix &mat) {
         perspective_projection = mat;
         if (!ortho) {
-            cam_state->SetProjectionMatrix(perspective_projection);
+            visualizer->gl_render_state_->SetProjectionMatrix(perspective_projection);
         }
     }
 
@@ -379,31 +379,31 @@ namespace cilantro {
         ortho_near = (float)near;
         ortho_far = (float)far;
         if (ortho) {
-            cam_state->SetProjectionMatrix(pangolin::ProjectionMatrixOrthographic(left, right, bottom, top, near, far));
+            visualizer->gl_render_state_->SetProjectionMatrix(pangolin::ProjectionMatrixOrthographic(left, right, bottom, top, near, far));
         }
     }
 
     void VisualizerHandler::EnablePerspectiveProjection() {
         if (ortho) {
             ortho = false;
-            cam_state->SetProjectionMatrix(perspective_projection);
+            visualizer->gl_render_state_->SetProjectionMatrix(perspective_projection);
         }
     }
 
     void VisualizerHandler::EnableOrthographicProjection() {
         if (!ortho) {
             ortho = true;
-            cam_state->SetProjectionMatrix(pangolin::ProjectionMatrixOrthographic(ortho_left,ortho_right,ortho_bottom,ortho_top,ortho_near,ortho_far));
+            visualizer->gl_render_state_->SetProjectionMatrix(pangolin::ProjectionMatrixOrthographic(ortho_left,ortho_right,ortho_bottom,ortho_top,ortho_near,ortho_far));
         }
     }
 
     void VisualizerHandler::ToggleProjectionMode() {
         if (ortho) {
             ortho = false;
-            cam_state->SetProjectionMatrix(perspective_projection);
+            visualizer->gl_render_state_->SetProjectionMatrix(perspective_projection);
         } else {
             ortho = true;
-            cam_state->SetProjectionMatrix(pangolin::ProjectionMatrixOrthographic(ortho_left,ortho_right,ortho_bottom,ortho_top,ortho_near,ortho_far));
+            visualizer->gl_render_state_->SetProjectionMatrix(pangolin::ProjectionMatrixOrthographic(ortho_left,ortho_right,ortho_bottom,ortho_top,ortho_near,ortho_far));
         }
     }
 }

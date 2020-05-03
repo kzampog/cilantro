@@ -133,6 +133,10 @@ int main(int argc, char ** argv) {
     cilantro::Visualizer registration_viz(window_name, "registration");
     cilantro::Visualizer residuals_viz(window_name, "residuals");
 
+    // Keep viewpoints in sync
+    registration_viz.setRenderState(initial_and_warp_viz.getRenderState());
+    residuals_viz.setRenderState(initial_and_warp_viz.getRenderState());
+
     // Warp src
     auto warped = src.transformed(tf_est);
 

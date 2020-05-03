@@ -79,7 +79,7 @@ namespace cilantro {
         pangolin::OpenGlMatrix default_model_view;
         std::map<unsigned char, std::function<void(void)> > key_callback_map;
 
-        pangolin::OpenGlRenderState* cam_state;
+        // pangolin::OpenGlRenderState* cam_state;
         const static int hwin = 8;
         pangolin::AxisDirection enforce_up;
         pangolin::CameraSpec cameraspec;

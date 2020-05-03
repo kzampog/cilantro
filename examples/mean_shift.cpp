@@ -88,6 +88,9 @@ int main(int argc, char ** argv) {
     viz2.addObject<cilantro::PointCloudRenderable>("modes", ms.getClusterModes(), cilantro::RenderingProperties().setPointSize(20.0f))
             ->setPointColors(color_map);
 
+    // Keep viewpoints in sync
+    viz2.setRenderState(viz1.getRenderState());
+
     while (!viz1.wasStopped() && !viz2.wasStopped()) {
         viz1.clearRenderArea();
         viz1.render();

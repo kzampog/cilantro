@@ -62,6 +62,9 @@ int main(int argc, char ** argv) {
     cilantro::Visualizer viz2("ConnectedComponentSegmentation demo", "disp2");
     viz2.addObject<cilantro::PointCloudRenderable>("cloud_seg", cloud_seg);
 
+    // Keep viewpoints in sync
+    viz2.setRenderState(viz1.getRenderState());
+
     while (!viz1.wasStopped() && !viz2.wasStopped()) {
         viz1.clearRenderArea();
         viz1.render();

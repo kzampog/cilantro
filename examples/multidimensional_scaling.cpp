@@ -75,9 +75,10 @@ int main(int argc, char ** argv) {
     cam_pose.topLeftCorner(3,3) = rot;
     cam_pose.topRightCorner(3,1) = t;
     viz1.setCameraPose(cam_pose);
-    viz2.setCameraPose(cam_pose);
     viz1.setDefaultCameraPose(cam_pose);
-    viz2.setDefaultCameraPose(cam_pose);
+
+    // Keep viewpoints in sync
+    viz2.setRenderState(viz1.getRenderState());
 
     while (!viz1.wasStopped() && !viz2.wasStopped()) {
         viz1.clearRenderArea();
