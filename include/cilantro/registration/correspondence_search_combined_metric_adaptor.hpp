@@ -39,7 +39,7 @@ namespace cilantro {
 
         template <typename T>
         struct PointToPlaneCorrespondenceSearchResult<T, decltype((void) std::declval<typename T::PointToPlaneCorrespondenceSearchResult>(), 0)> { typedef typename T::PointToPlaneCorrespondenceSearchResult SearchResult; };
-    }
+    } // namespace internal
 
     template <class CorrespondenceSearchT>
     class CorrespondenceSearchCombinedMetricAdaptor {

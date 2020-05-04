@@ -36,7 +36,7 @@ namespace cilantro {
                     : MemoryBuffer(first_elem, size), std::istream(static_cast<std::streambuf*>(this))
             {}
         };
-    }
+    } // namespace internal
 
     class PLYReader {
     public:

@@ -5,8 +5,8 @@
 #include <cilantro/clustering/clustering_base.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    class MeanShift : public ClusteringBase<MeanShift<ScalarT,EigenDim,DistAdaptor>> {
+    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    class MeanShift : public ClusteringBase<MeanShift<ScalarT,EigenDim,DistAdaptor>,PointIndexT,ClusterIndexT> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -14,14 +14,16 @@ namespace cilantro {
 
         enum { Dimension = EigenDim };
 
+        typedef KDTree<ScalarT,EigenDim,DistAdaptor,PointIndexT> SearchTree;
+
         MeanShift(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, size_t max_leaf_size = 10)
                 : data_map_(points),
-                  kd_tree_ptr_(new KDTree<ScalarT,EigenDim,DistAdaptor>(points, max_leaf_size)),
+                  kd_tree_ptr_(new SearchTree(points, max_leaf_size)),
                   kd_tree_owned_(true),
                   iteration_count_(0)
         {}
 
-        MeanShift(const KDTree<ScalarT,EigenDim,DistAdaptor> &kd_tree)
+        MeanShift(const SearchTree &kd_tree)
                 : data_map_(kd_tree.getPointsMatrixMap()),
                   kd_tree_ptr_(&kd_tree),
                   kd_tree_owned_(false),
@@ -32,6 +34,7 @@ namespace cilantro {
             if (kd_tree_owned_) delete kd_tree_ptr_;
         }
 
+        // Cluster using given seeds
         template <class KernelEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>>
         MeanShift& cluster(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &seeds,
                            ScalarT kernel_radius,
@@ -49,7 +52,7 @@ namespace cilantro {
 
             std::vector<char> has_converged(shifted_seeds_.cols(), 0);
             bool all_converged;
-            Neighborhood<ScalarT> nn;
+            Neighborhood<ScalarT,PointIndexT> nn;
             Vector<ScalarT,EigenDim> point_tmp;
 
             while (iteration_count_ < max_iter) {
@@ -59,13 +62,13 @@ namespace cilantro {
                     if (has_converged[i]) continue;
                     kd_tree_ptr_->radiusSearch(shifted_seeds_.col(i), radius_sq, nn);
                     point_tmp.setZero(shifted_seeds_.rows(), 1);
-                    ScalarT total_weight = (ScalarT)0;
+                    ScalarT total_weight = ScalarT(0.0);
                     for (size_t j = 0; j < nn.size(); j++) {
                         const ScalarT weight = evaluator.template operator()<Eigen::Ref<const Vector<ScalarT,EigenDim>>>(shifted_seeds_.col(i), data_map_.col(nn[j].index), nn[j].value);
                         point_tmp.noalias() += weight*data_map_.col(nn[j].index);
                         total_weight += weight;
                     }
-                    point_tmp *= (ScalarT)(1.0)/total_weight;
+                    point_tmp *= ScalarT(1.0)/total_weight;
                     if ((shifted_seeds_.col(i) - point_tmp).squaredNorm() < conv_tol_sq) {
                         has_converged[i] = 1;
                     } else {
@@ -101,14 +104,15 @@ namespace cilantro {
                 cluster_modes_.col(i).setZero();
                 for (size_t j = 0; j < this->cluster_to_point_indices_map_[i].size(); j++) {
                     cluster_modes_.col(i) += shifted_seeds_.col(this->cluster_to_point_indices_map_[i][j]);
-                    this->point_to_cluster_index_map_[this->cluster_to_point_indices_map_[i][j]] = i;
+                    this->point_to_cluster_index_map_[this->cluster_to_point_indices_map_[i][j]] = static_cast<ClusterIndexT>(i);
                 }
-                cluster_modes_.col(i) *= (ScalarT)(1.0)/this->cluster_to_point_indices_map_[i].size();
+                cluster_modes_.col(i) *= ScalarT(1.0)/this->cluster_to_point_indices_map_[i].size();
             }
 
             return *this;
         }
 
+        // Cluster using all points as seeds
         template <class KernelEvaluatorT = UnityWeightEvaluator<ScalarT,ScalarT>>
         inline MeanShift& cluster(ScalarT kernel_radius,
                                   size_t max_iter,
@@ -127,7 +131,7 @@ namespace cilantro {
 
     private:
         ConstVectorSetMatrixMap<ScalarT,EigenDim> data_map_;
-        const KDTree<ScalarT,EigenDim,DistAdaptor> *kd_tree_ptr_;
+        const SearchTree *kd_tree_ptr_;
         bool kd_tree_owned_;
         size_t iteration_count_;
 
@@ -135,21 +139,21 @@ namespace cilantro {
         VectorSet<ScalarT,EigenDim> cluster_modes_;
     };
 
-    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    using MeanShift2f = MeanShift<float,2,DistAdaptor>;
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    using MeanShift2f = MeanShift<float,2,DistAdaptor,PointIndexT,ClusterIndexT>;
 
-    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    using MeanShift2d = MeanShift<double,2,DistAdaptor>;
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    using MeanShift2d = MeanShift<double,2,DistAdaptor,PointIndexT,ClusterIndexT>;
 
-    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    using MeanShift3f = MeanShift<float,3,DistAdaptor>;
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    using MeanShift3f = MeanShift<float,3,DistAdaptor,PointIndexT,ClusterIndexT>;
 
-    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    using MeanShift3d = MeanShift<double,3,DistAdaptor>;
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    using MeanShift3d = MeanShift<double,3,DistAdaptor,PointIndexT,ClusterIndexT>;
 
-    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    using MeanShiftXf = MeanShift<float,Eigen::Dynamic,DistAdaptor>;
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    using MeanShiftXf = MeanShift<float,Eigen::Dynamic,DistAdaptor,PointIndexT,ClusterIndexT>;
 
-    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    using MeanShiftXd = MeanShift<double,Eigen::Dynamic,DistAdaptor>;
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    using MeanShiftXd = MeanShift<double,Eigen::Dynamic,DistAdaptor,PointIndexT,ClusterIndexT>;
 }

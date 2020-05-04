@@ -88,7 +88,7 @@ namespace cilantro {
             d_rot_coeffs_dc(1,2) = (ScalarT)0.0;
             d_rot_coeffs_dc(2,2) = (ScalarT)0.0;
         }
-    }
+    } // namespace internal
 
     // Locally rigid dense warp field, 2D
     template <class TransformT, class PointCorrSetT, class PlaneCorrSetT, class RegNeighborhoodSetT, class PointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>

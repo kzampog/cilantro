@@ -26,7 +26,7 @@ namespace cilantro {
                 return p1[coeff] < p2[coeff];
             }
         };
-    }
+    } // namespace internal
 
     template <typename ScalarT, ptrdiff_t EigenDim>
     struct EigenVectorComparator {

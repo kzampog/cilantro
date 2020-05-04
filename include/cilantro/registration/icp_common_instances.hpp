@@ -178,7 +178,7 @@ namespace cilantro {
 
         template <class TransformT>
         using DefaultProjectiveSearch = CorrespondenceSearchProjective<typename TransformT::Scalar,PointFeaturesAdaptor<typename TransformT::Scalar,3>,DistanceEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>;
-    }
+    } // namespace internal
 
     template <class TransformT>
     using SimplePointToPointMetricICP = internal::SimplePointToPointMetricICPWrapper<TransformT,internal::DefaultKDTreeSearch<TransformT>>;

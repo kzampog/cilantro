@@ -24,7 +24,7 @@ namespace cilantro {
                 std::vector<TransformT,Eigen::aligned_allocator<TransformT>>,
                 std::vector<TransformT>>::type;
 #endif
-    }
+    } // namespace internal
 
     // Simply a Dim x Dim matrix with extra compile time info
     template <typename ScalarT, ptrdiff_t EigenDim, bool IsPureRotation = false>

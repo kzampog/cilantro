@@ -5,8 +5,8 @@
 #include <cilantro/clustering/clustering_base.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    class KMeans : public ClusteringBase<KMeans<ScalarT,EigenDim,DistAdaptor>> {
+    template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    class KMeans : public ClusteringBase<KMeans<ScalarT,EigenDim,DistAdaptor>,PointIndexT,ClusterIndexT> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -36,7 +36,7 @@ namespace cilantro {
                         ScalarT tol = std::numeric_limits<ScalarT>::epsilon(),
                         bool use_kd_tree = false)
         {
-            cluster_centroids_.resize(data_map_.rows(), std::max((size_t)1, std::min(num_clusters, (size_t)data_map_.cols())));
+            cluster_centroids_.resize(data_map_.rows(), std::max(size_t(1), std::min(num_clusters, static_cast<size_t>(data_map_.cols()))));
 
             std::vector<size_t> range(data_map_.cols());
             for (size_t i = 0; i < range.size(); i++) range[i] = i;
@@ -71,17 +71,12 @@ namespace cilantro {
             const size_t num_points = data_map_.cols();
             const ScalarT tol_sq = tol*tol;
 
-            this->point_to_cluster_index_map_.resize(num_points);
-
-            size_t extr_dist_ind;
-            ScalarT extr_dist;
-
-            ScalarT dist;
-
             VectorSet<ScalarT,EigenDim> centroids_old;
 
             KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> data_adaptor(data_map_);
             DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>> dist_adaptor(data_adaptor);
+
+            this->point_to_cluster_index_map_.resize(num_points);
 
             iteration_count_ = 0;
             while (iteration_count_ < max_iter) {
@@ -89,8 +84,8 @@ namespace cilantro {
 
                 // Update assignments
                 if (use_kd_tree) {
-                    Neighbor<ScalarT> nn;
-                    KDTree<ScalarT,EigenDim,DistAdaptor> tree(cluster_centroids_);
+                    Neighbor<ScalarT,ClusterIndexT> nn;
+                    KDTree<ScalarT,EigenDim,DistAdaptor,ClusterIndexT> tree(cluster_centroids_);
 #pragma omp parallel for shared (assignments_unchanged) private (nn)
                     for (size_t i = 0; i < num_points; i++) {
                         tree.nearestNeighborSearch(data_map_.col(i), nn);
@@ -98,9 +93,13 @@ namespace cilantro {
                         this->point_to_cluster_index_map_[i] = nn.index;
                     }
                 } else {
-#pragma omp parallel for shared (assignments_unchanged) private (extr_dist, extr_dist_ind, dist)
+                    ScalarT dist;
+                    ScalarT min_dist;
+                    ClusterIndexT min_dist_ind;
+
+#pragma omp parallel for shared (assignments_unchanged) private (min_dist, min_dist_ind, dist)
                     for (size_t i = 0; i < num_points; i++) {
-                        extr_dist = std::numeric_limits<ScalarT>::infinity();
+                        min_dist = std::numeric_limits<ScalarT>::infinity();
                         for (size_t j = 0; j < num_clusters; j++) {
                             // Resolved at compile time
                             if (std::is_same<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>, KDTreeDistanceAdaptors::L2<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>>::value ||
@@ -110,18 +109,18 @@ namespace cilantro {
                             } else {
                                 dist = dist_adaptor.evalMetric(&(cluster_centroids_.col(j)[0]), i, data_map_.rows());
                             }
-                            if (dist < extr_dist) {
-                                extr_dist = dist;
-                                extr_dist_ind = j;
+                            if (dist < min_dist) {
+                                min_dist = dist;
+                                min_dist_ind = static_cast<ClusterIndexT>(j);
                             }
                         }
-                        if (this->point_to_cluster_index_map_[i] != extr_dist_ind) assignments_unchanged = false;
-                        this->point_to_cluster_index_map_[i] = extr_dist_ind;
+                        if (this->point_to_cluster_index_map_[i] != min_dist_ind) assignments_unchanged = false;
+                        this->point_to_cluster_index_map_[i] = min_dist_ind;
                     }
                 }
 
                 if (assignments_unchanged && iteration_count_ > 0) break;
-                if (tol > (ScalarT)0.0) centroids_old = cluster_centroids_;
+                if (tol > ScalarT(0.0)) centroids_old = cluster_centroids_;
 
                 // Update centroids
                 cluster_centroids_.setZero();
@@ -142,9 +141,13 @@ namespace cilantro {
                     }
 
                     // Find furthest point from (old) centroid of previously found cluster
-                    Vector<ScalarT,EigenDim> old_centroid(cluster_centroids_.col(max_ind)*(ScalarT)(1.0)/point_count[max_ind]);
-                    extr_dist = (ScalarT)(-1.0);
-#pragma omp parallel for shared (extr_dist, extr_dist_ind) private (dist)
+                    ScalarT dist;
+                    ScalarT max_dist;
+                    size_t max_dist_ind;
+
+                    Vector<ScalarT,EigenDim> old_centroid(cluster_centroids_.col(max_ind)*(ScalarT(1.0)/point_count[max_ind]));
+                    max_dist = ScalarT(-1.0);
+#pragma omp parallel for shared (max_dist, max_dist_ind) private (dist)
                     for (size_t j = 0; j < num_points; j++) {
                         if (this->point_to_cluster_index_map_[j] == max_ind) {
                             // Resolved at compile time
@@ -156,50 +159,50 @@ namespace cilantro {
                                 dist = dist_adaptor.evalMetric(&(old_centroid[0]), j, data_map_.rows());
                             }
 #pragma omp critical
-                            if (dist > extr_dist) {
-                                extr_dist = dist;
-                                extr_dist_ind = j;
+                            if (dist > max_dist) {
+                                max_dist = dist;
+                                max_dist_ind = j;
                             }
                         }
                     }
 
                     // Move previously found point to current (empty) cluster
-                    this->point_to_cluster_index_map_[extr_dist_ind] = i;
-                    cluster_centroids_.col(max_ind) -= data_map_.col(extr_dist_ind);
+                    this->point_to_cluster_index_map_[max_dist_ind] = static_cast<ClusterIndexT>(i);
+                    cluster_centroids_.col(max_ind) -= data_map_.col(max_dist_ind);
                     point_count[max_ind]--;
                     point_count[i]++;
                 }
 
                 // Compute new centroids
                 for (size_t i = 0; i < num_clusters; i++) {
-                    cluster_centroids_.col(i) *= (ScalarT)(1.0)/point_count[i];
+                    cluster_centroids_.col(i) *= ScalarT(1.0)/point_count[i];
                 }
 
                 iteration_count_++;
 
                 // Check for convergence of centroids
-                if (tol > (ScalarT)0.0 && (cluster_centroids_ - centroids_old).colwise().squaredNorm().maxCoeff() < tol_sq) break;
+                if (tol > ScalarT(0.0) && (cluster_centroids_ - centroids_old).colwise().squaredNorm().maxCoeff() < tol_sq) break;
             }
 
-            this->cluster_to_point_indices_map_ = cilantro::getClusterToPointIndicesMap(this->point_to_cluster_index_map_, num_clusters);
+            this->cluster_to_point_indices_map_ = cilantro::getClusterToPointIndicesMap<PointIndexT,ClusterIndexT>(this->point_to_cluster_index_map_, num_clusters);
         }
     };
 
-    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    using KMeans2f = KMeans<float,2,DistAdaptor>;
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    using KMeans2f = KMeans<float,2,DistAdaptor,PointIndexT,ClusterIndexT>;
 
-    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    using KMeans2d = KMeans<double,2,DistAdaptor>;
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    using KMeans2d = KMeans<double,2,DistAdaptor,PointIndexT,ClusterIndexT>;
 
-    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    using KMeans3f = KMeans<float,3,DistAdaptor>;
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    using KMeans3f = KMeans<float,3,DistAdaptor,PointIndexT,ClusterIndexT>;
 
-    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    using KMeans3d = KMeans<double,3,DistAdaptor>;
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    using KMeans3d = KMeans<double,3,DistAdaptor,PointIndexT,ClusterIndexT>;
 
-    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    using KMeansXf = KMeans<float,Eigen::Dynamic,DistAdaptor>;
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    using KMeansXf = KMeans<float,Eigen::Dynamic,DistAdaptor,PointIndexT,ClusterIndexT>;
 
-    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2>
-    using KMeansXd = KMeans<double,Eigen::Dynamic,DistAdaptor>;
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    using KMeansXd = KMeans<double,Eigen::Dynamic,DistAdaptor,PointIndexT,ClusterIndexT>;
 }

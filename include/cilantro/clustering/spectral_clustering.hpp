@@ -44,7 +44,7 @@ namespace cilantro {
                 y.noalias() = diag_vals_.cwiseProduct(x);
             }
         };
-    }
+    } // namespace internal
 
     enum struct GraphLaplacianType { UNNORMALIZED, NORMALIZED_SYMMETRIC, NORMALIZED_RANDOM_WALK };
 
@@ -298,9 +298,9 @@ namespace cilantro {
 
     // If positive, EigenDim is the embedding dimension (and also the number of clusters).
     // Set to Eigen::Dynamic for runtime setting.
-    template <typename ScalarT, ptrdiff_t EigenDim = Eigen::Dynamic>
+    template <typename ScalarT, ptrdiff_t EigenDim = Eigen::Dynamic, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
     class SpectralClustering : public SpectralEmbeddingBase<SpectralClustering<ScalarT,EigenDim>,ScalarT,EigenDim>,
-                               public KMeans<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2>
+                               public KMeans<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2,PointIndexT,ClusterIndexT>
     {
         typedef SpectralEmbeddingBase<SpectralClustering<ScalarT,EigenDim>,ScalarT,EigenDim> EmbeddingBase;
     public:
@@ -310,7 +310,7 @@ namespace cilantro {
 
         enum { EmbeddingDimension = EigenDim };
 
-        typedef KMeans<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2> Clusterer;
+        typedef KMeans<ScalarT,EigenDim,KDTreeDistanceAdaptors::L2,PointIndexT,ClusterIndexT> Clusterer;
 
         // Dense input
         // Number of clusters (embedding dimension) set at compile time (EigenDim template parameter)
@@ -383,10 +383,21 @@ namespace cilantro {
         }
     };
 
-    typedef SpectralClustering<float,2> SpectralClustering2f;
-    typedef SpectralClustering<double,2> SpectralClustering2d;
-    typedef SpectralClustering<float,3> SpectralClustering3f;
-    typedef SpectralClustering<double,3> SpectralClustering3d;
-    typedef SpectralClustering<float,Eigen::Dynamic> SpectralClusteringXf;
-    typedef SpectralClustering<double,Eigen::Dynamic> SpectralClusteringXd;
+    template <typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    using SpectralClustering2f = SpectralClustering<float,2,PointIndexT,ClusterIndexT>;
+
+    template <typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    using SpectralClustering2d = SpectralClustering<double,2,PointIndexT,ClusterIndexT>;
+
+    template <typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    using SpectralClustering3f = SpectralClustering<float,3,PointIndexT,ClusterIndexT>;
+
+    template <typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    using SpectralClustering3d = SpectralClustering<double,3,PointIndexT,ClusterIndexT>;
+
+    template <typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    using SpectralClusteringXf = SpectralClustering<float,Eigen::Dynamic,PointIndexT,ClusterIndexT>;
+
+    template <typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    using SpectralClusteringXd = SpectralClustering<double,Eigen::Dynamic,PointIndexT,ClusterIndexT>;
 }
