@@ -31,13 +31,13 @@ namespace cilantro {
             size_t size = std::distance(begin, end);
             if (size < points.rows()) return false;
 
-            mean.setZero();
+            mean.setZero(points.rows());
             for (NeighborhoodResultIteratorT it = begin; it != end; ++it) {
                 mean += points.col(it->index);
             }
             mean *= (ScalarT)(1.0)/size;
 
-            cov.setZero();
+            cov.setZero(points.rows(), points.rows());
             for (NeighborhoodResultIteratorT it = begin; it != end; ++it) {
                 auto tmp = points.col(it->index) - mean;
                 cov += tmp*tmp.transpose();

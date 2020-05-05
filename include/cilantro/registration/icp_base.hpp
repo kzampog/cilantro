@@ -31,6 +31,8 @@ namespace cilantro {
                   correspondence_search_engine_(corr_engine)
         {}
 
+        inline const CorrespondenceSearchEngine& correspondenceSearchEngine() const { return correspondence_search_engine_; }
+
         inline CorrespondenceSearchEngine& correspondenceSearchEngine() { return correspondence_search_engine_; }
 
         inline size_t getMaxNumberOfIterations() const { return max_iterations_; }

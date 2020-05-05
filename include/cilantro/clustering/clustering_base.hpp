@@ -4,7 +4,7 @@
 #include <Eigen/Dense>
 
 namespace cilantro {
-    template <typename ClusterIndexT = size_t, typename PointIndexT = size_t>
+    template <typename ClusterIndexT, typename PointIndexT>
     std::vector<ClusterIndexT> getPointToClusterIndexMap(const std::vector<std::vector<PointIndexT>> &cluster_to_point,
                                                          size_t num_points)
     {
@@ -20,7 +20,7 @@ namespace cilantro {
 
     // Cluster indices in point_to_cluster are in [0, num_clusters - 1];
     // a cluster index >= num_clusters signifies unlabeled point
-    template <typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    template <typename PointIndexT, typename ClusterIndexT>
     std::vector<std::vector<PointIndexT>> getClusterToPointIndicesMap(const std::vector<ClusterIndexT> &point_to_cluster,
                                                                       size_t num_clusters)
     {
@@ -61,7 +61,7 @@ namespace cilantro {
     }
 
     // CRTP base class that holds clustering results and accessors
-    template <typename Derived, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
+    template <typename Derived, typename PointIndexT, typename ClusterIndexT>
     class ClusteringBase {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW

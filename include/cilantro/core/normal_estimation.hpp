@@ -4,7 +4,7 @@
 #include <cilantro/core/kd_tree.hpp>
 
 namespace cilantro {
-    template <typename ScalarT, ptrdiff_t EigenDim, typename IndexT = size_t, typename CovarianceT = Covariance<ScalarT, EigenDim>>
+    template <typename ScalarT, ptrdiff_t EigenDim, typename CovarianceT = Covariance<ScalarT, EigenDim>, typename IndexT = size_t>
     class NormalEstimation {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -36,8 +36,9 @@ namespace cilantro {
             if (kd_tree_owned_) delete kd_tree_ptr_;
         }
 
-        inline const CovarianceT& getCovarianceMethod() const { return compute_mean_and_covariance_; }
-        inline CovarianceT& getCovarianceMethod() { return compute_mean_and_covariance_; }
+        inline const CovarianceT& covarianceMethod() const { return compute_mean_and_covariance_; }
+
+        inline CovarianceT& covarianceMethod() { return compute_mean_and_covariance_; }
 
         // Used for rudimentary normal consistency
         // Enforces normals to point towards the given view point
@@ -471,10 +472,21 @@ namespace cilantro {
         }
     };
 
-    typedef NormalEstimation<float,2> NormalEstimation2f;
-    typedef NormalEstimation<double,2> NormalEstimation2d;
-    typedef NormalEstimation<float,3> NormalEstimation3f;
-    typedef NormalEstimation<double,3> NormalEstimation3d;
-    typedef NormalEstimation<float,Eigen::Dynamic> NormalEstimationXf;
-    typedef NormalEstimation<double,Eigen::Dynamic> NormalEstimationXd;
+    template <typename CovarianceT = Covariance<float,2>, typename IndexT = size_t>
+    using NormalEstimation2f = NormalEstimation<float,2,CovarianceT,IndexT>;
+
+    template <typename CovarianceT = Covariance<double,2>, typename IndexT = size_t>
+    using NormalEstimation2d = NormalEstimation<double,2,CovarianceT,IndexT>;
+
+    template <typename CovarianceT = Covariance<float,3>, typename IndexT = size_t>
+    using NormalEstimation3f = NormalEstimation<float,3,CovarianceT,IndexT>;
+
+    template <typename CovarianceT = Covariance<double,3>, typename IndexT = size_t>
+    using NormalEstimation3d = NormalEstimation<double,3,CovarianceT,IndexT>;
+
+    template <typename CovarianceT = Covariance<float,Eigen::Dynamic>, typename IndexT = size_t>
+    using NormalEstimationXf = NormalEstimation<float,Eigen::Dynamic,CovarianceT,IndexT>;
+
+    template <typename CovarianceT = Covariance<double,Eigen::Dynamic>, typename IndexT = size_t>
+    using NormalEstimationXd = NormalEstimation<double,Eigen::Dynamic,CovarianceT,IndexT>;
 }
