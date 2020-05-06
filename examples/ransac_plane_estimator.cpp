@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
         if (re_estimate) {
             re_estimate = false;
 
-            cilantro::PlaneRANSACEstimator3f pe(cloud.points);
+            cilantro::PlaneRANSACEstimator3f<> pe(cloud.points);
             pe.setMaxInlierResidual(0.01f).setTargetInlierCount((size_t)(0.15*cloud.size()))
                 .setMaxNumberOfIterations(250).setReEstimationStep(true);
 

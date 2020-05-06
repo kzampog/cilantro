@@ -74,14 +74,33 @@ namespace cilantro {
         }
     };
 
-    typedef HyperplaneRANSACEstimator<float,2> HyperplaneRANSACEstimator2f;
-    typedef HyperplaneRANSACEstimator<float,2> LineRANSACEstimator2f;
-    typedef HyperplaneRANSACEstimator<double,2> HyperplaneRANSACEstimator2d;
-    typedef HyperplaneRANSACEstimator<double,2> LineRANSACEstimator2d;
-    typedef HyperplaneRANSACEstimator<float,3> HyperplaneRANSACEstimator3f;
-    typedef HyperplaneRANSACEstimator<float,3> PlaneRANSACEstimator3f;
-    typedef HyperplaneRANSACEstimator<double,3> HyperplaneRANSACEstimator3d;
-    typedef HyperplaneRANSACEstimator<double,3> PlaneRANSACEstimator3d;
-    typedef HyperplaneRANSACEstimator<float,Eigen::Dynamic> HyperplaneRANSACEstimatorXf;
-    typedef HyperplaneRANSACEstimator<double,Eigen::Dynamic> HyperplaneRANSACEstimatorXd;
+    template <typename IndexT = size_t>
+    using HyperplaneRANSACEstimator2f = HyperplaneRANSACEstimator<float,2,IndexT>;
+
+    template <typename IndexT = size_t>
+    using LineRANSACEstimator2f = HyperplaneRANSACEstimator<float,2,IndexT>;
+
+    template <typename IndexT = size_t>
+    using HyperplaneRANSACEstimator2d = HyperplaneRANSACEstimator<double,2,IndexT>;
+
+    template <typename IndexT = size_t>
+    using LineRANSACEstimator2d = HyperplaneRANSACEstimator<double,2,IndexT>;
+
+    template <typename IndexT = size_t>
+    using HyperplaneRANSACEstimator3f = HyperplaneRANSACEstimator<float,3,IndexT>;
+
+    template <typename IndexT = size_t>
+    using PlaneRANSACEstimator3f = HyperplaneRANSACEstimator<float,3,IndexT>;
+
+    template <typename IndexT = size_t>
+    using HyperplaneRANSACEstimator3d = HyperplaneRANSACEstimator<double,3,IndexT>;
+
+    template <typename IndexT = size_t>
+    using PlaneRANSACEstimator3d = HyperplaneRANSACEstimator<double,3,IndexT>;
+
+    template <typename IndexT = size_t>
+    using HyperplaneRANSACEstimatorXf = HyperplaneRANSACEstimator<float,Eigen::Dynamic,IndexT>;
+
+    template <typename IndexT = size_t>
+    using HyperplaneRANSACEstimatorXd = HyperplaneRANSACEstimator<double,Eigen::Dynamic,IndexT>;
 }

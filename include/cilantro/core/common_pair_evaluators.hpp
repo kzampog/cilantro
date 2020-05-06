@@ -103,7 +103,7 @@ namespace cilantro {
 
     // Proximity evaluators (return bool)
 
-    template <typename ScalarT, ptrdiff_t EigenDim>
+    template <typename ScalarT>
     class PointsProximityEvaluator {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW

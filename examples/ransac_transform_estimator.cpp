@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
 
             viz.remove("corr");
 
-            cilantro::RigidTransformRANSACEstimator3f te(dst.points, src.points, corr);
+            cilantro::RigidTransformRANSACEstimator3f<> te(dst.points, src.points, corr);
             te.setMaxInlierResidual(0.01f).setTargetInlierCount((size_t)(0.50*corr.size())).setMaxNumberOfIterations(250).setReEstimationStep(true);
 
             cilantro::RigidTransform3f tform = te.estimate().getModel();

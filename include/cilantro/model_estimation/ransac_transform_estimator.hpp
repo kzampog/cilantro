@@ -114,13 +114,27 @@ namespace cilantro {
         ConstVectorSetMatrixMap<Scalar,Dim> src_points_;
     };
 
-    typedef TransformRANSACEstimator<RigidTransform<float,2>> RigidTransformRANSACEstimator2f;
-    typedef TransformRANSACEstimator<RigidTransform<float,3>> RigidTransformRANSACEstimator3f;
-    typedef TransformRANSACEstimator<RigidTransform<double,2>> RigidTransformRANSACEstimator2d;
-    typedef TransformRANSACEstimator<RigidTransform<double,3>> RigidTransformRANSACEstimator3d;
+    template <typename IndexT = size_t>
+    using RigidTransformRANSACEstimator2f = TransformRANSACEstimator<RigidTransform<float,2>,IndexT>;
 
-    typedef TransformRANSACEstimator<AffineTransform<float,2>> AffineTransformRANSACEstimator2f;
-    typedef TransformRANSACEstimator<AffineTransform<float,3>> AffineTransformRANSACEstimator3f;
-    typedef TransformRANSACEstimator<AffineTransform<double,2>> AffineTransformRANSACEstimator2d;
-    typedef TransformRANSACEstimator<AffineTransform<double,3>> AffineTransformRANSACEstimator3d;
+    template <typename IndexT = size_t>
+    using RigidTransformRANSACEstimator2d = TransformRANSACEstimator<RigidTransform<double,2>,IndexT>;
+
+    template <typename IndexT = size_t>
+    using RigidTransformRANSACEstimator3f = TransformRANSACEstimator<RigidTransform<float,3>,IndexT>;
+
+    template <typename IndexT = size_t>
+    using RigidTransformRANSACEstimator3d = TransformRANSACEstimator<RigidTransform<double,3>,IndexT>;
+
+    template <typename IndexT = size_t>
+    using AffineTransformRANSACEstimator2f = TransformRANSACEstimator<AffineTransform<float,2>,IndexT>;
+
+    template <typename IndexT = size_t>
+    using AffineTransformRANSACEstimator2d = TransformRANSACEstimator<AffineTransform<double,2>,IndexT>;
+
+    template <typename IndexT = size_t>
+    using AffineTransformRANSACEstimator3f = TransformRANSACEstimator<AffineTransform<float,3>,IndexT>;
+
+    template <typename IndexT = size_t>
+    using AffineTransformRANSACEstimator3d = TransformRANSACEstimator<AffineTransform<double,3>,IndexT>;
 }
