@@ -72,14 +72,10 @@ namespace cilantro {
             if (num_points < sample_size_) sample_size_ = num_points;
             if (inlier_count_thresh_ > num_points) inlier_count_thresh_ = num_points;
 
-            std::random_device rd;
-            std::mt19937 rng(rd());
-
-            // Initialize random permutation
+            // Initialize index permutation and random engine
             IndexVector perm(num_points);
             for (size_t i = 0; i < num_points; i++) perm[i] = static_cast<IndexT>(i);
-            std::shuffle(perm.begin(), perm.end(), rng);
-            auto sample_start_it = perm.begin();
+            std::mt19937 rng(std::random_device{}());
 
             // Random sample results
             Model curr_params;
@@ -89,12 +85,15 @@ namespace cilantro {
             iteration_count_ = 0;
             while (iteration_count_ < max_iter_) {
                 // Pick a random sample
-                if (std::distance(sample_start_it, perm.end()) < sample_size_) {
-                    std::shuffle(perm.begin(), perm.end(), rng);
-                    sample_start_it = perm.begin();
+                IndexVector sample_ind(sample_size_);
+                size_t prev_size = num_points;
+                for (size_t i = 0; i < sample_size_; i++) {
+                    std::uniform_int_distribution<size_t> dist(0, prev_size - 1);
+                    size_t rand_ind = dist(rng);
+                    sample_ind[i] = perm[rand_ind];
+                    prev_size--;
+                    std::swap(perm[rand_ind], perm[prev_size]);
                 }
-                IndexVector sample_ind(sample_start_it, sample_start_it + sample_size_);
-                sample_start_it += sample_size_;
 
                 // Fit model to sample and get its inliers
                 estimator.estimateModel(sample_ind, curr_params);

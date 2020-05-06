@@ -41,12 +41,11 @@ namespace cilantro {
             std::vector<size_t> range(data_map_.cols());
             for (size_t i = 0; i < range.size(); i++) range[i] = i;
 
-            std::random_device rd;
-            std::mt19937 rng(rd());
-            std::uniform_int_distribution<size_t> dist;
+            std::mt19937 rng(std::random_device{}());
             size_t prev_size = range.size();
             for (size_t i = 0; i < cluster_centroids_.cols(); i++) {
-                size_t rand_ind = dist(rng) % prev_size;
+                std::uniform_int_distribution<size_t> dist(0, prev_size - 1);
+                size_t rand_ind = dist(rng);
                 cluster_centroids_.col(i) = data_map_.col(range[rand_ind]);
                 prev_size--;
                 std::swap(range[rand_ind], range[prev_size]);
