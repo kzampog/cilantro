@@ -24,9 +24,9 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,1)
 //#pragma omp parallel for reduction (internal::MatrixReductions<ScalarT,EigenDim,1>::operator+: sum)
 #endif
                 for (size_t i = 0; i < data.cols(); i++) {
-                    sum += data.col(i);
+                    sum.noalias() += data.col(i);
                 }
-                mean_ = ((ScalarT)(1.0)/data.cols())*sum;
+                mean_.noalias() = (ScalarT(1.0)/static_cast<ScalarT>(data.cols()))*sum;
 
                 Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov(Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(data.rows(), data.rows()));
 
@@ -37,30 +37,34 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
 #endif
                 for (size_t i = 0; i < data.cols(); i++) {
                     Eigen::Matrix<ScalarT,EigenDim,1> ptc = data.col(i) - mean_;
-                    cov += ptc*ptc.transpose();
+                    cov.noalias() += ptc*ptc.transpose();
                 }
-                cov *= (ScalarT)(1.0)/(data.cols()-1);
+                cov *= ScalarT(1.0)/static_cast<ScalarT>(data.cols() - 1);
 
                 Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(cov);
                 eigenvectors_ = eig.eigenvectors().rowwise().reverse();
-                if (eigenvectors_.determinant() < (ScalarT)0.0) {
+                if (eigenvectors_.determinant() < ScalarT(0.0)) {
                     auto last_col = eigenvectors_.col(data.rows() - 1);
                     last_col = -last_col;
                 }
                 eigenvalues_ = eig.eigenvalues().reverse();
             } else {
-                mean_ = data.rowwise().mean();
+                Vector<ScalarT,EigenDim> sum(Vector<ScalarT,EigenDim>::Zero(data.rows(), 1));
+                for (size_t i = 0; i < data.cols(); i++) {
+                    sum.noalias() += data.col(i);
+                }
+                mean_.noalias() = (ScalarT(1.0)/static_cast<ScalarT>(data.cols()))*sum;
 
                 Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov(Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(data.rows(), data.rows()));
                 for (size_t i = 0; i < data.cols(); i++) {
                     Eigen::Matrix<ScalarT,EigenDim,1> ptc = data.col(i) - mean_;
-                    cov += ptc*ptc.transpose();
+                    cov.noalias() += ptc*ptc.transpose();
                 }
-                cov *= (ScalarT)(1.0)/(data.cols()-1);
+                cov *= ScalarT(1.0)/static_cast<ScalarT>(data.cols() - 1);
 
                 Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(cov);
                 eigenvectors_ = eig.eigenvectors().rowwise().reverse();
-                if (eigenvectors_.determinant() < (ScalarT)0.0) {
+                if (eigenvectors_.determinant() < ScalarT(0.0)) {
                     auto last_col = eigenvectors_.col(data.rows() - 1);
                     last_col = -last_col;
                 }

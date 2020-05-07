@@ -22,7 +22,7 @@ namespace cilantro {
             if (points.cols() < points.rows()) return false;
             mean = points.rowwise().mean();
             auto centered = points.colwise() - mean;  // Lazy evaluation
-            cov.noalias() =  (ScalarT)(1.0)/(points.cols() - 1) * (centered * centered.transpose());
+            cov.noalias() =  (ScalarT(1.0)/static_cast<ScalarT>(points.cols() - 1)) * (centered * centered.transpose());
             return true;
         }
 
@@ -31,18 +31,18 @@ namespace cilantro {
             size_t size = std::distance(begin, end);
             if (size < points.rows()) return false;
 
-            mean.setZero(points.rows());
+            mean.setZero(points.rows(), 1);
             for (NeighborhoodResultIteratorT it = begin; it != end; ++it) {
-                mean += points.col(it->index);
+                mean.noalias() += points.col(it->index);
             }
-            mean *= (ScalarT)(1.0)/size;
+            mean *= ScalarT(1.0)/static_cast<ScalarT>(size);
 
             cov.setZero(points.rows(), points.rows());
             for (NeighborhoodResultIteratorT it = begin; it != end; ++it) {
                 auto tmp = points.col(it->index) - mean;
-                cov += tmp*tmp.transpose();
+                cov.noalias() += tmp*tmp.transpose();
             }
-            cov *= (ScalarT)(1.0)/(size - 1);
+            cov *= ScalarT(1.0)/static_cast<ScalarT>(size - 1);
             return true;
         }
 
@@ -137,7 +137,7 @@ namespace cilantro {
         inline ScalarT getOutlierRate() const { return outlier_rate_; }
 
         inline MinimumCovarianceDeterminant& setOutlierRate(int outlier_rate) {
-            outlier_rate_ = std::max((ScalarT)0.5, outlier_rate);
+            outlier_rate_ = std::max(ScalarT(0.5), outlier_rate);
             return *this;
         }
 
@@ -162,9 +162,9 @@ namespace cilantro {
         // where P is the desired probability to find an outlier free set and e is the outlier rate.
         int num_trials_ = 6;
         int num_refinements_ = 3;
-        ScalarT outlier_rate_ = (ScalarT)0.75;
+        ScalarT outlier_rate_ = ScalarT(0.75);
         // If > 0, the covariance ellipse will be used to label the point as in/outlier.
-        ScalarT chi_square_threshold_ = (ScalarT)-1;
+        ScalarT chi_square_threshold_ = ScalarT(-1);
         CovarianceT compute_mean_and_covariance_;
     };
 }
