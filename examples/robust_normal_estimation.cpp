@@ -39,7 +39,7 @@ int main(int argc, char ** argv) {
 
     cilantro::Timer tree_timer;
     tree_timer.start();
-    cilantro::KDTree3f tree(cloud.points);
+    cilantro::KDTree3f<> tree(cloud.points);
     tree_timer.stop();
 
     cilantro::Timer ne_timer;

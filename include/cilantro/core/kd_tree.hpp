@@ -396,10 +396,21 @@ namespace cilantro {
         nanoflann::SearchParams params_;
     };
 
-    typedef KDTree<float,2,KDTreeDistanceAdaptors::L2> KDTree2f;
-    typedef KDTree<double,2,KDTreeDistanceAdaptors::L2> KDTree2d;
-    typedef KDTree<float,3,KDTreeDistanceAdaptors::L2> KDTree3f;
-    typedef KDTree<double,3,KDTreeDistanceAdaptors::L2> KDTree3d;
-    typedef KDTree<float,Eigen::Dynamic,KDTreeDistanceAdaptors::L2> KDTreeXf;
-    typedef KDTree<double,Eigen::Dynamic,KDTreeDistanceAdaptors::L2> KDTreeXd;
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename IndexT = size_t>
+    using KDTree2f = KDTree<float,2,DistAdaptor,IndexT>;
+
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename IndexT = size_t>
+    using KDTree2d = KDTree<double,2,DistAdaptor,IndexT>;
+
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename IndexT = size_t>
+    using KDTree3f = KDTree<float,3,DistAdaptor,IndexT>;
+
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename IndexT = size_t>
+    using KDTree3d = KDTree<double,3,DistAdaptor,IndexT>;
+
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename IndexT = size_t>
+    using KDTreeXf = KDTree<float,Eigen::Dynamic,DistAdaptor,IndexT>;
+
+    template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename IndexT = size_t>
+    using KDTreeXd = KDTree<double,Eigen::Dynamic,DistAdaptor,IndexT>;
 }

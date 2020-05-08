@@ -23,7 +23,7 @@ int main(int argc, char ** argv) {
 
     cilantro::Timer tree_timer;
     tree_timer.start();
-    cilantro::KDTree3f tree(cloud.points);
+    cilantro::KDTree3f<> tree(cloud.points);
     // cilantro::NormalEstimation3f ne(tree);
     // cilantro::NormalEstimation3f ne(cloud.points);
     tree_timer.stop();
