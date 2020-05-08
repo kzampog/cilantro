@@ -26,29 +26,31 @@ namespace cilantro {
             return true;
         }
 
-        template <typename NeighborhoodResultIteratorT>
-        inline bool operator()(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, NeighborhoodResultIteratorT begin, NeighborhoodResultIteratorT end, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov) const {
+        template <typename IteratorT>
+        inline bool operator()(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, IteratorT begin, IteratorT end, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov) const {
             size_t size = std::distance(begin, end);
             if (size < points.rows()) return false;
 
             mean.setZero(points.rows(), 1);
-            for (NeighborhoodResultIteratorT it = begin; it != end; ++it) {
-                mean.noalias() += points.col(it->index);
+            for (IteratorT it = begin; it != end; ++it) {
+                // mean.noalias() += points.col(it->index);
+                mean.noalias() += points.col(*it);
             }
             mean *= ScalarT(1.0)/static_cast<ScalarT>(size);
 
             cov.setZero(points.rows(), points.rows());
-            for (NeighborhoodResultIteratorT it = begin; it != end; ++it) {
-                auto tmp = points.col(it->index) - mean;
+            for (IteratorT it = begin; it != end; ++it) {
+                // auto tmp = points.col(it->index) - mean;
+                auto tmp = points.col(*it) - mean;
                 cov.noalias() += tmp*tmp.transpose();
             }
             cov *= ScalarT(1.0)/static_cast<ScalarT>(size - 1);
             return true;
         }
 
-        template <typename NeighborhoodResultT>
-        inline bool operator()(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, const NeighborhoodResultT &nn, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov) const {
-            return (*this)(points, nn.begin(), nn.end(), mean, cov);
+        template <typename ContainerT>
+        inline bool operator()(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, const ContainerT &subset, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov) const {
+            return (*this)(points, subset.begin(), subset.end(), mean, cov);
         }
     };
 
@@ -68,37 +70,48 @@ namespace cilantro {
         MinimumCovarianceDeterminant() = default;
 
         inline bool operator()(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov) const {
-            Neighborhood<ScalarT> neighbors(points.cols());
-            int count = 0;
-            std::generate(neighbors.begin(), neighbors.end(), [&count]() mutable { return Neighbor<ScalarT>(count++, 0); });
-            return (*this)(points, neighbors, mean, cov);
+            // Neighborhood<ScalarT> subset(points.cols());
+            // size_t count = 0;
+            // std::generate(subset.begin(), subset.end(), [&count]() mutable { return Neighbor<ScalarT>(count++, ScalarT(0.0)); });
+            std::vector<size_t> subset(points.cols());
+            for (size_t i = 0; i < subset.size(); i++) subset[i] = i;
+            return (*this)(points, subset, mean, cov);
         }
 
-        template <typename NeighborhoodResultIteratorT>
-        inline bool operator()(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, NeighborhoodResultIteratorT begin, NeighborhoodResultIteratorT end, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov) const {
-            const int first_idx = begin->index;
-
+        template <typename IteratorT>
+        inline bool operator()(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, IteratorT begin, IteratorT end, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov) const {
             const size_t size = std::distance(begin, end);
             if (size < points.rows()) return false;
             if (size == points.rows()) return compute_mean_and_covariance_(points, begin, end, mean, cov);
 
-            RandomElementSelector<RandomGeneratorT> random {};
+            Neighborhood<ScalarT> range_copy(size);
+            size_t k = 0;
+            for (auto it = begin; it != end; ++it) {
+                // range_copy[k++].index = it->index;
+                range_copy[k++].index = *it;
+            }
 
-            using NeighborT = typename NeighborhoodResultIteratorT::value_type;
+            auto copy_begin = range_copy.begin();
+            auto copy_end = range_copy.end();
 
-            std::vector<NeighborT> subset(points.rows());
-            size_t h = static_cast<size_t>(std::ceil(outlier_rate_ * (size + EigenDim + 1)));
+            const auto first_idx = copy_begin->index;
+
+            RandomElementSelector<RandomGeneratorT> random{};
+
+            // Neighborhood<ScalarT> subset(points.rows());
+            std::vector<size_t> subset(points.rows());
+            size_t h = static_cast<size_t>(std::ceil(outlier_rate_ * (size + points.rows() + 1)));
             if (h > size) h = size - 1;
             Vector<ScalarT,EigenDim> best_mean;
             Eigen::Matrix<ScalarT,EigenDim,EigenDim> best_cov;
             ScalarT best_determinant = std::numeric_limits<ScalarT>::max();
             for (int j = 0; j < num_trials_; ++j) {
-                std::generate(subset.begin(), subset.end(), [&begin, &end, &random]() { return *random(begin, end); });
+                std::generate(subset.begin(), subset.end(), [&copy_begin, &copy_end, &random]() { return *random(copy_begin, copy_end); });
                 compute_mean_and_covariance_(points, subset.begin(), subset.end(), mean, cov);
                 for (int l = 0; l < num_refinements_; ++l) {
-                    mahalanobisDistance(points, begin, end, mean, cov.inverse());
-                    std::partial_sort(begin, begin + h, end, typename NeighborT::ValueLessComparator());
-                    compute_mean_and_covariance_(points, begin, begin + h, mean, cov);
+                    mahalanobisDistance(points, copy_begin, copy_end, mean, cov.inverse());
+                    std::partial_sort(copy_begin, copy_begin + h, copy_end, typename Neighbor<ScalarT>::ValueLessComparator());
+                    compute_mean_and_covariance_(points, copy_begin, copy_begin + h, mean, cov);
                 }
                 ScalarT determinant = cov.determinant();
                 if (determinant < best_determinant) {
@@ -109,16 +122,20 @@ namespace cilantro {
             }
             mean = best_mean;
             cov = best_cov;
-            mahalanobisDistance(points, begin, end, mean, cov.inverse());
-            if (chi_square_threshold_ <= 0) return true;
+            mahalanobisDistance(points, copy_begin, copy_end, mean, cov.inverse());
+            if (chi_square_threshold_ <= ScalarT(0.0)) return true;
             auto demeaned = points.col(first_idx) - mean;
             return demeaned.transpose() * cov.inverse() * demeaned <= chi_square_threshold_;
         }
 
-        template <typename NeighborhoodResultT>
-        inline bool operator()(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, NeighborhoodResultT &nn, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov) const {
-            return (*this)(points, nn.begin(), nn.end(), mean, cov);
+        template <typename ContainerT>
+        inline bool operator()(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, const ContainerT &subset, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov) const {
+            return (*this)(points, subset.begin(), subset.end(), mean, cov);
         }
+
+        inline const Covariance& evaluator() const { return compute_mean_and_covariance_; }
+
+        inline Covariance& evaluator() { return compute_mean_and_covariance_; }
 
         inline int getNumberOfTrials() const { return num_trials_; }
 
@@ -136,7 +153,7 @@ namespace cilantro {
 
         inline ScalarT getOutlierRate() const { return outlier_rate_; }
 
-        inline MinimumCovarianceDeterminant& setOutlierRate(int outlier_rate) {
+        inline MinimumCovarianceDeterminant& setOutlierRate(ScalarT outlier_rate) {
             outlier_rate_ = std::max(ScalarT(0.5), outlier_rate);
             return *this;
         }
@@ -150,7 +167,7 @@ namespace cilantro {
 
     protected:
         template <typename NeighborhoodResultIteratorT>
-        void mahalanobisDistance(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, NeighborhoodResultIteratorT begin, NeighborhoodResultIteratorT end, const Vector<ScalarT,EigenDim> &mean, const Eigen::Matrix<ScalarT,EigenDim,EigenDim> &cov_inverse) const {
+        inline void mahalanobisDistance(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, NeighborhoodResultIteratorT begin, NeighborhoodResultIteratorT end, const Vector<ScalarT,EigenDim> &mean, const Eigen::Matrix<ScalarT,EigenDim,EigenDim> &cov_inverse) const {
             std::for_each(begin, end, [&points, &mean, &cov_inverse](typename NeighborhoodResultIteratorT::value_type &n) {
                 auto demeaned = points.col(n.index) - mean;
                 n.value = demeaned.transpose() * cov_inverse * demeaned;

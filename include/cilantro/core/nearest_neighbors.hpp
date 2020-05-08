@@ -18,6 +18,9 @@ namespace cilantro {
 
         inline Neighbor(IndexT ind, ScalarT dist) : index(ind), value(dist) {}
 
+        template <typename IndT = IndexT>
+        inline operator IndT() const { return static_cast<IndT>(index); }
+
         struct IndexLessComparator {
             inline bool operator()(const Neighbor &nn1, const Neighbor &nn2) const {
                 return nn1.index < nn2.index;
