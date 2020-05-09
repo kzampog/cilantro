@@ -16,30 +16,26 @@ namespace cilantro {
         {}
 
         inline HyperplaneRANSACEstimator& estimateModel(Eigen::Hyperplane<ScalarT,EigenDim> &model_params) {
-            estimate_params_(points_, model_params);
+            estimate_params_(model_params);
             return *this;
         }
 
         inline Eigen::Hyperplane<ScalarT,EigenDim> estimateModel() {
             Eigen::Hyperplane<ScalarT,EigenDim> model_params;
-            estimateModel(model_params);
+            estimate_params_(model_params);
             return model_params;
         }
 
-        HyperplaneRANSACEstimator& estimateModel(const typename Base::IndexVector &sample_ind,
-                                                 Eigen::Hyperplane<ScalarT,EigenDim> &model_params)
+        inline HyperplaneRANSACEstimator& estimateModel(const typename Base::IndexVector &sample_ind,
+                                                        Eigen::Hyperplane<ScalarT,EigenDim> &model_params)
         {
-            VectorSet<ScalarT,EigenDim> points(points_.rows(), sample_ind.size());
-            for (size_t i = 0; i < sample_ind.size(); i++) {
-                points.col(i) = points_.col(sample_ind[i]);
-            }
-            estimate_params_(points, model_params);
+            estimate_params_(sample_ind, model_params);
             return *this;
         }
 
         inline Eigen::Hyperplane<ScalarT,EigenDim> estimateModel(const typename Base::IndexVector &sample_ind) {
             Eigen::Hyperplane<ScalarT,EigenDim> model_params;
-            estimateModel(sample_ind, model_params);
+            estimate_params_(sample_ind, model_params);
             return model_params;
         }
 
@@ -64,12 +60,19 @@ namespace cilantro {
     private:
         ConstVectorSetMatrixMap<ScalarT,EigenDim> points_;
 
-        void estimate_params_(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points,
-                              Eigen::Hyperplane<ScalarT,EigenDim> &model_params)
+        inline void estimate_params_(Eigen::Hyperplane<ScalarT,EigenDim> &model_params) {
+            if (EigenDim == Eigen::Dynamic) model_params.coeffs().resize(points_.rows());
+            PrincipalComponentAnalysis<ScalarT,EigenDim> pca(points_);
+            model_params.normal() = pca.getEigenVectors().col(points_.rows() - 1);
+            model_params.offset() = -model_params.normal().dot(pca.getDataMean());
+        }
+
+        inline void estimate_params_(const typename Base::IndexVector &sample_ind,
+                                     Eigen::Hyperplane<ScalarT,EigenDim> &model_params)
         {
-            if (EigenDim == Eigen::Dynamic) model_params.coeffs().resize(points.rows());
-            PrincipalComponentAnalysis<ScalarT,EigenDim> pca(points);
-            model_params.normal() = pca.getEigenVectors().col(points_.rows()-1);
+            if (EigenDim == Eigen::Dynamic) model_params.coeffs().resize(points_.rows());
+            PrincipalComponentAnalysis<ScalarT,EigenDim> pca(points_, sample_ind);
+            model_params.normal() = pca.getEigenVectors().col(points_.rows() - 1);
             model_params.offset() = -model_params.normal().dot(pca.getDataMean());
         }
     };

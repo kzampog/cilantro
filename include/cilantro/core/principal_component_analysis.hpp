@@ -1,8 +1,7 @@
 #pragma once
 
-#include <cilantro/config.hpp>
 #include <cilantro/core/data_containers.hpp>
-#include <cilantro/core/openmp_reductions.hpp>
+#include <cilantro/core/covariance.hpp>
 
 namespace cilantro {
     template <typename ScalarT, ptrdiff_t EigenDim>
@@ -14,67 +13,32 @@ namespace cilantro {
 
         enum { Dimension = EigenDim };
 
-        PrincipalComponentAnalysis(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data, bool parallel = false) {
-            if (parallel) {
-                Vector<ScalarT,EigenDim> sum(Vector<ScalarT,EigenDim>::Zero(data.rows(), 1));
+        typedef Eigen::Matrix<ScalarT,EigenDim,EigenDim> CovarianceMatrix;
 
-#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
-DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,1)
-#pragma omp parallel for MATRIX_SUM_REDUCTION(ScalarT,EigenDim,1,sum)
-//#pragma omp parallel for reduction (internal::MatrixReductions<ScalarT,EigenDim,1>::operator+: sum)
-#endif
-                for (size_t i = 0; i < data.cols(); i++) {
-                    sum.noalias() += data.col(i);
-                }
-                mean_.noalias() = (ScalarT(1.0)/static_cast<ScalarT>(data.cols()))*sum;
+        template <typename CovarianceT = Covariance<ScalarT,EigenDim>>
+        PrincipalComponentAnalysis(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data,
+                                   bool parallel = false,
+                                   const CovarianceT& cov_eval = CovarianceT())
+        {
+            cov_eval(data, mean_, covariance_, parallel);
+            compute_();
+        }
 
-                Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov(Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(data.rows(), data.rows()));
-
-#ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
-DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
-#pragma omp parallel for MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim,cov)
-//#pragma omp parallel for reduction (internal::MatrixReductions<ScalarT,EigenDim,EigenDim>::operator+: cov)
-#endif
-                for (size_t i = 0; i < data.cols(); i++) {
-                    Eigen::Matrix<ScalarT,EigenDim,1> ptc = data.col(i) - mean_;
-                    cov.noalias() += ptc*ptc.transpose();
-                }
-                cov *= ScalarT(1.0)/static_cast<ScalarT>(data.cols() - 1);
-
-                Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(cov);
-                eigenvectors_ = eig.eigenvectors().rowwise().reverse();
-                if (eigenvectors_.determinant() < ScalarT(0.0)) {
-                    auto last_col = eigenvectors_.col(data.rows() - 1);
-                    last_col = -last_col;
-                }
-                eigenvalues_ = eig.eigenvalues().reverse();
-            } else {
-                Vector<ScalarT,EigenDim> sum(Vector<ScalarT,EigenDim>::Zero(data.rows(), 1));
-                for (size_t i = 0; i < data.cols(); i++) {
-                    sum.noalias() += data.col(i);
-                }
-                mean_.noalias() = (ScalarT(1.0)/static_cast<ScalarT>(data.cols()))*sum;
-
-                Eigen::Matrix<ScalarT,EigenDim,EigenDim> cov(Eigen::Matrix<ScalarT,EigenDim,EigenDim>::Zero(data.rows(), data.rows()));
-                for (size_t i = 0; i < data.cols(); i++) {
-                    Eigen::Matrix<ScalarT,EigenDim,1> ptc = data.col(i) - mean_;
-                    cov.noalias() += ptc*ptc.transpose();
-                }
-                cov *= ScalarT(1.0)/static_cast<ScalarT>(data.cols() - 1);
-
-                Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(cov);
-                eigenvectors_ = eig.eigenvectors().rowwise().reverse();
-                if (eigenvectors_.determinant() < ScalarT(0.0)) {
-                    auto last_col = eigenvectors_.col(data.rows() - 1);
-                    last_col = -last_col;
-                }
-                eigenvalues_ = eig.eigenvalues().reverse();
-            }
+        template <typename ContainerT, typename CovarianceT = Covariance<ScalarT,EigenDim>>
+        PrincipalComponentAnalysis(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data,
+                                   const ContainerT& subset,
+                                   bool parallel = false,
+                                   const CovarianceT& cov_eval = CovarianceT())
+        {
+            cov_eval(data, subset.begin(), subset.end(), mean_, covariance_, parallel);
+            compute_();
         }
 
         ~PrincipalComponentAnalysis() {}
 
         inline const Vector<ScalarT,EigenDim>& getDataMean() const { return mean_; }
+
+        inline const Eigen::Matrix<ScalarT,EigenDim,EigenDim>& getDataCovariance() const { return covariance_; }
 
         inline const Vector<ScalarT,EigenDim>& getEigenValues() const { return eigenvalues_; }
 
@@ -102,8 +66,19 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
 
     protected:
         Vector<ScalarT,EigenDim> mean_;
+        Eigen::Matrix<ScalarT,EigenDim,EigenDim> covariance_;
         Vector<ScalarT,EigenDim> eigenvalues_;
         Eigen::Matrix<ScalarT,EigenDim,EigenDim> eigenvectors_;
+
+        inline void compute_() {
+            Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT,EigenDim,EigenDim>> eig(covariance_);
+            eigenvectors_ = eig.eigenvectors().rowwise().reverse();
+            if (eigenvectors_.determinant() < ScalarT(0.0)) {
+                auto last_col = eigenvectors_.col(mean_.rows() - 1);
+                last_col.noalias() = -last_col;
+            }
+            eigenvalues_ = eig.eigenvalues().reverse();
+        }
     };
 
     typedef PrincipalComponentAnalysis<float,2> PrincipalComponentAnalysis2f;
