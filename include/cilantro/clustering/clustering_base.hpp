@@ -9,13 +9,13 @@ namespace cilantro {
                                                          size_t num_points)
     {
         // cluster_to_point.size() signifies unlabeled point
-        std::vector<ClusterIndexT> point_to_segment(num_points, cluster_to_point.size());
+        std::vector<ClusterIndexT> point_to_cluster(num_points, cluster_to_point.size());
         for (size_t i = 0; i < cluster_to_point.size(); i++) {
             for (size_t j = 0; j < cluster_to_point[i].size(); j++) {
-                point_to_segment[cluster_to_point[i][j]] = static_cast<ClusterIndexT>(i);
+                point_to_cluster[cluster_to_point[i][j]] = static_cast<ClusterIndexT>(i);
             }
         }
-        return point_to_segment;
+        return point_to_cluster;
     }
 
     // Cluster indices in point_to_cluster are in [0, num_clusters - 1];

@@ -122,7 +122,7 @@ namespace cilantro {
             }
             mean = best_mean;
             cov = best_cov;
-            mahalanobisDistance(points, copy_begin, copy_end, mean, cov.inverse());
+            // mahalanobisDistance(points, copy_begin, copy_end, mean, cov.inverse()); // this looks redundant
             if (chi_square_threshold_ <= ScalarT(0.0)) return true;
             auto demeaned = points.col(first_idx) - mean;
             return demeaned.transpose() * cov.inverse() * demeaned <= chi_square_threshold_;
