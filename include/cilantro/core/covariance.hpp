@@ -218,7 +218,7 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
                 std::generate(subset.begin(), subset.end(), [&copy_begin, &copy_end, &random]() { return *random(copy_begin, copy_end); });
                 compute_mean_and_covariance_(points, subset.begin(), subset.end(), mean, cov, false);
                 for (int l = 0; l < num_refinements_; ++l) {
-                    mahalanobisDistance(points, copy_begin, copy_end, mean, cov.inverse());
+                    mahalanobisDistance(points, copy_begin, copy_end, mean, cov.inverse(), parallel);
                     std::partial_sort(copy_begin, copy_begin + h, copy_end, typename Neighbor<ScalarT>::ValueLessComparator());
                     compute_mean_and_covariance_(points, copy_begin, copy_begin + h, mean, cov, parallel);
                 }
@@ -231,9 +231,9 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
             }
             mean = best_mean;
             cov = best_cov;
-            // mahalanobisDistance(points, copy_begin, copy_end, mean, cov.inverse()); // this looks redundant
+            // mahalanobisDistance(points, copy_begin, copy_end, mean, cov.inverse(), parallel);   // this looks redundant
             if (chi_square_threshold_ <= ScalarT(0.0)) return true;
-            auto demeaned = points.col(first_idx) - mean;
+            Vector<ScalarT,EigenDim> demeaned = points.col(first_idx) - mean;
             return demeaned.transpose() * cov.inverse() * demeaned <= chi_square_threshold_;
         }
 
@@ -275,12 +275,20 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
         }
 
     protected:
-        template <typename NeighborhoodResultIteratorT>
-        inline void mahalanobisDistance(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, NeighborhoodResultIteratorT begin, NeighborhoodResultIteratorT end, const Vector<ScalarT,EigenDim> &mean, const Eigen::Matrix<ScalarT,EigenDim,EigenDim> &cov_inverse) const {
-            std::for_each(begin, end, [&points, &mean, &cov_inverse](typename NeighborhoodResultIteratorT::value_type &n) {
-                auto demeaned = points.col(n.index) - mean;
-                n.value = demeaned.transpose() * cov_inverse * demeaned;
-            });
+        template <typename NeighborhoodIteratorT>
+        inline void mahalanobisDistance(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, NeighborhoodIteratorT begin, NeighborhoodIteratorT end, const Vector<ScalarT,EigenDim> &mean, const Eigen::Matrix<ScalarT,EigenDim,EigenDim> &cov_inverse, bool parallel) const {
+            if (parallel) {
+#pragma omp parallel for
+                for (NeighborhoodIteratorT it = begin; it < end; ++it) {
+                    Vector<ScalarT,EigenDim> demeaned = points.col(it->index) - mean;
+                    it->value = demeaned.transpose() * cov_inverse * demeaned;
+                }
+            } else {
+                for (NeighborhoodIteratorT it = begin; it != end; ++it) {
+                    Vector<ScalarT,EigenDim> demeaned = points.col(it->index) - mean;
+                    it->value = demeaned.transpose() * cov_inverse * demeaned;
+                }
+            }
         }
 
         // The number of random trials to take:
