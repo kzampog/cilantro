@@ -180,12 +180,14 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
         MinimumCovarianceDeterminant() = default;
 
         inline bool operator()(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov, bool parallel = false) const {
-            // Neighborhood<ScalarT> subset(points.cols());
-            // size_t count = 0;
-            // std::generate(subset.begin(), subset.end(), [&count]() mutable { return Neighbor<ScalarT>(count++, ScalarT(0.0)); });
-            std::vector<size_t> subset(points.cols());
-            for (size_t i = 0; i < subset.size(); i++) subset[i] = i;
-            return (*this)(points, subset, mean, cov, parallel);
+            if (points.cols() <= points.rows()) return compute_mean_and_covariance_(points, mean, cov, false);
+
+            Neighborhood<ScalarT> range_copy(points.cols());
+            for (size_t i = 0; i < points.cols(); i++) {
+                range_copy[i].index = i;
+            }
+
+            return computeOnMutableNeighborhood(points, range_copy.begin(), range_copy.end(), mean, cov, parallel);
         }
 
         template <typename IteratorT>
@@ -196,45 +198,10 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
             Neighborhood<ScalarT> range_copy(size);
             size_t k = 0;
             for (auto it = begin; it != end; ++it) {
-                // range_copy[k++].index = it->index;
                 range_copy[k++].index = *it;
             }
 
-            auto copy_begin = range_copy.begin();
-            auto copy_end = range_copy.end();
-
-            const auto first_idx = copy_begin->index;
-
-            RandomElementSelector<RandomGeneratorT> random{};
-
-            // Neighborhood<ScalarT> subset(points.rows());
-            std::vector<size_t> subset(points.rows());
-            size_t h = static_cast<size_t>(std::ceil(outlier_rate_ * (size + points.rows() + 1)));
-            if (h > size) h = size - 1;
-            Vector<ScalarT,EigenDim> best_mean;
-            Eigen::Matrix<ScalarT,EigenDim,EigenDim> best_cov;
-            ScalarT best_determinant = std::numeric_limits<ScalarT>::max();
-            for (int j = 0; j < num_trials_; ++j) {
-                std::generate(subset.begin(), subset.end(), [&copy_begin, &copy_end, &random]() { return *random(copy_begin, copy_end); });
-                compute_mean_and_covariance_(points, subset.begin(), subset.end(), mean, cov, false);
-                for (int l = 0; l < num_refinements_; ++l) {
-                    mahalanobisDistance(points, copy_begin, copy_end, mean, cov.inverse(), parallel);
-                    std::partial_sort(copy_begin, copy_begin + h, copy_end, typename Neighbor<ScalarT>::ValueLessComparator());
-                    compute_mean_and_covariance_(points, copy_begin, copy_begin + h, mean, cov, parallel);
-                }
-                ScalarT determinant = cov.determinant();
-                if (determinant < best_determinant) {
-                    best_determinant = determinant;
-                    best_cov = cov;
-                    best_mean = mean;
-                }
-            }
-            mean = best_mean;
-            cov = best_cov;
-            // mahalanobisDistance(points, copy_begin, copy_end, mean, cov.inverse(), parallel);   // this looks redundant
-            if (chi_square_threshold_ <= ScalarT(0.0)) return true;
-            Vector<ScalarT,EigenDim> demeaned = points.col(first_idx) - mean;
-            return demeaned.transpose() * cov.inverse() * demeaned <= chi_square_threshold_;
+            return computeOnMutableNeighborhood(points, range_copy.begin(), range_copy.end(), mean, cov, parallel);
         }
 
         template <typename ContainerT>
@@ -289,6 +256,42 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
                     it->value = demeaned.transpose() * cov_inverse * demeaned;
                 }
             }
+        }
+
+        template <typename NeighborhoodIteratorT>
+        inline bool computeOnMutableNeighborhood(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, NeighborhoodIteratorT begin, NeighborhoodIteratorT end, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov, bool parallel) const {
+            const size_t size = std::distance(begin, end);
+            const auto first_idx = begin->index;
+
+            RandomElementSelector<RandomGeneratorT> random{};
+
+            std::vector<size_t> subset(points.rows());
+            size_t h = static_cast<size_t>(std::ceil(outlier_rate_ * (size + points.rows() + 1)));
+            if (h > size) h = size - 1;
+            Vector<ScalarT,EigenDim> best_mean;
+            Eigen::Matrix<ScalarT,EigenDim,EigenDim> best_cov;
+            ScalarT best_determinant = std::numeric_limits<ScalarT>::max();
+            for (int j = 0; j < num_trials_; ++j) {
+                std::generate(subset.begin(), subset.end(), [&begin, &end, &random]() { return *random(begin, end); });
+                compute_mean_and_covariance_(points, subset.begin(), subset.end(), mean, cov, false);
+                for (int l = 0; l < num_refinements_; ++l) {
+                    mahalanobisDistance(points, begin, end, mean, cov.inverse(), parallel);
+                    std::partial_sort(begin, begin + h, end, typename Neighbor<ScalarT>::ValueLessComparator());
+                    compute_mean_and_covariance_(points, begin, begin + h, mean, cov, parallel);
+                }
+                ScalarT determinant = cov.determinant();
+                if (determinant < best_determinant) {
+                    best_mean = mean;
+                    best_cov = cov;
+                    best_determinant = determinant;
+                }
+            }
+            mean = best_mean;
+            cov = best_cov;
+            // mahalanobisDistance(points, begin, end, mean, cov.inverse(), parallel);   // this looks redundant
+            if (chi_square_threshold_ <= ScalarT(0.0)) return true;
+            Vector<ScalarT,EigenDim> demeaned = points.col(first_idx) - mean;
+            return demeaned.transpose() * cov.inverse() * demeaned <= chi_square_threshold_;
         }
 
         // The number of random trials to take:
