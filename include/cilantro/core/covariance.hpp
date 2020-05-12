@@ -21,13 +21,16 @@ namespace cilantro {
 
         Covariance() = default;
 
+        inline size_t getMinValidSampleSize() const { return min_sample_size_; }
+
+        inline Covariance& setMinValidSampleSize(size_t min_size) {
+            min_sample_size_ = min_size;
+            return *this;
+        }
+
         inline bool operator()(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov, bool parallel = false) const {
-            if (points.cols() < 2) {
-                if (points.cols() == 0) {
-                    mean.setConstant(points.rows(), 1, std::numeric_limits<ScalarT>::quiet_NaN());
-                } else {
-                    mean = points.rowwise().mean();
-                }
+            if (points.cols() < min_sample_size_) {
+                mean.setConstant(points.rows(), 1, std::numeric_limits<ScalarT>::quiet_NaN());
                 cov.setConstant(points.rows(), points.rows(), std::numeric_limits<ScalarT>::quiet_NaN());
                 return false;
             }
@@ -70,19 +73,15 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
                 cov.noalias() = (ScalarT(1.0)/static_cast<ScalarT>(points.cols() - 1))*cov_sum;
             }
 
-            return points.cols() >= points.rows();
+            return true;
         }
 
         // Conditionally enable parallelization if iterators are random access
         template <typename IteratorT, typename std::enable_if<std::is_same<typename std::iterator_traits<IteratorT>::iterator_category, std::random_access_iterator_tag>::value, int>::type = 0>
         inline bool operator()(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, IteratorT begin, IteratorT end, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov, bool parallel = false) const {
             const size_t size = std::distance(begin, end);
-            if (size < 2) {
-                if (size == 0) {
-                    mean.setConstant(points.rows(), 1, std::numeric_limits<ScalarT>::quiet_NaN());
-                } else {
-                    mean = points.rowwise().mean();
-                }
+            if (size < min_sample_size_) {
+                mean.setConstant(points.rows(), 1, std::numeric_limits<ScalarT>::quiet_NaN());
                 cov.setConstant(points.rows(), points.rows(), std::numeric_limits<ScalarT>::quiet_NaN());
                 return false;
             }
@@ -125,19 +124,15 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
                 cov.noalias() = (ScalarT(1.0)/static_cast<ScalarT>(size - 1))*cov_sum;
             }
 
-            return size >= points.rows();
+            return true;
         }
 
         // Non-random access iterators: this overload ignores the parallelization flag
         template <typename IteratorT, typename std::enable_if<std::is_same<typename std::iterator_traits<IteratorT>::iterator_category, std::random_access_iterator_tag>::value == false, int>::type = 0>
         inline bool operator()(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, IteratorT begin, IteratorT end, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov, bool) const {
             const size_t size = std::distance(begin, end);
-            if (size < 2) {
-                if (size == 0) {
-                    mean.setConstant(points.rows(), 1, std::numeric_limits<ScalarT>::quiet_NaN());
-                } else {
-                    mean = points.rowwise().mean();
-                }
+            if (size < min_sample_size_) {
+                mean.setConstant(points.rows(), 1, std::numeric_limits<ScalarT>::quiet_NaN());
                 cov.setConstant(points.rows(), points.rows(), std::numeric_limits<ScalarT>::quiet_NaN());
                 return false;
             }
@@ -155,13 +150,16 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
             }
             cov.noalias() = (ScalarT(1.0)/static_cast<ScalarT>(size - 1))*cov_sum;
 
-            return size >= points.rows();
+            return true;
         }
 
         template <typename ContainerT>
         inline bool operator()(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, const ContainerT &subset, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov, bool parallel = false) const {
             return (*this)(points, subset.begin(), subset.end(), mean, cov, parallel);
         }
+
+    protected:
+        size_t min_sample_size_ = 2;
     };
 
     template <typename ScalarT, ptrdiff_t EigenDim, typename CovarianceT = Covariance<ScalarT, EigenDim>, typename RandomGeneratorT = std::default_random_engine>
@@ -180,7 +178,7 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
         MinimumCovarianceDeterminant() = default;
 
         inline bool operator()(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov, bool parallel = false) const {
-            if (points.cols() <= points.rows()) return compute_mean_and_covariance_(points, mean, cov, false);
+            if (points.cols() <= compute_mean_and_covariance_.getMinValidSampleSize()) return compute_mean_and_covariance_(points, mean, cov, false);
 
             Neighborhood<ScalarT> range_copy(points.cols());
             for (size_t i = 0; i < points.cols(); i++) {
@@ -193,7 +191,7 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
         template <typename IteratorT>
         inline bool operator()(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points, IteratorT begin, IteratorT end, Vector<ScalarT,EigenDim>& mean, Eigen::Matrix<ScalarT,EigenDim,EigenDim>& cov, bool parallel = false) const {
             const size_t size = std::distance(begin, end);
-            if (size <= points.rows()) return compute_mean_and_covariance_(points, begin, end, mean, cov, false);
+            if (size <= compute_mean_and_covariance_.getMinValidSampleSize()) return compute_mean_and_covariance_(points, begin, end, mean, cov, false);
 
             Neighborhood<ScalarT> range_copy(size);
             size_t k = 0;
@@ -213,6 +211,13 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
 
         inline Covariance& evaluator() { return compute_mean_and_covariance_; }
 
+        inline size_t getMinValidSampleSize() const { return compute_mean_and_covariance_.getMinValidSampleSize(); }
+
+        inline MinimumCovarianceDeterminant& setMinValidSampleSize(size_t min_size) {
+            compute_mean_and_covariance_.setMinValidSampleSize(min_size);
+            return *this;
+        }
+
         inline int getNumberOfTrials() const { return num_trials_; }
 
         inline MinimumCovarianceDeterminant& setNumberOfTrials(int num_trials) {
@@ -227,10 +232,11 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
             return *this;
         }
 
-        inline ScalarT getOutlierRate() const { return outlier_rate_; }
+        inline ScalarT getInlierRatio() const { return inlier_ratio_; }
 
-        inline MinimumCovarianceDeterminant& setOutlierRate(ScalarT outlier_rate) {
-            outlier_rate_ = std::max(ScalarT(0.5), outlier_rate);
+        inline MinimumCovarianceDeterminant& setInlierRatio(ScalarT inlier_ratio) {
+            // inlier_ratio_ = std::max(ScalarT(0.5), inlier_ratio);
+            inlier_ratio_ = inlier_ratio;
             return *this;
         }
 
@@ -263,33 +269,44 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
             const size_t size = std::distance(begin, end);
             const auto first_idx = begin->index;
 
-            RandomElementSelector<RandomGeneratorT> random{};
+            // size_t h = static_cast<size_t>(std::ceil(inlier_ratio_ * (size + points.rows() + 1)));
+            // if (h > size) h = size - 1;
+            const size_t h = std::min(std::max(compute_mean_and_covariance_.getMinValidSampleSize(), static_cast<size_t>(std::llround(inlier_ratio_*size))), size);
 
-            std::vector<size_t> subset(points.rows());
-            size_t h = static_cast<size_t>(std::ceil(outlier_rate_ * (size + points.rows() + 1)));
-            if (h > size) h = size - 1;
-            Vector<ScalarT,EigenDim> best_mean;
-            Eigen::Matrix<ScalarT,EigenDim,EigenDim> best_cov;
-            ScalarT best_determinant = std::numeric_limits<ScalarT>::max();
-            for (int j = 0; j < num_trials_; ++j) {
-                std::generate(subset.begin(), subset.end(), [&begin, &end, &random]() { return *random(begin, end); });
-                compute_mean_and_covariance_(points, subset.begin(), subset.end(), mean, cov, false);
-                for (int l = 0; l < num_refinements_; ++l) {
-                    mahalanobisDistance(points, begin, end, mean, cov.inverse(), parallel);
-                    std::partial_sort(begin, begin + h, end, typename Neighbor<ScalarT>::ValueLessComparator());
-                    compute_mean_and_covariance_(points, begin, begin + h, mean, cov, parallel);
+            if (h < size) {
+                RandomElementSelector<RandomGeneratorT> random{};
+                std::vector<size_t> subset(compute_mean_and_covariance_.getMinValidSampleSize());
+
+                Vector<ScalarT,EigenDim> best_mean;
+                Eigen::Matrix<ScalarT,EigenDim,EigenDim> best_cov;
+                ScalarT best_determinant = std::numeric_limits<ScalarT>::max();
+
+                for (int j = 0; j < num_trials_; ++j) {
+                    std::generate(subset.begin(), subset.end(), [&begin, &end, &random]() { return *random(begin, end); });
+                    compute_mean_and_covariance_(points, subset.begin(), subset.end(), mean, cov, false);
+                    for (int l = 0; l < num_refinements_; ++l) {
+                        mahalanobisDistance(points, begin, end, mean, cov.inverse(), parallel);
+                        std::partial_sort(begin, begin + h, end, typename Neighbor<ScalarT>::ValueLessComparator());
+                        compute_mean_and_covariance_(points, begin, begin + h, mean, cov, parallel);
+                    }
+                    ScalarT determinant = cov.determinant();
+                    if (determinant < best_determinant) {
+                        best_mean = mean;
+                        best_cov = cov;
+                        best_determinant = determinant;
+                    }
                 }
-                ScalarT determinant = cov.determinant();
-                if (determinant < best_determinant) {
-                    best_mean = mean;
-                    best_cov = cov;
-                    best_determinant = determinant;
-                }
+
+                mean = best_mean;
+                cov = best_cov;
+            } else {
+                // h == size
+                compute_mean_and_covariance_(points, begin, end, mean, cov, parallel);
             }
-            mean = best_mean;
-            cov = best_cov;
+
             // mahalanobisDistance(points, begin, end, mean, cov.inverse(), parallel);   // this looks redundant
             if (chi_square_threshold_ <= ScalarT(0.0)) return true;
+
             Vector<ScalarT,EigenDim> demeaned = points.col(first_idx) - mean;
             return demeaned.transpose() * cov.inverse() * demeaned <= chi_square_threshold_;
         }
@@ -299,7 +316,7 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
         // where P is the desired probability to find an outlier free set and e is the outlier rate.
         int num_trials_ = 6;
         int num_refinements_ = 3;
-        ScalarT outlier_rate_ = ScalarT(0.75);
+        ScalarT inlier_ratio_ = ScalarT(0.75);
         // If > 0, the covariance ellipse will be used to label the point as in/outlier.
         ScalarT chi_square_threshold_ = ScalarT(-1);
         CovarianceT compute_mean_and_covariance_;

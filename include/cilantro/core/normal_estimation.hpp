@@ -22,7 +22,9 @@ namespace cilantro {
                   kd_tree_owned_(true),
                   view_point_(Vector<ScalarT,EigenDim>::Constant(points_.rows(), 1, std::numeric_limits<ScalarT>::quiet_NaN())),
                   ref_normals_(NULL)
-        {}
+        {
+            compute_mean_and_covariance_.setMinValidSampleSize(points_.rows());
+        }
 
         NormalEstimation(const SearchTree &kd_tree)
                 : points_(kd_tree.getPointsMatrixMap()),
@@ -30,7 +32,9 @@ namespace cilantro {
                   kd_tree_owned_(false),
                   view_point_(Vector<ScalarT,EigenDim>::Constant(points_.rows(), 1, std::numeric_limits<ScalarT>::quiet_NaN())),
                   ref_normals_(NULL)
-        {}
+        {
+            compute_mean_and_covariance_.setMinValidSampleSize(points_.rows());
+        }
 
         ~NormalEstimation() {
             if (kd_tree_owned_) delete kd_tree_ptr_;
