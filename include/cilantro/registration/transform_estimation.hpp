@@ -144,8 +144,6 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
 
         Eigen::Matrix<ScalarT,3,3> AtA;
         Eigen::Matrix<ScalarT,3,1> Atb;
-
-        Eigen::Matrix<ScalarT,2,2> rot_mat_iter;
         Eigen::Matrix<ScalarT,3,1> d_theta;
 
         for (size_t iter = 0; iter < max_iter; ++iter) {
@@ -256,8 +254,6 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
 
         Eigen::Matrix<ScalarT,6,6> AtA;
         Eigen::Matrix<ScalarT,6,1> Atb;
-
-        Eigen::Matrix<ScalarT,3,3> rot_mat_iter;
         Eigen::Matrix<ScalarT,6,1> d_theta;
 
         for (size_t iter = 0; iter < max_iter; ++iter) {
@@ -594,8 +590,6 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
 
         Eigen::Matrix<ScalarT,6,6> AtA;
         Eigen::Matrix<ScalarT,6,1> Atb;
-
-        Eigen::Matrix<ScalarT,3,3> rot_mat_iter;
         Eigen::Matrix<ScalarT,6,1> d_theta;
 
         for (size_t iter = 0; iter < max_iter; ++iter) {
