@@ -10,9 +10,7 @@
 #include <Eigen/Core>
 #include "../SymEigsSolver.h"
 
-
 namespace Spectra {
-
 
 // Abstract class for matrix operation
 template <typename Scalar>
@@ -32,7 +30,7 @@ public:
 // We compute the eigenvalues of A' * A
 // MatrixType is either Eigen::Matrix<Scalar, ...> or Eigen::SparseMatrix<Scalar, ...>
 template <typename Scalar, typename MatrixType>
-class SVDTallMatOp: public SVDMatOp<Scalar>
+class SVDTallMatOp : public SVDMatOp<Scalar>
 {
 private:
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
@@ -59,8 +57,8 @@ public:
     // y_out = A' * A * x_in
     void perform_op(const Scalar* x_in, Scalar* y_out)
     {
-        MapConstVec x(x_in,  m_mat.cols());
-        MapVec      y(y_out, m_mat.cols());
+        MapConstVec x(x_in, m_mat.cols());
+        MapVec y(y_out, m_mat.cols());
         m_cache.noalias() = m_mat * x;
         y.noalias() = m_mat.transpose() * m_cache;
     }
@@ -70,7 +68,7 @@ public:
 // We compute the eigenvalues of A * A'
 // MatrixType is either Eigen::Matrix<Scalar, ...> or Eigen::SparseMatrix<Scalar, ...>
 template <typename Scalar, typename MatrixType>
-class SVDWideMatOp: public SVDMatOp<Scalar>
+class SVDWideMatOp : public SVDMatOp<Scalar>
 {
 private:
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
@@ -97,8 +95,8 @@ public:
     // y_out = A * A' * x_in
     void perform_op(const Scalar* x_in, Scalar* y_out)
     {
-        MapConstVec x(x_in,  m_mat.rows());
-        MapVec      y(y_out, m_mat.rows());
+        MapConstVec x(x_in, m_mat.rows());
+        MapVec y(y_out, m_mat.rows());
         m_cache.noalias() = m_mat.transpose() * x;
         y.noalias() = m_mat * m_cache;
     }
@@ -106,8 +104,8 @@ public:
 
 // Partial SVD solver
 // MatrixType is either Eigen::Matrix<Scalar, ...> or Eigen::SparseMatrix<Scalar, ...>
-template < typename Scalar = double,
-           typename MatrixType = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> >
+template <typename Scalar = double,
+          typename MatrixType = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> >
 class PartialSVDSolver
 {
 private:
@@ -119,7 +117,7 @@ private:
     const int m_m;
     const int m_n;
     SVDMatOp<Scalar>* m_op;
-    SymEigsSolver< Scalar, LARGEST_ALGE, SVDMatOp<Scalar> >* m_eigs;
+    SymEigsSolver<Scalar, LARGEST_ALGE, SVDMatOp<Scalar> >* m_eigs;
     int m_nconv;
     Matrix m_evecs;
 
@@ -129,15 +127,17 @@ public:
         m_mat(mat), m_m(mat.rows()), m_n(mat.cols()), m_evecs(0, 0)
     {
         // Determine the matrix type, tall or wide
-        if(m_m > m_n)
+        if (m_m > m_n)
         {
             m_op = new SVDTallMatOp<Scalar, MatrixType>(mat);
-        } else {
+        }
+        else
+        {
             m_op = new SVDWideMatOp<Scalar, MatrixType>(mat);
         }
 
         // Solver object
-        m_eigs = new SymEigsSolver< Scalar, LARGEST_ALGE, SVDMatOp<Scalar> >(m_op, ncomp, ncv);
+        m_eigs = new SymEigsSolver<Scalar, LARGEST_ALGE, SVDMatOp<Scalar> >(m_op, ncomp, ncv);
     }
 
     // Destructor
@@ -167,12 +167,12 @@ public:
     // The converged left singular vectors
     Matrix matrix_U(int nu)
     {
-        if(m_evecs.cols() < 1)
+        if (m_evecs.cols() < 1)
         {
             m_evecs = m_eigs->eigenvectors();
         }
         nu = std::min(nu, m_nconv);
-        if(m_m <= m_n)
+        if (m_m <= m_n)
         {
             return m_evecs.leftCols(nu);
         }
@@ -183,12 +183,12 @@ public:
     // The converged right singular vectors
     Matrix matrix_V(int nv)
     {
-        if(m_evecs.cols() < 1)
+        if (m_evecs.cols() < 1)
         {
             m_evecs = m_eigs->eigenvectors();
         }
         nv = std::min(nv, m_nconv);
-        if(m_m > m_n)
+        if (m_m > m_n)
         {
             return m_evecs.leftCols(nv);
         }
@@ -197,7 +197,6 @@ public:
     }
 };
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // PARTIAL_SVD_SOLVER_H
+#endif  // PARTIAL_SVD_SOLVER_H

@@ -14,7 +14,6 @@
 
 namespace Spectra {
 
-
 ///
 /// \ingroup MatOp
 ///
@@ -52,7 +51,7 @@ public:
     SparseRegularInverse(ConstGenericSparseMatrix& mat) :
         m_mat(mat), m_n(mat.rows())
     {
-        if(mat.rows() != mat.cols())
+        if (mat.rows() != mat.cols())
             throw std::invalid_argument("SparseRegularInverse: matrix must be square");
 
         m_cg.compute(mat);
@@ -76,8 +75,8 @@ public:
     // y_out = inv(B) * x_in
     void solve(const Scalar* x_in, Scalar* y_out) const
     {
-        MapConstVec x(x_in,  m_n);
-        MapVec      y(y_out, m_n);
+        MapConstVec x(x_in, m_n);
+        MapVec y(y_out, m_n);
         y.noalias() = m_cg.solve(x);
     }
 
@@ -90,13 +89,12 @@ public:
     // y_out = B * x_in
     void mat_prod(const Scalar* x_in, Scalar* y_out) const
     {
-        MapConstVec x(x_in,  m_n);
-        MapVec      y(y_out, m_n);
+        MapConstVec x(x_in, m_n);
+        MapVec y(y_out, m_n);
         y.noalias() = m_mat.template selfadjointView<Uplo>() * x;
     }
 };
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // SPARSE_REGULAR_INVERSE_H
+#endif  // SPARSE_REGULAR_INVERSE_H

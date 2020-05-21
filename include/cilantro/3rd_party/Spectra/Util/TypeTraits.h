@@ -14,7 +14,6 @@
 
 namespace Spectra {
 
-
 // For a real value type "Scalar", we want to know its smallest
 // positive value, i.e., std::numeric_limits<Scalar>::min().
 // However, we must take non-standard value types into account,
@@ -65,9 +64,8 @@ struct TypeTraits<long double>
     }
 };
 
-
-} // namespace Spectra
+}  // namespace Spectra
 
 /// \endcond
 
-#endif // TYPE_TRAITS_H
+#endif  // TYPE_TRAITS_H

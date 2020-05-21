@@ -15,7 +15,6 @@
 
 namespace Spectra {
 
-
 ///
 /// \ingroup EigenSolver
 ///
@@ -123,10 +122,10 @@ namespace Spectra {
 ///     return 0;
 /// }
 /// \endcode
-template < typename Scalar = double,
-           int SelectionRule = LARGEST_MAGN,
-           typename OpType = DenseGenMatProd<double> >
-class GenEigsSolver: public GenEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>
+template <typename Scalar = double,
+          int SelectionRule = LARGEST_MAGN,
+          typename OpType = DenseGenMatProd<double> >
+class GenEigsSolver : public GenEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>
 {
 private:
     typedef Eigen::Index Index;
@@ -154,7 +153,6 @@ public:
     {}
 };
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // GEN_EIGS_SOLVER_H
+#endif  // GEN_EIGS_SOLVER_H

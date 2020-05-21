@@ -15,7 +15,6 @@
 
 namespace Spectra {
 
-
 ///
 /// \ingroup MatOp
 ///
@@ -50,7 +49,7 @@ public:
     DenseSymShiftSolve(ConstGenericMatrix& mat) :
         m_mat(mat), m_n(mat.rows())
     {
-        if(mat.rows() != mat.cols())
+        if (mat.rows() != mat.cols())
             throw std::invalid_argument("DenseSymShiftSolve: matrix must be square");
     }
 
@@ -69,7 +68,7 @@ public:
     void set_shift(Scalar sigma)
     {
         m_solver.compute(m_mat, Uplo, sigma);
-        if(m_solver.info() != SUCCESSFUL)
+        if (m_solver.info() != SUCCESSFUL)
             throw std::invalid_argument("DenseSymShiftSolve: factorization failed with the given shift");
     }
 
@@ -82,13 +81,12 @@ public:
     // y_out = inv(A - sigma * I) * x_in
     void perform_op(const Scalar* x_in, Scalar* y_out) const
     {
-        MapConstVec x(x_in,  m_n);
-        MapVec      y(y_out, m_n);
+        MapConstVec x(x_in, m_n);
+        MapVec y(y_out, m_n);
         y.noalias() = m_solver.solve(x);
     }
 };
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // DENSE_SYM_SHIFT_SOLVE_H
+#endif  // DENSE_SYM_SHIFT_SOLVE_H

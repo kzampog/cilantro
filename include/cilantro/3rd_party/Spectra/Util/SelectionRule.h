@@ -16,7 +16,6 @@
 
 namespace Spectra {
 
-
 ///
 /// \defgroup Enumerations
 ///
@@ -35,24 +34,24 @@ enum SELECT_EIGENVALUE
                        ///< complex numbers. Applies to both symmetric and general
                        ///< eigen solvers.
 
-    LARGEST_REAL,      ///< Select eigenvalues with largest real part. Only for general eigen solvers.
+    LARGEST_REAL,  ///< Select eigenvalues with largest real part. Only for general eigen solvers.
 
-    LARGEST_IMAG,      ///< Select eigenvalues with largest imaginary part (in magnitude). Only for general eigen solvers.
+    LARGEST_IMAG,  ///< Select eigenvalues with largest imaginary part (in magnitude). Only for general eigen solvers.
 
-    LARGEST_ALGE,      ///< Select eigenvalues with largest algebraic value, considering
-                       ///< any negative sign. Only for symmetric eigen solvers.
+    LARGEST_ALGE,  ///< Select eigenvalues with largest algebraic value, considering
+                   ///< any negative sign. Only for symmetric eigen solvers.
 
-    SMALLEST_MAGN,     ///< Select eigenvalues with smallest magnitude. Applies to both symmetric and general
-                       ///< eigen solvers.
+    SMALLEST_MAGN,  ///< Select eigenvalues with smallest magnitude. Applies to both symmetric and general
+                    ///< eigen solvers.
 
-    SMALLEST_REAL,     ///< Select eigenvalues with smallest real part. Only for general eigen solvers.
+    SMALLEST_REAL,  ///< Select eigenvalues with smallest real part. Only for general eigen solvers.
 
-    SMALLEST_IMAG,     ///< Select eigenvalues with smallest imaginary part (in magnitude). Only for general eigen solvers.
+    SMALLEST_IMAG,  ///< Select eigenvalues with smallest imaginary part (in magnitude). Only for general eigen solvers.
 
-    SMALLEST_ALGE,     ///< Select eigenvalues with smallest algebraic value. Only for symmetric eigen solvers.
+    SMALLEST_ALGE,  ///< Select eigenvalues with smallest algebraic value. Only for symmetric eigen solvers.
 
-    BOTH_ENDS          ///< Select eigenvalues half from each end of the spectrum. When
-                       ///< `nev` is odd, compute more from the high end. Only for symmetric eigen solvers.
+    BOTH_ENDS  ///< Select eigenvalues half from each end of the spectrum. When
+               ///< `nev` is odd, compute more from the high end. Only for symmetric eigen solvers.
 };
 
 ///
@@ -86,7 +85,7 @@ public:
 };
 
 template <typename T>
-class ElemType< std::complex<T> >
+class ElemType<std::complex<T> >
 {
 public:
     typedef T type;
@@ -229,7 +228,7 @@ template <typename PairType>
 class PairComparator
 {
 public:
-    bool operator() (const PairType& v1, const PairType& v2)
+    bool operator()(const PairType& v1, const PairType& v2)
     {
         return v1.first < v2.first;
     }
@@ -239,10 +238,10 @@ template <typename T, int SelectionRule>
 class SortEigenvalue
 {
 private:
-    typedef typename ElemType<T>::type TargetType; // Type of the sorting target, will be
-                                                   // a floating number type, e.g. "double"
-    typedef std::pair<TargetType, int> PairType;   // Type of the sorting pair, including
-                                                   // the sorting target and the index
+    typedef typename ElemType<T>::type TargetType;  // Type of the sorting target, will be
+                                                    // a floating number type, e.g. "double"
+    typedef std::pair<TargetType, int> PairType;    // Type of the sorting pair, including
+                                                    // the sorting target and the index
 
     std::vector<PairType> pair_sort;
 
@@ -250,7 +249,7 @@ public:
     SortEigenvalue(const T* start, int size) :
         pair_sort(size)
     {
-        for(int i = 0; i < size; i++)
+        for (int i = 0; i < size; i++)
         {
             pair_sort[i].first = SortingTarget<T, SelectionRule>::get(start[i]);
             pair_sort[i].second = i;
@@ -262,7 +261,7 @@ public:
     std::vector<int> index()
     {
         std::vector<int> ind(pair_sort.size());
-        for(unsigned int i = 0; i < ind.size(); i++)
+        for (unsigned int i = 0; i < ind.size(); i++)
             ind[i] = pair_sort[i].second;
 
         return ind;
@@ -271,7 +270,6 @@ public:
 
 /// \endcond
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // SELECTION_RULE_H
+#endif  // SELECTION_RULE_H

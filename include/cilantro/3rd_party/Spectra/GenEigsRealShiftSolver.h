@@ -15,7 +15,6 @@
 
 namespace Spectra {
 
-
 ///
 /// \ingroup EigenSolver
 ///
@@ -39,7 +38,7 @@ namespace Spectra {
 template <typename Scalar = double,
           int SelectionRule = LARGEST_MAGN,
           typename OpType = DenseGenRealShiftSolve<double> >
-class GenEigsRealShiftSolver: public GenEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>
+class GenEigsRealShiftSolver : public GenEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>
 {
 private:
     typedef Eigen::Index Index;
@@ -57,6 +56,7 @@ private:
         this->m_ritz_val.head(this->m_nev) = ritz_val_org;
         GenEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>::sort_ritzpair(sort_rule);
     }
+
 public:
     ///
     /// Constructor to create a eigen solver object using the shift-and-invert mode.
@@ -84,7 +84,6 @@ public:
     }
 };
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // GEN_EIGS_REAL_SHIFT_SOLVER_H
+#endif  // GEN_EIGS_REAL_SHIFT_SOLVER_H

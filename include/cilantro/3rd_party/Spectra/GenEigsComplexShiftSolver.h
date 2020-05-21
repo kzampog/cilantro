@@ -15,7 +15,6 @@
 
 namespace Spectra {
 
-
 ///
 /// \ingroup EigenSolver
 ///
@@ -38,7 +37,7 @@ namespace Spectra {
 template <typename Scalar = double,
           int SelectionRule = LARGEST_MAGN,
           typename OpType = DenseGenComplexShiftSolve<double> >
-class GenEigsComplexShiftSolver: public GenEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>
+class GenEigsComplexShiftSolver : public GenEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>
 {
 private:
     typedef Eigen::Index Index;
@@ -83,7 +82,7 @@ private:
         // Calculate inv(A - r * I) * vj
         Vector v_real(this->m_n), v_imag(this->m_n), OPv_real(this->m_n), OPv_imag(this->m_n);
         const Scalar eps = Eigen::NumTraits<Scalar>::epsilon();
-        for(Index i = 0; i < this->m_nev; i++)
+        for (Index i = 0; i < this->m_nev; i++)
         {
             v_real.noalias() = this->m_fac.matrix_V() * this->m_ritz_vec.col(i).real();
             v_imag.noalias() = this->m_fac.matrix_V() * this->m_ritz_vec.col(i).imag();
@@ -99,11 +98,11 @@ private:
 
             // Test roots
             Scalar err1 = Scalar(0), err2 = Scalar(0);
-            for(int k = 0; k < this->m_n; k++)
+            for (int k = 0; k < this->m_n; k++)
             {
                 const Complex rhs1 = Complex(v_real[k], v_imag[k]) / (root1 - shift);
                 const Complex rhs2 = Complex(v_real[k], v_imag[k]) / (root2 - shift);
-                const Complex OPv  = Complex(OPv_real[k], OPv_imag[k]);
+                const Complex OPv = Complex(OPv_real[k], OPv_imag[k]);
                 err1 += norm(OPv - rhs1);
                 err2 += norm(OPv - rhs2);
             }
@@ -111,17 +110,20 @@ private:
             const Complex lambdaj = (err1 < err2) ? root1 : root2;
             this->m_ritz_val[i] = lambdaj;
 
-            if(abs(Eigen::numext::imag(lambdaj)) > eps)
+            if (abs(Eigen::numext::imag(lambdaj)) > eps)
             {
                 this->m_ritz_val[i + 1] = Eigen::numext::conj(lambdaj);
                 i++;
-            } else {
+            }
+            else
+            {
                 this->m_ritz_val[i] = Complex(Eigen::numext::real(lambdaj), Scalar(0));
             }
         }
 
         GenEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>::sort_ritzpair(sort_rule);
     }
+
 public:
     ///
     /// Constructor to create a eigen solver object using the shift-and-invert mode.
@@ -150,7 +152,6 @@ public:
     }
 };
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // GEN_EIGS_COMPLEX_SHIFT_SOLVER_H
+#endif  // GEN_EIGS_COMPLEX_SHIFT_SOLVER_H

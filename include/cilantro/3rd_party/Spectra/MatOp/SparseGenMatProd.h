@@ -12,7 +12,6 @@
 
 namespace Spectra {
 
-
 ///
 /// \ingroup MatOp
 ///
@@ -64,13 +63,12 @@ public:
     // y_out = A * x_in
     void perform_op(const Scalar* x_in, Scalar* y_out) const
     {
-        MapConstVec x(x_in,  m_mat.cols());
-        MapVec      y(y_out, m_mat.rows());
+        MapConstVec x(x_in, m_mat.cols());
+        MapVec y(y_out, m_mat.rows());
         y.noalias() = m_mat * x;
     }
 };
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // SPARSE_GEN_MAT_PROD_H
+#endif  // SPARSE_GEN_MAT_PROD_H

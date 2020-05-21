@@ -12,7 +12,6 @@
 
 namespace Spectra {
 
-
 ///
 /// \ingroup Internals
 /// @{
@@ -36,9 +35,9 @@ private:
     typedef Eigen::Index Index;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
 
-    OpType&  m_op;
+    OpType& m_op;
     BOpType& m_Bop;
-    Vector   m_cache;
+    Vector m_cache;
 
 public:
     ArnoldiOp(OpType* op, BOpType* Bop) :
@@ -83,16 +82,13 @@ public:
     }
 };
 
-
-
 ///
 /// \ingroup Operators
 ///
 /// Placeholder for the B-operator when \f$B = I\f$.
 ///
-class IdentityBOp {};
-
-
+class IdentityBOp
+{};
 
 ///
 /// \ingroup Operators
@@ -109,7 +105,7 @@ private:
     OpType& m_op;
 
 public:
-    ArnoldiOp<Scalar, OpType, IdentityBOp>(OpType* op, IdentityBOp* Bop) :
+    ArnoldiOp<Scalar, OpType, IdentityBOp>(OpType* op, IdentityBOp* /*Bop*/) :
         m_op(*op)
     {}
 
@@ -149,7 +145,6 @@ public:
 /// @}
 ///
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // ARNOLDI_OP_H
+#endif  // ARNOLDI_OP_H

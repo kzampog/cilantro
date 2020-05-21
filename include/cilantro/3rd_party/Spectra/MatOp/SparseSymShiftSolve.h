@@ -14,7 +14,6 @@
 
 namespace Spectra {
 
-
 ///
 /// \ingroup MatOp
 ///
@@ -48,7 +47,7 @@ public:
     SparseSymShiftSolve(ConstGenericSparseMatrix& mat) :
         m_mat(mat), m_n(mat.rows())
     {
-        if(mat.rows() != mat.cols())
+        if (mat.rows() != mat.cols())
             throw std::invalid_argument("SparseSymShiftSolve: matrix must be square");
     }
 
@@ -72,7 +71,7 @@ public:
         mat = mat - sigma * identity;
         m_solver.isSymmetric(true);
         m_solver.compute(mat);
-        if(m_solver.info() != Eigen::Success)
+        if (m_solver.info() != Eigen::Success)
             throw std::invalid_argument("SparseSymShiftSolve: factorization failed with the given shift");
     }
 
@@ -85,13 +84,12 @@ public:
     // y_out = inv(A - sigma * I) * x_in
     void perform_op(const Scalar* x_in, Scalar* y_out) const
     {
-        MapConstVec x(x_in,  m_n);
-        MapVec      y(y_out, m_n);
+        MapConstVec x(x_in, m_n);
+        MapVec y(y_out, m_n);
         y.noalias() = m_solver.solve(x);
     }
 };
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // SPARSE_SYM_SHIFT_SOLVE_H
+#endif  // SPARSE_SYM_SHIFT_SOLVE_H

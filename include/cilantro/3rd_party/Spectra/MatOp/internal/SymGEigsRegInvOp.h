@@ -13,16 +13,15 @@
 
 namespace Spectra {
 
-
 ///
 /// \ingroup Operators
 ///
 /// This class defines the matrix operation for generalized eigen solver in the
 /// regular inverse mode. This class is intended for internal use.
 ///
-template < typename Scalar = double,
-           typename OpType = SparseSymMatProd<double>,
-           typename BOpType = SparseRegularInverse<double> >
+template <typename Scalar = double,
+          typename OpType = SparseSymMatProd<double>,
+          typename BOpType = SparseRegularInverse<double> >
 class SymGEigsRegInvOp
 {
 private:
@@ -30,9 +29,9 @@ private:
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
 
-    OpType&  m_op;
+    OpType& m_op;
     BOpType& m_Bop;
-    Vector   m_cache;  // temporary working space
+    Vector m_cache;  // temporary working space
 
 public:
     ///
@@ -68,7 +67,6 @@ public:
     }
 };
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // SYM_GEIGS_REG_INV_OP_H
+#endif  // SYM_GEIGS_REG_INV_OP_H

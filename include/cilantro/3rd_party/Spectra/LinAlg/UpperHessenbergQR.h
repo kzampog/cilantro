@@ -14,7 +14,6 @@
 
 namespace Spectra {
 
-
 ///
 /// \defgroup Internals Internal Classes
 ///
@@ -76,7 +75,7 @@ protected:
         const Scalar ysign = (y > Scalar(0)) - (y < Scalar(0));
         const Scalar xabs = x * xsign;
         const Scalar yabs = y * ysign;
-        if(xabs > yabs)
+        if (xabs > yabs)
         {
             // In this case xabs != 0
             const Scalar ratio = yabs / xabs;  // so that 0 <= ratio < 1
@@ -84,10 +83,14 @@ protected:
             c = xsign / common;
             r = xabs * common;
             s = -y / r;
-        } else {
-            if(yabs == Scalar(0))
+        }
+        else
+        {
+            if (yabs == Scalar(0))
             {
-                r = Scalar(0); c = Scalar(1); s = Scalar(0);
+                r = Scalar(0);
+                c = Scalar(1);
+                s = Scalar(0);
                 return;
             }
             const Scalar ratio = xabs / yabs;  // so that 0 <= ratio <= 1
@@ -135,7 +138,7 @@ public:
     ///
     /// Virtual destructor.
     ///
-    virtual ~UpperHessenbergQR() {};
+    virtual ~UpperHessenbergQR(){};
 
     ///
     /// Conduct the QR factorization of an upper Hessenberg matrix with
@@ -150,7 +153,7 @@ public:
     virtual void compute(ConstGenericMatrix& mat, const Scalar& shift = Scalar(0))
     {
         m_n = mat.rows();
-        if(m_n != mat.cols())
+        if (m_n != mat.cols())
             throw std::invalid_argument("UpperHessenbergQR: matrix must be square");
 
         m_shift = shift;
@@ -165,7 +168,7 @@ public:
         Scalar xi, xj, r, c, s;
         Scalar *Tii, *ptr;
         const Index n1 = m_n - 1;
-        for(Index i = 0; i < n1; i++)
+        for (Index i = 0; i < n1; i++)
         {
             Tii = &m_mat_T.coeffRef(i, i);
 
@@ -187,10 +190,10 @@ public:
 
             // Gt << c, -s, s, c;
             // m_mat_T.block(i, i, 2, m_n - i) = Gt * m_mat_T.block(i, i, 2, m_n - i);
-            Tii[0] = r;  // m_mat_T(i, i)     => r
-            Tii[1] = 0;  // m_mat_T(i + 1, i) => 0
-            ptr = Tii + m_n; // m_mat_T(i, k), k = i+1, i+2, ..., n-1
-            for(Index j = i + 1; j < m_n; j++, ptr += m_n)
+            Tii[0] = r;       // m_mat_T(i, i)     => r
+            Tii[1] = 0;       // m_mat_T(i + 1, i) => 0
+            ptr = Tii + m_n;  // m_mat_T(i, k), k = i+1, i+2, ..., n-1
+            for (Index j = i + 1; j < m_n; j++, ptr += m_n)
             {
                 Scalar tmp = ptr[0];
                 ptr[0] = c * tmp - s * ptr[1];
@@ -216,7 +219,7 @@ public:
     ///
     virtual Matrix matrix_R() const
     {
-        if(!m_computed)
+        if (!m_computed)
             throw std::logic_error("UpperHessenbergQR: need to call compute() first");
 
         return m_mat_T;
@@ -231,7 +234,7 @@ public:
     ///
     virtual void matrix_QtHQ(Matrix& dest) const
     {
-        if(!m_computed)
+        if (!m_computed)
             throw std::logic_error("UpperHessenbergQR: need to call compute() first");
 
         // Make a copy of the R matrix
@@ -240,7 +243,7 @@ public:
 
         // Compute the RQ matrix
         const Index n1 = m_n - 1;
-        for(Index i = 0; i < n1; i++)
+        for (Index i = 0; i < n1; i++)
         {
             const Scalar c = m_rot_cos.coeff(i);
             const Scalar s = m_rot_sin.coeff(i);
@@ -251,10 +254,10 @@ public:
             Yi = &dest.coeffRef(0, i);
             Yi1 = Yi + m_n;  // RQ(0, i + 1)
             const Index i2 = i + 2;
-            for(Index j = 0; j < i2; j++)
+            for (Index j = 0; j < i2; j++)
             {
                 const Scalar tmp = Yi[j];
-                Yi[j]  = c * tmp - s * Yi1[j];
+                Yi[j] = c * tmp - s * Yi1[j];
                 Yi1[j] = s * tmp + c * Yi1[j];
             }
 
@@ -278,10 +281,10 @@ public:
     // Y -> QY = G1 * G2 * ... * Y
     void apply_QY(Vector& Y) const
     {
-        if(!m_computed)
+        if (!m_computed)
             throw std::logic_error("UpperHessenbergQR: need to call compute() first");
 
-        for(Index i = m_n - 2; i >= 0; i--)
+        for (Index i = m_n - 2; i >= 0; i--)
         {
             const Scalar c = m_rot_cos.coeff(i);
             const Scalar s = m_rot_sin.coeff(i);
@@ -289,7 +292,7 @@ public:
             // Gi = [ cos[i]  sin[i]]
             //      [-sin[i]  cos[i]]
             const Scalar tmp = Y[i];
-            Y[i]     =  c * tmp + s * Y[i + 1];
+            Y[i] = c * tmp + s * Y[i + 1];
             Y[i + 1] = -s * tmp + c * Y[i + 1];
         }
     }
@@ -305,11 +308,11 @@ public:
     // Y -> Q'Y = G_{n-1}' * ... * G2' * G1' * Y
     void apply_QtY(Vector& Y) const
     {
-        if(!m_computed)
+        if (!m_computed)
             throw std::logic_error("UpperHessenbergQR: need to call compute() first");
 
         const Index n1 = m_n - 1;
-        for(Index i = 0; i < n1; i++)
+        for (Index i = 0; i < n1; i++)
         {
             const Scalar c = m_rot_cos.coeff(i);
             const Scalar s = m_rot_sin.coeff(i);
@@ -317,7 +320,7 @@ public:
             // Gi = [ cos[i]  sin[i]]
             //      [-sin[i]  cos[i]]
             const Scalar tmp = Y[i];
-            Y[i]     = c * tmp - s * Y[i + 1];
+            Y[i] = c * tmp - s * Y[i + 1];
             Y[i + 1] = s * tmp + c * Y[i + 1];
         }
     }
@@ -334,21 +337,21 @@ public:
     // Y -> QY = G1 * G2 * ... * Y
     void apply_QY(GenericMatrix Y) const
     {
-        if(!m_computed)
+        if (!m_computed)
             throw std::logic_error("UpperHessenbergQR: need to call compute() first");
 
         RowVector Yi(Y.cols()), Yi1(Y.cols());
-        for(Index i = m_n - 2; i >= 0; i--)
+        for (Index i = m_n - 2; i >= 0; i--)
         {
             const Scalar c = m_rot_cos.coeff(i);
             const Scalar s = m_rot_sin.coeff(i);
             // Y[i:(i + 1), ] = Gi * Y[i:(i + 1), ]
             // Gi = [ cos[i]  sin[i]]
             //      [-sin[i]  cos[i]]
-            Yi.noalias()  = Y.row(i);
+            Yi.noalias() = Y.row(i);
             Yi1.noalias() = Y.row(i + 1);
-            Y.row(i)      =  c * Yi + s * Yi1;
-            Y.row(i + 1)  = -s * Yi + c * Yi1;
+            Y.row(i) = c * Yi + s * Yi1;
+            Y.row(i + 1) = -s * Yi + c * Yi1;
         }
     }
 
@@ -364,22 +367,22 @@ public:
     // Y -> Q'Y = G_{n-1}' * ... * G2' * G1' * Y
     void apply_QtY(GenericMatrix Y) const
     {
-        if(!m_computed)
+        if (!m_computed)
             throw std::logic_error("UpperHessenbergQR: need to call compute() first");
 
         RowVector Yi(Y.cols()), Yi1(Y.cols());
         const Index n1 = m_n - 1;
-        for(Index i = 0; i < n1; i++)
+        for (Index i = 0; i < n1; i++)
         {
             const Scalar c = m_rot_cos.coeff(i);
             const Scalar s = m_rot_sin.coeff(i);
             // Y[i:(i + 1), ] = Gi' * Y[i:(i + 1), ]
             // Gi = [ cos[i]  sin[i]]
             //      [-sin[i]  cos[i]]
-            Yi.noalias()  = Y.row(i);
+            Yi.noalias() = Y.row(i);
             Yi1.noalias() = Y.row(i + 1);
-            Y.row(i)      = c * Yi - s * Yi1;
-            Y.row(i + 1)  = s * Yi + c * Yi1;
+            Y.row(i) = c * Yi - s * Yi1;
+            Y.row(i + 1) = s * Yi + c * Yi1;
         }
     }
 
@@ -395,7 +398,7 @@ public:
     // Y -> YQ = Y * G1 * G2 * ...
     void apply_YQ(GenericMatrix Y) const
     {
-        if(!m_computed)
+        if (!m_computed)
             throw std::logic_error("UpperHessenbergQR: need to call compute() first");
 
         /*Vector Yi(Y.rows());
@@ -413,17 +416,17 @@ public:
         Scalar *Y_col_i, *Y_col_i1;
         const Index n1 = m_n - 1;
         const Index nrow = Y.rows();
-        for(Index i = 0; i < n1; i++)
+        for (Index i = 0; i < n1; i++)
         {
             const Scalar c = m_rot_cos.coeff(i);
             const Scalar s = m_rot_sin.coeff(i);
 
-            Y_col_i  = &Y.coeffRef(0, i);
+            Y_col_i = &Y.coeffRef(0, i);
             Y_col_i1 = &Y.coeffRef(0, i + 1);
-            for(Index j = 0; j < nrow; j++)
+            for (Index j = 0; j < nrow; j++)
             {
                 Scalar tmp = Y_col_i[j];
-                Y_col_i[j]  = c * tmp - s * Y_col_i1[j];
+                Y_col_i[j] = c * tmp - s * Y_col_i1[j];
                 Y_col_i1[j] = s * tmp + c * Y_col_i1[j];
             }
         }
@@ -441,11 +444,11 @@ public:
     // Y -> YQ' = Y * G_{n-1}' * ... * G2' * G1'
     void apply_YQt(GenericMatrix Y) const
     {
-        if(!m_computed)
+        if (!m_computed)
             throw std::logic_error("UpperHessenbergQR: need to call compute() first");
 
         Vector Yi(Y.rows());
-        for(Index i = m_n - 2; i >= 0; i--)
+        for (Index i = m_n - 2; i >= 0; i--)
         {
             const Scalar c = m_rot_cos.coeff(i);
             const Scalar s = m_rot_sin.coeff(i);
@@ -453,13 +456,11 @@ public:
             // Gi = [ cos[i]  sin[i]]
             //      [-sin[i]  cos[i]]
             Yi.noalias() = Y.col(i);
-            Y.col(i)     =  c * Yi + s * Y.col(i + 1);
+            Y.col(i) = c * Yi + s * Y.col(i + 1);
             Y.col(i + 1) = -s * Yi + c * Y.col(i + 1);
         }
     }
 };
-
-
 
 ///
 /// \ingroup LinearAlgebra
@@ -471,7 +472,7 @@ public:
 /// Currently supported types are `float`, `double` and `long double`.
 ///
 template <typename Scalar = double>
-class TridiagQR: public UpperHessenbergQR<Scalar>
+class TridiagQR : public UpperHessenbergQR<Scalar>
 {
 private:
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
@@ -525,7 +526,7 @@ public:
     void compute(ConstGenericMatrix& mat, const Scalar& shift = Scalar(0))
     {
         this->m_n = mat.rows();
-        if(this->m_n != mat.cols())
+        if (this->m_n != mat.cols())
             throw std::invalid_argument("TridiagQR: matrix must be square");
 
         this->m_shift = shift;
@@ -542,10 +543,10 @@ public:
 
         // A number of pointers to avoid repeated address calculation
         Scalar *c = this->m_rot_cos.data(),  // pointer to the cosine vector
-               *s = this->m_rot_sin.data(),  // pointer to the sine vector
-               r;
+            *s = this->m_rot_sin.data(),     // pointer to the sine vector
+            r;
         const Index n1 = this->m_n - 1;
-        for(Index i = 0; i < n1; i++)
+        for (Index i = 0; i < n1; i++)
         {
             // diag[i] == T[i, i]
             // lsub[i] == T[i + 1, i]
@@ -568,12 +569,12 @@ public:
             // usub[i] == T[i, i + 1]
             // diag[i + 1] == T[i + 1, i + 1]
             const Scalar tmp = m_T_usub.coeff(i);
-            m_T_usub.coeffRef(i)     = (*c) * tmp - (*s) * m_T_diag.coeff(i + 1);
+            m_T_usub.coeffRef(i) = (*c) * tmp - (*s) * m_T_diag.coeff(i + 1);
             m_T_diag.coeffRef(i + 1) = (*s) * tmp + (*c) * m_T_diag.coeff(i + 1);
             // Update T[i, i + 2] and T[i + 1, i + 2]
             // usub2[i] == T[i, i + 2]
             // usub[i + 1] == T[i + 1, i + 2]
-            if(i < n1 - 1)
+            if (i < n1 - 1)
             {
                 m_T_usub2.coeffRef(i) = -(*s) * m_T_usub.coeff(i + 1);
                 m_T_usub.coeffRef(i + 1) *= (*c);
@@ -601,7 +602,7 @@ public:
     ///
     Matrix matrix_R() const
     {
-        if(!this->m_computed)
+        if (!this->m_computed)
             throw std::logic_error("TridiagQR: need to call compute() first");
 
         Matrix R = Matrix::Zero(this->m_n, this->m_n);
@@ -621,7 +622,7 @@ public:
     ///
     void matrix_QtHQ(Matrix& dest) const
     {
-        if(!this->m_computed)
+        if (!this->m_computed)
             throw std::logic_error("TridiagQR: need to call compute() first");
 
         // Make a copy of the R matrix
@@ -638,7 +639,7 @@ public:
         // Gi = [ cos[i]  sin[i]]
         //      [-sin[i]  cos[i]]
         const Index n1 = this->m_n - 1;
-        for(Index i = 0; i < n1; i++)
+        for (Index i = 0; i < n1; i++)
         {
             const Scalar c = this->m_rot_cos.coeff(i);
             const Scalar s = this->m_rot_sin.coeff(i);
@@ -647,9 +648,9 @@ public:
                          m22 = m_T_diag.coeff(i + 1);
 
             // Update the diagonal and the lower subdiagonal of dest
-            dest.coeffRef(i    , i    ) = c * m11 - s * m12;
-            dest.coeffRef(i + 1, i    ) =         - s * m22;
-            dest.coeffRef(i + 1, i + 1) =           c * m22;
+            dest.coeffRef(i, i) = c * m11 - s * m12;
+            dest.coeffRef(i + 1, i) = -s * m22;
+            dest.coeffRef(i + 1, i + 1) = c * m22;
         }
 
         // Copy the lower subdiagonal to upper subdiagonal
@@ -664,7 +665,6 @@ public:
 /// @}
 ///
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // UPPER_HESSENBERG_QR_H
+#endif  // UPPER_HESSENBERG_QR_H

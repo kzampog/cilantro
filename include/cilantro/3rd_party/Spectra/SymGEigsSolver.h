@@ -14,7 +14,6 @@
 
 namespace Spectra {
 
-
 ///
 /// \defgroup GEigenSolver Generalized Eigen Solvers
 ///
@@ -42,15 +41,13 @@ namespace Spectra {
 ///   See \ref SymGEigsSolver<Scalar, SelectionRule, OpType, BOpType, GEIGS_REGULAR_INVERSE> "SymGEigsSolver (Regular inverse mode)" for more details.
 
 // Empty class template
-template < typename Scalar,
-           int SelectionRule,
-           typename OpType,
-           typename BOpType,
-           int GEigsMode >
+template <typename Scalar,
+          int SelectionRule,
+          typename OpType,
+          typename BOpType,
+          int GEigsMode>
 class SymGEigsSolver
 {};
-
-
 
 ///
 /// \ingroup GEigenSolver
@@ -160,11 +157,11 @@ class SymGEigsSolver
 /// \endcode
 
 // Partial specialization for GEigsMode = GEIGS_CHOLESKY
-template < typename Scalar,
-           int SelectionRule,
-           typename OpType,
-           typename BOpType >
-class SymGEigsSolver<Scalar, SelectionRule, OpType, BOpType, GEIGS_CHOLESKY>:
+template <typename Scalar,
+          int SelectionRule,
+          typename OpType,
+          typename BOpType>
+class SymGEigsSolver<Scalar, SelectionRule, OpType, BOpType, GEIGS_CHOLESKY> :
     public SymEigsBase<Scalar, SelectionRule, SymGEigsCholeskyOp<Scalar, OpType, BOpType>, IdentityBOp>
 {
 private:
@@ -202,8 +199,7 @@ public:
     ///
     SymGEigsSolver(OpType* op, BOpType* Bop, Index nev, Index ncv) :
         SymEigsBase<Scalar, SelectionRule, SymGEigsCholeskyOp<Scalar, OpType, BOpType>, IdentityBOp>(
-            new SymGEigsCholeskyOp<Scalar, OpType, BOpType>(*op, *Bop), NULL, nev, ncv
-        ),
+            new SymGEigsCholeskyOp<Scalar, OpType, BOpType>(*op, *Bop), NULL, nev, ncv),
         m_Bop(Bop)
     {}
 
@@ -220,7 +216,7 @@ public:
         Matrix res = SymEigsBase<Scalar, SelectionRule, SymGEigsCholeskyOp<Scalar, OpType, BOpType>, IdentityBOp>::eigenvectors(nvec);
         Vector tmp(res.rows());
         const Index nconv = res.cols();
-        for(Index i = 0; i < nconv; i++)
+        for (Index i = 0; i < nconv; i++)
         {
             m_Bop->upper_triangular_solve(&res(0, i), tmp.data());
             res.col(i).noalias() = tmp;
@@ -236,8 +232,6 @@ public:
 
     /// \endcond
 };
-
-
 
 ///
 /// \ingroup GEigenSolver
@@ -279,11 +273,11 @@ public:
 ///
 
 // Partial specialization for GEigsMode = GEIGS_REGULAR_INVERSE
-template < typename Scalar,
-           int SelectionRule,
-           typename OpType,
-           typename BOpType >
-class SymGEigsSolver<Scalar, SelectionRule, OpType, BOpType, GEIGS_REGULAR_INVERSE>:
+template <typename Scalar,
+          int SelectionRule,
+          typename OpType,
+          typename BOpType>
+class SymGEigsSolver<Scalar, SelectionRule, OpType, BOpType, GEIGS_REGULAR_INVERSE> :
     public SymEigsBase<Scalar, SelectionRule, SymGEigsRegInvOp<Scalar, OpType, BOpType>, BOpType>
 {
 private:
@@ -315,8 +309,7 @@ public:
     ///
     SymGEigsSolver(OpType* op, BOpType* Bop, Index nev, Index ncv) :
         SymEigsBase<Scalar, SelectionRule, SymGEigsRegInvOp<Scalar, OpType, BOpType>, BOpType>(
-            new SymGEigsRegInvOp<Scalar, OpType, BOpType>(*op, *Bop), Bop, nev, ncv
-        )
+            new SymGEigsRegInvOp<Scalar, OpType, BOpType>(*op, *Bop), Bop, nev, ncv)
     {}
 
     /// \cond
@@ -328,7 +321,6 @@ public:
     /// \endcond
 };
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // SYM_GEIGS_SOLVER_H
+#endif  // SYM_GEIGS_SOLVER_H

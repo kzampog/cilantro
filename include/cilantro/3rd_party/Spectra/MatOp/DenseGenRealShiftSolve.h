@@ -13,7 +13,6 @@
 
 namespace Spectra {
 
-
 ///
 /// \ingroup MatOp
 ///
@@ -48,7 +47,7 @@ public:
     DenseGenRealShiftSolve(ConstGenericMatrix& mat) :
         m_mat(mat), m_n(mat.rows())
     {
-        if(mat.rows() != mat.cols())
+        if (mat.rows() != mat.cols())
             throw std::invalid_argument("DenseGenRealShiftSolve: matrix must be square");
     }
 
@@ -78,13 +77,12 @@ public:
     // y_out = inv(A - sigma * I) * x_in
     void perform_op(const Scalar* x_in, Scalar* y_out) const
     {
-        MapConstVec x(x_in,  m_n);
-        MapVec      y(y_out, m_n);
+        MapConstVec x(x_in, m_n);
+        MapVec y(y_out, m_n);
         y.noalias() = m_solver.solve(x);
     }
 };
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // DENSE_GEN_REAL_SHIFT_SOLVE_H
+#endif  // DENSE_GEN_REAL_SHIFT_SOLVE_H

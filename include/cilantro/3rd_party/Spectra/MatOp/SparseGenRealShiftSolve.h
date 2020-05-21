@@ -14,7 +14,6 @@
 
 namespace Spectra {
 
-
 ///
 /// \ingroup MatOp
 ///
@@ -22,7 +21,7 @@ namespace Spectra {
 /// i.e., calculating \f$y=(A-\sigma I)^{-1}x\f$ for any real \f$\sigma\f$ and
 /// vector \f$x\f$. It is mainly used in the GenEigsRealShiftSolver eigen solver.
 ///
-template <typename Scalar,int Flags = 0, typename StorageIndex = int>
+template <typename Scalar, int Flags = 0, typename StorageIndex = int>
 class SparseGenRealShiftSolve
 {
 private:
@@ -48,7 +47,7 @@ public:
     SparseGenRealShiftSolve(ConstGenericSparseMatrix& mat) :
         m_mat(mat), m_n(mat.rows())
     {
-        if(mat.rows() != mat.cols())
+        if (mat.rows() != mat.cols())
             throw std::invalid_argument("SparseGenRealShiftSolve: matrix must be square");
     }
 
@@ -70,7 +69,7 @@ public:
         I.setIdentity();
 
         m_solver.compute(m_mat - sigma * I);
-        if(m_solver.info() != Eigen::Success)
+        if (m_solver.info() != Eigen::Success)
             throw std::invalid_argument("SparseGenRealShiftSolve: factorization failed with the given shift");
     }
 
@@ -83,13 +82,12 @@ public:
     // y_out = inv(A - sigma * I) * x_in
     void perform_op(const Scalar* x_in, Scalar* y_out) const
     {
-        MapConstVec x(x_in,  m_n);
-        MapVec      y(y_out, m_n);
+        MapConstVec x(x_in, m_n);
+        MapVec y(y_out, m_n);
         y.noalias() = m_solver.solve(x);
     }
 };
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // SPARSE_GEN_REAL_SHIFT_SOLVE_H
+#endif  // SPARSE_GEN_REAL_SHIFT_SOLVE_H

@@ -15,7 +15,6 @@
 
 namespace Spectra {
 
-
 ///
 /// \ingroup MatOp
 ///
@@ -50,13 +49,13 @@ public:
     SparseCholesky(ConstGenericSparseMatrix& mat) :
         m_n(mat.rows())
     {
-        if(mat.rows() != mat.cols())
+        if (mat.rows() != mat.cols())
             throw std::invalid_argument("SparseCholesky: matrix must be square");
 
         m_decomp.compute(mat);
         m_info = (m_decomp.info() == Eigen::Success) ?
-                 SUCCESSFUL :
-                 NUMERICAL_ISSUE;
+            SUCCESSFUL :
+            NUMERICAL_ISSUE;
     }
 
     ///
@@ -83,8 +82,8 @@ public:
     // y_out = inv(L) * x_in
     void lower_triangular_solve(const Scalar* x_in, Scalar* y_out) const
     {
-        MapConstVec x(x_in,  m_n);
-        MapVec      y(y_out, m_n);
+        MapConstVec x(x_in, m_n);
+        MapVec y(y_out, m_n);
         y.noalias() = m_decomp.permutationP() * x;
         m_decomp.matrixL().solveInPlace(y);
     }
@@ -98,14 +97,13 @@ public:
     // y_out = inv(L') * x_in
     void upper_triangular_solve(const Scalar* x_in, Scalar* y_out) const
     {
-        MapConstVec x(x_in,  m_n);
-        MapVec      y(y_out, m_n);
+        MapConstVec x(x_in, m_n);
+        MapVec y(y_out, m_n);
         y.noalias() = m_decomp.matrixU().solve(x);
         y = m_decomp.permutationPinv() * y;
     }
 };
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // SPARSE_CHOLESKY_H
+#endif  // SPARSE_CHOLESKY_H

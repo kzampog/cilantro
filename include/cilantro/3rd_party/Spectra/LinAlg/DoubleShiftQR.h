@@ -17,7 +17,6 @@
 
 namespace Spectra {
 
-
 template <typename Scalar = double>
 class DoubleShiftQR
 {
@@ -31,22 +30,22 @@ private:
     typedef Eigen::Ref<Matrix> GenericMatrix;
     typedef const Eigen::Ref<const Matrix> ConstGenericMatrix;
 
-    Index m_n;             // Dimension of the matrix
-    Matrix m_mat_H;        // A copy of the matrix to be factorized
-    Scalar m_shift_s;      // Shift constant
-    Scalar m_shift_t;      // Shift constant
-    Matrix3X m_ref_u;      // Householder reflectors
-    IntArray m_ref_nr;     // How many rows does each reflector affects
-                           // 3 - A general reflector
-                           // 2 - A Givens rotation
-                           // 1 - An identity transformation
-    const Scalar m_near_0; // a very small value, but 1.0 / m_safe_min does not overflow
-                           // ~= 1e-307 for the "double" type
-    const Scalar m_eps;    // the machine precision,
-                           // e.g. ~= 1e-16 for the "double" type
+    Index m_n;              // Dimension of the matrix
+    Matrix m_mat_H;         // A copy of the matrix to be factorized
+    Scalar m_shift_s;       // Shift constant
+    Scalar m_shift_t;       // Shift constant
+    Matrix3X m_ref_u;       // Householder reflectors
+    IntArray m_ref_nr;      // How many rows does each reflector affects
+                            // 3 - A general reflector
+                            // 2 - A Givens rotation
+                            // 1 - An identity transformation
+    const Scalar m_near_0;  // a very small value, but 1.0 / m_safe_min does not overflow
+                            // ~= 1e-307 for the "double" type
+    const Scalar m_eps;     // the machine precision,
+                            // e.g. ~= 1e-16 for the "double" type
     const Scalar m_eps_rel;
     const Scalar m_eps_abs;
-    bool m_computed;       // Whether matrix has been factorized
+    bool m_computed;  // Whether matrix has been factorized
 
     void compute_reflector(const Scalar& x1, const Scalar& x2, const Scalar& x3, Index ind)
     {
@@ -58,18 +57,22 @@ private:
         nr[ind] = 3;
         Scalar x2x3 = Scalar(0);
         // If x3 is zero, decrease nr by 1
-        if(abs(x3) < m_near_0)
+        if (abs(x3) < m_near_0)
         {
             // If x2 is also zero, nr will be 1, and we can exit this function
-            if(abs(x2) < m_near_0)
+            if (abs(x2) < m_near_0)
             {
                 nr[ind] = 1;
                 return;
-            } else {
+            }
+            else
+            {
                 nr[ind] = 2;
             }
             x2x3 = abs(x2);
-        } else {
+        }
+        else
+        {
             x2x3 = Eigen::numext::hypot(x2, x3);
         }
 
@@ -78,7 +81,7 @@ private:
         Scalar x1_new = x1 - ((x1 <= 0) - (x1 > 0)) * Eigen::numext::hypot(x1, x2x3);
         Scalar x_norm = Eigen::numext::hypot(x1_new, x2x3);
         // Double check the norm of new x
-        if(x_norm < m_near_0)
+        if (x_norm < m_near_0)
         {
             nr[ind] = 1;
             return;
@@ -100,7 +103,7 @@ private:
         const Index bsize = iu - il + 1;
 
         // If block size == 1, there is no need to apply reflectors
-        if(bsize == 1)
+        if (bsize == 1)
         {
             m_ref_nr.coeffRef(il) = 1;
             return;
@@ -116,7 +119,7 @@ private:
         const Scalar m10 = x10 * (x00 + x11 - m_shift_s);
 
         // For block size == 2, do a Givens rotation on M = X * X - s * X + t * I
-        if(bsize == 2)
+        if (bsize == 2)
         {
             // This causes nr=2
             compute_reflector(m00, m10, 0, il);
@@ -139,7 +142,7 @@ private:
 
         // Calculate the following reflectors
         // If entering this loop, block size is at least 4.
-        for(Index i = 1; i < bsize - 2; i++)
+        for (Index i = 1; i < bsize - 2; i++)
         {
             compute_reflector(&m_mat_H.coeffRef(il + i, il + i - 1), il + i);
             // Apply the reflector to X
@@ -162,7 +165,7 @@ private:
     void apply_PX(GenericMatrix X, Index stride, Index u_ind) const
     {
         const Index nr = m_ref_nr.coeff(u_ind);
-        if(nr == 1)
+        if (nr == 1)
             return;
 
         const Scalar u0 = m_ref_u.coeff(0, u_ind),
@@ -174,18 +177,20 @@ private:
         const Index ncol = X.cols();
 
         Scalar* xptr = X.data();
-        if(nr == 2 || nrow == 2)
+        if (nr == 2 || nrow == 2)
         {
-            for(Index i = 0; i < ncol; i++, xptr += stride)
+            for (Index i = 0; i < ncol; i++, xptr += stride)
             {
                 const Scalar tmp = u0_2 * xptr[0] + u1_2 * xptr[1];
                 xptr[0] -= tmp * u0;
                 xptr[1] -= tmp * u1;
             }
-        } else {
+        }
+        else
+        {
             const Scalar u2 = m_ref_u.coeff(2, u_ind);
             const Scalar u2_2 = Scalar(2) * u2;
-            for(Index i = 0; i < ncol; i++, xptr += stride)
+            for (Index i = 0; i < ncol; i++, xptr += stride)
             {
                 const Scalar tmp = u0_2 * xptr[0] + u1_2 * xptr[1] + u2_2 * xptr[2];
                 xptr[0] -= tmp * u0;
@@ -200,7 +205,7 @@ private:
     void apply_PX(Scalar* x, Index u_ind) const
     {
         const Index nr = m_ref_nr.coeff(u_ind);
-        if(nr == 1)
+        if (nr == 1)
             return;
 
         const Scalar u0 = m_ref_u.coeff(0, u_ind),
@@ -212,7 +217,7 @@ private:
         const Scalar dot2 = Scalar(2) * (x[0] * u0 + x[1] * u1 + (nr_is_2 ? 0 : (x[2] * u2)));
         x[0] -= dot2 * u0;
         x[1] -= dot2 * u1;
-        if(!nr_is_2)
+        if (!nr_is_2)
             x[2] -= dot2 * u2;
     }
 
@@ -220,7 +225,7 @@ private:
     void apply_XP(GenericMatrix X, Index stride, Index u_ind) const
     {
         const Index nr = m_ref_nr.coeff(u_ind);
-        if(nr == 1)
+        if (nr == 1)
             return;
 
         const Scalar u0 = m_ref_u.coeff(0, u_ind),
@@ -232,22 +237,24 @@ private:
         const int ncol = X.cols();
         Scalar *X0 = X.data(), *X1 = X0 + stride;  // X0 => X.col(0), X1 => X.col(1)
 
-        if(nr == 2 || ncol == 2)
+        if (nr == 2 || ncol == 2)
         {
             // tmp = 2 * u0 * X0 + 2 * u1 * X1
             // X0 => X0 - u0 * tmp
             // X1 => X1 - u1 * tmp
-            for(Index i = 0; i < nrow; i++)
+            for (Index i = 0; i < nrow; i++)
             {
                 const Scalar tmp = u0_2 * X0[i] + u1_2 * X1[i];
                 X0[i] -= tmp * u0;
                 X1[i] -= tmp * u1;
             }
-        } else {
+        }
+        else
+        {
             Scalar* X2 = X1 + stride;  // X2 => X.col(2)
             const Scalar u2 = m_ref_u.coeff(2, u_ind);
             const Scalar u2_2 = Scalar(2) * u2;
-            for(Index i = 0; i < nrow; i++)
+            for (Index i = 0; i < nrow; i++)
             {
                 const Scalar tmp = u0_2 * X0[i] + u1_2 * X1[i] + u2_2 * X2[i];
                 X0[i] -= tmp * u0;
@@ -288,7 +295,7 @@ public:
         using std::abs;
 
         m_n = mat.rows();
-        if(m_n != mat.cols())
+        if (m_n != mat.cols())
             throw std::invalid_argument("DoubleShiftQR: matrix must be square");
 
         m_mat_H.resize(m_n, m_n);
@@ -306,11 +313,11 @@ public:
         zero_ind.reserve(m_n - 1);
         zero_ind.push_back(0);
         Scalar* Hii = m_mat_H.data();
-        for(Index i = 0; i < m_n - 2; i++, Hii += (m_n + 1))
+        for (Index i = 0; i < m_n - 2; i++, Hii += (m_n + 1))
         {
             // Hii[1] => m_mat_H(i + 1, i)
             const Scalar h = abs(Hii[1]);
-            if(h <= 0 || h <= m_eps_rel * (abs(Hii[0]) + abs(Hii[m_n + 1])))
+            if (h <= 0 || h <= m_eps_rel * (abs(Hii[0]) + abs(Hii[m_n + 1])))
             {
                 Hii[1] = 0;
                 zero_ind.push_back(i + 1);
@@ -321,7 +328,7 @@ public:
         }
         zero_ind.push_back(m_n);
 
-        for(std::vector<int>::size_type i = 0; i < zero_ind.size() - 1; i++)
+        for (std::vector<int>::size_type i = 0; i < zero_ind.size() - 1; i++)
         {
             const Index start = zero_ind[i];
             const Index end = zero_ind[i + 1] - 1;
@@ -334,7 +341,7 @@ public:
 
     void matrix_QtHQ(Matrix& dest) const
     {
-        if(!m_computed)
+        if (!m_computed)
             throw std::logic_error("DoubleShiftQR: need to call compute() first");
 
         dest.noalias() = m_mat_H;
@@ -344,12 +351,12 @@ public:
     // Q'y = P_{n-2} * ... * P1 * P0 * y
     void apply_QtY(Vector& y) const
     {
-        if(!m_computed)
+        if (!m_computed)
             throw std::logic_error("DoubleShiftQR: need to call compute() first");
 
         Scalar* y_ptr = y.data();
         const Index n1 = m_n - 1;
-        for(Index i = 0; i < n1; i++, y_ptr++)
+        for (Index i = 0; i < n1; i++, y_ptr++)
         {
             apply_PX(y_ptr, i);
         }
@@ -359,12 +366,12 @@ public:
     // YQ = Y * P0 * P1 * ...
     void apply_YQ(GenericMatrix Y) const
     {
-        if(!m_computed)
+        if (!m_computed)
             throw std::logic_error("DoubleShiftQR: need to call compute() first");
 
         const Index nrow = Y.rows();
         const Index n2 = m_n - 2;
-        for(Index i = 0; i < n2; i++)
+        for (Index i = 0; i < n2; i++)
         {
             apply_XP(Y.block(0, i, nrow, 3), nrow, i);
         }
@@ -372,7 +379,6 @@ public:
     }
 };
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // DOUBLE_SHIFT_QR_H
+#endif  // DOUBLE_SHIFT_QR_H

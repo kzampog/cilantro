@@ -13,7 +13,6 @@
 
 namespace Spectra {
 
-
 // We need a simple pseudo random number generator here:
 // 1. It is used to generate initial and restarted residual vector.
 // 2. It is not necessary to be so "random" and advanced. All we hope
@@ -25,7 +24,6 @@ namespace Spectra {
 // 4. The method should be as simple as possible, so an LCG is enough.
 // 5. Based on public domain code by Ray Gardner
 //    http://stjarnhimlen.se/snippets/rg_rand.c
-
 
 template <typename Scalar = double>
 class SimpleRandom
@@ -42,22 +40,23 @@ private:
     {
         unsigned long lo, hi;
 
-        lo = m_a * (long)(seed & 0xFFFF);
-        hi = m_a * (long)((unsigned long)seed >> 16);
+        lo = m_a * (long) (seed & 0xFFFF);
+        hi = m_a * (long) ((unsigned long) seed >> 16);
         lo += (hi & 0x7FFF) << 16;
-        if(lo > m_max)
+        if (lo > m_max)
         {
             lo &= m_max;
             ++lo;
         }
         lo += hi >> 15;
-        if(lo > m_max)
+        if (lo > m_max)
         {
             lo &= m_max;
             ++lo;
         }
-        return (long)lo;
+        return (long) lo;
     }
+
 public:
     SimpleRandom(unsigned long init_seed) :
         m_a(16807),
@@ -76,7 +75,7 @@ public:
     Vector random_vec(const Index len)
     {
         Vector res(len);
-        for(Index i = 0; i < len; i++)
+        for (Index i = 0; i < len; i++)
         {
             m_rand = next_long_rand(m_rand);
             res[i] = Scalar(m_rand) / Scalar(m_max) - Scalar(0.5);
@@ -85,9 +84,8 @@ public:
     }
 };
 
-
-} // namespace Spectra
+}  // namespace Spectra
 
 /// \endcond
 
-#endif // SIMPLE_RANDOM_H
+#endif  // SIMPLE_RANDOM_H

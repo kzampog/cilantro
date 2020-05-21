@@ -13,7 +13,6 @@
 
 namespace Spectra {
 
-
 ///
 /// \ingroup MatOp
 ///
@@ -56,7 +55,7 @@ public:
     DenseGenComplexShiftSolve(ConstGenericMatrix& mat) :
         m_mat(mat), m_n(mat.rows())
     {
-        if(mat.rows() != mat.cols())
+        if (mat.rows() != mat.cols())
             throw std::invalid_argument("DenseGenComplexShiftSolve: matrix must be square");
     }
 
@@ -98,7 +97,6 @@ public:
     }
 };
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // DENSE_GEN_COMPLEX_SHIFT_SOLVE_H
+#endif  // DENSE_GEN_COMPLEX_SHIFT_SOLVE_H

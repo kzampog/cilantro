@@ -24,7 +24,6 @@
 
 namespace Spectra {
 
-
 ///
 /// \defgroup EigenSolver Eigen Solvers
 ///
@@ -38,10 +37,10 @@ namespace Spectra {
 /// It is kept here to provide the documentation for member functions of concrete eigen solvers
 /// such as SymEigsSolver and SymEigsShiftSolver.
 ///
-template < typename Scalar,
-           int      SelectionRule,
-           typename OpType,
-           typename BOpType >
+template <typename Scalar,
+          int SelectionRule,
+          typename OpType,
+          typename BOpType>
 class SymEigsBase
 {
 private:
@@ -58,6 +57,7 @@ private:
     typedef Lanczos<Scalar, ArnoldiOpType> LanczosFac;
 
 protected:
+    // clang-format off
     OpType*      m_op;         // object to conduct matrix operation,
                                // e.g. matrix-vector product
     const Index  m_n;          // dimension of matrix A
@@ -79,17 +79,18 @@ private:
                                // ~= 1e-307 for the "double" type
     const Scalar m_eps;        // the machine precision, ~= 1e-16 for the "double" type
     const Scalar m_eps23;      // m_eps^(2/3), used to test the convergence
+    // clang-format on
 
     // Implicitly restarted Lanczos factorization
     void restart(Index k)
     {
-        if(k >= m_ncv)
+        if (k >= m_ncv)
             return;
 
         TridiagQR<Scalar> decomp(m_ncv);
         Matrix Q = Matrix::Identity(m_ncv, m_ncv);
 
-        for(Index i = k; i < m_ncv; i++)
+        for (Index i = k; i < m_ncv; i++)
         {
             // QR decomposition of H-mu*I, mu is the shift
             decomp.compute(m_fac.matrix_H(), m_ritz_val[i]);
@@ -113,7 +114,7 @@ private:
     {
         // thresh = tol * max(m_eps23, abs(theta)), theta for Ritz value
         Array thresh = tol * m_ritz_val.head(m_nev).array().abs().max(m_eps23);
-        Array resid =  m_ritz_est.head(m_nev).array().abs() * m_fac.f_norm();
+        Array resid = m_ritz_est.head(m_nev).array().abs() * m_fac.f_norm();
         // Converged "wanted" Ritz values
         m_ritz_conv = (resid < thresh);
 
@@ -126,17 +127,18 @@ private:
         using std::abs;
 
         Index nev_new = m_nev;
-        for(Index i = m_nev; i < m_ncv; i++)
-            if(abs(m_ritz_est[i]) < m_near_0)  nev_new++;
+        for (Index i = m_nev; i < m_ncv; i++)
+            if (abs(m_ritz_est[i]) < m_near_0)
+                nev_new++;
 
         // Adjust nev_new, according to dsaup2.f line 677~684 in ARPACK
         nev_new += std::min(nconv, (m_ncv - nev_new) / 2);
-        if(nev_new == 1 && m_ncv >= 6)
+        if (nev_new == 1 && m_ncv >= 6)
             nev_new = m_ncv / 2;
-        else if(nev_new == 1 && m_ncv > 2)
+        else if (nev_new == 1 && m_ncv > 2)
             nev_new = 2;
 
-        if(nev_new > m_ncv - 1)
+        if (nev_new > m_ncv - 1)
             nev_new = m_ncv - 1;
 
         return nev_new;
@@ -160,14 +162,14 @@ private:
         // We keep this order since the first k values will always be
         // the wanted collection, no matter k is nev_updated (used in restart())
         // or is nev (used in sort_ritzpair())
-        if(SelectionRule == BOTH_ENDS)
+        if (SelectionRule == BOTH_ENDS)
         {
             std::vector<int> ind_copy(ind);
-            for(Index i = 0; i < m_ncv; i++)
+            for (Index i = 0; i < m_ncv; i++)
             {
                 // If i is even, pick values from the left (large values)
                 // If i is odd, pick values from the right (small values)
-                if(i % 2 == 0)
+                if (i % 2 == 0)
                     ind[i] = ind_copy[i / 2];
                 else
                     ind[i] = ind_copy[m_ncv - 1 - i / 2];
@@ -175,12 +177,12 @@ private:
         }
 
         // Copy the Ritz values and vectors to m_ritz_val and m_ritz_vec, respectively
-        for(Index i = 0; i < m_ncv; i++)
+        for (Index i = 0; i < m_ncv; i++)
         {
             m_ritz_val[i] = evals[ind[i]];
             m_ritz_est[i] = evecs(m_ncv - 1, ind[i]);
         }
-        for(Index i = 0; i < m_nev; i++)
+        for (Index i = 0; i < m_nev; i++)
         {
             m_ritz_vec.col(i).noalias() = evecs.col(ind[i]);
         }
@@ -195,7 +197,7 @@ protected:
         SortEigenvalue<Scalar, LARGEST_ALGE> sorting(m_ritz_val.data(), m_nev);
         std::vector<int> ind = sorting.index();
 
-        switch(sort_rule)
+        switch (sort_rule)
         {
             case LARGEST_ALGE:
                 break;
@@ -203,20 +205,20 @@ protected:
             {
                 SortEigenvalue<Scalar, LARGEST_MAGN> sorting(m_ritz_val.data(), m_nev);
                 ind = sorting.index();
-            }
                 break;
+            }
             case SMALLEST_ALGE:
             {
                 SortEigenvalue<Scalar, SMALLEST_ALGE> sorting(m_ritz_val.data(), m_nev);
                 ind = sorting.index();
-            }
                 break;
+            }
             case SMALLEST_MAGN:
             {
                 SortEigenvalue<Scalar, SMALLEST_MAGN> sorting(m_ritz_val.data(), m_nev);
                 ind = sorting.index();
-            }
                 break;
+            }
             default:
                 throw std::invalid_argument("unsupported sorting rule");
         }
@@ -225,7 +227,7 @@ protected:
         Matrix new_ritz_vec(m_ncv, m_nev);
         BoolArray new_ritz_conv(m_nev);
 
-        for(Index i = 0; i < m_nev; i++)
+        for (Index i = 0; i < m_nev; i++)
         {
             new_ritz_val[i] = m_ritz_val[ind[i]];
             new_ritz_vec.col(i).noalias() = m_ritz_vec.col(ind[i]);
@@ -253,10 +255,10 @@ public:
         m_eps(Eigen::NumTraits<Scalar>::epsilon()),
         m_eps23(Eigen::numext::pow(m_eps, Scalar(2.0) / 3))
     {
-        if(nev < 1 || nev > m_n - 1)
+        if (nev < 1 || nev > m_n - 1)
             throw std::invalid_argument("nev must satisfy 1 <= nev <= n - 1, n is the size of matrix");
 
-        if(ncv <= nev || ncv > m_n)
+        if (ncv <= nev || ncv > m_n)
             throw std::invalid_argument("ncv must satisfy nev < ncv <= n, n is the size of matrix");
     }
 
@@ -336,10 +338,10 @@ public:
         retrieve_ritzpair();
         // Restarting
         Index i, nconv = 0, nev_adj;
-        for(i = 0; i < maxit; i++)
+        for (i = 0; i < maxit; i++)
         {
             nconv = num_converged(tol);
-            if(nconv >= m_nev)
+            if (nconv >= m_nev)
                 break;
 
             nev_adj = nev_adjusted(nconv);
@@ -382,13 +384,13 @@ public:
         const Index nconv = m_ritz_conv.cast<Index>().sum();
         Vector res(nconv);
 
-        if(!nconv)
+        if (!nconv)
             return res;
 
         Index j = 0;
-        for(Index i = 0; i < m_nev; i++)
+        for (Index i = 0; i < m_nev; i++)
         {
-            if(m_ritz_conv[i])
+            if (m_ritz_conv[i])
             {
                 res[j] = m_ritz_val[i];
                 j++;
@@ -413,14 +415,14 @@ public:
         nvec = std::min(nvec, nconv);
         Matrix res(m_n, nvec);
 
-        if(!nvec)
+        if (!nvec)
             return res;
 
         Matrix ritz_vec_conv(m_ncv, nvec);
         Index j = 0;
-        for(Index i = 0; i < m_nev && j < nvec; i++)
+        for (Index i = 0; i < m_nev && j < nvec; i++)
         {
-            if(m_ritz_conv[i])
+            if (m_ritz_conv[i])
             {
                 ritz_vec_conv.col(j).noalias() = m_ritz_vec.col(i);
                 j++;
@@ -441,7 +443,6 @@ public:
     }
 };
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // SYM_EIGS_BASE_H
+#endif  // SYM_EIGS_BASE_H

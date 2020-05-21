@@ -15,7 +15,6 @@
 
 namespace Spectra {
 
-
 ///
 /// \ingroup EigenSolver
 ///
@@ -136,10 +135,10 @@ namespace Spectra {
 /// }
 /// \endcode
 ///
-template < typename Scalar = double,
-           int SelectionRule = LARGEST_MAGN,
-           typename OpType = DenseSymMatProd<double> >
-class SymEigsSolver: public SymEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>
+template <typename Scalar = double,
+          int SelectionRule = LARGEST_MAGN,
+          typename OpType = DenseSymMatProd<double> >
+class SymEigsSolver : public SymEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>
 {
 private:
     typedef Eigen::Index Index;
@@ -165,10 +164,8 @@ public:
     SymEigsSolver(OpType* op, Index nev, Index ncv) :
         SymEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>(op, NULL, nev, ncv)
     {}
-
 };
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // SYM_EIGS_SOLVER_H
+#endif  // SYM_EIGS_SOLVER_H

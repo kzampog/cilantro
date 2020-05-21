@@ -15,7 +15,6 @@
 
 namespace Spectra {
 
-
 ///
 /// \ingroup EigenSolver
 ///
@@ -156,7 +155,7 @@ namespace Spectra {
 template <typename Scalar = double,
           int SelectionRule = LARGEST_MAGN,
           typename OpType = DenseSymShiftSolve<double> >
-class SymEigsShiftSolver: public SymEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>
+class SymEigsShiftSolver : public SymEigsBase<Scalar, SelectionRule, OpType, IdentityBOp>
 {
 private:
     typedef Eigen::Index Index;
@@ -199,7 +198,6 @@ public:
     }
 };
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // SYM_EIGS_SHIFT_SOLVER_H
+#endif  // SYM_EIGS_SHIFT_SOLVER_H

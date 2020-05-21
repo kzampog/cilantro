@@ -13,7 +13,6 @@
 
 namespace Spectra {
 
-
 ///
 /// \ingroup Operators
 ///
@@ -22,9 +21,9 @@ namespace Spectra {
 /// vector \f$x\f$, where \f$L\f$ is the Cholesky decomposition of \f$B\f$.
 /// This class is intended for internal use.
 ///
-template < typename Scalar = double,
-           typename OpType = DenseSymMatProd<double>,
-           typename BOpType = DenseCholesky<double> >
+template <typename Scalar = double,
+          typename OpType = DenseSymMatProd<double>,
+          typename BOpType = DenseCholesky<double> >
 class SymGEigsCholeskyOp
 {
 private:
@@ -32,9 +31,9 @@ private:
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
 
-    OpType&  m_op;
+    OpType& m_op;
     BOpType& m_Bop;
-    Vector   m_cache;  // temporary working space
+    Vector m_cache;  // temporary working space
 
 public:
     ///
@@ -71,7 +70,6 @@ public:
     }
 };
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // SYM_GEIGS_CHOLESKY_OP_H
+#endif  // SYM_GEIGS_CHOLESKY_OP_H

@@ -20,7 +20,6 @@
 
 namespace Spectra {
 
-
 // Arnoldi factorization A * V = V * H + f * e'
 // A: n x n
 // V: n x k
@@ -41,6 +40,7 @@ private:
     typedef Eigen::Map<const Vector> MapConstVec;
 
 protected:
+    // clang-format off
     ArnoldiOpType m_op;       // Operators for the Arnoldi factorization
 
     const Index m_n;          // dimension of A
@@ -55,6 +55,7 @@ protected:
     const Scalar m_near_0;    // a very small value, but 1.0 / m_near_0 does not overflow
                               // ~= 1e-307 for the "double" type
     const Scalar m_eps;       // the machine precision, ~= 1e-16 for the "double" type
+    // clang-format on
 
     // Given orthonormal basis functions V, find a nonzero vector f such that V'Bf = 0
     // Assume that f has been properly allocated
@@ -64,7 +65,7 @@ protected:
 
         const Scalar thresh = m_eps * sqrt(Scalar(m_n));
         Vector Vf(V.cols());
-        for(Index iter = 0; iter < 5; iter++)
+        for (Index iter = 0; iter < 5; iter++)
         {
             // Randomly generate a new vector and orthogonalize it against V
             SimpleRandom<Scalar> rng(seed + 123 * iter);
@@ -77,7 +78,7 @@ protected:
 
             // If fnorm is too close to zero, we try a new random vector,
             // otherwise return the result
-            if(fnorm >= thresh)
+            if (fnorm >= thresh)
                 return;
         }
     }
@@ -108,7 +109,7 @@ public:
 
         // Verify the initial vector
         const Scalar v0norm = m_op.norm(v0);
-        if(v0norm < m_near_0)
+        if (v0norm < m_near_0)
             throw std::invalid_argument("initial residual vector cannot be zero");
 
         // Points to the first column of V
@@ -127,11 +128,13 @@ public:
 
         // In some cases f is zero in exact arithmetics, but due to rounding errors
         // it may contain tiny fluctuations. When this happens, we force f to be zero
-        if(m_fac_f.cwiseAbs().maxCoeff() < m_eps)
+        if (m_fac_f.cwiseAbs().maxCoeff() < m_eps)
         {
             m_fac_f.setZero();
             m_beta = Scalar(0);
-        } else {
+        }
+        else
+        {
             m_beta = m_op.norm(m_fac_f);
         }
 
@@ -144,14 +147,13 @@ public:
     {
         using std::sqrt;
 
-        if(to_m <= from_k) return;
+        if (to_m <= from_k)
+            return;
 
-        if(from_k > m_k)
+        if (from_k > m_k)
         {
             std::stringstream msg;
-            msg << "Arnoldi: from_k (= " << from_k <<
-                   ") is larger than the current subspace dimension (= " <<
-                   m_k << ")";
+            msg << "Arnoldi: from_k (= " << from_k << ") is larger than the current subspace dimension (= " << m_k << ")";
             throw std::invalid_argument(msg.str());
         }
 
@@ -165,21 +167,21 @@ public:
         m_fac_H.rightCols(m_m - from_k).setZero();
         m_fac_H.block(from_k, 0, m_m - from_k, from_k).setZero();
 
-        for(Index i = from_k; i <= to_m - 1; i++)
+        for (Index i = from_k; i <= to_m - 1; i++)
         {
             bool restart = false;
             // If beta = 0, then the next V is not full rank
             // We need to generate a new residual vector that is orthogonal
             // to the current V, which we call a restart
-            if(m_beta < m_near_0)
+            if (m_beta < m_near_0)
             {
-                MapConstMat V(m_fac_V.data(), m_n, i); // The first i columns
+                MapConstMat V(m_fac_V.data(), m_n, i);  // The first i columns
                 expand_basis(V, 2 * i, m_fac_f, m_beta);
                 restart = true;
             }
 
             // v <- f / ||f||
-            m_fac_V.col(i).noalias() = m_fac_f / m_beta; // The (i+1)-th column
+            m_fac_V.col(i).noalias() = m_fac_f / m_beta;  // The (i+1)-th column
 
             // Note that H[i+1, i] equals to the unrestarted beta
             m_fac_H(i, i - 1) = restart ? Scalar(0) : m_beta;
@@ -200,7 +202,7 @@ public:
             m_fac_f.noalias() = w - Vs * h;
             m_beta = m_op.norm(m_fac_f);
 
-            if(m_beta > Scalar(0.717) * m_op.norm(h))
+            if (m_beta > Scalar(0.717) * m_op.norm(h))
                 continue;
 
             // f/||f|| is going to be the next column of V, so we need to test
@@ -209,14 +211,14 @@ public:
             Scalar ortho_err = Vf.head(i1).cwiseAbs().maxCoeff();
             // If not, iteratively correct the residual
             int count = 0;
-            while(count < 5 && ortho_err > m_eps * m_beta)
+            while (count < 5 && ortho_err > m_eps * m_beta)
             {
                 // There is an edge case: when beta=||f|| is close to zero, f mostly consists
                 // of noises of rounding errors, so the test [ortho_err < eps * beta] is very
                 // likely to fail. In particular, if beta=0, then the test is ensured to fail.
                 // Hence when this happens, we force f to be zero, and then restart in the
                 // next iteration.
-                if(m_beta < beta_thresh)
+                if (m_beta < beta_thresh)
                 {
                     m_fac_f.setZero();
                     m_beta = Scalar(0);
@@ -262,7 +264,7 @@ public:
     void compress_V(const Matrix& Q)
     {
         Matrix Vs(m_n, m_k + 1);
-        for(Index i = 0; i < m_k; i++)
+        for (Index i = 0; i < m_k; i++)
         {
             const Index nnz = m_m - m_k + i + 1;
             MapConstVec q(&Q(0, i), nnz);
@@ -277,7 +279,6 @@ public:
     }
 };
 
+}  // namespace Spectra
 
-} // namespace Spectra
-
-#endif // ARNOLDI_H
+#endif  // ARNOLDI_H
