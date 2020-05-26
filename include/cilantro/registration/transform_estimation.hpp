@@ -82,8 +82,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
                     eq_vecs.template block<Dim,1>(j*Dim, j) = src.col(i);
                 }
 
-                AtA += eq_vecs*eq_vecs.transpose();
-                Atb += eq_vecs*dst.col(i);
+                AtA.noalias() += eq_vecs*eq_vecs.transpose();
+                Atb.noalias() += eq_vecs*dst.col(i);
             }
         }
 
@@ -172,8 +172,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
                         eq_vecs(0,0) = -(s[1] + d[1]);
                         eq_vecs(0,1) = s[0] + d[0];
 
-                        AtA += weight * eq_vecs * eq_vecs.transpose();
-                        Atb += weight * eq_vecs * (d - s);
+                        AtA.noalias() += weight * eq_vecs * eq_vecs.transpose();
+                        Atb.noalias() += weight * eq_vecs * (d - s);
                     }
                 }
 
@@ -192,8 +192,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
                         eq_vec(0) = (d + s).dot(flip * n);
                         eq_vec.template tail<2>() = n;
 
-                        AtA += weight * eq_vec * eq_vec.transpose();
-                        Atb += weight * (n.dot(d - s)) * eq_vec;
+                        AtA.noalias() += weight * eq_vec * eq_vec.transpose();
+                        Atb.noalias() += weight * (n.dot(d - s)) * eq_vec;
                     }
                 }
             }
@@ -291,8 +291,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
                         eq_vecs(2,0) = -eq_vecs(0, 2);
                         eq_vecs(2,1) = -eq_vecs(1, 2);
 
-                        AtA += weight * eq_vecs * eq_vecs.transpose();
-                        Atb += weight * eq_vecs * (d - s);
+                        AtA.noalias() += weight * eq_vecs * eq_vecs.transpose();
+                        Atb.noalias() += weight * eq_vecs * (d - s);
                     }
                 }
 
@@ -311,8 +311,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
                         eq_vec.template head<3>() = (d + s).cross(n);
                         eq_vec.template tail<3>() = n;
 
-                        AtA += weight*eq_vec*eq_vec.transpose();
-                        Atb += weight*(n.dot(d - s))*eq_vec;
+                        AtA.noalias() += weight*eq_vec*eq_vec.transpose();
+                        Atb.noalias() += weight*(n.dot(d - s))*eq_vec;
                     }
                 }
             }
@@ -402,8 +402,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
                         eq_vecs.template block<Dim,1>(j*Dim, j) = src_p.col(corr.indexInSecond) - src_mean;
                     }
 
-                    AtA += (weight*eq_vecs)*eq_vecs.transpose();
-                    Atb += eq_vecs*(weight*(dst_p.col(corr.indexInFirst) - dst_mean));
+                    AtA.noalias() += (weight*eq_vecs)*eq_vecs.transpose();
+                    Atb.noalias() += eq_vecs*(weight*(dst_p.col(corr.indexInFirst) - dst_mean));
                 }
             }
 
@@ -422,8 +422,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
                     }
                     eq_vec.template tail<Dim>() = n;
 
-                    AtA += (weight*eq_vec)*eq_vec.transpose();
-                    Atb += (weight*(n.dot(dst_p.col(corr.indexInFirst) - dst_mean)))*eq_vec;
+                    AtA.noalias() += (weight*eq_vec)*eq_vec.transpose();
+                    Atb.noalias() += (weight*(n.dot(dst_p.col(corr.indexInFirst) - dst_mean)))*eq_vec;
                 }
             }
         }
@@ -507,8 +507,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
                         eq_vecs(0,0) = -(s[1] + d[1]);
                         eq_vecs(0,1) = s[0] + d[0];
 
-                        AtA += weight * eq_vecs * eq_vecs.transpose();
-                        Atb += weight * eq_vecs * (d - s);
+                        AtA.noalias() += weight * eq_vecs * eq_vecs.transpose();
+                        Atb.noalias() += weight * eq_vecs * (d - s);
                     }
                 }
 
@@ -527,8 +527,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
                         eq_vec(0) = (flip * (d + s)).dot(n);
                         eq_vec.template tail<2>() = n;
 
-                        AtA += weight * eq_vec * eq_vec.transpose();
-                        Atb += weight * (n.dot(d - s)) * eq_vec;
+                        AtA.noalias() += weight * eq_vec * eq_vec.transpose();
+                        Atb.noalias() += weight * (n.dot(d - s)) * eq_vec;
                     }
                 }
             }
@@ -627,8 +627,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
                         eq_vecs(2,0) = -eq_vecs(0, 2);
                         eq_vecs(2,1) = -eq_vecs(1, 2);
 
-                        AtA += weight * eq_vecs * eq_vecs.transpose();
-                        Atb += weight * eq_vecs * (d - s);
+                        AtA.noalias() += weight * eq_vecs * eq_vecs.transpose();
+                        Atb.noalias() += weight * eq_vecs * (d - s);
                     }
                 }
 
@@ -647,8 +647,8 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
                         eq_vec.template head<3>() = (d + s).cross(n);
                         eq_vec.template tail<3>() = n;
 
-                        AtA += weight * eq_vec * eq_vec.transpose();
-                        Atb += weight * (n.dot(d - s)) * eq_vec;
+                        AtA.noalias() += weight * eq_vec * eq_vec.transpose();
+                        Atb.noalias() += weight * (n.dot(d - s)) * eq_vec;
                     }
                 }
             }
