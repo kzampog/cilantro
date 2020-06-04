@@ -86,7 +86,7 @@ make -j
 ```
 
 ## Documentation
-Documentation ([readthedocs.io](http://cilantro.readthedocs.io/en/latest/?badge=latest), [Doxygen API documentation](https://codedocs.xyz/kzampog/cilantro/)) is a work in progress.
+Documentation ([readthedocs.io](http://cilantro.readthedocs.io/en/latest/?badge=latest), [Doxygen API reference](https://codedocs.xyz/kzampog/cilantro/)) is a work in progress.
 The short provided examples (built by default) cover a significant part of the library's functionality.
 Most of them expect a single command-line argument (path to a point cloud file in PLY format).
 One such input is bundled in `examples/test_clouds` for quick testing.
