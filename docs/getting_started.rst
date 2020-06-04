@@ -5,12 +5,12 @@ Getting started
 Dependencies
 ============
 
-* Eigen_ (3.3 or greater) (3.3 or newer) [**required**]
+* Eigen_ (version 3.3 or newer) [**required**]
 * Pangolin_ (built with Eigen enabled) [**optional**; needed for visualization modules and most examples]
 
 How to build
 ============
-**cilantro**  is developed and tested on Ubuntu 14.04, 16.04, and 18.04 variants using CMake_. Please note that you may have to manually set up a recent version of Eigen on Ubuntu 14.04, as the one provided in the official repos is outdated. To clone and build the library (with bundled examples), execute the following in a terminal:
+**cilantro**  is developed and tested on Ubuntu variants (16.04 and newer) using CMake_. To clone and build the library (with bundled examples), execute the following in a terminal:
 
 .. code-block:: bash
 

@@ -69,12 +69,11 @@ A high-level description of `cilantro` can be found in our [technical report](ht
 - A powerful, extensible, and easy to use 3D visualizer
 
 ## Dependencies
-- [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) (3.3 or newer) [**required**]
+- [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) (version 3.3 or newer) [**required**]
 - [Pangolin](https://github.com/stevenlovegrove/Pangolin) (built with Eigen enabled) [**optional**; needed for visualization modules and most examples]
 
 ## Building
-`cilantro` is developed and tested on Ubuntu 14.04, 16.04, and 18.04 variants using [CMake](https://cmake.org/).
-Please note that you may have to manually set up a recent version of Eigen on Ubuntu 14.04, as the one provided in the official repos is outdated.
+`cilantro` is developed and tested on Ubuntu variants (16.04 and newer) using [CMake](https://cmake.org/).
 To clone and build the library (with bundled examples), execute the following in a terminal:
 
 ```
