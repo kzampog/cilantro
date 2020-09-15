@@ -521,7 +521,7 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
                         const auto& corr = point_to_plane_correspondences[i];
                         const ScalarT weight = point_to_plane_weight * plane_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
                         const Vector<ScalarT,2> d = dst_p.col(corr.indexInFirst) - dst_mean;
-                        const Vector<ScalarT,2> n = dst_n.col(corr.indexInFirst) + src_n.col(corr.indexInSecond);
+                        const Vector<ScalarT,2> n = dst_n.col(corr.indexInFirst) + tform.linear() * src_n.col(corr.indexInSecond);
                         const Vector<ScalarT,2> s = tform * (src_p.col(corr.indexInSecond) - src_mean);
 
                         eq_vec(0) = (flip * (d + s)).dot(n);
@@ -641,7 +641,7 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
                         const auto& corr = point_to_plane_correspondences[i];
                         const ScalarT weight = point_to_plane_weight * plane_corr_evaluator(corr.indexInFirst, corr.indexInSecond, corr.value);
                         const Vector<ScalarT,3> d = dst_p.col(corr.indexInFirst) - dst_mean;
-                        const Vector<ScalarT,3> n = dst_n.col(corr.indexInFirst) + src_n.col(corr.indexInSecond);
+                        const Vector<ScalarT,3> n = dst_n.col(corr.indexInFirst) + tform.linear() * src_n.col(corr.indexInSecond);
                         const Vector<ScalarT,3> s = tform * (src_p.col(corr.indexInSecond) - src_mean);
 
                         eq_vec.template head<3>() = (d + s).cross(n);
