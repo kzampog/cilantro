@@ -31,7 +31,6 @@ namespace cilantro {
                     v.emplace_back(d);
                 }
             }
-            if (!in) return false;
 
             // Construct matrix
             size_t n_cols = v.size()/n_rows;
