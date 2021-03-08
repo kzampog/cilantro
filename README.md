@@ -76,7 +76,7 @@ A high-level description of `cilantro` can be found in our [technical report](ht
 `cilantro` is developed and tested on Ubuntu variants (16.04 and newer) using [CMake](https://cmake.org/).
 To clone and build the library (with bundled examples), execute the following in a terminal:
 
-```
+```bash
 git clone https://github.com/kzampog/cilantro.git
 cd cilantro
 mkdir build
@@ -94,7 +94,7 @@ One such input is bundled in `examples/test_clouds` for quick testing.
 ## License
 The library is released under the [MIT license](https://github.com/kzampog/cilantro/blob/master/LICENSE).
 If you use `cilantro` in your research, please cite our [technical report](https://arxiv.org/abs/1807.00399):
-```
+```bib
 @inproceedings{zampogiannis2018cilantro,
     author = {Zampogiannis, Konstantinos and Fermuller, Cornelia and Aloimonos, Yiannis},
     title = {cilantro: A Lean, Versatile, and Efficient Library for Point Cloud Data Processing},
