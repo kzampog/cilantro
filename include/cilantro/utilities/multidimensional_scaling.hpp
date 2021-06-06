@@ -56,10 +56,10 @@ namespace cilantro {
         }
 
         Spectra::DenseSymMatProd<ScalarT> op(B);
-        Spectra::SymEigsSolver<ScalarT, Spectra::LARGEST_MAGN, Spectra::DenseSymMatProd<ScalarT>> eig(&op, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)distances.rows()));
+        Spectra::SymEigsSolver<Spectra::DenseSymMatProd<ScalarT>> eig(op, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)distances.rows()));
         eig.init();
         do {
-            n_conv = eig.compute(max_iter, conv_tol, Spectra::LARGEST_MAGN);
+            n_conv = eig.compute(Spectra::SortRule::LargestMagn, max_iter, conv_tol, Spectra::SortRule::LargestMagn);
             max_iter *= 2;
         } while (n_conv != num_eigenvalues);
 
