@@ -1,8 +1,8 @@
 /****************************************************************************
 **
-** Copyright (c) 2008-2015 C.B. Barber. All rights reserved.
-** $Id: //main/2015/qhull/src/libqhullcpp/QhullFacetSet.h#2 $$Change: 2066 $
-** $DateTime: 2016/01/18 19:29:17 $$Author: bbarber $
+** Copyright (c) 2008-2020 C.B. Barber. All rights reserved.
+** $Id: //main/2019/qhull/src/libqhullcpp/QhullFacetSet.h#3 $$Change: 3001 $
+** $DateTime: 2020/07/24 20:43:28 $$Author: bbarber $
 **
 ****************************************************************************/
 
@@ -22,6 +22,10 @@ namespace orgQhull {
 #//!\name Defined here
     //! QhullFacetSet -- a set of Qhull facets, as a C++ class.  See QhullFacetList.h
     class QhullFacetSet;
+
+    //! QhullFacetSetIterator is a Java-style iterator.  It may be used on temporary results.
+    //! QhullFacetSetIterator copies the qh_set and qh_qh pointers in QhullSetBase
+    //! QhullFacetSetIterator, iterator, and const_iterator return all facets.  Select good facets with facet.isGood()
     typedef QhullSetIterator<QhullFacet> QhullFacetSetIterator;
 
 class QhullFacetSet : public QhullSet<QhullFacet> {

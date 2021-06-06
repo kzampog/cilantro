@@ -13,9 +13,9 @@
 
    defines internal functions for libqhull_r.c global_r.c
 
-   Copyright (c) 1993-2015 The Geometry Center.
-   $Id: //main/2015/qhull/src/libqhull_r/qhull_ra.h#6 $$Change: 2079 $
-   $DateTime: 2016/02/07 17:43:34 $$Author: bbarber $
+   Copyright (c) 1993-2020 The Geometry Center.
+   $Id: //main/2019/qhull/src/libqhull_r/qhull_ra.h#2 $$Change: 2953 $
+   $DateTime: 2020/05/21 22:05:32 $$Author: bbarber $
 
    Notes:  grep for ((" and (" to catch fprintf("lkasdjf");
            full parens around (x?y:z)
@@ -117,17 +117,20 @@ extern "C" {
 
 void    qh_qhull(qhT *qh);
 boolT   qh_addpoint(qhT *qh, pointT *furthest, facetT *facet, boolT checkdist);
+void    qh_build_withrestart(qhT *qh);
+vertexT *qh_buildcone(qhT *qh, pointT *furthest, facetT *facet, int goodhorizon, facetT **retryfacet);
+boolT   qh_buildcone_mergepinched(qhT *qh, vertexT *apex, facetT *facet, facetT **retryfacet);
+boolT   qh_buildcone_onlygood(qhT *qh, vertexT *apex, int goodhorizon);
 void    qh_buildhull(qhT *qh);
 void    qh_buildtracing(qhT *qh, pointT *furthest, facetT *facet);
-void    qh_build_withrestart(qhT *qh);
 void    qh_errexit2(qhT *qh, int exitcode, facetT *facet, facetT *otherfacet);
 void    qh_findhorizon(qhT *qh, pointT *point, facetT *facet, int *goodvisible,int *goodhorizon);
 pointT *qh_nextfurthest(qhT *qh, facetT **visible);
 void    qh_partitionall(qhT *qh, setT *vertices, pointT *points,int npoints);
-void    qh_partitioncoplanar(qhT *qh, pointT *point, facetT *facet, realT *dist);
+void    qh_partitioncoplanar(qhT *qh, pointT *point, facetT *facet, realT *dist, boolT allnew);
 void    qh_partitionpoint(qhT *qh, pointT *point, facetT *facet);
 void    qh_partitionvisible(qhT *qh, boolT allpoints, int *numpoints);
-void    qh_precision(qhT *qh, const char *reason);
+void    qh_joggle_restart(qhT *qh, const char *reason);
 void    qh_printsummary(qhT *qh, FILE *fp);
 
 /***** -global_r.c internal prototypes (alphabetical) ***********************/

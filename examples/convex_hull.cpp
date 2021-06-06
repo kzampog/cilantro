@@ -79,8 +79,8 @@ int main(int argc, char ** argv) {
         if (i%3 == 1) face_colors.col(i) = Eigen::Vector3f(0,1,0);
         if (i%3 == 2) face_colors.col(i) = Eigen::Vector3f(0,0,1);
         face_values[i] = (ch.getVertices().col(ch.getFacetVertexIndices()[i][0]) +
-                     ch.getVertices().col(ch.getFacetVertexIndices()[i][1]) +
-                     ch.getVertices().col(ch.getFacetVertexIndices()[i][2])).rowwise().mean().norm();
+                          ch.getVertices().col(ch.getFacetVertexIndices()[i][1]) +
+                          ch.getVertices().col(ch.getFacetVertexIndices()[i][2])).rowwise().mean().norm();
     }
 
     cilantro::Visualizer viz("3D convex hull", "disp");

@@ -1,8 +1,8 @@
 /****************************************************************************
 **
-** Copyright (c) 2008-2015 C.B. Barber. All rights reserved.
-** $Id: //main/2015/qhull/src/libqhullcpp/QhullRidge.cpp#3 $$Change: 2066 $
-** $DateTime: 2016/01/18 19:29:17 $$Author: bbarber $
+** Copyright (c) 2008-2020 C.B. Barber. All rights reserved.
+** $Id: //main/2019/qhull/src/libqhullcpp/QhullRidge.cpp#2 $$Change: 2953 $
+** $DateTime: 2020/05/21 22:05:32 $$Author: bbarber $
 **
 ****************************************************************************/
 
@@ -23,8 +23,8 @@ namespace orgQhull {
 
 #//!\name Class objects
 ridgeT QhullRidge::
-s_empty_ridge= {0,0,0,0,0,
-                0,0};
+s_empty_ridge= {NULL,NULL,NULL,0,    // must match ridgeT -Wmissing-field-initializers
+                false,false,false,false,false,false,false};
 
 #//!\name Constructors
 
@@ -109,6 +109,18 @@ operator<<(ostream &os, const QhullRidge::PrintRidge &pr)
     }
     if(r.getRidgeT()->nonconvex){
         os << " nonconvex";
+    }
+    if(r.getRidgeT()->mergevertex){
+      os << " mergevertex";
+    }
+    if(r.getRidgeT()->mergevertex2){
+      os << " mergevertex2";
+    }
+    if(r.getRidgeT()->simplicialtop){
+      os << " simplicialtop";
+    }
+    if(r.getRidgeT()->simplicialbot){
+      os << " simplicialbot";
     }
     os << endl;
     os << r.vertices().print("           vertices:");

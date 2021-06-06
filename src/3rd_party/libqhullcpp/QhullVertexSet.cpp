@@ -1,8 +1,8 @@
 /****************************************************************************
 **
-** Copyright (c) 2009-2015 C.B. Barber. All rights reserved.
-** $Id: //main/2015/qhull/src/libqhullcpp/QhullVertexSet.cpp#3 $$Change: 2066 $
-** $DateTime: 2016/01/18 19:29:17 $$Author: bbarber $
+** Copyright (c) 2009-2020 C.B. Barber. All rights reserved.
+** $Id: //main/2019/qhull/src/libqhullcpp/QhullVertexSet.cpp#3 $$Change: 2953 $
+** $DateTime: 2020/05/21 22:05:32 $$Author: bbarber $
 **
 ****************************************************************************/
 
@@ -102,7 +102,6 @@ QhullVertexSet::
     freeQhSetTemp();
 }//~QhullVertexSet
 
-//FIXUP -- Move conditional, QhullVertexSet code to QhullVertexSet.cpp
 #ifndef QHULL_NO_STL
 std::vector<QhullVertex> QhullVertexSet::
 toStdVector() const
@@ -116,6 +115,8 @@ toStdVector() const
     return vs;
 }//toStdVector
 #endif //QHULL_NO_STL
+
+#//!\name Class functions
 
 }//namespace orgQhull
 
