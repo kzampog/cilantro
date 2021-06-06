@@ -3,7 +3,7 @@
  *
  * Copyright 2008-2009  Marius Muja (mariusm@cs.ubc.ca). All rights reserved.
  * Copyright 2008-2009  David G. Lowe (lowe@cs.ubc.ca). All rights reserved.
- * Copyright 2011-2016  Jose Luis Blanco (joseluisblancoc@gmail.com).
+ * Copyright 2011-2021  Jose Luis Blanco (joseluisblancoc@gmail.com).
  *   All rights reserved.
  *
  * THE BSD LICENSE
@@ -670,7 +670,7 @@ public:
       void *m = ::malloc(blocksize);
       if (!m) {
         fprintf(stderr, "Failed to allocate memory.\n");
-        return NULL;
+        throw std::bad_alloc();
       }
 
       /* Fill first word of new block with pointer to previous block. */
@@ -926,7 +926,6 @@ public:
         ElementType min_elem, max_elem;
         computeMinMax(obj, ind, count, i, min_elem, max_elem);
         ElementType spread = max_elem - min_elem;
-        ;
         if (spread > max_spread) {
           cutfeat = i;
           max_spread = spread;

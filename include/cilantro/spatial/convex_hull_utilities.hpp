@@ -65,10 +65,10 @@ namespace cilantro {
         Eigen::VectorXd x(dim+1);
         double val = solve_quadprog(G, g0, CE, ce0, CI, ci0, x);
 
-//        Eigen::VectorXd sol((x.head(dim)/scale - t_vec));
-//        std::cout << val << ", for: " << x.transpose() << " (" << sol.transpose() << ")" << std::endl;
-//        Eigen::VectorXd ineq_test0(ineq_to_test.template cast<double>());
-//        std::cout << "dist: " << (sol.dot(ineq_test0.head(dim)) + ineq_test0(dim)) << std::endl;
+        // Eigen::VectorXd sol((x.head(dim)/scale - t_vec));
+        // std::cout << val << ", for: " << x.transpose() << " (" << sol.transpose() << ")" << std::endl;
+        // Eigen::VectorXd ineq_test0(ineq_to_test.template cast<double>());
+        // std::cout << "dist: " << (sol.dot(ineq_test0.head(dim)) + ineq_test0(dim)) << std::endl;
 
         if (std::isinf(val) || std::isnan(val) || !x.allFinite()) return false;
 
@@ -256,12 +256,10 @@ namespace cilantro {
         is_bounded = true;
 
         // 'Precondition' qhull input...
-//    if (std::abs(hs_coeffs.row(dim).maxCoeff() - hs_coeffs.row(dim).minCoeff()) < dist_tol) {
         hs_coeffs.conservativeResize(Eigen::NoChange, 2*num_halfspaces);
         hs_coeffs.rightCols(num_halfspaces) = hs_coeffs.leftCols(num_halfspaces);
         hs_coeffs.block(dim,num_halfspaces,1,num_halfspaces).array() -= 1.0;
         num_halfspaces *= 2;
-//    }
 
         // Run qhull in halfspace mode
         std::vector<double> fpv(dim);

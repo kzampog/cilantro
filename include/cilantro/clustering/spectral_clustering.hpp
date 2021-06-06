@@ -38,7 +38,7 @@ namespace cilantro {
             }
 
             // y_out = B * x_in
-            void mat_prod(const ScalarT* x_in, ScalarT* y_out) const {
+            void perform_op(const ScalarT* x_in, ScalarT* y_out) const {
                 Eigen::Map<const Eigen::Matrix<ScalarT,Eigen::Dynamic,1>> x(x_in, dim_);
                 Eigen::Map<Eigen::Matrix<ScalarT,Eigen::Dynamic,1>> y(y_out, dim_);
                 y.noalias() = diag_vals_.cwiseProduct(x);
@@ -98,10 +98,10 @@ namespace cilantro {
                 L -=  affinities;
 
                 Spectra::DenseSymMatProd<ScalarT> op(L);
-                Spectra::SymEigsSolver<ScalarT,Spectra::SMALLEST_MAGN,Spectra::DenseSymMatProd<ScalarT>> eig(&op, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
+                Spectra::SymEigsSolver<Spectra::DenseSymMatProd<ScalarT>> eig(op, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
                 eig.init();
                 do {
-                    n_conv = eig.compute(max_iter, conv_tol, Spectra::SMALLEST_MAGN);
+                    n_conv = eig.compute(Spectra::SortRule::SmallestMagn, max_iter, conv_tol, Spectra::SortRule::SmallestMagn);
                     max_iter *= 2;
                 } while (n_conv != num_eigenvalues);
 
@@ -123,10 +123,10 @@ namespace cilantro {
                 Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> L = Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic>::Identity(affinities.rows(),affinities.cols()) - Dtm12*affinities*Dtm12;
 
                 Spectra::DenseSymMatProd<ScalarT> op(L);
-                Spectra::SymEigsSolver<ScalarT,Spectra::SMALLEST_MAGN,Spectra::DenseSymMatProd<ScalarT>> eig(&op, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
+                Spectra::SymEigsSolver<Spectra::DenseSymMatProd<ScalarT>> eig(op, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
                 eig.init();
                 do {
-                    n_conv = eig.compute(max_iter, conv_tol, Spectra::SMALLEST_MAGN);
+                    n_conv = eig.compute(Spectra::SortRule::SmallestMagn, max_iter, conv_tol, Spectra::SortRule::SmallestMagn);
                     max_iter *= 2;
                 } while (n_conv != num_eigenvalues);
 
@@ -154,11 +154,11 @@ namespace cilantro {
 
                 Spectra::DenseSymMatProd<ScalarT> op(L);
                 internal::SpectraDiagonalInverseBop<ScalarT> Bop(D);
-                Spectra::SymGEigsSolver<ScalarT,Spectra::SMALLEST_MAGN,Spectra::DenseSymMatProd<ScalarT>,internal::SpectraDiagonalInverseBop<ScalarT>,Spectra::GEIGS_REGULAR_INVERSE> eig(&op, &Bop, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
+                Spectra::SymGEigsSolver<Spectra::DenseSymMatProd<ScalarT>,internal::SpectraDiagonalInverseBop<ScalarT>,Spectra::GEigsMode::RegularInverse> eig(op, Bop, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
 
                 eig.init();
                 do {
-                    n_conv = eig.compute(max_iter, conv_tol, Spectra::SMALLEST_MAGN);
+                    n_conv = eig.compute(Spectra::SortRule::SmallestMagn, max_iter, conv_tol, Spectra::SortRule::SmallestMagn);
                     max_iter *= 2;
                 } while (n_conv != num_eigenvalues);
 
@@ -206,10 +206,10 @@ namespace cilantro {
                 Eigen::SparseMatrix<ScalarT> L = D - affinities;
 
                 Spectra::SparseSymMatProd<ScalarT> op(L);
-                Spectra::SymEigsSolver<ScalarT,Spectra::SMALLEST_MAGN,Spectra::SparseSymMatProd<ScalarT>> eig(&op, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
+                Spectra::SymEigsSolver<Spectra::SparseSymMatProd<ScalarT>> eig(op, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
                 eig.init();
                 do {
-                    n_conv = eig.compute(max_iter, conv_tol, Spectra::SMALLEST_MAGN);
+                    n_conv = eig.compute(Spectra::SortRule::SmallestMagn, max_iter, conv_tol, Spectra::SortRule::SmallestMagn);
                     max_iter *= 2;
                 } while (n_conv != num_eigenvalues);
 
@@ -237,10 +237,10 @@ namespace cilantro {
                 L -= Dtm12*affinities*Dtm12;
 
                 Spectra::SparseSymMatProd<ScalarT> op(L);
-                Spectra::SymEigsSolver<ScalarT,Spectra::SMALLEST_MAGN,Spectra::SparseSymMatProd<ScalarT>> eig(&op, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
+                Spectra::SymEigsSolver<Spectra::SparseSymMatProd<ScalarT>> eig(op, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
                 eig.init();
                 do {
-                    n_conv = eig.compute(max_iter, conv_tol, Spectra::SMALLEST_MAGN);
+                    n_conv = eig.compute(Spectra::SortRule::SmallestMagn, max_iter, conv_tol, Spectra::SortRule::SmallestMagn);
                     max_iter *= 2;
                 } while (n_conv != num_eigenvalues);
 
@@ -272,11 +272,11 @@ namespace cilantro {
 
                 Spectra::SparseSymMatProd<ScalarT> op(L);
                 internal::SpectraDiagonalInverseBop<ScalarT> Bop(D);
-                Spectra::SymGEigsSolver<ScalarT,Spectra::SMALLEST_MAGN,Spectra::SparseSymMatProd<ScalarT>,internal::SpectraDiagonalInverseBop<ScalarT>,Spectra::GEIGS_REGULAR_INVERSE> eig(&op, &Bop, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
+                Spectra::SymGEigsSolver<Spectra::SparseSymMatProd<ScalarT>,internal::SpectraDiagonalInverseBop<ScalarT>,Spectra::GEigsMode::RegularInverse> eig(op, Bop, num_eigenvalues, std::min(2*num_eigenvalues, (size_t)affinities.rows()));
 
                 eig.init();
                 do {
-                    n_conv = eig.compute(max_iter, conv_tol, Spectra::SMALLEST_MAGN);
+                    n_conv = eig.compute(Spectra::SortRule::SmallestMagn, max_iter, conv_tol, Spectra::SortRule::SmallestMagn);
                     max_iter *= 2;
                 } while (n_conv != num_eigenvalues);
 
