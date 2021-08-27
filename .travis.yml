@@ -1,5 +1,5 @@
 sudo: required
-dist: bionic
+dist: focal
 
 addons:
   apt:
@@ -11,7 +11,7 @@ addons:
 
 before_install:
   - wget https://github.com/stevenlovegrove/Pangolin/archive/master.zip -O Pangolin.zip && unzip Pangolin.zip
-  - mkdir -p Pangolin-master/build && cd Pangolin-master/build && cmake .. -DCMAKE_CXX_STANDARD=17 && make -j8 && sudo make install && cd ../..
+  - mkdir -p Pangolin-master/build && cd Pangolin-master/build && cmake .. && make -j8 && sudo make install && cd ../..
 
 language: cpp
 
