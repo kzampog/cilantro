@@ -20,7 +20,7 @@
 # -- Project information -----------------------------------------------------
 
 project = u'cilantro'
-copyright = u'2018, Konstantinos Zampogiannis'
+copyright = u'2021, Konstantinos Zampogiannis'
 author = u'Konstantinos Zampogiannis'
 
 # The short X.Y version
