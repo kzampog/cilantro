@@ -10,7 +10,7 @@ Dependencies
 
 How to build
 ============
-**cilantro**  is developed and tested on Ubuntu variants (16.04 and newer) using CMake_. To clone and build the library (with bundled examples), execute the following in a terminal:
+**cilantro**  is developed and tested on Ubuntu variants (18.04 and newer) using CMake_. To clone and build the library (with bundled examples), execute the following in a terminal:
 
 .. code-block:: bash
 
