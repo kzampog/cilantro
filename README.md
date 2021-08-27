@@ -3,8 +3,8 @@
 </div>
 
 <div align = "center">
-    <a href = "https://travis-ci.org/kzampog/cilantro">
-        <img src = "https://travis-ci.org/kzampog/cilantro.svg?branch=master" alt = "Build Status" />
+    <a href = "https://app.travis-ci.com/github/kzampog/cilantro">
+        <img src = "https://app.travis-ci.com/kzampog/cilantro.svg?branch=master" alt = "Build Status" />
     </a>
     <a href = "http://cilantro.readthedocs.io/en/latest/?badge=latest">
         <img src = "https://readthedocs.org/projects/cilantro/badge/?version=latest" alt = "Documentation Status" />
