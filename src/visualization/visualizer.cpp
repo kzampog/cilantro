@@ -2,18 +2,6 @@
 
 #ifdef HAVE_PANGOLIN
 namespace cilantro {
-    Visualizer::Visualizer() {
-        init_("Window", "Display");
-    }
-
-    Visualizer::Visualizer(const std::string &window_name, const std::string &display_name) {
-        init_(window_name, display_name);
-    }
-
-    Visualizer::~Visualizer() {
-        gl_context_->MakeCurrent();
-    }
-
     RenderingProperties Visualizer::getRenderingProperties(const std::string &name) const {
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return RenderingProperties();
@@ -48,19 +36,19 @@ namespace cilantro {
     }
 
     Visualizer& Visualizer::clear() {
-        gl_context_->MakeCurrent();
+        pangolin::BindToContext(window_name_);
         renderables_.clear();
         return *this;
     }
 
     Visualizer& Visualizer::remove(const std::string &name) {
-        gl_context_->MakeCurrent();
+        pangolin::BindToContext(window_name_);
         renderables_.erase(name);
         return *this;
     }
 
     Visualizer& Visualizer::clearRenderArea() {
-        gl_context_->MakeCurrent();
+        pangolin::BindToContext(window_name_);
         display_->Activate(*gl_render_state_);
         glClearColor(clear_color_(0), clear_color_(1), clear_color_(2), 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -89,7 +77,7 @@ namespace cilantro {
 
         std::sort(visible_objects.begin(), visible_objects.end(), RenderPriorityComparator_());
 
-        gl_context_->MakeCurrent();
+        pangolin::BindToContext(window_name_);
         display_->Activate(*gl_render_state_);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
@@ -109,7 +97,7 @@ namespace cilantro {
     }
 
     Visualizer& Visualizer::finishFrame() {
-        gl_context_->MakeCurrent();
+        pangolin::BindToContext(window_name_);
         pangolin::FinishFrame();
         return *this;
     }
@@ -122,7 +110,7 @@ namespace cilantro {
     }
 
     Visualizer& Visualizer::spin() {
-        while (!gl_context_->quit) {
+        while (!wasStopped()) {
             spinOnce();
         }
         return *this;
@@ -274,7 +262,7 @@ namespace cilantro {
     }
 
     pangolin::TypedImage Visualizer::getRenderImage(float scale, bool rgba) {
-        gl_context_->MakeCurrent();
+        pangolin::BindToContext(window_name_);
 
         const pangolin::Viewport orig = display_->v;
 
@@ -394,12 +382,8 @@ namespace cilantro {
     }
 
     void Visualizer::init_(const std::string &window_name, const std::string &display_name) {
-        gl_context_ = pangolin::FindContext(window_name);
-        if (!gl_context_) {
-            pangolin::CreateWindowAndBind(window_name);
-            gl_context_ = pangolin::FindContext(window_name);
-        }
-        gl_context_->MakeCurrent();
+        window_name_ = window_name;
+        pangolin::BindToContext(window_name_);
 
         // Pangolin searches internally for existing named displays
         display_ = &(pangolin::Display(display_name));

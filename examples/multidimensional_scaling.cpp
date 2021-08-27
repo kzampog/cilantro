@@ -56,14 +56,15 @@ int main(int argc, char ** argv) {
     points_reproj.bottomRows(3-dim).setZero();
 
     // Visualize result
-    pangolin::CreateWindowAndBind("MultidimensionalScaling demo",1280,480);
+    const std::string window_name = "MultidimensionalScaling demo";
+    pangolin::CreateWindowAndBind(window_name, 1280, 480);
     pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual).AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2"));
 
-    cilantro::Visualizer viz1("MultidimensionalScaling demo", "disp1");
+    cilantro::Visualizer viz1(window_name, "disp1");
     viz1.addObject<cilantro::PointCloudRenderable>("cloud", points, cilantro::RenderingProperties().setPointSize(3.0f))
             ->setPointValues(values);
 
-    cilantro::Visualizer viz2("MultidimensionalScaling demo", "disp2");
+    cilantro::Visualizer viz2(window_name, "disp2");
     viz2.addObject<cilantro::PointCloudRenderable>("cloud_reproj", points_reproj, cilantro::RenderingProperties().setPointSize(3.0f))
             ->setPointValues(values);
 

@@ -26,13 +26,14 @@ int main(int argc, char ** argv) {
 
     std::cout << "Downsampling time: " << timer.getElapsedTime() << "ms" << std::endl;
 
-    pangolin::CreateWindowAndBind("VoxelGrid demo",1280,480);
+    const std::string window_name = "VoxelGrid demo";
+    pangolin::CreateWindowAndBind(window_name, 1280, 480);
     pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual).AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2"));
 
-    cilantro::Visualizer viz1("VoxelGrid demo", "disp1");
+    cilantro::Visualizer viz1(window_name, "disp1");
     viz1.addObject<cilantro::PointCloudRenderable>("cloud", cloud, cilantro::RenderingProperties());
 
-    cilantro::Visualizer viz2("VoxelGrid demo", "disp2");
+    cilantro::Visualizer viz2(window_name, "disp2");
     viz2.addObject<cilantro::PointCloudRenderable>("cloud_d", cloud_d, cilantro::RenderingProperties());
 
     // Keep viewpoints in sync

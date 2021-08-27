@@ -1,6 +1,6 @@
+#include <cilantro/visualization.hpp>
 #include <cilantro/spatial/flat_convex_hull_3d.hpp>
 #include <cilantro/utilities/point_cloud.hpp>
-#include <cilantro/visualization.hpp>
 
 int main(int argc, char ** argv) {
     if (argc < 2) {
@@ -28,7 +28,9 @@ int main(int argc, char ** argv) {
         dst_points.col(i) = flat_hull.getVertices3D().col(face_v_ind[i][1]);
     }
 
-    cilantro::Visualizer viz("2D convex hull in 3D space", "disp");
+    const std::string window_name = "2D convex hull in 3D space";
+    pangolin::CreateWindowAndBind(window_name, 640, 480);
+    cilantro::Visualizer viz(window_name, "disp");
     viz.addObject<cilantro::PointCloudRenderable>("cloud", cloud, cilantro::RenderingProperties().setOpacity(0.5));
     viz.addObject<cilantro::PointCloudRenderable>("hull_cloud", flat_hull.getVertices3D(), cilantro::RenderingProperties().setPointColor(1,0,0).setPointSize(10.0));
     viz.addObject<cilantro::PointCorrespondencesRenderable>("hull_lines", src_points, dst_points, cilantro::RenderingProperties().setLineColor(0,0,1).setLineWidth(5.0).setLineDensityFraction(1.0));

@@ -1,5 +1,5 @@
-#include <cilantro/spatial/space_region.hpp>
 #include <cilantro/visualization.hpp>
+#include <cilantro/spatial/space_region.hpp>
 
 int main(int argc, char ** argv) {
     std::vector<Eigen::Vector2f> vertices;
@@ -31,7 +31,9 @@ int main(int argc, char ** argv) {
         }
     }
 
-    cilantro::ImageViewer viz("SpaceRegion2D example", "disp");
+    const std::string window_name = "SpaceRegion2D example";
+    pangolin::CreateWindowAndBind(window_name, 640, 480);
+    cilantro::ImageViewer viz(window_name, "disp");
     viz.setImage(img, "GRAY8");
     while (!viz.wasStopped()) {
         viz.spinOnce();

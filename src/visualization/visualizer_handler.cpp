@@ -38,7 +38,7 @@ namespace cilantro {
                 visualizer->gl_render_state_->SetModelViewMatrix(default_model_view);
                 break;
             case '+':
-                visualizer->gl_context_->MakeCurrent();
+                pangolin::BindToContext(visualizer->window_name_);
                 for (auto it = visualizer->renderables_.begin(); it != visualizer->renderables_.end(); ++it) {
                     RenderingProperties rp = it->second.first->getRenderingProperties();
                     rp.pointSize += pointSizeStep;
@@ -47,7 +47,7 @@ namespace cilantro {
                 }
                 break;
             case '-':
-                visualizer->gl_context_->MakeCurrent();
+                pangolin::BindToContext(visualizer->window_name_);
                 for (auto it = visualizer->renderables_.begin(); it != visualizer->renderables_.end(); ++it) {
                     RenderingProperties rp = it->second.first->getRenderingProperties();
                     rp.pointSize = std::max(rp.pointSize - pointSizeStep, minPointSize);
@@ -57,7 +57,7 @@ namespace cilantro {
                 break;
             case 'n':
             case 'N':
-                visualizer->gl_context_->MakeCurrent();
+                pangolin::BindToContext(visualizer->window_name_);
                 for (auto it = visualizer->renderables_.begin(); it != visualizer->renderables_.end(); ++it) {
                     RenderingProperties rp = it->second.first->getRenderingProperties();
                     rp.drawNormals = !rp.drawNormals;
@@ -66,7 +66,7 @@ namespace cilantro {
                 break;
             case 'w':
             case 'W':
-                visualizer->gl_context_->MakeCurrent();
+                pangolin::BindToContext(visualizer->window_name_);
                 for (auto it = visualizer->renderables_.begin(); it != visualizer->renderables_.end(); ++it) {
                     RenderingProperties rp = it->second.first->getRenderingProperties();
                     rp.drawWireframe = !rp.drawWireframe;
@@ -85,7 +85,7 @@ namespace cilantro {
                 break;
             case 'l':
             case 'L':
-                visualizer->gl_context_->MakeCurrent();
+                pangolin::BindToContext(visualizer->window_name_);
                 for (auto it = visualizer->renderables_.begin(); it != visualizer->renderables_.end(); ++it) {
                     RenderingProperties rp = it->second.first->getRenderingProperties();
                     rp.useLighting = !rp.useLighting;

@@ -52,14 +52,15 @@ int main(int argc, char ** argv) {
     cilantro::PointCloud3f cloud_seg(cloud.points, cloud.normals, colors);
 
     // Visualize result
-    pangolin::CreateWindowAndBind("ConnectedComponentSegmentation demo", 1280, 480);
+    const std::string window_name = "ConnectedComponentSegmentation demo";
+    pangolin::CreateWindowAndBind(window_name, 1280, 480);
     pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual)
         .AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2"));
 
-    cilantro::Visualizer viz1("ConnectedComponentSegmentation demo", "disp1");
+    cilantro::Visualizer viz1(window_name, "disp1");
     viz1.addObject<cilantro::PointCloudRenderable>("cloud", cloud);
 
-    cilantro::Visualizer viz2("ConnectedComponentSegmentation demo", "disp2");
+    cilantro::Visualizer viz2(window_name, "disp2");
     viz2.addObject<cilantro::PointCloudRenderable>("cloud_seg", cloud_seg);
 
     // Keep viewpoints in sync

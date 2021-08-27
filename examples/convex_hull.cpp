@@ -1,6 +1,6 @@
+#include <cilantro/visualization.hpp>
 #include <cilantro/spatial/convex_polytope.hpp>
 #include <cilantro/utilities/point_cloud.hpp>
-#include <cilantro/visualization.hpp>
 
 void run_demo() {
     std::vector<Eigen::Vector3f> points;
@@ -83,7 +83,9 @@ int main(int argc, char ** argv) {
                           ch.getVertices().col(ch.getFacetVertexIndices()[i][2])).rowwise().mean().norm();
     }
 
-    cilantro::Visualizer viz("3D convex hull", "disp");
+    const std::string window_name = "3D convex hull";
+    pangolin::CreateWindowAndBind(window_name, 640, 480);
+    cilantro::Visualizer viz(window_name, "disp");
     viz.addObject<cilantro::PointCloudRenderable>("cloud", cloud, cilantro::RenderingProperties().setOpacity(1.0));
     viz.addObject<cilantro::TriangleMeshRenderable>("mesh", ch.getVertices(), ch.getFacetVertexIndices())
             ->setVertexNormals(hull_cloud.normals).setVertexColors(vertex_colors).setVertexValues(vertex_values)

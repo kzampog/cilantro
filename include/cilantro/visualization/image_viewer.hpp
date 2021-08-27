@@ -4,14 +4,12 @@
 
 #ifdef HAVE_PANGOLIN
 #include <pangolin/pangolin.h>
-#include <pangolin/display/display_internal.h>
 
 namespace cilantro {
     class ImageViewer {
     public:
-        ImageViewer();
-        ImageViewer(const std::string &window_name, const std::string &display_name);
-        ~ImageViewer();
+        inline ImageViewer(const std::string &window_name, const std::string &display_name) { init_(window_name, display_name); }
+        inline ~ImageViewer() { pangolin::BindToContext(window_name_); }
 
         ImageViewer& setImage(void * data, size_t w, size_t h, const std::string &fmt);
         ImageViewer& setImage(const pangolin::Image<unsigned char>& img, const std::string &fmt);
@@ -22,16 +20,16 @@ namespace cilantro {
 
         ImageViewer& clearRenderArea();
         ImageViewer& render();
-        inline ImageViewer& finishFrame() { gl_context_->MakeCurrent(); pangolin::FinishFrame(); return *this; }
+        inline ImageViewer& finishFrame() { pangolin::BindToContext(window_name_); pangolin::FinishFrame(); return *this; }
         inline ImageViewer& spinOnce() { clearRenderArea(); render(); finishFrame(); return *this; }
 
-        inline bool wasStopped() const { return gl_context_->quit; }
+        inline bool wasStopped() { pangolin::BindToContext(window_name_); return pangolin::ShouldQuit(); }
 
-        inline pangolin::PangolinGl* getPangolinGLContext() const { return gl_context_; }
-        inline pangolin::View* getPangolinDisplay() const { return display_; }
+        inline const std::string& getWindowName() const { return window_name_; }
+        inline pangolin::View* getDisplay() const { return display_; }
 
     private:
-        pangolin::PangolinGl *gl_context_;
+        std::string window_name_;
         pangolin::View *display_;
         pangolin::GlTexture gl_texture_;
         pangolin::GlPixFormat gl_pix_format_;

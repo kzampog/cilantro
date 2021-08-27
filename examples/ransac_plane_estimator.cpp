@@ -19,7 +19,9 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-    cilantro::Visualizer viz("HyperplaneRANSACEstimator example", "disp");
+    const std::string window_name = "HyperplaneRANSACEstimator example";
+    pangolin::CreateWindowAndBind(window_name, 640, 480);
+    cilantro::Visualizer viz(window_name, "disp");
     bool re_estimate = false;
     viz.registerKeyboardCallback('a', std::bind(callback, std::ref(re_estimate)));
 

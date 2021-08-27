@@ -25,7 +25,9 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-    cilantro::Visualizer viz("TransformRANSACEstimator example", "disp");
+    const std::string window_name = "TransformRANSACEstimator example";
+    pangolin::CreateWindowAndBind(window_name, 640, 480);
+    cilantro::Visualizer viz(window_name, "disp");
     bool re_estimate = false;
     bool randomize = true;
     viz.registerKeyboardCallback('a', std::bind(callback, 'a', std::ref(re_estimate), std::ref(randomize)));

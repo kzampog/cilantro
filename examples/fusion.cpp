@@ -62,8 +62,8 @@ int main(int argc, char ** argv) {
     Eigen::Matrix3f K;
     K << 525, 0, 319.5, 0, 525, 239.5, 0, 0, 1;
 
-//    std::string uri = "files://[/home/kzampog/Desktop/rgbd_sequences/dok_demo/rgb_*.png,/home/kzampog/Desktop/rgbd_sequences/dok_demo/depth_*.png]";
-    std::string uri = "openni2:[img1=rgb,img2=depth_reg,coloursync=true,closerange=true,holefilter=true]//";
+    // const std::string uri = "files://[/home/kzampog/Desktop/rgbd_sequences/dok_demo/rgb_*.png,/home/kzampog/Desktop/rgbd_sequences/dok_demo/depth_*.png]";
+    const std::string uri = "openni2:[img1=rgb,img2=depth_reg,closerange=true,holefilter=true]//";
 
     std::unique_ptr<pangolin::VideoInterface> dok = pangolin::OpenVideo(uri);
     size_t w = 640, h = 480;
@@ -72,13 +72,13 @@ int main(int argc, char ** argv) {
     pangolin::Image<unsigned char> rgb_img(img, w, h, 3*w*sizeof(unsigned char));
     pangolin::Image<unsigned short> depth_img((unsigned short *)(img+3*w*h), w, h, w*sizeof(unsigned short));
 
-    std::string win_name = "Fusion demo";
-    pangolin::CreateWindowAndBind(win_name, 2*w, h);
+    const std::string window_name = "Fusion demo";
+    pangolin::CreateWindowAndBind(window_name, 2*w, h);
     pangolin::Display("multi").SetBounds(0.0, 1.0, 0.0, 1.0).SetLayout(pangolin::LayoutEqual)
             .AddDisplay(pangolin::Display("disp1")).AddDisplay(pangolin::Display("disp2"));
 
-    cilantro::Visualizer pcdv(win_name, "disp1");
-    cilantro::ImageViewer rgbv(win_name, "disp2");
+    cilantro::Visualizer pcdv(window_name, "disp1");
+    cilantro::ImageViewer rgbv(window_name, "disp2");
 
     cilantro::PointCloud3f model, frame;
     std::vector<float> confidence;

@@ -1,6 +1,6 @@
+#include <cilantro/visualization.hpp>
 #include <cilantro/spatial/space_region.hpp>
 #include <cilantro/utilities/point_cloud.hpp>
-#include <cilantro/visualization.hpp>
 #include <cilantro/utilities/timer.hpp>
 
 void callback(cilantro::Visualizer &viz, int key) {
@@ -36,9 +36,9 @@ int main(int argc, char* argv[]) {
     // Compute a spatial expression
     cilantro::Timer timer;
     timer.start();
-//    cilantro::SpaceRegion3f sr = sr1.relativeComplement(sr2, true, true);
-//    cilantro::SpaceRegion3f sr = sr1.intersectionWith(sr2, true, true);
-//    cilantro::SpaceRegion3f sr = sr1.intersectionWith(sr2).complement(true, true);
+    // cilantro::SpaceRegion3f sr = sr1.relativeComplement(sr2, true, true);
+    // cilantro::SpaceRegion3f sr = sr1.intersectionWith(sr2, true, true);
+    // cilantro::SpaceRegion3f sr = sr1.intersectionWith(sr2).complement(true, true);
     cilantro::SpaceRegion3f sr = sr1.complement().unionWith(sr2.complement()).complement(true, true);
     timer.stop();
     std::cout << "Build time: " << timer.getElapsedTime() << "ms" << std::endl;
@@ -51,7 +51,9 @@ int main(int argc, char* argv[]) {
     interior_cloud = cilantro::PointCloud3f(interior_cloud, sr.getInteriorPointIndices(interior_cloud.points, 0.005f));
 
     // Visualize results
-    cilantro::Visualizer viz("SpaceRegion3D example", "disp");
+    const std::string window_name = "SpaceRegion3D example";
+    pangolin::CreateWindowAndBind(window_name, 640, 480);
+    cilantro::Visualizer viz(window_name, "disp");
     viz.registerKeyboardCallback('a', std::bind(callback, std::ref(viz), 'a'));
     viz.registerKeyboardCallback('s', std::bind(callback, std::ref(viz), 's'));
 
@@ -64,8 +66,6 @@ int main(int argc, char* argv[]) {
     viz.addObject<cilantro::TriangleMeshRenderable>("hull1", cp1.getVertices(), cp1.getFacetVertexIndices(), cilantro::RenderingProperties().setPointColor(1,0,0).setDrawWireframe(true).setUseFaceNormals(true).setLineWidth(2.0));
     viz.addObject<cilantro::TriangleMeshRenderable>("hull2", cp2.getVertices(), cp2.getFacetVertexIndices(), cilantro::RenderingProperties().setPointColor(0,0,1).setDrawWireframe(true).setUseFaceNormals(true).setLineWidth(2.0));
 
-//    viz.setVisibilityStatus("hull1", false);
-//    viz.setVisibilityStatus("hull2", false);
 
     const auto& polys(sr.getConvexPolytopes());
     for (size_t i = 0; i < polys.size(); i++) {

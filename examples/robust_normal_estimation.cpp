@@ -57,7 +57,9 @@ int main(int argc, char ** argv) {
     std::cout << "kd-tree time: " << tree_timer.getElapsedTime() << "ms" << std::endl;
     std::cout << "Estimation time: " << ne_timer.getElapsedTime() << "ms" << std::endl;
 
-    cilantro::Visualizer viz("NormalEstimation example", "disp");
+    const std::string window_name = "NormalEstimation example";
+    pangolin::CreateWindowAndBind(window_name, 640, 480);
+    cilantro::Visualizer viz(window_name, "disp");
     viz.registerKeyboardCallback('i', std::bind(toggle_invalid, std::ref(viz)));
 
     viz.addObject<cilantro::PointCloudRenderable>("cloud_d", cloud, cilantro::RenderingProperties().setDrawNormals(true));

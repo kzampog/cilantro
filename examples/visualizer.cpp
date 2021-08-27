@@ -16,7 +16,9 @@ int main(int argc, char ** argv) {
     cilantro::PointCloud3f cloud(argv[1]);
 
     // First
-    cilantro::Visualizer viz1("Visualizer demo (window 1)", "disp");
+    const std::string window_name1 = "Visualizer demo (window 1)";
+    pangolin::CreateWindowAndBind(window_name1, 640, 480);
+    cilantro::Visualizer viz1(window_name1, "disp1");
 
     std::vector<float> scalars(cloud.size());
     for (size_t i = 0; i < cloud.size(); i++) {
@@ -34,7 +36,10 @@ int main(int argc, char ** argv) {
         cloud2.points.col(i) += Eigen::Vector3f(1.0, 0.0, 1.0);
     }
 
-    cilantro::Visualizer viz2("Visualizer demo (window 2)", "disp");
+    const std::string window_name2 = "Visualizer demo (window 2)";
+    pangolin::CreateWindowAndBind(window_name2, 640, 480);
+    cilantro::Visualizer viz2(window_name2, "disp2");
+
     viz2.addObject<cilantro::PointCloudRenderable>("pcd1", cloud, cilantro::RenderingProperties().setPointColor(1.0f,0.0f,0.0f).setOpacity(0.4f));
     viz2.addObject<cilantro::PointCloudRenderable>("pcd2", cloud2, cilantro::RenderingProperties().setPointColor(0.0f,0.0f,1.0f).setOpacity(0.4f));
     viz2.addObject<cilantro::PointCorrespondencesRenderable>("correspondences", cloud2, cloud, cilantro::RenderingProperties().setLineDensityFraction(0.005).setOpacity(0.3f));

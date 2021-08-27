@@ -4,7 +4,6 @@
 
 #ifdef HAVE_PANGOLIN
 #include <utility>
-#include <pangolin/display/display_internal.h>
 #include <cilantro/visualization/renderable.hpp>
 #include <cilantro/visualization/visualizer_handler.hpp>
 #include <cilantro/core/space_transformations.hpp>
@@ -15,15 +14,13 @@ namespace cilantro {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        Visualizer();
+        inline Visualizer(const std::string &window_name, const std::string &display_name) { init_(window_name, display_name); }
 
-        Visualizer(const std::string &window_name, const std::string &display_name);
-
-        ~Visualizer();
+        inline ~Visualizer() { pangolin::BindToContext(window_name_); }
 
         template <class RenderableT>
         std::shared_ptr<RenderableT> addObject(const std::string &name, const std::shared_ptr<RenderableT> &obj_ptr) {
-            gl_context_->MakeCurrent();
+            pangolin::BindToContext(window_name_);
             renderables_[name] = ManagedRenderable(std::static_pointer_cast<Renderable>(obj_ptr), std::shared_ptr<typename RenderableT::GPUBuffers>(new typename RenderableT::GPUBuffers()));
             obj_ptr->resetGPUBufferStatus();
             return obj_ptr;
@@ -31,7 +28,7 @@ namespace cilantro {
 
         template <class RenderableT, class... Args>
         std::shared_ptr<RenderableT> addObject(const std::string &name, Args&&... args) {
-            gl_context_->MakeCurrent();
+            pangolin::BindToContext(window_name_);
             std::shared_ptr<RenderableT> obj_ptr(new RenderableT(std::forward<Args>(args)...));
             renderables_[name] = ManagedRenderable(std::static_pointer_cast<Renderable>(obj_ptr), std::shared_ptr<typename RenderableT::GPUBuffers>(new typename RenderableT::GPUBuffers()));
             return obj_ptr;
@@ -68,7 +65,7 @@ namespace cilantro {
 
         Visualizer& spin();
 
-        inline bool wasStopped() const { return gl_context_->quit; }
+        inline bool wasStopped() { pangolin::BindToContext(window_name_); return pangolin::ShouldQuit(); }
 
         std::vector<std::string> getObjectNames() const;
 
@@ -169,7 +166,7 @@ namespace cilantro {
 
         inline bool isRecording() const { return !!video_recorder_; }
 
-        inline pangolin::PangolinGl* getGLContext() const { return gl_context_; }
+        inline const std::string& getWindowName() const { return window_name_; }
 
         inline pangolin::View* getDisplay() const { return display_; }
 
@@ -183,7 +180,7 @@ namespace cilantro {
         inline VisualizerHandler* getInputHandler() const { return input_handler_.get(); }
 
     private:
-        pangolin::PangolinGl *gl_context_;
+        std::string window_name_;
         pangolin::View *display_;
 
         std::shared_ptr<pangolin::OpenGlRenderState> gl_render_state_;
