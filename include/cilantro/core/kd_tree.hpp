@@ -17,14 +17,11 @@ namespace cilantro {
             // The constructor that sets the data set source
             EigenMap(const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>> &obj_) : obj(obj_) {}
 
-            // CRTP helper method
-            inline const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>& derived() const { return obj; }
-
             // Must return the number of data points
             inline size_t kdtree_get_point_count() const { return obj.cols(); }
 
             // Returns the dim'th component of the idx'th point in the class
-            inline coord_t kdtree_get_pt(const size_t idx, int dim) const { return obj(dim,idx); }
+            inline coord_t kdtree_get_pt(const size_t idx, size_t dim) const { return obj(dim, idx); }
 
             // Optional bounding-box computation: return false to default to a standard bbox computation loop.
             //   Return true if the BBOX was already computed by the class and returned in "bb" so it can be avoided to redo it again.
