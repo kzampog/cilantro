@@ -9,7 +9,7 @@ namespace cilantro {
         // Eigen Map to nanoflann adaptor class
         template <class ScalarT, ptrdiff_t EigenDim>
         struct EigenMap {
-            typedef ScalarT coord_t;
+            typedef ScalarT Scalar;
 
             // A const ref to the data set origin
             const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>& obj;
@@ -21,7 +21,7 @@ namespace cilantro {
             inline size_t kdtree_get_point_count() const { return obj.cols(); }
 
             // Returns the dim'th component of the idx'th point in the class
-            inline coord_t kdtree_get_pt(const size_t idx, size_t dim) const { return obj(dim, idx); }
+            inline Scalar kdtree_get_pt(size_t idx, size_t dim) const { return obj(dim, idx); }
 
             // Optional bounding-box computation: return false to default to a standard bbox computation loop.
             //   Return true if the BBOX was already computed by the class and returned in "bb" so it can be avoided to redo it again.
@@ -33,19 +33,19 @@ namespace cilantro {
 
     namespace KDTreeDistanceAdaptors {
         template <class DataAdaptor>
-        using L1 = nanoflann::L1_Adaptor<typename DataAdaptor::coord_t, DataAdaptor, typename DataAdaptor::coord_t>;
+        using L1 = nanoflann::L1_Adaptor<typename DataAdaptor::Scalar, DataAdaptor, typename DataAdaptor::Scalar>;
 
         template <class DataAdaptor>
-        using L2 = nanoflann::L2_Adaptor<typename DataAdaptor::coord_t, DataAdaptor, typename DataAdaptor::coord_t>;
+        using L2 = nanoflann::L2_Adaptor<typename DataAdaptor::Scalar, DataAdaptor, typename DataAdaptor::Scalar>;
 
         template <class DataAdaptor>
-        using L2Simple = nanoflann::L2_Simple_Adaptor<typename DataAdaptor::coord_t, DataAdaptor, typename DataAdaptor::coord_t>;
+        using L2Simple = nanoflann::L2_Simple_Adaptor<typename DataAdaptor::Scalar, DataAdaptor, typename DataAdaptor::Scalar>;
 
         template <class DataAdaptor>
-        using SO2 = nanoflann::SO2_Adaptor<typename DataAdaptor::coord_t, DataAdaptor, typename DataAdaptor::coord_t>;
+        using SO2 = nanoflann::SO2_Adaptor<typename DataAdaptor::Scalar, DataAdaptor, typename DataAdaptor::Scalar>;
 
         template <class DataAdaptor>
-        using SO3 = nanoflann::SO3_Adaptor<typename DataAdaptor::coord_t, DataAdaptor, typename DataAdaptor::coord_t>;
+        using SO3 = nanoflann::SO3_Adaptor<typename DataAdaptor::Scalar, DataAdaptor, typename DataAdaptor::Scalar>;
     } // namespace KDTreeDistanceAdaptors
 
     template <typename ScalarT, typename IndexT = size_t, typename CountT = size_t>
