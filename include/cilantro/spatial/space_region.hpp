@@ -70,69 +70,59 @@ namespace cilantro {
         }
 
         // Inefficient
-        template <ptrdiff_t Dim = EigenDim>
-        typename std::enable_if<Dim != Eigen::Dynamic, SpaceRegion>::type complement(bool compute_topology = false,
-                                                                                     bool simplicial_facets = false,
-                                                                                     double merge_tol = 0.0,
-                                                                                     double dist_tol = std::numeric_limits<ScalarT>::epsilon()) const
-        {
-            std::vector<HomogeneousVectorSet<ScalarT,EigenDim>> tuples;
-            tuples.emplace_back(EigenDim+1,0);
-            for (size_t p = 0; p < polytopes_.size(); p++) {
-                const HomogeneousVectorSet<ScalarT,EigenDim>& hs(polytopes_[p].getFacetHyperplanes());
-                std::vector<HomogeneousVectorSet<ScalarT,EigenDim>> tuples_new;
+        SpaceRegion complement(bool compute_topology = false, bool simplicial_facets = false,
+                               double merge_tol = 0.0, double dist_tol = std::numeric_limits<ScalarT>::epsilon()) const {
+            if constexpr (EigenDim != Eigen::Dynamic) {
+                std::vector<HomogeneousVectorSet<ScalarT,EigenDim>> tuples;
+                tuples.emplace_back(EigenDim+1,0);
+                for (size_t p = 0; p < polytopes_.size(); p++) {
+                    const HomogeneousVectorSet<ScalarT,EigenDim>& hs(polytopes_[p].getFacetHyperplanes());
+                    std::vector<HomogeneousVectorSet<ScalarT,EigenDim>> tuples_new;
+                    for (size_t t = 0; t < tuples.size(); t++) {
+                        HomogeneousVectorSet<ScalarT,EigenDim> tup_curr(EigenDim+1, tuples[t].cols()+1);
+                        tup_curr.leftCols(tuples[t].cols()) = tuples[t];
+                        for (size_t h = 0; h < hs.cols(); h++) {
+                            tup_curr.col(tup_curr.cols()-1) = -hs.col(h);
+                            tuples_new.emplace_back(tup_curr);
+                        }
+                    }
+                    tuples = std::move(tuples_new);
+                }
+
+                ConvexPolytopeVector res_polytopes;
                 for (size_t t = 0; t < tuples.size(); t++) {
-                    HomogeneousVectorSet<ScalarT,EigenDim> tup_curr(EigenDim+1, tuples[t].cols()+1);
-                    tup_curr.leftCols(tuples[t].cols()) = tuples[t];
-                    for (size_t h = 0; h < hs.cols(); h++) {
-                        tup_curr.col(tup_curr.cols()-1) = -hs.col(h);
-                        tuples_new.emplace_back(tup_curr);
+                    ConvexPolytope<ScalarT,EigenDim,IndexT> poly_tmp(tuples[t], compute_topology, simplicial_facets, merge_tol, dist_tol);
+                    if (!poly_tmp.isEmpty()) {
+                        res_polytopes.emplace_back(std::move(poly_tmp));
                     }
                 }
-                tuples = std::move(tuples_new);
-            }
-
-            ConvexPolytopeVector res_polytopes;
-            for (size_t t = 0; t < tuples.size(); t++) {
-                ConvexPolytope<ScalarT,EigenDim,IndexT> poly_tmp(tuples[t], compute_topology, simplicial_facets, merge_tol, dist_tol);
-                if (!poly_tmp.isEmpty()) {
-                    res_polytopes.emplace_back(std::move(poly_tmp));
+                return SpaceRegion(std::move(res_polytopes));
+            } else {
+                std::vector<HomogeneousVectorSet<ScalarT,EigenDim>> tuples;
+                tuples.emplace_back(dim_+1,0);
+                for (size_t p = 0; p < polytopes_.size(); p++) {
+                    const HomogeneousVectorSet<ScalarT,EigenDim>& hs(polytopes_[p].getFacetHyperplanes());
+                    std::vector<HomogeneousVectorSet<ScalarT,EigenDim>> tuples_new;
+                    for (size_t t = 0; t < tuples.size(); t++) {
+                        HomogeneousVectorSet<ScalarT,EigenDim> tup_curr(dim_+1, tuples[t].cols()+1);
+                        tup_curr.leftCols(tuples[t].cols()) = tuples[t];
+                        for (size_t h = 0; h < hs.cols(); h++) {
+                            tup_curr.col(tup_curr.cols()-1) = -hs.col(h);
+                            tuples_new.emplace_back(tup_curr);
+                        }
+                    }
+                    tuples = std::move(tuples_new);
                 }
-            }
-            return SpaceRegion(std::move(res_polytopes));
-        }
 
-        // Inefficient
-        template <ptrdiff_t Dim = EigenDim>
-        typename std::enable_if<Dim == Eigen::Dynamic, SpaceRegion>::type complement(bool compute_topology = false,
-                                                                                     bool simplicial_facets = false,
-                                                                                     double merge_tol = 0.0,
-                                                                                     double dist_tol = std::numeric_limits<ScalarT>::epsilon()) const
-        {
-            std::vector<HomogeneousVectorSet<ScalarT,EigenDim>> tuples;
-            tuples.emplace_back(dim_+1,0);
-            for (size_t p = 0; p < polytopes_.size(); p++) {
-                const HomogeneousVectorSet<ScalarT,EigenDim>& hs(polytopes_[p].getFacetHyperplanes());
-                std::vector<HomogeneousVectorSet<ScalarT,EigenDim>> tuples_new;
+                ConvexPolytopeVector res_polytopes;
                 for (size_t t = 0; t < tuples.size(); t++) {
-                    HomogeneousVectorSet<ScalarT,EigenDim> tup_curr(dim_+1, tuples[t].cols()+1);
-                    tup_curr.leftCols(tuples[t].cols()) = tuples[t];
-                    for (size_t h = 0; h < hs.cols(); h++) {
-                        tup_curr.col(tup_curr.cols()-1) = -hs.col(h);
-                        tuples_new.emplace_back(tup_curr);
+                    ConvexPolytope<ScalarT,EigenDim,IndexT> poly_tmp(tuples[t], dim_, compute_topology, simplicial_facets, merge_tol, dist_tol);
+                    if (!poly_tmp.isEmpty()) {
+                        res_polytopes.emplace_back(std::move(poly_tmp));
                     }
                 }
-                tuples = std::move(tuples_new);
+                return SpaceRegion(std::move(res_polytopes));
             }
-
-            ConvexPolytopeVector res_polytopes;
-            for (size_t t = 0; t < tuples.size(); t++) {
-                ConvexPolytope<ScalarT,EigenDim,IndexT> poly_tmp(tuples[t], dim_, compute_topology, simplicial_facets, merge_tol, dist_tol);
-                if (!poly_tmp.isEmpty()) {
-                    res_polytopes.emplace_back(std::move(poly_tmp));
-                }
-            }
-            return SpaceRegion(std::move(res_polytopes));
         }
 
         inline SpaceRegion relativeComplement(const SpaceRegion &sr,
@@ -162,59 +152,52 @@ namespace cilantro {
         }
 
         // Inefficient
-        template <ptrdiff_t Dim = EigenDim>
-        typename std::enable_if<Dim != Eigen::Dynamic, double>::type getVolume(double merge_tol = 0.0,
-                                                                               double dist_tol = std::numeric_limits<ScalarT>::epsilon()) const
-        {
-            if (!isBounded()) return std::numeric_limits<double>::infinity();
+        double getVolume(double merge_tol = 0.0, double dist_tol = std::numeric_limits<ScalarT>::epsilon()) const {
+            if constexpr (EigenDim != Eigen::Dynamic) {
+                if (!isBounded()) return std::numeric_limits<double>::infinity();
 
-            ConvexPolytopeVector subsets;
-            subsets.emplace_back(HomogeneousVectorSet<ScalarT,EigenDim>(EigenDim+1, 0));
+                ConvexPolytopeVector subsets;
+                subsets.emplace_back(HomogeneousVectorSet<ScalarT,EigenDim>(EigenDim+1, 0));
 
-            std::vector<size_t> subset_sizes;
-            subset_sizes.emplace_back(0);
-            double volume = 0.0;
-            for (size_t i = 0; i < polytopes_.size(); i++) {
-                ConvexPolytopeVector subsets_tmp(subsets);
-                std::vector<size_t> subset_sizes_tmp(subset_sizes);
-                for (size_t j = 0; j < subsets_tmp.size(); j++) {
-                    subsets_tmp[j] = subsets_tmp[j].intersectionWith(polytopes_[i], false, false, merge_tol, dist_tol);
-                    subset_sizes_tmp[j]++;
-                    volume += (2.0*(subset_sizes_tmp[j]%2) - 1.0)*subsets_tmp[j].getVolume();
+                std::vector<size_t> subset_sizes;
+                subset_sizes.emplace_back(0);
+                double volume = 0.0;
+                for (size_t i = 0; i < polytopes_.size(); i++) {
+                    ConvexPolytopeVector subsets_tmp(subsets);
+                    std::vector<size_t> subset_sizes_tmp(subset_sizes);
+                    for (size_t j = 0; j < subsets_tmp.size(); j++) {
+                        subsets_tmp[j] = subsets_tmp[j].intersectionWith(polytopes_[i], false, false, merge_tol, dist_tol);
+                        subset_sizes_tmp[j]++;
+                        volume += (2.0*(subset_sizes_tmp[j]%2) - 1.0)*subsets_tmp[j].getVolume();
+                    }
+                    std::move(std::begin(subsets_tmp), std::end(subsets_tmp), std::back_inserter(subsets));
+                    std::move(std::begin(subset_sizes_tmp), std::end(subset_sizes_tmp), std::back_inserter(subset_sizes));
                 }
-                std::move(std::begin(subsets_tmp), std::end(subsets_tmp), std::back_inserter(subsets));
-                std::move(std::begin(subset_sizes_tmp), std::end(subset_sizes_tmp), std::back_inserter(subset_sizes));
-            }
 
-            return volume;
-        }
+                return volume;
+            } else {
+                if (!isBounded()) return std::numeric_limits<double>::infinity();
 
-        // Inefficient
-        template <ptrdiff_t Dim = EigenDim>
-        typename std::enable_if<Dim == Eigen::Dynamic, double>::type getVolume(double merge_tol = 0.0,
-                                                                               double dist_tol = std::numeric_limits<ScalarT>::epsilon()) const
-        {
-            if (!isBounded()) return std::numeric_limits<double>::infinity();
+                ConvexPolytopeVector subsets;
+                subsets.emplace_back(HomogeneousVectorSet<ScalarT,EigenDim>(dim_+1, 0), dim_);
 
-            ConvexPolytopeVector subsets;
-            subsets.emplace_back(HomogeneousVectorSet<ScalarT,EigenDim>(dim_+1, 0), dim_);
-
-            std::vector<size_t> subset_sizes;
-            subset_sizes.emplace_back(0);
-            double volume = 0.0;
-            for (size_t i = 0; i < polytopes_.size(); i++) {
-                ConvexPolytopeVector subsets_tmp(subsets);
-                std::vector<size_t> subset_sizes_tmp(subset_sizes);
-                for (size_t j = 0; j < subsets_tmp.size(); j++) {
-                    subsets_tmp[j] = subsets_tmp[j].intersectionWith(polytopes_[i], false, false, merge_tol, dist_tol);
-                    subset_sizes_tmp[j]++;
-                    volume += (2.0*(subset_sizes_tmp[j]%2) - 1.0)*subsets_tmp[j].getVolume();
+                std::vector<size_t> subset_sizes;
+                subset_sizes.emplace_back(0);
+                double volume = 0.0;
+                for (size_t i = 0; i < polytopes_.size(); i++) {
+                    ConvexPolytopeVector subsets_tmp(subsets);
+                    std::vector<size_t> subset_sizes_tmp(subset_sizes);
+                    for (size_t j = 0; j < subsets_tmp.size(); j++) {
+                        subsets_tmp[j] = subsets_tmp[j].intersectionWith(polytopes_[i], false, false, merge_tol, dist_tol);
+                        subset_sizes_tmp[j]++;
+                        volume += (2.0*(subset_sizes_tmp[j]%2) - 1.0)*subsets_tmp[j].getVolume();
+                    }
+                    std::move(std::begin(subsets_tmp), std::end(subsets_tmp), std::back_inserter(subsets));
+                    std::move(std::begin(subset_sizes_tmp), std::end(subset_sizes_tmp), std::back_inserter(subset_sizes));
                 }
-                std::move(std::begin(subsets_tmp), std::end(subsets_tmp), std::back_inserter(subsets));
-                std::move(std::begin(subset_sizes_tmp), std::end(subset_sizes_tmp), std::back_inserter(subset_sizes));
-            }
 
-            return volume;
+                return volume;
+            }
         }
 
         inline const ConvexPolytopeVector& getConvexPolytopes() const { return polytopes_; }
@@ -264,23 +247,8 @@ namespace cilantro {
             return *this;
         }
 
-        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
-        SpaceRegion& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim+1,EigenDim+1>> &tform) {
-            for (size_t i = 0; i < polytopes_.size(); i++) {
-                polytopes_[i].transform(tform);
-            }
-            return *this;
-        }
-
-        template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == Eigen::Dynamic>::type>
-        SpaceRegion& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim,EigenDim>> &tform) {
-            for (size_t i = 0; i < polytopes_.size(); i++) {
-                polytopes_[i].transform(tform);
-            }
-            return *this;
-        }
-
-        inline SpaceRegion& transform(const RigidTransform<ScalarT,EigenDim> &tform) {
+        template <class TransformT>
+        SpaceRegion& transform(const TransformT &tform) {
             for (size_t i = 0; i < polytopes_.size(); i++) {
                 polytopes_[i].transform(tform);
             }

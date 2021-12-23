@@ -52,7 +52,7 @@ namespace cilantro {
 
         template <ptrdiff_t EigenDimOut>
         inline typename std::enable_if<EigenDimOut != Eigen::Dynamic, VectorSet<ScalarT,EigenDimOut>>::type project(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &points) const {
-            return (eigenvectors_.leftCols(EigenDimOut).transpose()*(points.colwise() - mean_));
+            return (eigenvectors_.template leftCols<EigenDimOut>().transpose()*(points.colwise() - mean_));
         }
 
         inline Eigen::Matrix<ScalarT,Eigen::Dynamic,Eigen::Dynamic> reconstruct(const ConstVectorSetMatrixMap<ScalarT,Eigen::Dynamic> &points) const {
@@ -61,7 +61,7 @@ namespace cilantro {
 
         template <ptrdiff_t EigenDimIn>
         inline typename std::enable_if<EigenDimIn != Eigen::Dynamic, VectorSet<ScalarT,EigenDim>>::type reconstruct(const ConstVectorSetMatrixMap<ScalarT,EigenDimIn> &points) const {
-            return (eigenvectors_.leftCols(EigenDimIn)*points).colwise() + mean_;
+            return (eigenvectors_.template leftCols<EigenDimIn>()*points).colwise() + mean_;
         }
 
     protected:

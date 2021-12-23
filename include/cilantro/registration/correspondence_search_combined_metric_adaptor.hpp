@@ -71,24 +71,20 @@ namespace cilantro {
             return *this;
         }
 
-        template <class CorrSearchT = CorrespondenceSearchT>
-        inline const typename std::enable_if<internal::HasPointToPointCorrespondencesGetter<CorrSearchT>::value,PointToPointCorrespondenceSearchResult>::type& getPointToPointCorrespondences() const {
-            return corr_engine_.getPointToPointCorrespondences();
+        inline const PointToPointCorrespondenceSearchResult& getPointToPointCorrespondences() const {
+            if constexpr (internal::HasPointToPointCorrespondencesGetter<CorrespondenceSearchT>::value) {
+                return corr_engine_.getPointToPointCorrespondences();
+            } else {
+                return corr_engine_.getCorrespondences();
+            }
         }
 
-        template <class CorrSearchT = CorrespondenceSearchT>
-        inline const typename std::enable_if<!internal::HasPointToPointCorrespondencesGetter<CorrSearchT>::value,PointToPointCorrespondenceSearchResult>::type& getPointToPointCorrespondences() const {
-            return corr_engine_.getCorrespondences();
-        }
-
-        template <class CorrSearchT = CorrespondenceSearchT>
-        inline const typename std::enable_if<internal::HasPointToPlaneCorrespondencesGetter<CorrSearchT>::value,PointToPlaneCorrespondenceSearchResult>::type& getPointToPlaneCorrespondences() const {
-            return corr_engine_.getPointToPlaneCorrespondences();
-        }
-
-        template <class CorrSearchT = CorrespondenceSearchT>
-        inline const typename std::enable_if<!internal::HasPointToPlaneCorrespondencesGetter<CorrSearchT>::value,PointToPlaneCorrespondenceSearchResult>::type& getPointToPlaneCorrespondences() const {
-            return corr_engine_.getCorrespondences();
+        inline const PointToPlaneCorrespondenceSearchResult& getPointToPlaneCorrespondences() const {
+            if constexpr (internal::HasPointToPlaneCorrespondencesGetter<CorrespondenceSearchT>::value) {
+                return corr_engine_.getPointToPlaneCorrespondences();
+            } else {
+                return corr_engine_.getCorrespondences();
+            }
         }
 
         inline BaseCorrespondenceSearch& baseCorrespondenceSearchEngine() {

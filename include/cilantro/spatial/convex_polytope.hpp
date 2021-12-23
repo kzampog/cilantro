@@ -77,30 +77,19 @@ namespace cilantro {
 
         ~ConvexPolytope() {}
 
-        template <ptrdiff_t Dim = EigenDim>
-        typename std::enable_if<Dim != Eigen::Dynamic, ConvexPolytope>::type intersectionWith(const ConvexPolytope &poly,
-                                                                                              bool compute_topology = false,
-                                                                                              bool simplicial_facets = false,
-                                                                                              double merge_tol = 0.0,
-                                                                                              double dist_tol = std::numeric_limits<ScalarT>::epsilon()) const
-        {
-            HomogeneousVectorSet<ScalarT,EigenDim> hs_intersection(EigenDim+1, halfspaces_.cols() + poly.halfspaces_.cols());
-            hs_intersection.leftCols(halfspaces_.cols()) = halfspaces_;
-            hs_intersection.rightCols(poly.halfspaces_.cols()) = poly.halfspaces_;
-            return ConvexPolytope(hs_intersection, compute_topology, simplicial_facets, merge_tol, dist_tol);
-        }
-
-        template <ptrdiff_t Dim = EigenDim>
-        typename std::enable_if<Dim == Eigen::Dynamic, ConvexPolytope>::type intersectionWith(const ConvexPolytope &poly,
-                                                                                              bool compute_topology = false,
-                                                                                              bool simplicial_facets = false,
-                                                                                              double merge_tol = 0.0,
-                                                                                              double dist_tol = std::numeric_limits<ScalarT>::epsilon()) const
-        {
-            HomogeneousVectorSet<ScalarT,EigenDim> hs_intersection(dim_+1, halfspaces_.cols() + poly.halfspaces_.cols());
-            hs_intersection.leftCols(halfspaces_.cols()) = halfspaces_;
-            hs_intersection.rightCols(poly.halfspaces_.cols()) = poly.halfspaces_;
-            return ConvexPolytope(hs_intersection, dim_, compute_topology, simplicial_facets, merge_tol, dist_tol);
+        ConvexPolytope intersectionWith(const ConvexPolytope &poly, bool compute_topology = false, bool simplicial_facets = false,
+                                        double merge_tol = 0.0, double dist_tol = std::numeric_limits<ScalarT>::epsilon()) const {
+            if constexpr (EigenDim != Eigen::Dynamic) {
+                HomogeneousVectorSet<ScalarT,EigenDim> hs_intersection(EigenDim+1, halfspaces_.cols() + poly.halfspaces_.cols());
+                hs_intersection.leftCols(halfspaces_.cols()) = halfspaces_;
+                hs_intersection.rightCols(poly.halfspaces_.cols()) = poly.halfspaces_;
+                return ConvexPolytope(hs_intersection, compute_topology, simplicial_facets, merge_tol, dist_tol);
+            } else {
+                HomogeneousVectorSet<ScalarT,EigenDim> hs_intersection(dim_+1, halfspaces_.cols() + poly.halfspaces_.cols());
+                hs_intersection.leftCols(halfspaces_.cols()) = halfspaces_;
+                hs_intersection.rightCols(poly.halfspaces_.cols()) = poly.halfspaces_;
+                return ConvexPolytope(hs_intersection, dim_, compute_topology, simplicial_facets, merge_tol, dist_tol);
+            }
         }
 
         inline size_t getSpaceDimension() const { return dim_; }
@@ -181,7 +170,7 @@ namespace cilantro {
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
         inline ConvexPolytope& transform(const Eigen::Ref<const Eigen::Matrix<ScalarT,EigenDim+1,EigenDim+1>> &tform) {
-            return transform(tform.topLeftCorner(EigenDim,EigenDim), tform.topRightCorner(EigenDim,1));
+            return transform(tform.template topLeftCorner<EigenDim,EigenDim>(), tform.template topRightCorner<EigenDim,1>());
         }
 
         template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == Eigen::Dynamic>::type>

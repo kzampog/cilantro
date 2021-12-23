@@ -152,7 +152,7 @@ int main(int argc, char ** argv) {
             to_append_confidence.reserve(w*h);
             std::vector<size_t> remove_ind;
             remove_ind.reserve(w*h);
-            const size_t empty = std::numeric_limits<std::size_t>::max();
+            constexpr size_t empty = std::numeric_limits<std::size_t>::max();
 
             for (size_t y = 1; y < frame_index_map.h - 1; y++) {
                 for (size_t x = 1; x < frame_index_map.w - 1; x++) {

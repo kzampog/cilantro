@@ -146,7 +146,7 @@ namespace cilantro {
                 pointsToIndexMap<ScalarT,IndexT>(dst_points, projection_extrinsics_, projection_intrinsics_, index_map_.data(), projection_image_width_, projection_image_height_);
             }
 
-            const IndexT empty = std::numeric_limits<IndexT>::max();
+            constexpr IndexT empty = std::numeric_limits<IndexT>::max();
             SearchResult corr_tmp(src_points_trans.cols());
             const CorrespondenceScalar value_to_reject = max_distance_ + (CorrespondenceScalar)1.0;
 

@@ -58,34 +58,21 @@ namespace cilantro {
             return *this;
         }
 
-        template <bool dist_sq = distances_are_squared>
-        inline typename std::enable_if<dist_sq,WeightT>::type operator()(ValueT dist) const {
-            return std::exp(coeff_*static_cast<WeightT>(dist));
+        inline WeightT operator()(ValueT dist) const {
+            if constexpr (distances_are_squared) {
+                return std::exp(coeff_*static_cast<WeightT>(dist));
+            } else {
+                return std::exp(coeff_*static_cast<WeightT>(dist*dist));
+            }
         }
 
-        template <bool dist_sq = distances_are_squared>
-        inline typename std::enable_if<!dist_sq,WeightT>::type operator()(ValueT dist) const {
-            return std::exp(coeff_*static_cast<WeightT>(dist*dist));
-        }
-
-        template <class PointT, bool dist_sq = distances_are_squared>
-        inline typename std::enable_if<dist_sq,WeightT>::type operator()(const PointT&, const PointT&, ValueT dist) const {
-            return std::exp(coeff_*static_cast<WeightT>(dist));
-        }
-
-        template <class PointT, bool dist_sq = distances_are_squared>
-        inline typename std::enable_if<!dist_sq,WeightT>::type operator()(const PointT&, const PointT&, ValueT dist) const {
-            return std::exp(coeff_*static_cast<WeightT>(dist*dist));
-        }
-
-        template <bool dist_sq = distances_are_squared>
-        inline typename std::enable_if<dist_sq,WeightT>::type operator()(size_t, size_t, ValueT dist) const {
-            return std::exp(coeff_*static_cast<WeightT>(dist));
-        }
-
-        template <bool dist_sq = distances_are_squared>
-        inline typename std::enable_if<!dist_sq,WeightT>::type operator()(size_t, size_t, ValueT dist) const {
-            return std::exp(coeff_*static_cast<WeightT>(dist*dist));
+        template <class PointT>
+        inline WeightT operator()(const PointT&, const PointT&, ValueT dist) const {
+            if constexpr (distances_are_squared) {
+                return std::exp(coeff_*static_cast<WeightT>(dist));
+            } else {
+                return std::exp(coeff_*static_cast<WeightT>(dist*dist));
+            }
         }
 
     private:

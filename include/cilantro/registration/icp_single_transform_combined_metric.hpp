@@ -123,38 +123,27 @@ namespace cilantro {
             this->correspondence_search_engine_.findCorrespondences(this->transform_);
         }
 
-        // Symmetric metric is only implemented for the rigid 3D case
-        template <typename TformT = TransformT>
-        typename std::enable_if<int(TformT::Mode) == int(Eigen::Isometry) && (TformT::Dim == 3 || TformT::Dim == 2),void>::type updateEstimate() {
+        void updateEstimate() {
             transformPoints(this->transform_, src_points_, src_points_trans_);
             CorrespondenceSearchCombinedMetricAdaptor<CorrespondenceSearchEngineT> corr_getter_proxy(this->correspondence_search_engine_);
             TransformT tform_iter;
 
-            if (has_source_normals_) {
-                transformNormals(this->transform_, src_normals_, src_normals_trans_);
-                estimateTransformSymmetricMetric(dst_points_, dst_normals_, src_points_trans_, src_normals_trans_, corr_getter_proxy.getPointToPointCorrespondences(), point_to_point_weight_, corr_getter_proxy.getPointToPlaneCorrespondences(), point_to_plane_weight_, tform_iter, max_optimization_iterations_, optimization_convergence_tol_, point_corr_eval_, plane_corr_eval_, dst_mean_, this->transform_*src_mean_);
+            // Symmetric metric is only implemented for the rigid 3D case
+            if constexpr (int(Base::Transform::Mode) == int(Eigen::Isometry) && (Base::Transform::Dim == 3 || Base::Transform::Dim == 2)) {
+                if (has_source_normals_) {
+                    transformNormals(this->transform_, src_normals_, src_normals_trans_);
+                    estimateTransformSymmetricMetric(dst_points_, dst_normals_, src_points_trans_, src_normals_trans_, corr_getter_proxy.getPointToPointCorrespondences(), point_to_point_weight_, corr_getter_proxy.getPointToPlaneCorrespondences(), point_to_plane_weight_, tform_iter, max_optimization_iterations_, optimization_convergence_tol_, point_corr_eval_, plane_corr_eval_, dst_mean_, this->transform_*src_mean_);
+                } else {
+                    estimateTransformCombinedMetric(dst_points_, dst_normals_, src_points_trans_, corr_getter_proxy.getPointToPointCorrespondences(), point_to_point_weight_, corr_getter_proxy.getPointToPlaneCorrespondences(), point_to_plane_weight_, tform_iter, max_optimization_iterations_, optimization_convergence_tol_, point_corr_eval_, plane_corr_eval_, dst_mean_, this->transform_*src_mean_);
+                }
             } else {
                 estimateTransformCombinedMetric(dst_points_, dst_normals_, src_points_trans_, corr_getter_proxy.getPointToPointCorrespondences(), point_to_point_weight_, corr_getter_proxy.getPointToPlaneCorrespondences(), point_to_plane_weight_, tform_iter, max_optimization_iterations_, optimization_convergence_tol_, point_corr_eval_, plane_corr_eval_, dst_mean_, this->transform_*src_mean_);
             }
 
-            if (int(Base::Transform::Mode) == int(Eigen::Isometry)) {
+            if constexpr (int(Base::Transform::Mode) == int(Eigen::Isometry)) {
                 tform_iter.linear() = tform_iter.rotation();
             }
-            this->transform_ = tform_iter*this->transform_;
-            this->last_delta_norm_ = std::sqrt((tform_iter.linear() - TransformT::LinearMatrixType::Identity()).squaredNorm() + tform_iter.translation().squaredNorm());
-        }
 
-        template <typename TformT = TransformT>
-        typename std::enable_if<int(TformT::Mode) != int(Eigen::Isometry) || (TformT::Dim != 3 && TformT::Dim != 2),void>::type updateEstimate() {
-            transformPoints(this->transform_, src_points_, src_points_trans_);
-            CorrespondenceSearchCombinedMetricAdaptor<CorrespondenceSearchEngineT> corr_getter_proxy(this->correspondence_search_engine_);
-            TransformT tform_iter;
-
-            estimateTransformCombinedMetric(dst_points_, dst_normals_, src_points_trans_, corr_getter_proxy.getPointToPointCorrespondences(), point_to_point_weight_, corr_getter_proxy.getPointToPlaneCorrespondences(), point_to_plane_weight_, tform_iter, max_optimization_iterations_, optimization_convergence_tol_, point_corr_eval_, plane_corr_eval_, dst_mean_, this->transform_*src_mean_);
-
-            if (int(Base::Transform::Mode) == int(Eigen::Isometry)) {
-                tform_iter.linear() = tform_iter.rotation();
-            }
             this->transform_ = tform_iter*this->transform_;
             this->last_delta_norm_ = std::sqrt((tform_iter.linear() - TransformT::LinearMatrixType::Identity()).squaredNorm() + tform_iter.translation().squaredNorm());
         }

@@ -25,7 +25,7 @@ namespace cilantro {
                                     size_t min_segment_size = 1,
                                     size_t max_segment_size = std::numeric_limits<size_t>::max())
     {
-        const size_t unassigned = std::numeric_limits<size_t>::max();
+        constexpr size_t unassigned = std::numeric_limits<size_t>::max();
         std::vector<size_t> current_label(neighbors.size(), unassigned);
 
         std::vector<size_t> frontier_set;
@@ -53,12 +53,12 @@ namespace cilantro {
                 const Neighborhood<ScalarT,IndexT>& nn(neighbors[curr_seed]);
                 for (size_t j = 1; j < nn.size(); j++) {
                     const size_t curr_lbl = current_label[nn[j].index];
-                    if (curr_lbl == i || evaluator(curr_seed, nn[j].index, nn[j].value)) {
+                    if (curr_lbl != i && evaluator(curr_seed, nn[j].index, nn[j].value)) {
                         if (curr_lbl == unassigned) {
                             frontier_set.emplace_back(nn[j].index);
                             current_label[nn[j].index] = i;
                         } else {
-                            if (curr_lbl != i) seeds_to_merge_with[i].insert(curr_lbl);
+                            seeds_to_merge_with[i].insert(curr_lbl);
                         }
                     }
                 }
@@ -163,9 +163,10 @@ namespace cilantro {
                                     size_t min_segment_size = 1,
                                     size_t max_segment_size = std::numeric_limits<size_t>::max())
     {
+        constexpr size_t unassigned = std::numeric_limits<size_t>::max();
+
         const ConstVectorSetMatrixMap<ScalarT,EigenDim>& points(tree.getPointsMatrixMap());
 
-        const size_t unassigned = std::numeric_limits<size_t>::max();
         std::vector<size_t> current_label(points.cols(), unassigned);
 
         std::vector<size_t> frontier_set;
@@ -195,12 +196,12 @@ namespace cilantro {
                 tree.search(points.col(curr_seed), nh, nn);
                 for (size_t j = 1; j < nn.size(); j++) {
                     const size_t curr_lbl = current_label[nn[j].index];
-                    if (curr_lbl == i || evaluator(curr_seed, nn[j].index, nn[j].value)) {
+                    if (curr_lbl != i && evaluator(curr_seed, nn[j].index, nn[j].value)) {
                         if (curr_lbl == unassigned) {
                             frontier_set.emplace_back(nn[j].index);
                             current_label[nn[j].index] = i;
                         } else {
-                            if (curr_lbl != i) seeds_to_merge_with[i].insert(curr_lbl);
+                            seeds_to_merge_with[i].insert(curr_lbl);
                         }
                     }
                 }

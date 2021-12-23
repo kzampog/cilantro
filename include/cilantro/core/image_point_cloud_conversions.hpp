@@ -895,7 +895,7 @@ namespace cilantro {
                           IndexT* index_map_data,
                           size_t image_w, size_t image_h)
     {
-        const IndexT empty = std::numeric_limits<IndexT>::max();
+        constexpr IndexT empty = std::numeric_limits<IndexT>::max();
 
         const Vector<PointT,3> intr0 = intrinsics.row(0);
         const Vector<PointT,3> intr1 = intrinsics.row(1);
@@ -929,7 +929,7 @@ namespace cilantro {
                           IndexT* index_map_data,
                           size_t image_w, size_t image_h)
     {
-        const IndexT empty = std::numeric_limits<IndexT>::max();
+        constexpr IndexT empty = std::numeric_limits<IndexT>::max();
 
         const Vector<PointT,3> intr0 = intrinsics.row(0);
         const Vector<PointT,3> intr1 = intrinsics.row(1);
