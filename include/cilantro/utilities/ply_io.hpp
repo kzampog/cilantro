@@ -184,27 +184,27 @@ namespace cilantro {
         std::shared_ptr<tinyply::PlyData> data_buffer(new tinyply::PlyData());
         data_buffer->count = data_matrix.cols();
 
-        if (std::is_same<ScalarOutT,int8_t>::value || std::is_same<ScalarOutT,char>::value) {
+        if constexpr (std::is_same<ScalarOutT,int8_t>::value || std::is_same<ScalarOutT,char>::value) {
             data_buffer->t = tinyply::Type::INT8;
-        } else if (std::is_same<ScalarOutT,uint8_t>::value || std::is_same<ScalarOutT,unsigned char>::value) {
+        } else if constexpr (std::is_same<ScalarOutT,uint8_t>::value || std::is_same<ScalarOutT,unsigned char>::value) {
             data_buffer->t = tinyply::Type::UINT8;
-        } else if (std::is_same<ScalarOutT,int16_t>::value || std::is_same<ScalarOutT,short>::value) {
+        } else if constexpr (std::is_same<ScalarOutT,int16_t>::value || std::is_same<ScalarOutT,short>::value) {
             data_buffer->t = tinyply::Type::INT16;
-        } else if (std::is_same<ScalarOutT,uint16_t>::value || std::is_same<ScalarOutT,unsigned short>::value) {
+        } else if constexpr (std::is_same<ScalarOutT,uint16_t>::value || std::is_same<ScalarOutT,unsigned short>::value) {
             data_buffer->t = tinyply::Type::UINT16;
-        } else if (std::is_same<ScalarOutT,int32_t>::value || std::is_same<ScalarOutT,int>::value) {
+        } else if constexpr (std::is_same<ScalarOutT,int32_t>::value || std::is_same<ScalarOutT,int>::value) {
             data_buffer->t = tinyply::Type::INT32;
-        } else if (std::is_same<ScalarOutT,uint32_t>::value || std::is_same<ScalarOutT,unsigned int>::value) {
+        } else if constexpr (std::is_same<ScalarOutT,uint32_t>::value || std::is_same<ScalarOutT,unsigned int>::value) {
             data_buffer->t = tinyply::Type::UINT32;
-        } else if (std::is_same<ScalarOutT,float>::value) {
+        } else if constexpr (std::is_same<ScalarOutT,float>::value) {
             data_buffer->t = tinyply::Type::FLOAT32;
-        } else if (std::is_same<ScalarOutT,double>::value) {
+        } else if constexpr (std::is_same<ScalarOutT,double>::value) {
             data_buffer->t = tinyply::Type::FLOAT64;
         } else {
             data_buffer->t = tinyply::Type::INVALID;
         }
 
-        if (std::is_same<ScalarT,ScalarOutT>::value) {
+        if constexpr (std::is_same<ScalarT,ScalarOutT>::value) {
             data_buffer->buffer = tinyply::Buffer((uint8_t *)data_matrix.data());
         } else {
             data_buffer->buffer = tinyply::Buffer(data_matrix.rows()*data_matrix.cols()*sizeof(ScalarOutT));

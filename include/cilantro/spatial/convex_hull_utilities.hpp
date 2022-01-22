@@ -340,7 +340,7 @@ namespace cilantro {
         // Avoid unnecessary copy/cast if input data is double
         Eigen::Matrix<double,EigenDim,Eigen::Dynamic> data_holder(dim,0);
         Eigen::Map<Eigen::Matrix<double,EigenDim,Eigen::Dynamic>> vert_data(NULL, dim, 0);
-        if (std::is_same<ScalarT, double>::value) {
+        if constexpr (std::is_same<ScalarT, double>::value) {
             new (&vert_data) Eigen::Map<Eigen::Matrix<double,EigenDim,Eigen::Dynamic>>((double *)vertices.data(), dim, num_points);
         } else {
             data_holder = vertices.template cast<double>();
@@ -505,7 +505,7 @@ namespace cilantro {
         // Avoid unnecessary copy/cast if input data is double
         Eigen::Matrix<double,EigenDim,Eigen::Dynamic> data_holder(dim,0);
         Eigen::Map<Eigen::Matrix<double,EigenDim,Eigen::Dynamic>> vert_data(NULL, dim, 0);
-        if (std::is_same<ScalarT, double>::value) {
+        if constexpr (std::is_same<ScalarT, double>::value) {
             new (&vert_data) Eigen::Map<Eigen::Matrix<double,EigenDim,Eigen::Dynamic>>((double *)vertices.data(), dim, num_points);
         } else {
             data_holder = vertices.template cast<double>();
@@ -598,7 +598,7 @@ namespace cilantro {
         // Avoid unnecessary copy/cast if input data is double
         Eigen::Matrix<double,EigenDim,Eigen::Dynamic> data_holder(dim,0);
         Eigen::Map<Eigen::Matrix<double,EigenDim,Eigen::Dynamic>> vert_data(NULL, dim, 0);
-        if (std::is_same<ScalarT, double>::value) {
+        if constexpr (std::is_same<ScalarT, double>::value) {
             new (&vert_data) Eigen::Map<Eigen::Matrix<double,EigenDim,Eigen::Dynamic>>((double *)points.data(), dim, num_points);
         } else {
             data_holder = points.template cast<double>();
