@@ -7,9 +7,10 @@
 namespace cilantro {
     namespace KDTreeDataAdaptors {
         // Eigen Map to nanoflann adaptor class
-        template <class ScalarT, ptrdiff_t EigenDim>
+        template <typename ScalarT, ptrdiff_t EigenDim, typename IndexT = size_t>
         struct EigenMap {
             typedef ScalarT Scalar;
+            typedef IndexT Index;
 
             // A const ref to the data set origin
             const Eigen::Map<const Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>>& obj;
@@ -21,7 +22,7 @@ namespace cilantro {
             inline size_t kdtree_get_point_count() const { return obj.cols(); }
 
             // Returns the dim'th component of the idx'th point in the class
-            inline Scalar kdtree_get_pt(size_t idx, size_t dim) const { return obj(dim, idx); }
+            inline Scalar kdtree_get_pt(Index idx, size_t dim) const { return obj(dim, idx); }
 
             // Optional bounding-box computation: return false to default to a standard bbox computation loop.
             //   Return true if the BBOX was already computed by the class and returned in "bb" so it can be avoided to redo it again.
@@ -133,7 +134,8 @@ namespace cilantro {
 
         enum { Dimension = EigenDim };
 
-        typedef nanoflann::KDTreeSingleIndexAdaptor<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>,KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>,EigenDim,IndexT> InternalTree;
+        typedef KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim,IndexT> DataAdaptor;
+        typedef nanoflann::KDTreeSingleIndexAdaptor<DistAdaptor<DataAdaptor>,DataAdaptor,EigenDim,IndexT> InternalTree;
 
         KDTree(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &data, size_t max_leaf_size = 10)
                 : data_map_(data),
@@ -388,7 +390,7 @@ namespace cilantro {
 
     private:
         ConstVectorSetMatrixMap<ScalarT,EigenDim> data_map_;
-        const KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> data_adaptor_;
+        const DataAdaptor data_adaptor_;
         InternalTree kd_tree_;
         nanoflann::SearchParams params_;
     };
