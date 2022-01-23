@@ -34,19 +34,19 @@ namespace cilantro {
 
     namespace KDTreeDistanceAdaptors {
         template <class DataAdaptor>
-        using L1 = nanoflann::L1_Adaptor<typename DataAdaptor::Scalar, DataAdaptor, typename DataAdaptor::Scalar>;
+        using L1 = nanoflann::L1_Adaptor<typename DataAdaptor::Scalar, DataAdaptor, typename DataAdaptor::Scalar, typename DataAdaptor::Index>;
 
         template <class DataAdaptor>
-        using L2 = nanoflann::L2_Adaptor<typename DataAdaptor::Scalar, DataAdaptor, typename DataAdaptor::Scalar>;
+        using L2 = nanoflann::L2_Adaptor<typename DataAdaptor::Scalar, DataAdaptor, typename DataAdaptor::Scalar, typename DataAdaptor::Index>;
 
         template <class DataAdaptor>
-        using L2Simple = nanoflann::L2_Simple_Adaptor<typename DataAdaptor::Scalar, DataAdaptor, typename DataAdaptor::Scalar>;
+        using L2Simple = nanoflann::L2_Simple_Adaptor<typename DataAdaptor::Scalar, DataAdaptor, typename DataAdaptor::Scalar, typename DataAdaptor::Index>;
 
         template <class DataAdaptor>
-        using SO2 = nanoflann::SO2_Adaptor<typename DataAdaptor::Scalar, DataAdaptor, typename DataAdaptor::Scalar>;
+        using SO2 = nanoflann::SO2_Adaptor<typename DataAdaptor::Scalar, DataAdaptor, typename DataAdaptor::Scalar, typename DataAdaptor::Index>;
 
         template <class DataAdaptor>
-        using SO3 = nanoflann::SO3_Adaptor<typename DataAdaptor::Scalar, DataAdaptor, typename DataAdaptor::Scalar>;
+        using SO3 = nanoflann::SO3_Adaptor<typename DataAdaptor::Scalar, DataAdaptor, typename DataAdaptor::Scalar, typename DataAdaptor::Index>;
     } // namespace KDTreeDistanceAdaptors
 
     template <typename ScalarT, typename IndexT = size_t, typename CountT = size_t>
@@ -143,10 +143,7 @@ namespace cilantro {
                   kd_tree_(data.rows(), data_adaptor_, nanoflann::KDTreeSingleIndexAdaptorParams(max_leaf_size))
         {
             params_.sorted = true;
-            kd_tree_.buildIndex();
         }
-
-        ~KDTree() {}
 
         inline const ConstVectorSetMatrixMap<ScalarT,EigenDim>& getPointsMatrixMap() const { return data_map_; }
 
