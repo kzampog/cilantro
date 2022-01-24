@@ -72,8 +72,10 @@ namespace cilantro {
 
             VectorSet<ScalarT,EigenDim> centroids_old;
 
-            KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim> data_adaptor(data_map_);
-            DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>> dist_adaptor(data_adaptor);
+            using DataAdaptor = KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim,PointIndexT>;
+
+            DataAdaptor data_adaptor(data_map_);
+            DistAdaptor<DataAdaptor> dist_adaptor(data_adaptor);
 
             this->point_to_cluster_index_map_.resize(num_points);
 
@@ -101,8 +103,8 @@ namespace cilantro {
                         min_dist = std::numeric_limits<ScalarT>::infinity();
                         for (size_t j = 0; j < num_clusters; j++) {
                             // Resolved at compile time
-                            if constexpr (std::is_same<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>, KDTreeDistanceAdaptors::L2<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>>::value ||
-                                          std::is_same<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>, KDTreeDistanceAdaptors::L2Simple<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>>::value)
+                            if constexpr (std::is_same<DistAdaptor<DataAdaptor>, KDTreeDistanceAdaptors::L2<DataAdaptor>>::value ||
+                                          std::is_same<DistAdaptor<DataAdaptor>, KDTreeDistanceAdaptors::L2Simple<DataAdaptor>>::value)
                             {
                                 dist = (cluster_centroids_.col(j) - data_map_.col(i)).squaredNorm();
                             } else {
@@ -150,8 +152,8 @@ namespace cilantro {
                     for (size_t j = 0; j < num_points; j++) {
                         if (this->point_to_cluster_index_map_[j] == max_ind) {
                             // Resolved at compile time
-                            if constexpr (std::is_same<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>, KDTreeDistanceAdaptors::L2<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>>::value ||
-                                          std::is_same<DistAdaptor<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>, KDTreeDistanceAdaptors::L2Simple<KDTreeDataAdaptors::EigenMap<ScalarT,EigenDim>>>::value)
+                            if constexpr (std::is_same<DistAdaptor<DataAdaptor>, KDTreeDistanceAdaptors::L2<DataAdaptor>>::value ||
+                                          std::is_same<DistAdaptor<DataAdaptor>, KDTreeDistanceAdaptors::L2Simple<DataAdaptor>>::value)
                             {
                                 dist = (old_centroid - data_map_.col(j)).squaredNorm();
                             } else {
