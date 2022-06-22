@@ -12,27 +12,15 @@ endif()
 
 # Packages
 find_package(Eigen3 REQUIRED NO_MODULE)
-# below is a workaround for some buggy Eigen exports which managed to get into some distros
 if(NOT TARGET Eigen3::Eigen)
-    message("Eigen has buggy exported package, but headers are found: ${EIGEN3_INCLUDE_DIRS}. Applying workaround.")
+    # Below is a workaround for some buggy Eigen exports which managed to get into some distros
+    message("Eigen has a buggy exported package, but headers are found: ${EIGEN3_INCLUDE_DIRS}. Applying workaround.")
     add_library(Eigen INTERFACE IMPORTED GLOBAL)
     target_include_directories(Eigen INTERFACE "${EIGEN3_INCLUDE_DIRS}")
     add_library(Eigen3::Eigen ALIAS Eigen)
 endif()
-
-find_package(Pangolin QUIET)
-if(Pangolin_FOUND)
-    set(HAVE_PANGOLIN ON)
-    set(DEPENDS_Pangolin "find_dependency(Pangolin)")
-endif()
 find_package(OpenMP)
-# if(OPENMP_FOUND)
-#     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-#     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-# endif()
-
-set(OTHER_INCLUDE_DIRS ${Pangolin_INCLUDE_DIRS})
-set(OTHER_LIBRARIES ${Pangolin_LIBRARIES})
+find_package(Pangolin QUIET)
 
 if(_WIN_)
     option(BUILD_SHARED_LIBS "Build Shared Library" OFF)
@@ -50,14 +38,18 @@ file(GLOB_RECURSE LIB_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME
 file(GLOB_RECURSE LIB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
 add_library(${PROJECT_NAME} ${THIRD_SOURCES} ${LIB_HEADERS} ${LIB_SOURCES})
-target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC ${OTHER_INCLUDE_DIRS})
-target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-                                                  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-                                                  $<INSTALL_INTERFACE:include>)
-target_link_libraries(${PROJECT_NAME} PUBLIC ${OTHER_LIBRARIES} Eigen3::Eigen)
+target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+                                                         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+                                                         $<INSTALL_INTERFACE:include>)
+target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 if(OpenMP_CXX_FOUND)
     target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
     set(DEPENDS_OpenMP "find_dependency(OpenMP)")
+endif()
+if(Pangolin_FOUND)
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${Pangolin_LIBRARIES})
+    set(HAVE_PANGOLIN ON)
+    set(DEPENDS_Pangolin "find_dependency(Pangolin)")
 endif()
 
 if (ENABLE_NATIVE_BUILD_OPTIMIZATIONS)
