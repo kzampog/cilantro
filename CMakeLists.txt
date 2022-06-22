@@ -52,7 +52,7 @@ if(Pangolin_FOUND)
     set(DEPENDS_Pangolin "find_dependency(Pangolin)")
 endif()
 
-if (ENABLE_NATIVE_BUILD_OPTIMIZATIONS)
+if(ENABLE_NATIVE_BUILD_OPTIMIZATIONS)
     target_compile_options(${PROJECT_NAME} PUBLIC -O3 -march=native -mtune=native)
 else()
     target_compile_options(${PROJECT_NAME} PUBLIC -O3)
