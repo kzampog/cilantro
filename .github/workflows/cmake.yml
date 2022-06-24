@@ -29,7 +29,7 @@ jobs:
       run: ./Pangolin/scripts/install_prerequisites.sh --package-manager apt recommended
 
     - name: Configure Pangolin
-      run: cmake -B ./Pangolin/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake -B ./Pangolin/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ./Pangolin
 
     - name: Build Pangolin
       run: cmake --build ./Pangolin/build --config ${{env.BUILD_TYPE}} -- -j 8
