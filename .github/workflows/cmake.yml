@@ -21,7 +21,7 @@ jobs:
     - name: Clone Pangolin
       uses: actions/checkout@v3
       with:
-        name: stevenlovegrove/Pangolin
+        repository: stevenlovegrove/Pangolin
         submodules: true
         path: ./Pangolin
 
