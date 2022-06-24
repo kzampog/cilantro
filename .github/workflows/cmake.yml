@@ -39,7 +39,7 @@ jobs:
     - name: Clone cilantro
       uses: actions/checkout@v3
       with:
-        path: path: ${{cilantro_DIR}}
+        path: ${{cilantro_DIR}}
 
     - name: Configure cilantro
       run: cmake -B ${{cilantro_DIR}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DPangolin_DIR=${{Pangolin_DIR}}/build -S ${{cilantro_DIR}}
