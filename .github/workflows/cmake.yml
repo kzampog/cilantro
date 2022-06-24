@@ -18,11 +18,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-
     - name: Clone Pangolin
+      uses: actions/checkout@v3
       with:
         name: stevenlovegrove/Pangolin
+        submodules: true
         path: ./Pangolin
 
     - name: Install Pangolin dependencies
@@ -33,6 +33,9 @@ jobs:
 
     - name: Build Pangolin
       run: cmake --build ./Pangolin/build --config ${{env.BUILD_TYPE}} -- -j 8
+
+    - name: Clone cilantro
+      uses: actions/checkout@v3
 
     - name: Configure cilantro
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
