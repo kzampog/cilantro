@@ -23,22 +23,22 @@ jobs:
       with:
         repository: stevenlovegrove/Pangolin
         submodules: true
-        path: ./Pangolin
+        path: ${{github.workspace}}/Pangolin
 
     - name: Install Pangolin dependencies
-      run: ./Pangolin/scripts/install_prerequisites.sh --package-manager apt recommended
+      run: ${{github.workspace}}/Pangolin/scripts/install_prerequisites.sh --package-manager apt recommended
 
     - name: Configure Pangolin
-      run: cmake -B ./Pangolin/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ./Pangolin
+      run: cmake -B ${{github.workspace}}/Pangolin/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -S ${{github.workspace}}/Pangolin
 
     - name: Build Pangolin
-      run: cmake --build ./Pangolin/build --config ${{env.BUILD_TYPE}} -- -j 8
+      run: cmake --build ${{github.workspace}}/Pangolin/build --config ${{env.BUILD_TYPE}} -- -j8
 
     - name: Clone cilantro
       uses: actions/checkout@v3
 
     - name: Configure cilantro
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DPangolin_DIR=${{github.workspace}}/Pangolin/build/
 
     - name: Build cilantro
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -- -j 8
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -- -j8
