@@ -1,0 +1,41 @@
+name: build
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  BUILD_TYPE: Release
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Clone Pangolin
+      with:
+        name: stevenlovegrove/Pangolin
+        path: ./Pangolin
+
+    - name: Install Pangolin dependencies
+      run: ./Pangolin/scripts/install_prerequisites.sh --package-manager apt recommended
+
+    - name: Configure Pangolin
+      run: cmake -B ./Pangolin/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build Pangolin
+      run: cmake --build ./Pangolin/build --config ${{env.BUILD_TYPE}} -- -j 8
+
+    - name: Configure cilantro
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build cilantro
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -- -j 8
