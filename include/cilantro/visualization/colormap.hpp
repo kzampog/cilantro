@@ -3,6 +3,7 @@
 #include <cilantro/core/data_containers.hpp>
 
 namespace cilantro {
+
     enum struct ColormapType { JET, GRAY, BLUE2RED };
 
     template <typename ValueT>
@@ -68,4 +69,5 @@ namespace cilantro {
 
         return colors;
     }
-}
+
+} // namespace cilantro

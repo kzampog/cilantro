@@ -3,6 +3,7 @@
 #include <Eigen/Dense>
 
 namespace cilantro {
+
     namespace internal {
         template <typename T, typename = int>
         struct HasPointToPointCorrespondencesGetter : std::false_type {};
@@ -94,4 +95,5 @@ namespace cilantro {
     private:
         CorrespondenceSearchT& corr_engine_;
     };
-}
+
+} // namespace cilantro

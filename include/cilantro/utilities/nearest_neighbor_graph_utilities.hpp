@@ -4,6 +4,7 @@
 #include <cilantro/core/common_pair_evaluators.hpp>
 
 namespace cilantro {
+
     template <typename T, typename DegT = size_t>
     std::vector<DegT> getNNGraphNodeDegrees(const std::vector<std::vector<T>> &adj_list,
                                             bool remove_self = true)
@@ -147,4 +148,5 @@ namespace cilantro {
         typedef typename NeighborhoodSetT::value_type::value_type::Scalar Scalar;
         return getNNGraphFunctionValueSparseMatrix(adj_list, DistanceEvaluator<Scalar,ValueT>(), force_symmetry);
     }
-}
+
+} // namespace cilantro

@@ -7,6 +7,7 @@
 #include <pangolin/pangolin.h>
 
 namespace cilantro {
+
     template <typename T, typename = int>
     struct HasPoints : std::false_type {};
 
@@ -335,5 +336,6 @@ namespace cilantro {
     private:
         std::string text;
     };
-}
+
+} // namespace cilantro
 #endif

@@ -4,6 +4,7 @@
 #include <Eigen/Dense>
 
 namespace cilantro {
+
     template <typename ScalarT, typename IndexT = size_t>
     struct Neighbor {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -91,4 +92,5 @@ namespace cilantro {
         CountT maxNumberOfNeighbors;
         ScalarT radius;
     };
-}
+
+} // namespace cilantro

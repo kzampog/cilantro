@@ -6,6 +6,7 @@
 #include <cilantro/core/kd_tree.hpp>
 
 namespace cilantro {
+
     template <class TransformT, class CorrespondenceSearchEngineT>
     class PointToPointMetricSingleTransformICP : public IterativeClosestPointBase<PointToPointMetricSingleTransformICP<TransformT,CorrespondenceSearchEngineT>,TransformT,CorrespondenceSearchEngineT,VectorSet<typename TransformT::Scalar,1>> {
         typedef IterativeClosestPointBase<PointToPointMetricSingleTransformICP<TransformT,CorrespondenceSearchEngineT>,TransformT,CorrespondenceSearchEngineT,VectorSet<typename TransformT::Scalar,1>> Base;
@@ -93,4 +94,5 @@ namespace cilantro {
 
     template <class CorrespondenceSearchEngineT>
     using PointToPointMetricAffineTransformICP3d = PointToPointMetricSingleTransformICP<AffineTransform<double,3>,CorrespondenceSearchEngineT>;
-}
+
+} // namespace cilantro

@@ -7,6 +7,7 @@
 #endif
 
 namespace cilantro {
+
     // Weight evaluators (return a scalar weight)
 
     template <typename ValueT, typename WeightT = ValueT>
@@ -276,4 +277,5 @@ namespace cilantro {
         ScalarT max_angle_;
         float max_color_diff_;
     };
-}
+
+} // namespace cilantro

@@ -6,6 +6,7 @@
 #include <cilantro/core/data_containers.hpp>
 
 namespace cilantro {
+
     namespace internal {
         // From tinyply example-utils.hpp
         struct MemoryBuffer : public std::streambuf {
@@ -213,4 +214,4 @@ namespace cilantro {
 
         return data_buffer;
     }
-}
+} // namespace cilantro

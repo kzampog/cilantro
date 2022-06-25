@@ -4,6 +4,7 @@
 #include <Eigen/Dense>
 
 namespace cilantro {
+
     template <typename ScalarT, ptrdiff_t EigenDim>
     class DataMatrixMap : public Eigen::Map<Eigen::Matrix<ScalarT,EigenDim,Eigen::Dynamic>> {
     public:
@@ -228,4 +229,5 @@ namespace cilantro {
 
     template <typename ScalarT, ptrdiff_t EigenDim>
     struct DataMatrixView<ScalarT,EigenDim,DataMatrixViewMode::ConstMatrixMap> { typedef ConstDataMatrixMap<ScalarT,EigenDim> Container; };
+
 }

@@ -5,6 +5,7 @@
 #include <cilantro/core/common_pair_evaluators.hpp>
 
 namespace cilantro {
+
     namespace internal {
         template <typename ScalarT>
         inline ScalarT sqrtHuberLoss(ScalarT x, ScalarT delta = (ScalarT)1.0) {
@@ -174,8 +175,8 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,Eigen::Dynamic,1> tforms_vec(Eigen::Matrix<ScalarT,Eigen::Dynamic,1>::Zero(num_unknowns, 1));
 
         // Conjugate Gradient solver
-//        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IncompleteCholesky<ScalarT,Eigen::Lower|Eigen::Upper>> solver;
-//        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IdentityPreconditioner> solver;
+        // Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IncompleteCholesky<ScalarT,Eigen::Lower|Eigen::Upper>> solver;
+        // Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IdentityPreconditioner> solver;
         Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::DiagonalPreconditioner<ScalarT>> solver;
         solver.setMaxIterations(max_cg_iter);
         solver.setTolerance(cg_conv_tol);
@@ -425,10 +426,10 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,Eigen::Dynamic,1> tforms_vec(Eigen::Matrix<ScalarT,Eigen::Dynamic,1>::Zero(num_unknowns, 1));
 
         // Conjugate Gradient solver
-//        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IncompleteCholesky<ScalarT,Eigen::Lower|Eigen::Upper>> solver;
-//        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IdentityPreconditioner> solver;
+        // Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IncompleteCholesky<ScalarT,Eigen::Lower|Eigen::Upper>> solver;
+        // Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IdentityPreconditioner> solver;
         Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::DiagonalPreconditioner<ScalarT>> solver;
-//        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,BlockDiagonalPreconditioner<ScalarT,6>> solver;
+        // Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,BlockDiagonalPreconditioner<ScalarT,6>> solver;
         solver.setMaxIterations(max_cg_iter);
         solver.setTolerance(cg_conv_tol);
 
@@ -759,8 +760,8 @@ namespace cilantro {
         }
 
         // Conjugate Gradient solver
-//        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IncompleteCholesky<ScalarT,Eigen::Lower|Eigen::Upper>> solver;
-//        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IdentityPreconditioner> solver;
+        // Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IncompleteCholesky<ScalarT,Eigen::Lower|Eigen::Upper>> solver;
+        // Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IdentityPreconditioner> solver;
         Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::DiagonalPreconditioner<ScalarT>> solver;
         solver.setMaxIterations(max_cg_iter);
         solver.setTolerance(cg_conv_tol);
@@ -1036,8 +1037,8 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,Eigen::Dynamic,1> tforms_vec(Eigen::Matrix<ScalarT,Eigen::Dynamic,1>::Zero(num_unknowns, 1));
 
         // Conjugate Gradient solver
-//        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IncompleteCholesky<ScalarT,Eigen::Lower|Eigen::Upper>> solver;
-//        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IdentityPreconditioner> solver;
+        // Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IncompleteCholesky<ScalarT,Eigen::Lower|Eigen::Upper>> solver;
+        // Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IdentityPreconditioner> solver;
         Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::DiagonalPreconditioner<ScalarT>> solver;
         solver.setMaxIterations(max_cg_iter);
         solver.setTolerance(cg_conv_tol);
@@ -1391,10 +1392,10 @@ namespace cilantro {
         Eigen::Matrix<ScalarT,Eigen::Dynamic,1> tforms_vec(Eigen::Matrix<ScalarT,Eigen::Dynamic,1>::Zero(num_unknowns, 1));
 
         // Conjugate Gradient solver
-//        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IncompleteCholesky<ScalarT,Eigen::Lower|Eigen::Upper>> solver;
-//        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IdentityPreconditioner> solver;
+        // Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IncompleteCholesky<ScalarT,Eigen::Lower|Eigen::Upper>> solver;
+        // Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IdentityPreconditioner> solver;
         Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::DiagonalPreconditioner<ScalarT>> solver;
-//        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,BlockDiagonalPreconditioner<ScalarT,6>> solver;
+        // Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,BlockDiagonalPreconditioner<ScalarT,6>> solver;
         solver.setMaxIterations(max_cg_iter);
         solver.setTolerance(cg_conv_tol);
 
@@ -1821,8 +1822,8 @@ namespace cilantro {
         }
 
         // Conjugate Gradient solver
-//        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IncompleteCholesky<ScalarT,Eigen::Lower|Eigen::Upper>> solver;
-//        Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IdentityPreconditioner> solver;
+        // Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IncompleteCholesky<ScalarT,Eigen::Lower|Eigen::Upper>> solver;
+        // Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::IdentityPreconditioner> solver;
         Eigen::ConjugateGradient<Eigen::SparseMatrix<ScalarT>,Eigen::Lower|Eigen::Upper,Eigen::DiagonalPreconditioner<ScalarT>> solver;
         solver.setMaxIterations(max_cg_iter);
         solver.setTolerance(cg_conv_tol);
@@ -2019,4 +2020,5 @@ namespace cilantro {
 
         return has_converged;
     }
-}
+
+} // namespace cilantro

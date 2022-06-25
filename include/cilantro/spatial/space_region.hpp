@@ -3,6 +3,7 @@
 #include <cilantro/spatial/convex_polytope.hpp>
 
 namespace cilantro {
+
     template <typename ScalarT, ptrdiff_t EigenDim, typename IndexT = size_t>
     class SpaceRegion {
     public:
@@ -280,4 +281,5 @@ namespace cilantro {
     typedef SpaceRegion<double,3> SpaceRegion3d;
     typedef SpaceRegion<float,Eigen::Dynamic> SpaceRegionXf;
     typedef SpaceRegion<float,Eigen::Dynamic> SpaceRegionXd;
-}
+
+} // namespace cilantro

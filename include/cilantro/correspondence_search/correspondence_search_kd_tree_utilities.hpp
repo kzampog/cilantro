@@ -3,6 +3,7 @@
 #include <cilantro/core/common_pair_evaluators.hpp>
 
 namespace cilantro {
+
     template <typename ScalarT, ptrdiff_t EigenDim, typename TreeT, typename CorrSetT, class EvaluatorT = DistanceEvaluator<ScalarT,ScalarT>>
     void findNNCorrespondencesUnidirectional(const ConstVectorSetMatrixMap<ScalarT,EigenDim> &query_pts,
                                              const TreeT &ref_tree,
@@ -110,4 +111,5 @@ namespace cilantro {
         findNNCorrespondencesBidirectional<ScalarT,EigenDim>(first_points, second_points, first_tree, second_tree, corr_set, max_distance, require_reciprocal, evaluator);
         return corr_set;
     }
-}
+
+} // namespace cilantro

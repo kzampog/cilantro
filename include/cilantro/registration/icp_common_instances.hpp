@@ -9,6 +9,7 @@
 #include <cilantro/registration/icp_warp_field_combined_metric_sparse.hpp>
 
 namespace cilantro {
+
     namespace internal {
         template <class TransformT, class CorrSearchT>
         using DefaultPointToPointMetricICP = PointToPointMetricSingleTransformICP<TransformT,CorrSearchT>;
@@ -271,4 +272,5 @@ namespace cilantro {
 
     typedef SimpleCombinedMetricSparseWarpFieldProjectiveICP<AffineTransform<float,3>> SimpleCombinedMetricSparseAffineWarpFieldProjectiveICP3f;
     typedef SimpleCombinedMetricSparseWarpFieldProjectiveICP<AffineTransform<double,3>> SimpleCombinedMetricSparseAffineWarpFieldProjectiveICP3d;
-}
+
+} // namespace cilantro

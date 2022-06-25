@@ -6,6 +6,7 @@
 #include <pangolin/pangolin.h>
 
 namespace cilantro {
+
     class ImageViewer {
     public:
         inline ImageViewer(const std::string &window_name, const std::string &display_name) { init_(window_name, display_name); }
@@ -36,5 +37,6 @@ namespace cilantro {
 
         void init_(const std::string &window_name, const std::string &display_name);
     };
-}
+
+} // namespace cilantro
 #endif

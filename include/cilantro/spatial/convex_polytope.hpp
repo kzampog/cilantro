@@ -4,6 +4,7 @@
 #include <cilantro/core/space_transformations.hpp>
 
 namespace cilantro {
+
     template <typename ScalarT, ptrdiff_t EigenDim, typename IndexT = size_t>
     class ConvexPolytope {
     public:
@@ -264,4 +265,5 @@ namespace cilantro {
     typedef ConvexPolytope<double,3> ConvexHull3d;
     typedef ConvexPolytope<float,Eigen::Dynamic> ConvexHullXf;
     typedef ConvexPolytope<double,Eigen::Dynamic> ConvexHullXd;
-}
+
+} // namespace cilantro

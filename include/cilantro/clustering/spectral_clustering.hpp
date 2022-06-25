@@ -7,6 +7,7 @@
 #include <cilantro/clustering/kmeans.hpp>
 
 namespace cilantro {
+
     namespace internal {
         template <typename ScalarT>
         class SpectraDiagonalInverseBop {
@@ -400,4 +401,5 @@ namespace cilantro {
 
     template <typename PointIndexT = size_t, typename ClusterIndexT = size_t>
     using SpectralClusteringXd = SpectralClustering<double,Eigen::Dynamic,PointIndexT,ClusterIndexT>;
-}
+
+} // namespace cilantro

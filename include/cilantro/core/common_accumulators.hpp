@@ -3,6 +3,7 @@
 #include <cilantro/core/data_containers.hpp>
 
 namespace cilantro {
+
     template <typename IndexT = size_t>
     struct IndexAccumulator {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -296,4 +297,5 @@ namespace cilantro {
         ConstVectorSetMatrixMap<ScalarT,EigenDim> normals_;
         ConstVectorSetMatrixMap<float,3> colors_;
     };
-}
+
+} // namespace cilantro

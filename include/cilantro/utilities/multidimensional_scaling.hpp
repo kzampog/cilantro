@@ -5,6 +5,7 @@
 #include <cilantro/core/spectral_embedding_base.hpp>
 
 namespace cilantro {
+
     template <class VectorT>
     size_t estimateEmbeddingDimensionEigengap(const VectorT &eigenvalues,
                                               size_t max_dim)
@@ -114,4 +115,5 @@ namespace cilantro {
     typedef MultidimensionalScaling<double,3> MultidimensionalScaling3d;
     typedef MultidimensionalScaling<float,Eigen::Dynamic> MultidimensionalScalingXf;
     typedef MultidimensionalScaling<double,Eigen::Dynamic> MultidimensionalScalingXd;
-}
+
+} // namespace cilantro

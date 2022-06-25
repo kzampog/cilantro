@@ -2,6 +2,7 @@
 
 #ifdef HAVE_PANGOLIN
 namespace cilantro {
+
     extern "C" const unsigned char AnonymousPro_ttf[];
 
     void PointCloudRenderable::updateGPUBuffers(GPUBufferObjects &gl_objects) {
@@ -408,5 +409,6 @@ namespace cilantro {
         glMatrixMode(GL_MODELVIEW);
         glPopMatrix();
     }
-}
+
+} // namespace cilantro
 #endif

@@ -3,6 +3,7 @@
 #include <chrono>
 
 namespace cilantro {
+
     class Timer {
     public:
         inline Timer(bool start = false) { if (start) start_time_ = std::chrono::high_resolution_clock::now(); }
@@ -30,4 +31,5 @@ namespace cilantro {
         std::chrono::time_point<std::chrono::high_resolution_clock> start_time_;
         std::chrono::time_point<std::chrono::high_resolution_clock> stop_time_;
     };
-}
+
+} // namespace cilantro

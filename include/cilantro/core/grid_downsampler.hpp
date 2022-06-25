@@ -4,6 +4,7 @@
 #include <cilantro/core/common_accumulators.hpp>
 
 namespace cilantro {
+
     template <typename ScalarT, ptrdiff_t EigenDim, typename GridPointScalarT = ptrdiff_t>
     class PointsGridDownsampler : public GridAccumulator<ScalarT,EigenDim,PointSumAccumulatorProxy<ScalarT,EigenDim>,GridPointScalarT> {
     public:
@@ -354,4 +355,5 @@ namespace cilantro {
     typedef PointsNormalsColorsGridDownsampler<double,3> PointsNormalsColorsGridDownsampler3d;
     typedef PointsNormalsColorsGridDownsampler<float,Eigen::Dynamic> PointsNormalsColorsGridDownsamplerXf;
     typedef PointsNormalsColorsGridDownsampler<double,Eigen::Dynamic> PointsNormalsColorsGridDownsamplerXd;
-}
+
+} // namespace cilantro

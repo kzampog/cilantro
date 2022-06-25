@@ -4,6 +4,7 @@
 #include <cilantro/core/common_pair_evaluators.hpp>
 
 namespace cilantro {
+
     template <class TransformT, class NeighborhoodSetT, class WeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>>
     typename std::enable_if<internal::HasLinear<TransformT>::value && internal::HasTranslation<TransformT>::value,void>::type
     resampleTransforms(const TransformSet<TransformT> &old_transforms,
@@ -96,4 +97,5 @@ namespace cilantro {
         resampleTransforms<TransformT,KDTreeT,NeighborhoodSpecT,WeightEvaluatorT>(old_support_kd_tree, old_transforms, new_support, nh, new_transforms, weight_evaluator);
         return new_transforms;
     }
-}
+
+} // namespace cilantro

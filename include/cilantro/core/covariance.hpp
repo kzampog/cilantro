@@ -10,6 +10,7 @@
 #include <cilantro/core/openmp_reductions.hpp>
 
 namespace cilantro {
+
     template <typename ScalarT, ptrdiff_t EigenDim>
     class Covariance {
     public:
@@ -40,7 +41,6 @@ namespace cilantro {
 #ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
 DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,1)
 #pragma omp parallel for MATRIX_SUM_REDUCTION(ScalarT,EigenDim,1,mean_sum)
-//#pragma omp parallel for reduction (internal::MatrixReductions<ScalarT,EigenDim,1>::operator+: mean_sum)
 #endif
                 for (size_t i = 0; i < points.cols(); i++) {
                     mean_sum.noalias() += points.col(i);
@@ -51,7 +51,6 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,1)
 #ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
 DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
 #pragma omp parallel for MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim,cov_sum)
-//#pragma omp parallel for reduction (internal::MatrixReductions<ScalarT,EigenDim,EigenDim>::operator+: cov_sum)
 #endif
                 for (size_t i = 0; i < points.cols(); i++) {
                     Vector<ScalarT,EigenDim> tmp = points.col(i) - mean;
@@ -91,7 +90,6 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
 #ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
 DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,1)
 #pragma omp parallel for MATRIX_SUM_REDUCTION(ScalarT,EigenDim,1,mean_sum)
-//#pragma omp parallel for reduction (internal::MatrixReductions<ScalarT,EigenDim,1>::operator+: mean_sum)
 #endif
                 for (IteratorT it = begin; it < end; ++it) {
                     mean_sum.noalias() += points.col(*it);
@@ -102,7 +100,6 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,1)
 #ifdef ENABLE_NON_DETERMINISTIC_PARALLELISM
 DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
 #pragma omp parallel for MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim,cov_sum)
-//#pragma omp parallel for reduction (internal::MatrixReductions<ScalarT,EigenDim,EigenDim>::operator+: cov_sum)
 #endif
                 for (IteratorT it = begin; it < end; ++it) {
                     Vector<ScalarT,EigenDim> tmp = points.col(*it) - mean;
@@ -321,4 +318,5 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,EigenDim,EigenDim)
         ScalarT chi_square_threshold_ = ScalarT(-1);
         CovarianceT compute_mean_and_covariance_;
     };
-}
+
+} // namespace cilantro

@@ -4,6 +4,7 @@
 #include <cilantro/core/principal_component_analysis.hpp>
 
 namespace cilantro {
+
     template <typename ScalarT, ptrdiff_t EigenDim, typename IndexT = size_t>
     class HyperplaneRANSACEstimator : public RandomSampleConsensusBase<HyperplaneRANSACEstimator<ScalarT,EigenDim>,Eigen::Hyperplane<ScalarT,EigenDim>,ScalarT,IndexT> {
         typedef RandomSampleConsensusBase<HyperplaneRANSACEstimator<ScalarT,EigenDim>,Eigen::Hyperplane<ScalarT,EigenDim>,ScalarT,IndexT> Base;
@@ -106,4 +107,5 @@ namespace cilantro {
 
     template <typename IndexT = size_t>
     using HyperplaneRANSACEstimatorXd = HyperplaneRANSACEstimator<double,Eigen::Dynamic,IndexT>;
-}
+
+} // namespace cilantro

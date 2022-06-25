@@ -4,6 +4,7 @@
 #include <cilantro/registration/transform_estimation.hpp>
 
 namespace cilantro {
+
     template <class TransformT, typename IndexT = size_t>
     class TransformRANSACEstimator : public RandomSampleConsensusBase<TransformRANSACEstimator<TransformT>,TransformT,typename TransformT::Scalar,IndexT> {
         typedef RandomSampleConsensusBase<TransformRANSACEstimator<TransformT>,TransformT,typename TransformT::Scalar,IndexT> Base;
@@ -137,4 +138,5 @@ namespace cilantro {
 
     template <typename IndexT = size_t>
     using AffineTransformRANSACEstimator3d = TransformRANSACEstimator<AffineTransform<double,3>,IndexT>;
-}
+
+} // namespace cilantro

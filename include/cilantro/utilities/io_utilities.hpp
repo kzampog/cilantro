@@ -4,6 +4,7 @@
 #include <cilantro/core/data_containers.hpp>
 
 namespace cilantro {
+
     template<class Matrix>
     bool readEigenMatrixFromFile(const std::string &file_path, Matrix &matrix, bool binary = true) {
         if (binary) {
@@ -82,4 +83,5 @@ namespace cilantro {
         if (!out) return false;
         return !!out.write((char*)data_ptr, num_bytes);
     }
-}
+
+} // namespace cilantro

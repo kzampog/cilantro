@@ -5,6 +5,7 @@
 #include <cilantro/core/data_containers.hpp>
 
 namespace cilantro {
+
     namespace internal {
         template <typename ScalarT, ptrdiff_t EigenDim, ptrdiff_t EigenCoeff>
         struct EigenVectorComparatorHelper {
@@ -195,4 +196,5 @@ namespace cilantro {
             }
         }
     };
-}
+
+} // namespace cilantro

@@ -6,6 +6,7 @@
 #include <pangolin/pangolin.h>
 
 namespace cilantro {
+
     class Visualizer;
 
     struct VisualizerHandler : pangolin::Handler
@@ -92,5 +93,6 @@ namespace cilantro {
         pangolin::GLprecision Pc[3];
         pangolin::GLprecision n[3];
     };
-}
+
+} // namespace cilantro
 #endif

@@ -6,6 +6,7 @@
 #include <cilantro/core/kd_tree.hpp>
 
 namespace cilantro {
+
     // TransformT is the local motion model
     template <class TransformT, class CorrespondenceSearchEngineT, class RegNeighborhoodSetT, class PointToPointCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class PointToPlaneCorrWeightEvaluatorT = UnityWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar>, class RegularizationWeightEvaluatorT = RBFKernelWeightEvaluator<typename TransformT::Scalar,typename TransformT::Scalar,true>>
     class CombinedMetricDenseWarpFieldICP : public IterativeClosestPointBase<CombinedMetricDenseWarpFieldICP<TransformT,CorrespondenceSearchEngineT,RegNeighborhoodSetT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,RegularizationWeightEvaluatorT>,TransformSet<TransformT>,CorrespondenceSearchEngineT,VectorSet<typename TransformT::Scalar,1>> {
@@ -199,4 +200,5 @@ namespace cilantro {
 
     template <class CorrespondenceSearchEngineT, class PointToPointCorrWeightEvaluatorT = UnityWeightEvaluator<double,double>, class PointToPlaneCorrWeightEvaluatorT = UnityWeightEvaluator<double,double>, class RegularizationWeightEvaluatorT = RBFKernelWeightEvaluator<double,double,true>>
     using CombinedMetricDenseAffineWarpFieldICP3d = CombinedMetricDenseWarpFieldICP<AffineTransform<double,3>,CorrespondenceSearchEngineT,PointToPointCorrWeightEvaluatorT,PointToPlaneCorrWeightEvaluatorT,RegularizationWeightEvaluatorT>;
-}
+
+} // namespace cilantro

@@ -4,6 +4,7 @@
 #include <cilantro/core/kd_tree.hpp>
 
 namespace cilantro {
+
     template <typename ScalarT, ptrdiff_t EigenDim, typename CovarianceT = Covariance<ScalarT, EigenDim>, typename IndexT = size_t>
     class NormalEstimation {
     public:
@@ -493,4 +494,5 @@ namespace cilantro {
 
     template <typename CovarianceT = Covariance<double,Eigen::Dynamic>, typename IndexT = size_t>
     using NormalEstimationXd = NormalEstimation<double,Eigen::Dynamic,CovarianceT,IndexT>;
-}
+
+} // namespace cilantro

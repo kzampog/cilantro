@@ -2,6 +2,7 @@
 
 #ifdef HAVE_PANGOLIN
 namespace cilantro {
+
     RenderingProperties Visualizer::getRenderingProperties(const std::string &name) const {
         auto it = renderables_.find(name);
         if (it == renderables_.end()) return RenderingProperties();
@@ -289,7 +290,7 @@ namespace cilantro {
         if (rgba) {
             const pangolin::PixelFormat fmt = pangolin::PixelFormatFromString("RGBA32");
             pangolin::TypedImage buffer(w, h, fmt);
-//        glReadBuffer(GL_BACK);
+            // glReadBuffer(GL_BACK);
             glPixelStorei(GL_PACK_ALIGNMENT, 1); // TODO: Avoid this?
             glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer.ptr);
             // Flip y
@@ -307,7 +308,7 @@ namespace cilantro {
         } else {
             const pangolin::PixelFormat fmt = pangolin::PixelFormatFromString("RGB24");
             pangolin::TypedImage buffer(w, h, fmt);
-//        glReadBuffer(GL_BACK);
+            // glReadBuffer(GL_BACK);
             glPixelStorei(GL_PACK_ALIGNMENT, 1); // TODO: Avoid this?
             glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, buffer.ptr);
             // Flip y
@@ -399,5 +400,6 @@ namespace cilantro {
         cam_axes_rot_(2,2) = -1.0f;
         video_record_on_render_ = false;
     }
-}
+
+} // namespace cilantro
 #endif

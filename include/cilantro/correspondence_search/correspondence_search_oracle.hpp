@@ -4,6 +4,7 @@
 #include <cilantro/core/common_pair_evaluators.hpp>
 
 namespace cilantro {
+
     template <class ScalarT, class EvaluationFeatureAdaptorT, class EvaluatorT = DistanceEvaluator<ScalarT,typename EvaluationFeatureAdaptorT::Scalar>, typename IndexT = size_t>
     class CorrespondenceSearchOracle {
     public:
@@ -87,4 +88,5 @@ namespace cilantro {
 
         SearchResult correspondences_;
     };
-}
+
+} // namespace cilantro

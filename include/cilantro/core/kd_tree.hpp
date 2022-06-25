@@ -5,6 +5,7 @@
 #include <cilantro/core/nearest_neighbors.hpp>
 
 namespace cilantro {
+
     namespace KDTreeDataAdaptors {
         // Eigen Map to nanoflann adaptor class
         template <typename ScalarT, ptrdiff_t EigenDim, typename IndexT = size_t>
@@ -409,4 +410,5 @@ namespace cilantro {
 
     template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename IndexT = size_t>
     using KDTreeXd = KDTree<double,Eigen::Dynamic,DistAdaptor,IndexT>;
-}
+
+} // namespace cilantro

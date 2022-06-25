@@ -3,6 +3,7 @@
 #include <Eigen/Dense>
 
 namespace cilantro {
+
     // CRTP base class
     template <class ICPInstanceT, class TransformT, class CorrespondenceSearchEngineT, class ResidualVectorT>
     class IterativeClosestPointBase {
@@ -115,4 +116,5 @@ namespace cilantro {
         // Default implementation
         inline void initializeComputation() {}
     };
-}
+
+} // namespace cilantro

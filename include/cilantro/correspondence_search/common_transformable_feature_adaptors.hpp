@@ -3,6 +3,7 @@
 #include <cilantro/core/space_transformations.hpp>
 
 namespace cilantro {
+
     template <typename ScalarT, ptrdiff_t EigenDim>
     class PointFeaturesAdaptor {
     public:
@@ -355,4 +356,5 @@ namespace cilantro {
     typedef PointNormalColorFeaturesAdaptor<double,2> PointNormalColorFeaturesAdaptor2d;
     typedef PointNormalColorFeaturesAdaptor<float,3> PointNormalColorFeaturesAdaptor3f;
     typedef PointNormalColorFeaturesAdaptor<double,3> PointNormalColorFeaturesAdaptor3d;
-}
+
+} // namespace cilantro

@@ -18,7 +18,7 @@ namespace cilantro {
 #pragma omp declare reduction (+: Eigen::Matrix<ScalarT,NRows,NCols>: omp_out = omp_out + omp_in) initializer(omp_priv = Eigen::Matrix<ScalarT,NRows,NCols>::Zero(omp_orig.rows(), omp_orig.cols()))
         };
     } // namespace internal
-}
+} // namespace cilantro
 
 #define DECLARE_MATRIX_SUM_REDUCTION(Scalar,Rows,Cols)
 #define MATRIX_SUM_REDUCTION(Scalar,Rows,Cols,var) reduction (cilantro::internal::MatrixReductions<Scalar,Rows,Cols>::operator+: var)

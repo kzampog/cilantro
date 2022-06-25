@@ -6,6 +6,7 @@
 #include <cilantro/correspondence_search/common_transformable_feature_adaptors.hpp>
 
 namespace cilantro {
+
     template <class ScalarT, class EvaluationFeatureAdaptorT = PointFeaturesAdaptor<ScalarT,3>, class EvaluatorT = DistanceEvaluator<ScalarT,typename EvaluationFeatureAdaptorT::Scalar>, typename IndexT = size_t>
     class CorrespondenceSearchProjective {
     public:
@@ -187,4 +188,5 @@ namespace cilantro {
             filterCorrespondencesFraction(correspondences, inlier_fraction_);
         }
     };
-}
+
+} // namespace cilantro

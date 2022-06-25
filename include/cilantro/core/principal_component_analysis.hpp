@@ -4,6 +4,7 @@
 #include <cilantro/core/covariance.hpp>
 
 namespace cilantro {
+
     template <typename ScalarT, ptrdiff_t EigenDim>
     class PrincipalComponentAnalysis {
     public:
@@ -87,4 +88,5 @@ namespace cilantro {
     typedef PrincipalComponentAnalysis<double,3> PrincipalComponentAnalysis3d;
     typedef PrincipalComponentAnalysis<float,Eigen::Dynamic> PrincipalComponentAnalysisXf;
     typedef PrincipalComponentAnalysis<double,Eigen::Dynamic> PrincipalComponentAnalysisXd;
-}
+
+} // namespace cilantro

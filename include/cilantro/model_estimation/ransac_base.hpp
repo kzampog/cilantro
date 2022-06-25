@@ -7,6 +7,7 @@
 
 namespace cilantro {
     // CRTP base class
+
     template <class ModelEstimatorT, class ModelT, typename ResidualScalarT, typename IndexT = size_t>
     class RandomSampleConsensusBase {
     public:
@@ -195,4 +196,5 @@ namespace cilantro {
         ResidualVector model_residuals_;
         IndexVector model_inliers_;
     };
-}
+
+} // namespace cilantro

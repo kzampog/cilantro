@@ -3,6 +3,7 @@
 #include <cilantro/visualization/colormap.hpp>
 
 namespace cilantro {
+
     struct RenderingProperties {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -141,4 +142,5 @@ namespace cilantro {
         bool drawLast;
         bool buffersUpToDate;
     };
-}
+
+} // namespace cilantro

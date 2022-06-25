@@ -3,6 +3,7 @@
 #include <cilantro/core/data_containers.hpp>
 
 namespace cilantro {
+
     enum struct CorrespondenceSearchDirection { FIRST_TO_SECOND, SECOND_TO_FIRST, BOTH };
 
     template <typename ScalarT, typename IndexT = size_t>
@@ -163,4 +164,5 @@ namespace cilantro {
             second_corr.col(i) = second.col(correspondences[i].indexInSecond);
         }
     }
-}
+
+} // namespace cilantro

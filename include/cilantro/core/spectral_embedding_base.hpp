@@ -3,6 +3,7 @@
 #include <cilantro/core/data_containers.hpp>
 
 namespace cilantro {
+
     // CRTP base class that holds computed embedding and accessors
     template <typename Derived, typename ScalarT, ptrdiff_t EigenDim = Eigen::Dynamic>
     class SpectralEmbeddingBase {
@@ -23,4 +24,5 @@ namespace cilantro {
         VectorSet<ScalarT,EigenDim> embedded_points_;
         Vector<ScalarT,EigenDim> computed_eigenvalues_;
     };
-}
+
+} // namespace cilantro

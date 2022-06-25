@@ -4,6 +4,7 @@
 #include <Eigen/Dense>
 
 namespace cilantro {
+
     template <typename ClusterIndexT, typename PointIndexT>
     std::vector<ClusterIndexT> getPointToClusterIndexMap(const std::vector<std::vector<PointIndexT>> &cluster_to_point,
                                                          size_t num_points)
@@ -94,4 +95,5 @@ namespace cilantro {
         ClusterToPointIndicesMap cluster_to_point_indices_map_;
         PointToClusterIndexMap point_to_cluster_index_map_;
     };
-}
+
+} // namespace cilantro

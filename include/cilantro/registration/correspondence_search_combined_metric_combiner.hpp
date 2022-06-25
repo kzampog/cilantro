@@ -4,6 +4,7 @@
 #include <cilantro/registration/correspondence_search_combined_metric_adaptor.hpp>
 
 namespace cilantro {
+
     template <class PointToPointCorrespondenceSearchT, class PointToPlaneCorrespondenceSearchT>
     class CorrespondenceSearchCombinedMetricCombiner {
     public:
@@ -72,4 +73,5 @@ namespace cilantro {
         PointToPointCorrespondenceSearch& point_to_point_corr_search_;
         PointToPlaneCorrespondenceSearch& point_to_plane_corr_search_;
     };
-}
+
+} // namespace cilantro

@@ -9,6 +9,7 @@
 #include <cilantro/core/space_transformations.hpp>
 
 namespace cilantro {
+
     class Visualizer {
         friend class VisualizerHandler;
     public:
@@ -207,5 +208,6 @@ namespace cilantro {
             }
         };
     };
-}
+
+} // namespace cilantro
 #endif

@@ -7,6 +7,7 @@
 #include <cilantro/core/openmp_reductions.hpp>
 
 namespace cilantro {
+
     // Rigid, point-to-point, general dimension, closed form, SVD
     template <class TransformT>
     typename std::enable_if<int(TransformT::Mode) == int(Eigen::Isometry),bool>::type
@@ -67,7 +68,6 @@ namespace cilantro {
 DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,NumUnknowns)
 DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
 #pragma omp parallel MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,NumUnknowns,AtA) MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1,Atb)
-//#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,NumUnknowns,NumUnknowns>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,NumUnknowns,1>::operator+: Atb)
 #endif
         {
             Eigen::Matrix<ScalarT,NumUnknowns,Dim> eq_vecs;
@@ -154,7 +154,6 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
 DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,3)
 DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
 #pragma omp parallel MATRIX_SUM_REDUCTION(ScalarT,3,3,AtA) MATRIX_SUM_REDUCTION(ScalarT,3,1,Atb)
-//#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,3,3>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,3,1>::operator+: Atb)
 #endif
             {
                 if (has_point_to_point_terms) {
@@ -264,7 +263,6 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
 DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,6)
 DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
 #pragma omp parallel MATRIX_SUM_REDUCTION(ScalarT,6,6,AtA) MATRIX_SUM_REDUCTION(ScalarT,6,1,Atb)
-//#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,6,6>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,6,1>::operator+: Atb)
 #endif
             {
                 if (has_point_to_point_terms) {
@@ -384,7 +382,6 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
 DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,NumUnknowns)
 DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
 #pragma omp parallel MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,NumUnknowns,AtA) MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1,Atb)
-//#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,NumUnknowns,NumUnknowns>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,NumUnknowns,1>::operator+: Atb)
 #endif
         {
             if (has_point_to_point_terms) {
@@ -489,7 +486,6 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,NumUnknowns,1)
 DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,3)
 DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
 #pragma omp parallel MATRIX_SUM_REDUCTION(ScalarT,3,3,AtA) MATRIX_SUM_REDUCTION(ScalarT,3,1,Atb)
-//#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,3,3>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,3,1>::operator+: Atb)
 #endif
             {
                 if (has_point_to_point_terms) {
@@ -600,7 +596,6 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,3,1)
 DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,6)
 DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
 #pragma omp parallel MATRIX_SUM_REDUCTION(ScalarT,6,6,AtA) MATRIX_SUM_REDUCTION(ScalarT,6,1,Atb)
-//#pragma omp parallel reduction (internal::MatrixReductions<ScalarT,6,6>::operator+: AtA) reduction (internal::MatrixReductions<ScalarT,6,1>::operator+: Atb)
 #endif
             {
                 if (has_point_to_point_terms) {
@@ -675,4 +670,5 @@ DECLARE_MATRIX_SUM_REDUCTION(ScalarT,6,1)
         tform = t_dst * tform * t_src;
         return false;
     }
-}
+
+} // namespace cilantro

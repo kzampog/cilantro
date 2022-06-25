@@ -8,6 +8,7 @@
 #include <cilantro/core/principal_component_analysis.hpp>
 
 namespace cilantro {
+
     template <typename ScalarT, ptrdiff_t EigenDim>
     bool checkLinearInequalityConstraintRedundancy(const Eigen::Ref<const HomogeneousVector<ScalarT,EigenDim>> &ineq_to_test,
                                                    const ConstHomogeneousVectorSetMatrixMap<ScalarT,EigenDim> &inequalities,
@@ -65,11 +66,6 @@ namespace cilantro {
         Eigen::VectorXd x(dim+1);
         double val = solve_quadprog(G, g0, CE, ce0, CI, ci0, x);
 
-        // Eigen::VectorXd sol((x.head(dim)/scale - t_vec));
-        // std::cout << val << ", for: " << x.transpose() << " (" << sol.transpose() << ")" << std::endl;
-        // Eigen::VectorXd ineq_test0(ineq_to_test.template cast<double>());
-        // std::cout << "dist: " << (sol.dot(ineq_test0.head(dim)) + ineq_test0(dim)) << std::endl;
-
         if (std::isinf(val) || std::isnan(val) || !x.allFinite()) return false;
 
         return x.head(dim).dot(ineq_test.head(dim)) + ineq_test(dim) < -dist_tol;
@@ -115,7 +111,7 @@ namespace cilantro {
         for (size_t i = 0; i < S.size(); i++) {
             if (S(i) < tol_sq) S(i) = 1.0;
         }
-        //G = svd.matrixU()*(S.asDiagonal())*(svd.matrixV().transpose());
+        // G = svd.matrixU()*(S.asDiagonal())*(svd.matrixV().transpose());
         G = dist_tol*svd.matrixU()*(S.asDiagonal())*(svd.matrixV().transpose());
 
         // Linear term
@@ -141,8 +137,6 @@ namespace cilantro {
         double val = solve_quadprog(G, g0, CE, ce0, CI, ci0, x);
         Eigen::Matrix<double,EigenDim,1> fp(x.head(dim));
         feasible_point = (fp/scale - t_vec).template cast<ScalarT>();
-
-        //std::cout << val << ", for: " << x.transpose() << "   (" << feasible_point.transpose() << ")" << std::endl;
 
         if (std::isinf(val) || std::isnan(val) || !x.allFinite()) {
             feasible_point.setConstant(dim, 1, std::numeric_limits<ScalarT>::quiet_NaN());
@@ -232,8 +226,6 @@ namespace cilantro {
         Eigen::FullPivLU<Eigen::Matrix<double,EigenDim,Eigen::Dynamic>> lu(hs_coeffs.topRows(dim));
         lu.setThreshold(dist_tol);
 
-        //std::cout << "rank: " << lu.rank() << std::endl;
-
         if (lu.rank() < dim) {
             Eigen::Map<HomogeneousVectorSet<double,EigenDim>> first_cols(hs_coeffs.data(), dim+1, num_halfspaces-1);
 
@@ -268,7 +260,7 @@ namespace cilantro {
         orgQhull::Qhull qh;
         qh.qh()->HALFspace = True;
         qh.qh()->PRINTprecision = False;
-        //qh.qh()->JOGGLEmax = 0.0;
+        // qh.qh()->JOGGLEmax = 0.0;
         qh.qh()->TRIangulate = False;
         qh.qh()->premerge_centrum = merge_tol;
         qh.setFeasiblePoint(orgQhull::Coordinates(fpv));
@@ -349,8 +341,6 @@ namespace cilantro {
 
         Eigen::Matrix<double,EigenDim,1> mu(vert_data.rowwise().mean());
         const size_t true_dim = Eigen::FullPivLU<Eigen::Matrix<double,EigenDim,Eigen::Dynamic>>(vert_data.colwise() - mu).rank();
-
-        //std::cout << "TRUE DIMENSION: " << true_dim << std::endl << std::endl;
 
         if (require_full_dimension && true_dim < dim) {
             facet_halfspaces.resize(dim+1, 2);
@@ -514,8 +504,6 @@ namespace cilantro {
 
         Eigen::Matrix<double,EigenDim,1> mu(vert_data.rowwise().mean());
         const size_t true_dim = Eigen::FullPivLU<Eigen::Matrix<double,EigenDim,Eigen::Dynamic>>(vert_data.colwise() - mu).rank();
-
-        //std::cout << "TRUE DIMENSION: " << true_dim << std::endl << std::endl;
 
         if (true_dim < dim) {
             PrincipalComponentAnalysis<double,EigenDim> pca(vert_data);
@@ -709,4 +697,5 @@ namespace cilantro {
 
         return true;
     }
-}
+
+} // namespace cilantro

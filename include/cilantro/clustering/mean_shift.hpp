@@ -5,6 +5,7 @@
 #include <cilantro/clustering/clustering_base.hpp>
 
 namespace cilantro {
+
     template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
     class MeanShift : public ClusteringBase<MeanShift<ScalarT,EigenDim,DistAdaptor>,PointIndexT,ClusterIndexT> {
     public:
@@ -156,4 +157,5 @@ namespace cilantro {
 
     template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
     using MeanShiftXd = MeanShift<double,Eigen::Dynamic,DistAdaptor,PointIndexT,ClusterIndexT>;
-}
+
+} // namespace cilantro

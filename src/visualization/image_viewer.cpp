@@ -2,6 +2,7 @@
 
 #ifdef HAVE_PANGOLIN
 namespace cilantro {
+
     ImageViewer& ImageViewer::setImage(void * data, size_t w, size_t h, const std::string &fmt) {
         pangolin::BindToContext(window_name_);
         gl_pix_format_ = pangolin::GlPixFormat(pangolin::PixelFormatFromString(fmt));
@@ -69,5 +70,6 @@ namespace cilantro {
         pangolin::RegisterKeyPressCallback('Q', pangolin::Quit);
         display_ = &(pangolin::Display(display_name));
     }
-}
+
+} // namespace cilantro
 #endif

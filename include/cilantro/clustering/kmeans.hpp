@@ -5,6 +5,7 @@
 #include <cilantro/clustering/clustering_base.hpp>
 
 namespace cilantro {
+
     template <typename ScalarT, ptrdiff_t EigenDim, template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
     class KMeans : public ClusteringBase<KMeans<ScalarT,EigenDim,DistAdaptor>,PointIndexT,ClusterIndexT> {
     public:
@@ -102,7 +103,6 @@ namespace cilantro {
                     for (size_t i = 0; i < num_points; i++) {
                         min_dist = std::numeric_limits<ScalarT>::infinity();
                         for (size_t j = 0; j < num_clusters; j++) {
-                            // Resolved at compile time
                             if constexpr (std::is_same<DistAdaptor<DataAdaptor>, KDTreeDistanceAdaptors::L2<DataAdaptor>>::value ||
                                           std::is_same<DistAdaptor<DataAdaptor>, KDTreeDistanceAdaptors::L2Simple<DataAdaptor>>::value)
                             {
@@ -206,4 +206,5 @@ namespace cilantro {
 
     template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
     using KMeansXd = KMeans<double,Eigen::Dynamic,DistAdaptor,PointIndexT,ClusterIndexT>;
-}
+
+} // namespace cilantro

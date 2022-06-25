@@ -3,6 +3,7 @@
 #include <cilantro/spatial/convex_polytope.hpp>
 
 namespace cilantro {
+
     template <typename ScalarT, typename IndexT = size_t>
     class FlatConvexHull3 : public PrincipalComponentAnalysis<ScalarT,3>, public ConvexHull<ScalarT,2,IndexT> {
     public:
@@ -66,4 +67,5 @@ namespace cilantro {
 
     typedef FlatConvexHull3<float> FlatConvexHull3f;
     typedef FlatConvexHull3<double> FlatConvexHull3d;
-}
+
+} // namespace cilantro

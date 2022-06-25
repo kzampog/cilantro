@@ -8,6 +8,7 @@
 #include <cilantro/utilities/ply_io.hpp>
 
 namespace cilantro {
+
     template <typename ScalarT, ptrdiff_t EigenDim>
     class PointCloud {
     public:
@@ -492,4 +493,5 @@ namespace cilantro {
     typedef PointCloud<double,3> PointCloud3d;
     typedef PointCloud<float,Eigen::Dynamic> PointCloudXf;
     typedef PointCloud<double,Eigen::Dynamic> PointCloudXd;
-}
+
+} // namespace cilantro

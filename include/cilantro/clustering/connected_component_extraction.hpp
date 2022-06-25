@@ -6,6 +6,7 @@
 #include <cilantro/clustering/clustering_base.hpp>
 
 namespace cilantro {
+
     template <class T>
     struct SizeLessComparator {
         inline bool operator()(const T& obj1, const T& obj2) const { return obj1.size() < obj2.size(); }
@@ -420,4 +421,5 @@ namespace cilantro {
 
     template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename PointIndexT = size_t, typename ClusterIndexT = size_t>
     using ConnectedComponentExtractionXd = ConnectedComponentExtraction<double,Eigen::Dynamic,DistAdaptor,PointIndexT,ClusterIndexT>;
-}
+
+} // namespace cilantro

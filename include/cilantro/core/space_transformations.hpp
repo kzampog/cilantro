@@ -3,6 +3,7 @@
 #include <cilantro/core/data_containers.hpp>
 
 namespace cilantro {
+
     namespace internal {
         template <typename T, typename = int>
         struct HasLinear : std::false_type {};
@@ -659,4 +660,5 @@ namespace cilantro {
             normals_trans.col(i).noalias() = (tforms[i].linear().inverse().transpose()*normals.col(i)).normalized();
         }
     }
-}
+
+} // namespace cilantro

@@ -3,6 +3,7 @@
 #include <cilantro/core/space_transformations.hpp>
 
 namespace cilantro {
+
     template <typename RawDepthT, typename MetricDepthT>
     struct DepthValueConverter {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -963,4 +964,5 @@ namespace cilantro {
             }
         }
     }
-}
+
+} // namespace cilantro

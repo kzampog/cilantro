@@ -4,6 +4,7 @@
 #include <random>
 
 namespace cilantro {
+
     // Copied from https://gist.github.com/cbsmith/5538174
     template <typename RandomGeneratorT = std::mt19937>
     struct RandomElementSelector {
@@ -37,4 +38,5 @@ namespace cilantro {
     private:
         RandomGenerator gen_;
     };
-}  // namespace cilantro
+
+} // namespace cilantro

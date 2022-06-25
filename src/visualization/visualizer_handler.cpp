@@ -3,6 +3,7 @@
 
 #ifdef HAVE_PANGOLIN
 namespace cilantro {
+
     VisualizerHandler::VisualizerHandler(Visualizer *visualizer)
             : translationFactor(0.01f),
               zoomFraction(PANGO_DFLT_HANDLER3D_ZF),
@@ -406,5 +407,6 @@ namespace cilantro {
             visualizer->gl_render_state_->SetProjectionMatrix(pangolin::ProjectionMatrixOrthographic(ortho_left,ortho_right,ortho_bottom,ortho_top,ortho_near,ortho_far));
         }
     }
-}
+
+} // namespace cilantro
 #endif
