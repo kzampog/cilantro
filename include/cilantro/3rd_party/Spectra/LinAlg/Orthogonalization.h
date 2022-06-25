@@ -138,4 +138,4 @@ void twice_is_enough_orthogonalisation(Matrix& in_output, Eigen::Index left_cols
 
 }  // namespace Spectra
 
-#endif  //SPECTRA_ORTHOGONALIZATION_H
+#endif  // SPECTRA_ORTHOGONALIZATION_H

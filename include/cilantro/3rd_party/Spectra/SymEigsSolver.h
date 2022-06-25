@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2021 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2022 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -101,8 +101,8 @@ namespace Spectra {
 /// {
 /// public:
 ///     using Scalar = double;  // A typedef named "Scalar" is required
-///     int rows() { return 10; }
-///     int cols() { return 10; }
+///     int rows() const { return 10; }
+///     int cols() const { return 10; }
 ///     // y_out = M * x_in
 ///     void perform_op(double *x_in, double *y_out) const
 ///     {

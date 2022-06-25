@@ -188,10 +188,10 @@ private:
     }
 
     /*
-		return
-		'AB
-		CD'
-		*/
+                return
+                'AB
+                CD'
+                */
     Matrix stack_4_matricies(Matrix A, Matrix B,
                              Matrix C, Matrix D)
     {
@@ -301,7 +301,7 @@ public:
         if (A.rows() != X.rows() || A.rows() != A.cols())
             throw std::invalid_argument("Wrong size");
 
-        //if (m_n < 5* m_nev)
+        // if (m_n < 5* m_nev)
         //	throw std::invalid_argument("The problem size is small compared to the block size. Use standard eigensolver");
     }
 

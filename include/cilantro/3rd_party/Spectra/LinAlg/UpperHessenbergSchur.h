@@ -2,7 +2,7 @@
 //
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2010,2012 Jitse Niesen <jitse@maths.leeds.ac.uk>
-// Copyright (C) 2021 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2021-2022 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -191,6 +191,92 @@ private:
         }
     }
 
+    // SIMD version of apply_householder_right()
+    // Inspired by apply_rotation_in_the_plane_selector() in Eigen/src/Jacobi/Jacobi.h
+    static void apply_householder_right_simd(const Vector2s& ess, const Scalar& tau, Scalar* x, Index nrow, Index stride)
+    {
+        // Packet type
+        using Eigen::internal::ploadu;
+        using Eigen::internal::pstoreu;
+        using Eigen::internal::pset1;
+        using Eigen::internal::padd;
+        using Eigen::internal::psub;
+        using Eigen::internal::pmul;
+        using Packet = typename Eigen::internal::packet_traits<Scalar>::type;
+        constexpr unsigned char PacketSize = Eigen::internal::packet_traits<Scalar>::size;
+        constexpr unsigned char Peeling = 2;
+        constexpr unsigned char Increment = Peeling * PacketSize;
+
+        // Column heads
+        Scalar* x0 = x;
+        Scalar* x1 = x + stride;
+        Scalar* x2 = x1 + stride;
+        // Pointers for the current row
+        Scalar* px0 = x0;
+        Scalar* px1 = x1;
+        Scalar* px2 = x2;
+
+        // Householder reflectors
+        const Scalar v1 = ess.coeff(0), v2 = ess.coeff(1);
+        // Vectorized versions
+        const Packet vtau = pset1<Packet>(tau);
+        const Packet vv1 = pset1<Packet>(v1);
+        const Packet vv2 = pset1<Packet>(v2);
+
+        // n % (2^k) == n & (2^k-1), see https://stackoverflow.com/q/3072665
+        // const Index peeling_end = nrow - nrow % Increment;
+        const Index aligned_end = nrow - (nrow & (PacketSize - 1));
+        const Index peeling_end = nrow - (nrow & (Increment - 1));
+        for (Index i = 0; i < peeling_end; i += Increment)
+        {
+            Packet vx01 = ploadu<Packet>(px0);
+            Packet vx02 = ploadu<Packet>(px0 + PacketSize);
+            Packet vx11 = ploadu<Packet>(px1);
+            Packet vx12 = ploadu<Packet>(px1 + PacketSize);
+            Packet vx21 = ploadu<Packet>(px2);
+            Packet vx22 = ploadu<Packet>(px2 + PacketSize);
+
+            // Packet txv1 = vtau * (vx01 + vv1 * vx11 + vv2 * vx21);
+            Packet txv1 = pmul(vtau, padd(padd(vx01, pmul(vv1, vx11)), pmul(vv2, vx21)));
+            Packet txv2 = pmul(vtau, padd(padd(vx02, pmul(vv1, vx12)), pmul(vv2, vx22)));
+
+            pstoreu(px0, psub(vx01, txv1));
+            pstoreu(px0 + PacketSize, psub(vx02, txv2));
+            pstoreu(px1, psub(vx11, pmul(txv1, vv1)));
+            pstoreu(px1 + PacketSize, psub(vx12, pmul(txv2, vv1)));
+            pstoreu(px2, psub(vx21, pmul(txv1, vv2)));
+            pstoreu(px2 + PacketSize, psub(vx22, pmul(txv2, vv2)));
+
+            px0 += Increment;
+            px1 += Increment;
+            px2 += Increment;
+        }
+        if (aligned_end != peeling_end)
+        {
+            px0 = x0 + peeling_end;
+            px1 = x1 + peeling_end;
+            px2 = x2 + peeling_end;
+
+            Packet x0_p = ploadu<Packet>(px0);
+            Packet x1_p = ploadu<Packet>(px1);
+            Packet x2_p = ploadu<Packet>(px2);
+            Packet txv = pmul(vtau, padd(padd(x0_p, pmul(vv1, x1_p)), pmul(vv2, x2_p)));
+
+            pstoreu(px0, psub(x0_p, txv));
+            pstoreu(px1, psub(x1_p, pmul(txv, vv1)));
+            pstoreu(px2, psub(x2_p, pmul(txv, vv2)));
+        }
+
+        // Remaining rows
+        for (Index i = aligned_end; i < nrow; i++)
+        {
+            const Scalar txv = tau * (x0[i] + v1 * x1[i] + v2 * x2[i]);
+            x0[i] -= txv;
+            x1[i] -= txv * v1;
+            x2[i] -= txv * v2;
+        }
+    }
+
     // Perform a Francis QR step involving rows il:iu and columns im:iu
     void perform_francis_qr_step(Index il, Index im, Index iu, const Vector3s& first_householder_vec, const Scalar& near_0)
     {
@@ -221,8 +307,8 @@ private:
                 // m_T.block(0, k, (std::min)(iu, k + 3) + 1, 3).applyHouseholderOnTheRight(ess, tau, workspace);
                 // m_U.block(0, k, m_n, 3).applyHouseholderOnTheRight(ess, tau, workspace);
                 apply_householder_left(ess, tau, &m_T.coeffRef(k, k), m_n - k, m_n);
-                apply_householder_right(ess, tau, &m_T.coeffRef(0, k), (std::min)(iu, k + 3) + 1, m_n);
-                apply_householder_right(ess, tau, &m_U.coeffRef(0, k), m_n, m_n);
+                apply_householder_right_simd(ess, tau, &m_T.coeffRef(0, k), (std::min)(iu, k + 3) + 1, m_n);
+                apply_householder_right_simd(ess, tau, &m_U.coeffRef(0, k), m_n, m_n);
             }
         }
 
