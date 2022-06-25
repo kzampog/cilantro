@@ -48,7 +48,6 @@ int main(int argc, char ** argv) {
     std::cout << "Embedding dimension: " << mds.getEmbeddedPoints().rows() << std::endl;
 
     size_t dim = mds.getEmbeddedPoints().rows();
-//    std::cout << mds.getComputedEigenValues().transpose() << std::endl;
 
     // Create a new cloud by re-embedding the embedded points back to 3D
     cilantro::VectorSet<float,3> points_reproj(3, distances_sq.rows());

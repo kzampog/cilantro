@@ -212,11 +212,11 @@ int main(int argc, char ** argv) {
 
         // Visualization
         rgbv.setImage(rgb_img.ptr, w, h, "RGB24");
-//        pcdv.addObject<cilantro::PointCloudRenderable>("model", model, rp)->setPointValues(confidence);
+        // pcdv.addObject<cilantro::PointCloudRenderable>("model", model, rp)->setPointValues(confidence);
         pcdv.addObject<cilantro::PointCloudRenderable>("model", model, rp);
         pcdv.addObject<cilantro::CameraFrustumRenderable>("cam", w, h, K, cam_pose.matrix(), 0.1f, cilantro::RenderingProperties().setLineWidth(2.0f).setLineColor(1.0f,1.0f,0.0f));
-//        pcdv.addObject<cilantro::PointCloudRenderable>("frame", frame.transformed(cam_pose), cilantro::RenderingProperties().setOpacity(0.2f).setPointColor(0.8f, 0.8f, 0.8f).setUseLighting(false));
-//        pcdv.setCameraPose(cam_pose);
+        // pcdv.addObject<cilantro::PointCloudRenderable>("frame", frame.transformed(cam_pose), cilantro::RenderingProperties().setOpacity(0.2f).setPointColor(0.8f, 0.8f, 0.8f).setUseLighting(false));
+        // pcdv.setCameraPose(cam_pose);
 
         pcdv.clearRenderArea();
         rgbv.render();

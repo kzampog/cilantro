@@ -18,9 +18,9 @@ int main(int argc, char ** argv) {
 
     cilantro::SpaceRegion2f sr3(std::vector<Eigen::Vector3f>(1,Eigen::Vector3f(-1,1,-70)));
 
-//    SpaceRegion2D sr = sr1.unionWith(sr2).complement();
+    // SpaceRegion2D sr = sr1.unionWith(sr2).complement();
     cilantro::SpaceRegion2f sr = sr1.intersectionWith(sr2.complement()).unionWith(sr2.intersectionWith(sr1.complement())).intersectionWith(sr3);
-//    SpaceRegion2D sr = sr2.relativeComplement(sr1);
+    // SpaceRegion2D sr = sr2.relativeComplement(sr1);
 
     sr.transform(Eigen::Rotation2D<float>(-M_PI/4.0).toRotationMatrix(), Eigen::Vector2f(80,220));
 

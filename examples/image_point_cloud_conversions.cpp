@@ -52,10 +52,10 @@ int main(int argc, char ** argv) {
 
         // Get point cloud from RGBD image pair
         cilantro::DepthValueConverter<unsigned short,float> dc1(1000.0f);
-//        cloud.fromDepthImage(depth_img.ptr, dc1, w, h, K, false, true);
-//        cloud.fromRGBDImages(rgb_img.ptr, depth_img.ptr, dc1, w, h, K, false, true);
-//        cilantro::RGBDImagesToPointsColors(rgb_img.ptr, depth_img.ptr, dc1, w, h, K, cloud.points, cloud.colors, false);
-//        cilantro::depthImageToPointsNormals(depth_img.ptr, dc1, w, h, K, cloud.points, cloud.normals, false);
+        // cloud.fromDepthImage(depth_img.ptr, dc1, w, h, K, false, true);
+        // cloud.fromRGBDImages(rgb_img.ptr, depth_img.ptr, dc1, w, h, K, false, true);
+        // cilantro::RGBDImagesToPointsColors(rgb_img.ptr, depth_img.ptr, dc1, w, h, K, cloud.points, cloud.colors, false);
+        // cilantro::depthImageToPointsNormals(depth_img.ptr, dc1, w, h, K, cloud.points, cloud.normals, false);
         cilantro::RGBDImagesToPointsNormalsColors(rgb_img.ptr, depth_img.ptr, dc1, w, h, K, cloud.points, cloud.normals, cloud.colors, false);
 
         // Get a depth map back from the point cloud

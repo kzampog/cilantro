@@ -59,7 +59,7 @@ int main(int argc, char ** argv) {
     cilantro::Timer timer;
     timer.start();
 
-//    cilantro::SimpleCombinedMetricSparseAffineWarpFieldICP3f icp(dst.points, dst.normals, src.points, src_to_control_nn, control_points.cols(), regularization_nn);
+    // cilantro::SimpleCombinedMetricSparseAffineWarpFieldICP3f icp(dst.points, dst.normals, src.points, src_to_control_nn, control_points.cols(), regularization_nn);
     cilantro::SimpleCombinedMetricSparseRigidWarpFieldICP3f icp(dst.points, dst.normals, src.points, src_to_control_nn, control_points.cols(), regularization_nn);
 
     // Parameter setting
@@ -77,40 +77,38 @@ int main(int argc, char ** argv) {
 
     timer.stop();
 
+    // // Example 2: Compute a densely supported warp field (each point has its own local transformation)
+    // float res = 0.005f;
+    // float regularization_sigma = 3.0f*res;
 
-//    // Example 2: Compute a densely supported warp field (each point has its own local transformation)
-//    float res = 0.005f;
-//    float regularization_sigma = 3.0f*res;
-//
-//    dst.gridDownsample(res).removeInvalidData();
-//    src.gridDownsample(res).removeInvalidData();
-//
-//    float max_correspondence_dist_sq = 0.04f*0.04f;
-//
-//    std::vector<cilantro::NeighborSet<float>> regularization_nn;
-//    cilantro::KDTree3f(src.points).search(src.points, cilantro::KNNNeighborhoodSpecification<>(12), regularization_nn);
-//
-//    // Perform ICP registration
-//    cilantro::Timer timer;
-//    timer.start();
-//
-////    cilantro::SimpleCombinedMetricDenseAffineWarpFieldICP3f icp(dst.points, dst.normals, src.points, regularization_nn);
-//    cilantro::SimpleCombinedMetricDenseRigidWarpFieldICP3f icp(dst.points, dst.normals, src.points, regularization_nn);
-//
-//    // Parameter setting
-//    icp.correspondenceSearchEngine().setMaxDistance(max_correspondence_dist_sq);
-//    icp.regularizationWeightEvaluator().setSigma(regularization_sigma);
-//
-//    icp.setMaxNumberOfIterations(15).setConvergenceTolerance(2.5e-3f);
-//    icp.setMaxNumberOfGaussNewtonIterations(1).setGaussNewtonConvergenceTolerance(5e-4f);
-//    icp.setMaxNumberOfConjugateGradientIterations(500).setConjugateGradientConvergenceTolerance(1e-5f);
-//    icp.setPointToPointMetricWeight(0.1f).setPointToPlaneMetricWeight(1.0f).setStiffnessRegularizationWeight(200.0f);
-//    icp.setHuberLossBoundary(1e-2f);
-//
-//    auto tf_est = icp.estimate().getTransform();
-//
-//    timer.stop();
+    // dst.gridDownsample(res).removeInvalidData();
+    // src.gridDownsample(res).removeInvalidData();
 
+    // float max_correspondence_dist_sq = 0.04f*0.04f;
+
+    // std::vector<cilantro::NeighborSet<float>> regularization_nn;
+    // cilantro::KDTree3f(src.points).search(src.points, cilantro::KNNNeighborhoodSpecification<>(12), regularization_nn);
+
+    // // Perform ICP registration
+    // cilantro::Timer timer;
+    // timer.start();
+
+    // // cilantro::SimpleCombinedMetricDenseAffineWarpFieldICP3f icp(dst.points, dst.normals, src.points, regularization_nn);
+    // cilantro::SimpleCombinedMetricDenseRigidWarpFieldICP3f icp(dst.points, dst.normals, src.points, regularization_nn);
+
+    // // Parameter setting
+    // icp.correspondenceSearchEngine().setMaxDistance(max_correspondence_dist_sq);
+    // icp.regularizationWeightEvaluator().setSigma(regularization_sigma);
+
+    // icp.setMaxNumberOfIterations(15).setConvergenceTolerance(2.5e-3f);
+    // icp.setMaxNumberOfGaussNewtonIterations(1).setGaussNewtonConvergenceTolerance(5e-4f);
+    // icp.setMaxNumberOfConjugateGradientIterations(500).setConjugateGradientConvergenceTolerance(1e-5f);
+    // icp.setPointToPointMetricWeight(0.1f).setPointToPlaneMetricWeight(1.0f).setStiffnessRegularizationWeight(200.0f);
+    // icp.setHuberLossBoundary(1e-2f);
+
+    // auto tf_est = icp.estimate().getTransform();
+
+    // timer.stop();
 
     std::cout << "Registration time: " << timer.getElapsedTime() << "ms" << std::endl;
     std::cout << "Iterations performed: " << icp.getNumberOfPerformedIterations() << std::endl;
