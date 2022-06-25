@@ -1,0 +1,12 @@
+---
+Language: Cpp
+BasedOnStyle: Google
+AccessModifierOffset: -2
+AlignEscapedNewlines: Left
+AlwaysBreakBeforeMultilineStrings: false
+ColumnLimit: 100
+DerivePointerAlignment: false
+IndentCaseLabels: false
+PointerAlignment: Left
+SortIncludes: false
+...

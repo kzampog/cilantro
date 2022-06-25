@@ -10,204 +10,227 @@
 
 namespace cilantro {
 
-    class Visualizer {
-        friend class VisualizerHandler;
-    public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+class Visualizer {
+  friend class VisualizerHandler;
 
-        inline Visualizer(const std::string &window_name, const std::string &display_name) { init_(window_name, display_name); }
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        inline ~Visualizer() { pangolin::BindToContext(window_name_); }
+  inline Visualizer(const std::string& window_name, const std::string& display_name) {
+    init_(window_name, display_name);
+  }
 
-        template <class RenderableT>
-        std::shared_ptr<RenderableT> addObject(const std::string &name, const std::shared_ptr<RenderableT> &obj_ptr) {
-            pangolin::BindToContext(window_name_);
-            renderables_[name] = ManagedRenderable(std::static_pointer_cast<Renderable>(obj_ptr), std::shared_ptr<typename RenderableT::GPUBuffers>(new typename RenderableT::GPUBuffers()));
-            obj_ptr->resetGPUBufferStatus();
-            return obj_ptr;
-        }
+  inline ~Visualizer() { pangolin::BindToContext(window_name_); }
 
-        template <class RenderableT, class... Args>
-        std::shared_ptr<RenderableT> addObject(const std::string &name, Args&&... args) {
-            pangolin::BindToContext(window_name_);
-            std::shared_ptr<RenderableT> obj_ptr(new RenderableT(std::forward<Args>(args)...));
-            renderables_[name] = ManagedRenderable(std::static_pointer_cast<Renderable>(obj_ptr), std::shared_ptr<typename RenderableT::GPUBuffers>(new typename RenderableT::GPUBuffers()));
-            return obj_ptr;
-        }
+  template <class RenderableT>
+  std::shared_ptr<RenderableT> addObject(const std::string& name,
+                                         const std::shared_ptr<RenderableT>& obj_ptr) {
+    pangolin::BindToContext(window_name_);
+    renderables_[name] = ManagedRenderable(
+        std::static_pointer_cast<Renderable>(obj_ptr),
+        std::shared_ptr<typename RenderableT::GPUBuffers>(new typename RenderableT::GPUBuffers()));
+    obj_ptr->resetGPUBufferStatus();
+    return obj_ptr;
+  }
 
-        template <class RenderableT = Renderable>
-        std::shared_ptr<RenderableT> getObject(const std::string &name) {
-            auto it = renderables_.find(name);
-            if (it == renderables_.end()) return std::shared_ptr<RenderableT>();
-            return std::dynamic_pointer_cast<RenderableT>(it->second.first);
-        }
+  template <class RenderableT, class... Args>
+  std::shared_ptr<RenderableT> addObject(const std::string& name, Args&&... args) {
+    pangolin::BindToContext(window_name_);
+    std::shared_ptr<RenderableT> obj_ptr(new RenderableT(std::forward<Args>(args)...));
+    renderables_[name] = ManagedRenderable(
+        std::static_pointer_cast<Renderable>(obj_ptr),
+        std::shared_ptr<typename RenderableT::GPUBuffers>(new typename RenderableT::GPUBuffers()));
+    return obj_ptr;
+  }
 
-        RenderingProperties getRenderingProperties(const std::string &name) const;
+  template <class RenderableT = Renderable>
+  std::shared_ptr<RenderableT> getObject(const std::string& name) {
+    auto it = renderables_.find(name);
+    if (it == renderables_.end()) return std::shared_ptr<RenderableT>();
+    return std::dynamic_pointer_cast<RenderableT>(it->second.first);
+  }
 
-        Visualizer& setRenderingProperties(const std::string &name, const RenderingProperties &rp);
+  RenderingProperties getRenderingProperties(const std::string& name) const;
 
-        bool getVisibility(const std::string &name) const;
+  Visualizer& setRenderingProperties(const std::string& name, const RenderingProperties& rp);
 
-        Visualizer& setVisibility(const std::string &name, bool visible);
+  bool getVisibility(const std::string& name) const;
 
-        Visualizer& toggleVisibility(const std::string &name);
+  Visualizer& setVisibility(const std::string& name, bool visible);
 
-        Visualizer& clear();
+  Visualizer& toggleVisibility(const std::string& name);
 
-        Visualizer& remove(const std::string &name);
+  Visualizer& clear();
 
-        Visualizer& clearRenderArea();
+  Visualizer& remove(const std::string& name);
 
-        Visualizer& render();
+  Visualizer& clearRenderArea();
 
-        Visualizer& finishFrame();
+  Visualizer& render();
 
-        Visualizer& spinOnce();
+  Visualizer& finishFrame();
 
-        Visualizer& spin();
+  Visualizer& spinOnce();
 
-        inline bool wasStopped() { pangolin::BindToContext(window_name_); return pangolin::ShouldQuit(); }
+  Visualizer& spin();
 
-        std::vector<std::string> getObjectNames() const;
+  inline bool wasStopped() {
+    pangolin::BindToContext(window_name_);
+    return pangolin::ShouldQuit();
+  }
 
-        inline Eigen::Vector3f getClearColor() const { return clear_color_; }
+  std::vector<std::string> getObjectNames() const;
 
-        inline Visualizer& setClearColor(const Eigen::Vector3f &color) { clear_color_ = color; return *this; }
+  inline Eigen::Vector3f getClearColor() const { return clear_color_; }
 
-        inline Visualizer& setClearColor(float r, float g, float b) { clear_color_ << r, g, b; return *this; }
+  inline Visualizer& setClearColor(const Eigen::Vector3f& color) {
+    clear_color_ = color;
+    return *this;
+  }
 
-        Visualizer& setPerspectiveProjectionMatrix(size_t w, size_t h,
-                                                   pangolin::GLprecision fu, pangolin::GLprecision fv,
-                                                   pangolin::GLprecision u0, pangolin::GLprecision v0,
-                                                   pangolin::GLprecision zNear, pangolin::GLprecision zFar);
+  inline Visualizer& setClearColor(float r, float g, float b) {
+    clear_color_ << r, g, b;
+    return *this;
+  }
 
-        Visualizer& setPerspectiveProjectionMatrix(size_t w, size_t h,
-                                                   const Eigen::Matrix3f &intrinsics,
-                                                   pangolin::GLprecision zNear, pangolin::GLprecision zFar);
+  Visualizer& setPerspectiveProjectionMatrix(size_t w, size_t h, pangolin::GLprecision fu,
+                                             pangolin::GLprecision fv, pangolin::GLprecision u0,
+                                             pangolin::GLprecision v0, pangolin::GLprecision zNear,
+                                             pangolin::GLprecision zFar);
 
-        Visualizer& setOrthographicProjectionMatrix(pangolin::GLprecision left, pangolin::GLprecision right,
-                                                    pangolin::GLprecision bottom, pangolin::GLprecision top,
-                                                    pangolin::GLprecision near, pangolin::GLprecision far);
+  Visualizer& setPerspectiveProjectionMatrix(size_t w, size_t h, const Eigen::Matrix3f& intrinsics,
+                                             pangolin::GLprecision zNear,
+                                             pangolin::GLprecision zFar);
 
-        Visualizer& setOrthographicProjectionMatrix(pangolin::GLprecision height,
-                                                    pangolin::GLprecision near, pangolin::GLprecision far);
+  Visualizer& setOrthographicProjectionMatrix(pangolin::GLprecision left,
+                                              pangolin::GLprecision right,
+                                              pangolin::GLprecision bottom,
+                                              pangolin::GLprecision top, pangolin::GLprecision near,
+                                              pangolin::GLprecision far);
 
-        inline Visualizer& enablePerspectiveProjection() {
-            input_handler_->EnablePerspectiveProjection();
-            return *this;
-        }
+  Visualizer& setOrthographicProjectionMatrix(pangolin::GLprecision height,
+                                              pangolin::GLprecision near,
+                                              pangolin::GLprecision far);
 
-        inline Visualizer& enableOrthographicProjection() {
-            input_handler_->EnableOrthographicProjection();
-            return *this;
-        }
+  inline Visualizer& enablePerspectiveProjection() {
+    input_handler_->EnablePerspectiveProjection();
+    return *this;
+  }
 
-        inline Visualizer& toggleProjectionMode() { input_handler_->ToggleProjectionMode(); return *this; }
+  inline Visualizer& enableOrthographicProjection() {
+    input_handler_->EnableOrthographicProjection();
+    return *this;
+  }
 
-        const Visualizer& getCameraPose(Eigen::Ref<Eigen::Matrix4f> pose) const;
+  inline Visualizer& toggleProjectionMode() {
+    input_handler_->ToggleProjectionMode();
+    return *this;
+  }
 
-        inline const Visualizer& getCameraPose(RigidTransform3f &pose) const {
-            return getCameraPose(pose.matrix());
-        }
+  const Visualizer& getCameraPose(Eigen::Ref<Eigen::Matrix4f> pose) const;
 
-        const Visualizer& getCameraPose(Eigen::Vector3f &position,
-                                        Eigen::Vector3f &look_at,
-                                        Eigen::Vector3f &up_direction) const;
+  inline const Visualizer& getCameraPose(RigidTransform3f& pose) const {
+    return getCameraPose(pose.matrix());
+  }
 
-        Visualizer& setCameraPose(const Eigen::Vector3f &position,
-                                  const Eigen::Vector3f &look_at,
-                                  const Eigen::Vector3f &up_direction);
+  const Visualizer& getCameraPose(Eigen::Vector3f& position, Eigen::Vector3f& look_at,
+                                  Eigen::Vector3f& up_direction) const;
 
-        Visualizer& setCameraPose(float pos_x, float pos_y, float pos_z,
-                                  float look_at_x, float look_at_y, float look_at_z,
-                                  float up_dir_x, float up_dir_y, float up_dir_z);
+  Visualizer& setCameraPose(const Eigen::Vector3f& position, const Eigen::Vector3f& look_at,
+                            const Eigen::Vector3f& up_direction);
 
-        Visualizer& setCameraPose(const Eigen::Ref<const Eigen::Matrix4f> &pose);
+  Visualizer& setCameraPose(float pos_x, float pos_y, float pos_z, float look_at_x, float look_at_y,
+                            float look_at_z, float up_dir_x, float up_dir_y, float up_dir_z);
 
-        inline Visualizer& setCameraPose(const RigidTransform3f &pose) {
-            return setCameraPose(pose.matrix());
-        }
+  Visualizer& setCameraPose(const Eigen::Ref<const Eigen::Matrix4f>& pose);
 
-        const Visualizer& getDefaultCameraPose(Eigen::Ref<Eigen::Matrix4f> pose) const;
+  inline Visualizer& setCameraPose(const RigidTransform3f& pose) {
+    return setCameraPose(pose.matrix());
+  }
 
-        inline const Visualizer& getDefaultCameraPose(RigidTransform3f &pose) const {
-            return getDefaultCameraPose(pose.matrix());
-        }
+  const Visualizer& getDefaultCameraPose(Eigen::Ref<Eigen::Matrix4f> pose) const;
 
-        const Visualizer& getDefaultCameraPose(Eigen::Vector3f &position,
-                                               Eigen::Vector3f &look_at,
-                                               Eigen::Vector3f &up_direction) const;
+  inline const Visualizer& getDefaultCameraPose(RigidTransform3f& pose) const {
+    return getDefaultCameraPose(pose.matrix());
+  }
 
-        Visualizer& setDefaultCameraPose(const Eigen::Vector3f &position,
-                                         const Eigen::Vector3f &look_at,
-                                         const Eigen::Vector3f &up_direction);
+  const Visualizer& getDefaultCameraPose(Eigen::Vector3f& position, Eigen::Vector3f& look_at,
+                                         Eigen::Vector3f& up_direction) const;
 
-        Visualizer& setDefaultCameraPose(float pos_x, float pos_y, float pos_z,
-                                         float look_at_x, float look_at_y, float look_at_z,
-                                         float up_dir_x, float up_dir_y, float up_dir_z);
+  Visualizer& setDefaultCameraPose(const Eigen::Vector3f& position, const Eigen::Vector3f& look_at,
+                                   const Eigen::Vector3f& up_direction);
 
-        Visualizer& setDefaultCameraPose(const Eigen::Ref<const Eigen::Matrix4f> &pose);
+  Visualizer& setDefaultCameraPose(float pos_x, float pos_y, float pos_z, float look_at_x,
+                                   float look_at_y, float look_at_z, float up_dir_x, float up_dir_y,
+                                   float up_dir_z);
 
-        inline Visualizer& setDefaultCameraPose(const RigidTransform3f &pose) {
-            return setDefaultCameraPose(pose.matrix());
-        }
+  Visualizer& setDefaultCameraPose(const Eigen::Ref<const Eigen::Matrix4f>& pose);
 
-        Visualizer& registerKeyboardCallback(unsigned char key, std::function<void(void)> func);
+  inline Visualizer& setDefaultCameraPose(const RigidTransform3f& pose) {
+    return setDefaultCameraPose(pose.matrix());
+  }
 
-        pangolin::TypedImage getRenderImage(float scale = 1.0f, bool rgba = false);
+  Visualizer& registerKeyboardCallback(unsigned char key, std::function<void(void)> func);
 
-        Visualizer& saveRenderAsImage(const std::string &file_name, float scale, float quality, bool rgba = false);
+  pangolin::TypedImage getRenderImage(float scale = 1.0f, bool rgba = false);
 
-        Visualizer& startVideoRecording(const std::string &uri, size_t fps,
-                                        bool record_on_render = false, float scale = 1.0f, bool rgba = false);
+  Visualizer& saveRenderAsImage(const std::string& file_name, float scale, float quality,
+                                bool rgba = false);
 
-        Visualizer& recordVideoFrame();
+  Visualizer& startVideoRecording(const std::string& uri, size_t fps, bool record_on_render = false,
+                                  float scale = 1.0f, bool rgba = false);
 
-        Visualizer& stopVideoRecording();
+  Visualizer& recordVideoFrame();
 
-        inline bool isRecording() const { return !!video_recorder_; }
+  Visualizer& stopVideoRecording();
 
-        inline const std::string& getWindowName() const { return window_name_; }
+  inline bool isRecording() const { return !!video_recorder_; }
 
-        inline pangolin::View* getDisplay() const { return display_; }
+  inline const std::string& getWindowName() const { return window_name_; }
 
-        inline const std::shared_ptr<pangolin::OpenGlRenderState>& getRenderState() const { return gl_render_state_; }
+  inline pangolin::View* getDisplay() const { return display_; }
 
-        inline Visualizer& setRenderState(const std::shared_ptr<pangolin::OpenGlRenderState>& render_state) {
-            gl_render_state_ = render_state;
-            return *this;
-        }
+  inline const std::shared_ptr<pangolin::OpenGlRenderState>& getRenderState() const {
+    return gl_render_state_;
+  }
 
-        inline VisualizerHandler* getInputHandler() const { return input_handler_.get(); }
+  inline Visualizer& setRenderState(
+      const std::shared_ptr<pangolin::OpenGlRenderState>& render_state) {
+    gl_render_state_ = render_state;
+    return *this;
+  }
 
-    private:
-        std::string window_name_;
-        pangolin::View *display_;
+  inline VisualizerHandler* getInputHandler() const { return input_handler_.get(); }
 
-        std::shared_ptr<pangolin::OpenGlRenderState> gl_render_state_;
-        std::shared_ptr<VisualizerHandler> input_handler_;
-        std::shared_ptr<pangolin::VideoOutput> video_recorder_;
-        size_t video_fps_;
-        float video_scale_;
-        bool video_rgba_;
-        bool video_record_on_render_;
-        Eigen::Vector3f clear_color_;
-        Eigen::Matrix4f cam_axes_rot_;
+private:
+  std::string window_name_;
+  pangolin::View* display_;
 
-        typedef std::pair<std::shared_ptr<Renderable>,std::shared_ptr<GPUBufferObjects>> ManagedRenderable;
+  std::shared_ptr<pangolin::OpenGlRenderState> gl_render_state_;
+  std::shared_ptr<VisualizerHandler> input_handler_;
+  std::shared_ptr<pangolin::VideoOutput> video_recorder_;
+  size_t video_fps_;
+  float video_scale_;
+  bool video_rgba_;
+  bool video_record_on_render_;
+  Eigen::Vector3f clear_color_;
+  Eigen::Matrix4f cam_axes_rot_;
 
-        std::map<std::string,ManagedRenderable> renderables_;
+  typedef std::pair<std::shared_ptr<Renderable>, std::shared_ptr<GPUBufferObjects>>
+      ManagedRenderable;
 
-        void init_(const std::string &window_name, const std::string &display_name);
+  std::map<std::string, ManagedRenderable> renderables_;
 
-        struct RenderPriorityComparator_ {
-            inline bool operator()(const std::pair<std::tuple<bool,bool,float>,ManagedRenderable*> &o1,
-                                   const std::pair<std::tuple<bool,bool,float>,ManagedRenderable*> &o2) const
-            {
-                return o1.first > o2.first;
-            }
-        };
-    };
+  void init_(const std::string& window_name, const std::string& display_name);
 
-} // namespace cilantro
+  struct RenderPriorityComparator_ {
+    inline bool operator()(
+        const std::pair<std::tuple<bool, bool, float>, ManagedRenderable*>& o1,
+        const std::pair<std::tuple<bool, bool, float>, ManagedRenderable*>& o2) const {
+      return o1.first > o2.first;
+    }
+  };
+};
+
+}  // namespace cilantro
 #endif
