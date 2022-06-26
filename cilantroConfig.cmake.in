@@ -1,20 +1,13 @@
 get_filename_component(PROJECT_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-set(@PROJECT_NAME@_INCLUDE_DIRS "@EXPORT_INCLUDE_DIR@;@OTHER_INCLUDE_DIRS@")
 
 # Library dependencies (contains definitions for IMPORTED targets)
 if(NOT TARGET @PROJECT_NAME@ AND NOT @PROJECT_NAME@_BINARY_DIR)
-    include("${PROJECT_CMAKE_DIR}/@PROJECT_NAME@Targets.cmake")
-    @ExternConfig@
-    include(CMakeFindDependencyMacro)
-    find_package(Eigen3)
-    if(NOT TARGET Eigen3::Eigen)
-        message("Eigen has a buggy exported package, but headers are found: ${EIGEN3_INCLUDE_DIRS}. Applying workaround.")
-        add_library(Eigen INTERFACE IMPORTED GLOBAL)
-        target_include_directories(Eigen INTERFACE "${EIGEN3_INCLUDE_DIRS}")
-        add_library(Eigen3::Eigen ALIAS Eigen)
-    endif()
-    @DEPENDS_Pangolin@
-    @DEPENDS_OpenMP@
+  include("${PROJECT_CMAKE_DIR}/@PROJECT_NAME@Targets.cmake")
+  include(CMakeFindDependencyMacro)
+  find_dependency(Eigen3)
+  @DEPENDS_OpenMP@
+  @DEPENDS_Pangolin@
 endif()
 
+set(@PROJECT_NAME@_INCLUDE_DIRS "@EXPORT_INCLUDE_DIR@;@OTHER_INCLUDE_DIRS@")
 set(@PROJECT_NAME@_LIBRARIES @PROJECT_NAME@)
