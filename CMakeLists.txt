@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(cilantro)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
 set(CMAKE_BUILD_TYPE "Release")
 
 # Find dependencies
@@ -64,10 +63,11 @@ if(ENABLE_NATIVE_BUILD_OPTIMIZATIONS)
 else()
   target_compile_options(${PROJECT_NAME} PUBLIC -O3)
 endif()
+set_target_properties(${PROJECT_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Configure preprocessor definitions
 configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/config.hpp.in"
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.hpp.in"
   "${CMAKE_CURRENT_BINARY_DIR}/include/${PROJECT_NAME}/config.hpp"
 )
 
@@ -87,18 +87,16 @@ file(
 )
 
 # Build tree config
-set(EXPORT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include;${CMAKE_CURRENT_BINARY_DIR}/include")
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}Config.cmake.in
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
   @ONLY
   IMMEDIATE
 )
 
 # Install tree config
-set(EXPORT_INCLUDE_DIR "${PROJECT_CMAKE_DIR}/${REL_INCLUDE_DIR}")
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}Config.cmake.in
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake
   @ONLY
 )
@@ -137,7 +135,7 @@ install(
 # Uninstall target
 if(NOT TARGET uninstall)
   configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
     IMMEDIATE @ONLY
   )
@@ -148,7 +146,11 @@ if(NOT TARGET uninstall)
 endif()
 
 # Configure Doxyfile
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Doxyfile.in
+  ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+  @ONLY
+)
 
 # Build examples
 option(BUILD_EXAMPLES "Build small example apps" ON)
