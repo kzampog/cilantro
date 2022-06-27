@@ -72,21 +72,17 @@ configure_file(
 )
 
 # Package config files
-file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 export(
   TARGETS ${PROJECT_NAME}
-  APPEND FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake"
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake"
 )
 
-set(CMAKECONFIG_INSTALL_DIR lib/cmake/${PROJECT_NAME})
-file(
-  RELATIVE_PATH
-  REL_INCLUDE_DIR
-  "${CMAKE_INSTALL_PREFIX}/${CMAKECONFIG_INSTALL_DIR}"
-  "${CMAKE_INSTALL_PREFIX}/include"
-)
+option(EXPORT_${PROJECT_NAME} "Export ${PROJECT_NAME} package for use by other software" ON)
+if(EXPORT_${PROJECT_NAME})
+  # Add package to CMake package registry for use from the build tree
+  export(PACKAGE ${PROJECT_NAME})
+endif()
 
-# Build tree config
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
@@ -94,20 +90,9 @@ configure_file(
   IMMEDIATE
 )
 
-# Install tree config
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake
-  @ONLY
-)
+set(CMAKECONFIG_INSTALL_DIR lib/cmake/${PROJECT_NAME})
 
-# Add package to CMake package registry for use from the build tree
-option(EXPORT_${PROJECT_NAME} "Export ${PROJECT_NAME} package for use by other software" ON)
-if(EXPORT_${PROJECT_NAME})
-  export(PACKAGE ${PROJECT_NAME})
-endif()
-
-# Install target
+# Install headers
 install(
   FILES "${CMAKE_CURRENT_BINARY_DIR}/include/${PROJECT_NAME}/config.hpp"
   DESTINATION ${CMAKE_INSTALL_PREFIX}/include/${PROJECT_NAME}
@@ -116,6 +101,8 @@ install(
   DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
   DESTINATION ${CMAKE_INSTALL_PREFIX}/include
 )
+
+# Install library
 install(
   TARGETS ${PROJECT_NAME}
   EXPORT ${PROJECT_NAME}Targets
@@ -123,8 +110,9 @@ install(
   ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
 )
 
+# Install package files
 install(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake"
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
   DESTINATION ${CMAKECONFIG_INSTALL_DIR}
 )
 install(
