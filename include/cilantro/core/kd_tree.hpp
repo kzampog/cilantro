@@ -372,7 +372,7 @@ private:
   ConstVectorSetMatrixMap<ScalarT, EigenDim> data_map_;
   const DataAdaptor data_adaptor_;
   InternalTree kd_tree_;
-  nanoflann::SearchParams params_;
+  nanoflann::SearchParameters params_;
 };
 
 template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename IndexT = size_t>
