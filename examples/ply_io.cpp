@@ -1,5 +1,7 @@
 #include <iostream>
+
 #include <pangolin/utils/file_utils.h>
+
 #include <cilantro/utilities/point_cloud.hpp>
 
 int main(int argc, char** argv) {

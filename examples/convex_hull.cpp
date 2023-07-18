@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <cilantro/visualization.hpp>
 #include <cilantro/spatial/convex_polytope.hpp>
 #include <cilantro/utilities/point_cloud.hpp>

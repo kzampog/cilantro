@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <cilantro/visualization.hpp>
 #include <cilantro/spatial/flat_convex_hull_3d.hpp>
 #include <cilantro/utilities/point_cloud.hpp>

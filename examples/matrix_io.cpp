@@ -1,4 +1,7 @@
 #include <iostream>
+
+#include <Eigen/Dense>
+
 #include <cilantro/utilities/io_utilities.hpp>
 
 int main(int argc, char** argv) {

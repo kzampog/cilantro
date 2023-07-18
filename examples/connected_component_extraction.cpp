@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <cilantro/clustering/connected_component_extraction.hpp>
 #include <cilantro/utilities/point_cloud.hpp>
 #include <cilantro/utilities/timer.hpp>

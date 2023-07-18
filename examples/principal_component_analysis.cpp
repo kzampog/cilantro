@@ -1,5 +1,6 @@
-#include <cilantro/core/principal_component_analysis.hpp>
 #include <iostream>
+
+#include <cilantro/core/principal_component_analysis.hpp>
 
 int main(int argc, char** argv) {
   std::vector<Eigen::Vector3f> points;

@@ -1,5 +1,7 @@
-#include <cilantro/utilities/point_cloud.hpp>
+#include <iostream>
+
 #include <cilantro/model_estimation/ransac_transform_estimator.hpp>
+#include <cilantro/utilities/point_cloud.hpp>
 #include <cilantro/visualization.hpp>
 
 void callback(unsigned char key, bool& re_estimate, bool& randomize) {

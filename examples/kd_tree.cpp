@@ -1,4 +1,5 @@
 #include <iostream>
+
 #include <cilantro/core/kd_tree.hpp>
 
 int main(int argc, char** argv) {

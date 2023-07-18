@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <cilantro/utilities/point_cloud.hpp>
 #include <cilantro/visualization.hpp>
 

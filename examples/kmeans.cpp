@@ -1,7 +1,9 @@
+#include <iostream>
+
 #include <cilantro/clustering/kmeans.hpp>
 #include <cilantro/utilities/point_cloud.hpp>
-#include <cilantro/visualization.hpp>
 #include <cilantro/utilities/timer.hpp>
+#include <cilantro/visualization.hpp>
 
 int main(int argc, char** argv) {
   if (argc < 2) {

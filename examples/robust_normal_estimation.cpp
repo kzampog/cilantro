@@ -1,7 +1,9 @@
+#include <iostream>
+
 // #include <cilantro/core/normal_estimation.hpp>
 #include <cilantro/utilities/point_cloud.hpp>
-#include <cilantro/visualization.hpp>
 #include <cilantro/utilities/timer.hpp>
+#include <cilantro/visualization.hpp>
 
 void toggle_invalid(cilantro::Visualizer& viz) { viz.getObject("cloud_i")->toggleVisibility(); }
 

@@ -1,7 +1,9 @@
 #pragma once
 
 #include <fstream>
-#include <cilantro/core/data_containers.hpp>
+#include <sstream>
+#include <string>
+#include <vector>
 
 namespace cilantro {
 

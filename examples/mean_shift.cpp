@@ -1,7 +1,9 @@
+#include <iostream>
 #include <random>
+
 #include <cilantro/clustering/mean_shift.hpp>
-#include <cilantro/visualization.hpp>
 #include <cilantro/utilities/timer.hpp>
+#include <cilantro/visualization.hpp>
 
 cilantro::VectorSet3f generate_input_data() {
   std::default_random_engine generator;

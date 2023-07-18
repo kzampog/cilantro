@@ -1,6 +1,8 @@
-#include <cilantro/visualization/visualizer.hpp>
-#include <cilantro/visualization/common_renderables.hpp>
+#include <iostream>
+
 #include <cilantro/utilities/point_cloud.hpp>
+#include <cilantro/visualization/common_renderables.hpp>
+#include <cilantro/visualization/visualizer.hpp>
 
 void callback(cilantro::Visualizer& viz, const std::string& name) {
   std::cout << "Toggling visibility for " << name << std::endl;
