@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2022 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2025 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -7,7 +7,7 @@
 #ifndef SPECTRA_SYM_GEIGS_SOLVER_H
 #define SPECTRA_SYM_GEIGS_SOLVER_H
 
-#include "SymEigsBase.h"
+#include "HermEigsBase.h"
 #include "Util/GEigsMode.h"
 #include "MatOp/internal/SymGEigsCholeskyOp.h"
 #include "MatOp/internal/SymGEigsRegInvOp.h"
@@ -147,7 +147,7 @@ class SymGEigsSolver
 // Partial specialization for mode = GEigsMode::Cholesky
 template <typename OpType, typename BOpType>
 class SymGEigsSolver<OpType, BOpType, GEigsMode::Cholesky> :
-    public SymEigsBase<SymGEigsCholeskyOp<OpType, BOpType>, IdentityBOp>
+    public HermEigsBase<SymGEigsCholeskyOp<OpType, BOpType>, IdentityBOp>
 {
 private:
     using Scalar = typename OpType::Scalar;
@@ -156,7 +156,7 @@ private:
     using Vector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
 
     using ModeMatOp = SymGEigsCholeskyOp<OpType, BOpType>;
-    using Base = SymEigsBase<ModeMatOp, IdentityBOp>;
+    using Base = HermEigsBase<ModeMatOp, IdentityBOp>;
 
     const BOpType& m_Bop;
 
@@ -249,13 +249,13 @@ public:
 // Partial specialization for mode = GEigsMode::RegularInverse
 template <typename OpType, typename BOpType>
 class SymGEigsSolver<OpType, BOpType, GEigsMode::RegularInverse> :
-    public SymEigsBase<SymGEigsRegInvOp<OpType, BOpType>, BOpType>
+    public HermEigsBase<SymGEigsRegInvOp<OpType, BOpType>, BOpType>
 {
 private:
     using Index = Eigen::Index;
 
     using ModeMatOp = SymGEigsRegInvOp<OpType, BOpType>;
-    using Base = SymEigsBase<ModeMatOp, BOpType>;
+    using Base = HermEigsBase<ModeMatOp, BOpType>;
 
 public:
     ///

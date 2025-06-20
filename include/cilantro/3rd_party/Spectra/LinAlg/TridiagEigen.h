@@ -2,7 +2,7 @@
 //
 // Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
-// Copyright (C) 2016-2022 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2025 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -122,7 +122,7 @@ public:
 
         // A very small value, but 1.0 / near_0 does not overflow
         // ~= 1e-307 for the "double" type
-        constexpr Scalar near_0 = TypeTraits<Scalar>::min() * Scalar(10);
+        const Scalar near_0 = TypeTraits<Scalar>::min() * Scalar(10);
 
         m_n = mat.rows();
         if (m_n != mat.cols())

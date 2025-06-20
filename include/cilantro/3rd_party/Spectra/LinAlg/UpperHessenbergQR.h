@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2022 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2025 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -80,7 +80,7 @@ protected:
         // We choose a cutoff such that cutoff^4 < eps
         // If t > cutoff, use the standard way; otherwise use Taylor series expansion
         // to avoid an explicit sqrt() call that may lose precision
-        constexpr Scalar eps = TypeTraits<Scalar>::epsilon();
+        const Scalar eps = TypeTraits<Scalar>::epsilon();
         // std::pow() is not constexpr, so we do not declare cutoff to be constexpr
         // But most compilers should be able to compute cutoff at compile time
         const Scalar cutoff = Scalar(0.1) * pow(eps, Scalar(0.25));
@@ -102,11 +102,11 @@ protected:
             // s = 1 / sqrt(1 + l^2) ~= t * (1 - t^2 * (1/2 - (3/8) * t^2))
             // r = a * sqrt(1 + t^2) ~= a + (1/2) * b * t - (1/8) * b * t^3 + (1/16) * b * t^5
             //                       == a + (b/2) * t * (1 - t^2 * (1/4 - 1/8 * t^2))
-            constexpr Scalar c1 = Scalar(1);
-            constexpr Scalar c2 = Scalar(0.5);
-            constexpr Scalar c4 = Scalar(0.25);
-            constexpr Scalar c8 = Scalar(0.125);
-            constexpr Scalar c38 = Scalar(0.375);
+            const Scalar c1 = Scalar(1);
+            const Scalar c2 = Scalar(0.5);
+            const Scalar c4 = Scalar(0.25);
+            const Scalar c8 = Scalar(0.125);
+            const Scalar c38 = Scalar(0.375);
             const Scalar t2 = t * t;
             const Scalar tc = t2 * (c2 - c38 * t2);
             c = c1 - tc;
@@ -177,6 +177,7 @@ public:
     ///
     UpperHessenbergQR(Index size) :
         m_n(size),
+        m_shift(0),
         m_rot_cos(m_n - 1),
         m_rot_sin(m_n - 1),
         m_computed(false)
@@ -207,7 +208,7 @@ public:
     ///
     /// Virtual destructor.
     ///
-    virtual ~UpperHessenbergQR(){};
+    virtual ~UpperHessenbergQR() {}
 
     ///
     /// Compute the QR decomposition of an upper Hessenberg matrix with
@@ -548,6 +549,7 @@ private:
     using Matrix = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
     using Vector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
     using ConstGenericMatrix = const Eigen::Ref<const Matrix>;
+    using ComplexMatrix = Eigen::Matrix<std::complex<Scalar>, Eigen::Dynamic, Eigen::Dynamic>;
 
     using UpperHessenbergQR<Scalar>::m_n;
     using UpperHessenbergQR<Scalar>::m_shift;
@@ -615,7 +617,7 @@ public:
         m_T_subd.noalias() = mat.diagonal(-1);
 
         // Deflation of small sub-diagonal elements
-        constexpr Scalar eps = TypeTraits<Scalar>::epsilon();
+        const Scalar eps = TypeTraits<Scalar>::epsilon();
         for (Index i = 0; i < m_n - 1; i++)
         {
             if (abs(m_T_subd[i]) <= eps * (abs(m_T_diag[i]) + abs(m_T_diag[i + 1])))
@@ -764,7 +766,7 @@ public:
         }
 
         // Deflation of small sub-diagonal elements
-        constexpr Scalar eps = TypeTraits<Scalar>::epsilon();
+        const Scalar eps = TypeTraits<Scalar>::epsilon();
         for (Index i = 0; i < n1; i++)
         {
             const Scalar diag = abs(dest.coeff(i, i)) + abs(dest.coeff(i + 1, i + 1));
@@ -774,6 +776,21 @@ public:
 
         // Copy the lower subdiagonal to upper subdiagonal
         dest.diagonal(1).noalias() = dest.diagonal(-1);
+    }
+
+    ///
+    /// The version of matrix_QtHQ() when `dest` has a complex value type.
+    ///
+    /// This is used in Hermitian eigen solvers where the result is stored
+    /// as a complex matrix.
+    ///
+    void matrix_QtHQ(ComplexMatrix& dest) const
+    {
+        // Simply compute the real-typed result and copy to the complex one
+        Matrix dest_real;
+        this->matrix_QtHQ(dest_real);
+        dest.resize(m_n, m_n);
+        dest.noalias() = dest_real.template cast<std::complex<Scalar>>();
     }
 };
 

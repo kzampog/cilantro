@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2022 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2025 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -33,9 +33,9 @@ private:
 
     // A very small value, but 1.0 / m_near_0 does not overflow
     // ~= 1e-307 for the "double" type
-    static constexpr Scalar m_near_0 = TypeTraits<Scalar>::min() * Scalar(10);
+    const Scalar m_near_0 = TypeTraits<Scalar>::min() * Scalar(10);
     // The machine precision, ~= 1e-16 for the "double" type
-    static constexpr Scalar m_eps = TypeTraits<Scalar>::epsilon();
+    const Scalar m_eps = TypeTraits<Scalar>::epsilon();
 
     Index m_n;          // Dimension of the matrix
     Matrix m_mat_H;     // A copy of the matrix to be factorized
@@ -63,14 +63,16 @@ private:
         if (x1 < x3)
             std::swap(x1, x3);
         // If x1 is too small, return 0
-        if (x1 < m_near_0)
+        const Scalar near_0 = TypeTraits<Scalar>::min() * Scalar(10);
+        if (x1 < near_0)
             return Scalar(0);
 
         const Scalar r2 = x2 / x1, r3 = x3 / x1;
         // We choose a cutoff such that cutoff^4 < eps
         // If max(r2, r3) > cutoff, use the standard way; otherwise use Taylor series expansion
         // to avoid an explicit sqrt() call that may lose precision
-        const Scalar cutoff = Scalar(0.1) * pow(m_eps, Scalar(0.25));
+        const Scalar eps = TypeTraits<Scalar>::epsilon();
+        const Scalar cutoff = Scalar(0.1) * pow(eps, Scalar(0.25));
         Scalar r = r2 * r2 + r3 * r3;
         r = (r2 >= cutoff || r3 >= cutoff) ?
             sqrt(Scalar(1) + r) :
@@ -90,7 +92,8 @@ private:
         x1 = abs(x1);
         // Use the same method as in stable_norm3()
         const Scalar r2 = x2 / x1, r3 = x3 / x1;
-        const Scalar cutoff = Scalar(0.1) * pow(m_eps, Scalar(0.25));
+        const Scalar eps = TypeTraits<Scalar>::epsilon();
+        const Scalar cutoff = Scalar(0.1) * pow(eps, Scalar(0.25));
         Scalar r = r2 * r2 + r3 * r3;
         // r = 1/sqrt(1 + r2^2 + r3^2)
         r = (abs(r2) >= cutoff || abs(r3) >= cutoff) ?
@@ -349,7 +352,7 @@ public:
         // Obtain the indices of zero elements in the subdiagonal,
         // so that H can be divided into several blocks
         const Scalar eps_abs = m_near_0 * (m_n / m_eps);
-        constexpr Scalar eps_rel = m_eps;
+        const Scalar eps_rel = m_eps;
         std::vector<int> zero_ind;
         zero_ind.reserve(m_n - 1);
         zero_ind.push_back(0);

@@ -1,11 +1,11 @@
-// Copyright (C) 2018-2022 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2018-2025 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#ifndef SPECTRA_SYM_EIGS_BASE_H
-#define SPECTRA_SYM_EIGS_BASE_H
+#ifndef SPECTRA_HERM_EIGS_BASE_H
+#define SPECTRA_HERM_EIGS_BASE_H
 
 #include <Eigen/Core>
 #include <vector>     // std::vector
@@ -35,19 +35,26 @@ namespace Spectra {
 ///
 /// \ingroup EigenSolver
 ///
-/// This is the base class for symmetric eigen solvers, mainly for internal use.
-/// It is kept here to provide the documentation for member functions of concrete eigen solvers
-/// such as SymEigsSolver and SymEigsShiftSolver.
+/// This is the base class for Hermitian (and real symmetric) eigen solvers,
+/// mainly for internal use.
+/// It is kept here to provide the documentation for member functions of
+/// concrete eigen solvers such as SymEigsSolver, HermEigsSolver, SymEigsShiftSolver, etc.
 ///
 template <typename OpType, typename BOpType>
-class SymEigsBase
+class HermEigsBase
 {
 private:
     using Scalar = typename OpType::Scalar;
+    // The real part type of the matrix element, e.g.,
+    //     Scalar = double               => RealScalar = double
+    //     Scalar = std::complex<double> => RealScalar = double
+    using RealScalar = typename Eigen::NumTraits<Scalar>::Real;
     using Index = Eigen::Index;
     using Matrix = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
     using Vector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
-    using Array = Eigen::Array<Scalar, Eigen::Dynamic, 1>;
+    using RealMatrix = Eigen::Matrix<RealScalar, Eigen::Dynamic, Eigen::Dynamic>;
+    using RealVector = Eigen::Matrix<RealScalar, Eigen::Dynamic, 1>;
+    using RealArray = Eigen::Array<RealScalar, Eigen::Dynamic, 1>;
     using BoolArray = Eigen::Array<bool, Eigen::Dynamic, 1>;
     using MapMat = Eigen::Map<Matrix>;
     using MapVec = Eigen::Map<Vector>;
@@ -74,11 +81,11 @@ protected:
     Index         m_niter;      // number of restarting iterations
 
     LanczosFac    m_fac;        // Lanczos factorization
-    Vector        m_ritz_val;   // Ritz values
+    RealVector    m_ritz_val;   // Ritz values
 
 private:
-    Matrix        m_ritz_vec;   // Ritz vectors
-    Vector        m_ritz_est;   // last row of m_ritz_vec, also called the Ritz estimates
+    RealMatrix    m_ritz_vec;   // Ritz vectors
+    RealVector    m_ritz_est;   // last row of m_ritz_vec, also called the Ritz estimates
     BoolArray     m_ritz_conv;  // indicator of the convergence of Ritz values
     CompInfo      m_info;       // status of the computation
     // clang-format on
@@ -99,18 +106,22 @@ private:
         if (k >= m_ncv)
             return;
 
-        TridiagQR<Scalar> decomp(m_ncv);
-        Matrix Q = Matrix::Identity(m_ncv, m_ncv);
+        // QR decomposition on a real symmetric matrix
+        TridiagQR<RealScalar> decomp(m_ncv);
+        // Q is a real orthogonal matrix
+        RealMatrix Q = RealMatrix::Identity(m_ncv, m_ncv);
 
         // Apply large shifts first
         const int nshift = m_ncv - k;
-        Vector shifts = m_ritz_val.tail(nshift);
-        std::sort(shifts.data(), shifts.data() + nshift, [](const Scalar& v1, const Scalar& v2) { return abs(v1) > abs(v2); });
+        RealVector shifts = m_ritz_val.tail(nshift);
+        std::sort(shifts.data(), shifts.data() + nshift,
+                  [](const RealScalar& v1, const RealScalar& v2) { return abs(v1) > abs(v2); });
 
         for (Index i = 0; i < nshift; i++)
         {
             // QR decomposition of H-mu*I, mu is the shift
-            decomp.compute(m_fac.matrix_H(), shifts[i]);
+            // H is known to be a real symmetric matrix
+            decomp.compute(m_fac.matrix_H().real(), shifts[i]);
 
             // Q -> Q * Qi
             decomp.apply_YQ(Q);
@@ -118,6 +129,17 @@ private:
             // Since QR = H - mu * I, we have H = QR + mu * I
             // and therefore Q'HQ = RQ + mu * I
             m_fac.compress_H(decomp);
+            // Note that in our setting, mu is an eigenvalue of H,
+            // so after applying Q'HQ, H must have be of the following form
+            // H = [X   0   0]
+            //     [0  mu   0]
+            //     [0   0   D]
+            // Then we can force H[k, k-1] = H[k-1, k] = 0 and H[k, k] = mu,
+            // where k is the size of X
+            //
+            // Currently disabled due to numerical stability
+            //
+            // m_fac.deflate_H(m_ncv - i - 1, shifts[i]);
         }
 
         m_fac.compress_V(Q);
@@ -127,19 +149,19 @@ private:
     }
 
     // Calculates the number of converged Ritz values
-    Index num_converged(const Scalar& tol)
+    Index num_converged(const RealScalar& tol)
     {
         using std::pow;
 
         // The machine precision, ~= 1e-16 for the "double" type
-        constexpr Scalar eps = TypeTraits<Scalar>::epsilon();
+        const RealScalar eps = TypeTraits<RealScalar>::epsilon();
         // std::pow() is not constexpr, so we do not declare eps23 to be constexpr
         // But most compilers should be able to compute eps23 at compile time
-        const Scalar eps23 = pow(eps, Scalar(2) / 3);
+        const RealScalar eps23 = pow(eps, RealScalar(2) / 3);
 
         // thresh = tol * max(eps23, abs(theta)), theta for Ritz value
-        Array thresh = tol * m_ritz_val.head(m_nev).array().abs().max(eps23);
-        Array resid = m_ritz_est.head(m_nev).array().abs() * m_fac.f_norm();
+        RealArray thresh = tol * m_ritz_val.head(m_nev).array().abs().max(eps23);
+        RealArray resid = m_ritz_est.head(m_nev).array().abs() * m_fac.f_norm();
         // Converged "wanted" Ritz values
         m_ritz_conv = (resid < thresh);
 
@@ -153,7 +175,7 @@ private:
 
         // A very small value, but 1.0 / near_0 does not overflow
         // ~= 1e-307 for the "double" type
-        constexpr Scalar near_0 = TypeTraits<Scalar>::min() * Scalar(10);
+        const RealScalar near_0 = TypeTraits<RealScalar>::min() * RealScalar(10);
 
         Index nev_new = m_nev;
         for (Index i = m_nev; i < m_ncv; i++)
@@ -176,9 +198,9 @@ private:
     // Retrieves and sorts Ritz values and Ritz vectors
     void retrieve_ritzpair(SortRule selection)
     {
-        TridiagEigen<Scalar> decomp(m_fac.matrix_H());
-        const Vector& evals = decomp.eigenvalues();
-        const Matrix& evecs = decomp.eigenvectors();
+        TridiagEigen<RealScalar> decomp(m_fac.matrix_H().real());
+        const RealVector& evals = decomp.eigenvalues();
+        const RealMatrix& evecs = decomp.eigenvectors();
 
         // Sort Ritz values and put the wanted ones at the beginning
         std::vector<Index> ind = argsort(selection, evals, m_ncv);
@@ -206,8 +228,8 @@ protected:
 
         std::vector<Index> ind = argsort(sort_rule, m_ritz_val, m_nev);
 
-        Vector new_ritz_val(m_ncv);
-        Matrix new_ritz_vec(m_ncv, m_nev);
+        RealVector new_ritz_val(m_ncv);
+        RealMatrix new_ritz_vec(m_ncv, m_nev);
         BoolArray new_ritz_conv(m_nev);
 
         for (Index i = 0; i < m_nev; i++)
@@ -226,7 +248,7 @@ public:
     /// \cond
 
     // If op is an lvalue
-    SymEigsBase(OpType& op, const BOpType& Bop, Index nev, Index ncv) :
+    HermEigsBase(OpType& op, const BOpType& Bop, Index nev, Index ncv) :
         m_op(op),
         m_n(op.rows()),
         m_nev(nev),
@@ -244,7 +266,7 @@ public:
     }
 
     // If op is an rvalue
-    SymEigsBase(OpType&& op, const BOpType& Bop, Index nev, Index ncv) :
+    HermEigsBase(OpType&& op, const BOpType& Bop, Index nev, Index ncv) :
         m_op_container(create_op_container(std::move(op))),
         m_op(m_op_container.front()),
         m_n(m_op.rows()),
@@ -265,7 +287,7 @@ public:
     ///
     /// Virtual destructor
     ///
-    virtual ~SymEigsBase() {}
+    virtual ~HermEigsBase() {}
 
     /// \endcond
 
@@ -336,7 +358,7 @@ public:
     /// \return Number of converged eigenvalues.
     ///
     Index compute(SortRule selection = SortRule::LargestMagn, Index maxit = 1000,
-                  Scalar tol = 1e-10, SortRule sorting = SortRule::LargestAlge)
+                  RealScalar tol = 1e-10, SortRule sorting = SortRule::LargestAlge)
     {
         // The m-step Lanczos factorization
         m_fac.factorize_from(1, m_ncv, m_nmatop);
@@ -380,14 +402,16 @@ public:
     ///
     /// Returns the converged eigenvalues.
     ///
-    /// \return A vector containing the eigenvalues.
-    /// Returned vector type will be `Eigen::Vector<Scalar, ...>`, depending on
-    /// the template parameter `Scalar` defined.
+    /// \return A vector containing the real-valued eigenvalues.
+    /// Returned vector type will be `Eigen::Vector<RealScalar, ...>`, depending on
+    /// the `Scalar` type defined in the matrix operation class.
+    /// For example, if `Scalar` is `double` or `std::complex<double>`,
+    /// then `RealScalar` would be `double`.
     ///
-    Vector eigenvalues() const
+    RealVector eigenvalues() const
     {
         const Index nconv = m_ritz_conv.count();
-        Vector res(nconv);
+        RealVector res(nconv);
 
         if (!nconv)
             return res;
@@ -412,7 +436,7 @@ public:
     ///
     /// \return A matrix containing the eigenvectors.
     /// Returned matrix type will be `Eigen::Matrix<Scalar, ...>`,
-    /// depending on the template parameter `Scalar` defined.
+    /// depending on the `Scalar` type defined in the matrix operation class.
     ///
     virtual Matrix eigenvectors(Index nvec) const
     {
@@ -423,7 +447,7 @@ public:
         if (!nvec)
             return res;
 
-        Matrix ritz_vec_conv(m_ncv, nvec);
+        RealMatrix ritz_vec_conv(m_ncv, nvec);
         Index j = 0;
         for (Index i = 0; i < m_nev && j < nvec; i++)
         {
@@ -450,4 +474,4 @@ public:
 
 }  // namespace Spectra
 
-#endif  // SPECTRA_SYM_EIGS_BASE_H
+#endif  // SPECTRA_HERM_EIGS_BASE_H

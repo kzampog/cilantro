@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2022 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2020-2025 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -8,7 +8,7 @@
 #define SPECTRA_SYM_GEIGS_SHIFT_SOLVER_H
 
 #include <utility>  // std::move
-#include "SymEigsBase.h"
+#include "HermEigsBase.h"
 #include "Util/GEigsMode.h"
 #include "MatOp/internal/SymGEigsShiftInvertOp.h"
 #include "MatOp/internal/SymGEigsBucklingOp.h"
@@ -145,7 +145,7 @@ class SymGEigsShiftSolver
 // Partial specialization for mode = GEigsMode::ShiftInvert
 template <typename OpType, typename BOpType>
 class SymGEigsShiftSolver<OpType, BOpType, GEigsMode::ShiftInvert> :
-    public SymEigsBase<SymGEigsShiftInvertOp<OpType, BOpType>, BOpType>
+    public HermEigsBase<SymGEigsShiftInvertOp<OpType, BOpType>, BOpType>
 {
 private:
     using Scalar = typename OpType::Scalar;
@@ -153,7 +153,7 @@ private:
     using Array = Eigen::Array<Scalar, Eigen::Dynamic, 1>;
 
     using ModeMatOp = SymGEigsShiftInvertOp<OpType, BOpType>;
-    using Base = SymEigsBase<ModeMatOp, BOpType>;
+    using Base = HermEigsBase<ModeMatOp, BOpType>;
     using Base::m_nev;
     using Base::m_ritz_val;
 
@@ -305,7 +305,7 @@ public:
 // Partial specialization for mode = GEigsMode::Buckling
 template <typename OpType, typename BOpType>
 class SymGEigsShiftSolver<OpType, BOpType, GEigsMode::Buckling> :
-    public SymEigsBase<SymGEigsBucklingOp<OpType, BOpType>, BOpType>
+    public HermEigsBase<SymGEigsBucklingOp<OpType, BOpType>, BOpType>
 {
 private:
     using Scalar = typename OpType::Scalar;
@@ -313,7 +313,7 @@ private:
     using Array = Eigen::Array<Scalar, Eigen::Dynamic, 1>;
 
     using ModeMatOp = SymGEigsBucklingOp<OpType, BOpType>;
-    using Base = SymEigsBase<ModeMatOp, BOpType>;
+    using Base = HermEigsBase<ModeMatOp, BOpType>;
     using Base::m_nev;
     using Base::m_ritz_val;
 
@@ -397,7 +397,7 @@ public:
 // Partial specialization for mode = GEigsMode::Cayley
 template <typename OpType, typename BOpType>
 class SymGEigsShiftSolver<OpType, BOpType, GEigsMode::Cayley> :
-    public SymEigsBase<SymGEigsCayleyOp<OpType, BOpType>, BOpType>
+    public HermEigsBase<SymGEigsCayleyOp<OpType, BOpType>, BOpType>
 {
 private:
     using Scalar = typename OpType::Scalar;
@@ -405,7 +405,7 @@ private:
     using Array = Eigen::Array<Scalar, Eigen::Dynamic, 1>;
 
     using ModeMatOp = SymGEigsCayleyOp<OpType, BOpType>;
-    using Base = SymEigsBase<ModeMatOp, BOpType>;
+    using Base = HermEigsBase<ModeMatOp, BOpType>;
     using Base::m_nev;
     using Base::m_ritz_val;
 

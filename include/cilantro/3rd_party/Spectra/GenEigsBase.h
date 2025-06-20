@@ -1,4 +1,4 @@
-// Copyright (C) 2018-2022 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2018-2025 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -143,7 +143,7 @@ private:
         using std::pow;
 
         // The machine precision, ~= 1e-16 for the "double" type
-        constexpr Scalar eps = TypeTraits<Scalar>::epsilon();
+        const Scalar eps = TypeTraits<Scalar>::epsilon();
         // std::pow() is not constexpr, so we do not declare eps23 to be constexpr
         // But most compilers should be able to compute eps23 at compile time
         const Scalar eps23 = pow(eps, Scalar(2) / 3);
@@ -164,7 +164,7 @@ private:
 
         // A very small value, but 1.0 / near_0 does not overflow
         // ~= 1e-307 for the "double" type
-        constexpr Scalar near_0 = TypeTraits<Scalar>::min() * Scalar(10);
+        const Scalar near_0 = TypeTraits<Scalar>::min() * Scalar(10);
 
         Index nev_new = m_nev;
         for (Index i = m_nev; i < m_ncv; i++)

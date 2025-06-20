@@ -1,61 +1,41 @@
-// Copyright (C) 2016-2025 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2024-2025 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#ifndef SPECTRA_SYM_EIGS_SOLVER_H
-#define SPECTRA_SYM_EIGS_SOLVER_H
+#ifndef SPECTRA_HERM_EIGS_SOLVER_H
+#define SPECTRA_HERM_EIGS_SOLVER_H
 
 #include <Eigen/Core>
 
 #include "HermEigsBase.h"
 #include "Util/SelectionRule.h"
-#include "MatOp/DenseSymMatProd.h"
+#include "MatOp/DenseHermMatProd.h"
 
 namespace Spectra {
 
 ///
 /// \ingroup EigenSolver
 ///
-/// This class implements the eigen solver for real symmetric matrices, i.e.,
-/// to solve \f$Ax=\lambda x\f$ where \f$A\f$ is symmetric.
-///
-/// **Spectra** is designed to calculate a specified number (\f$k\f$)
-/// of eigenvalues of a large square matrix (\f$A\f$). Usually \f$k\f$ is much
-/// less than the size of the matrix (\f$n\f$), so that only a few eigenvalues
-/// and eigenvectors are computed.
-///
-/// Rather than providing the whole \f$A\f$ matrix, the algorithm only requires
-/// the matrix-vector multiplication operation of \f$A\f$. Therefore, users of
-/// this solver need to supply a class that computes the result of \f$Av\f$
-/// for any given vector \f$v\f$. The name of this class should be given to
-/// the template parameter `OpType`, and instance of this class passed to
-/// the constructor of SymEigsSolver.
-///
-/// If the matrix \f$A\f$ is already stored as a matrix object in **Eigen**,
-/// for example `Eigen::MatrixXd`, then there is an easy way to construct such a
-/// matrix operation class, by using the built-in wrapper class DenseSymMatProd
-/// that wraps an existing matrix object in **Eigen**. This is also the
-/// default template parameter for SymEigsSolver. For sparse matrices, the
-/// wrapper class SparseSymMatProd can be used similarly.
-///
-/// If the users need to define their own matrix-vector multiplication operation
-/// class, it should define a public type `Scalar` to indicate the element type,
-/// and implement all the public member functions as in DenseSymMatProd.
+/// This class implements the eigen solver for Hermitian matrices, i.e.,
+/// to solve \f$Ax=\lambda x\f$ where \f$A\f$ is Hermitian.
+/// An Hermitian matrix is a complex square matrix that is equal to its
+/// own conjugate transpose. It is known that all Hermitian matrices have
+/// real-valued eigenvalues.
 ///
 /// \tparam OpType  The name of the matrix operation class. Users could either
-///                 use the wrapper classes such as DenseSymMatProd and
-///                 SparseSymMatProd, or define their own that implements the type
+///                 use the wrapper classes such as DenseHermMatProd and
+///                 SparseHermMatProd, or define their own that implements the type
 ///                 definition `Scalar` and all the public member functions as in
-///                 DenseSymMatProd.
+///                 DenseHermMatProd.
 ///
 /// Below is an example that demonstrates the usage of this class.
 ///
 /// \code{.cpp}
 /// #include <Eigen/Core>
-/// #include <Spectra/SymEigsSolver.h>
-/// // <Spectra/MatOp/DenseSymMatProd.h> is implicitly included
+/// #include <Spectra/HermEigsSolver.h>
+/// // <Spectra/MatOp/DenseHermMatProd.h> is implicitly included
 /// #include <iostream>
 ///
 /// using namespace Spectra;
@@ -63,25 +43,30 @@ namespace Spectra {
 /// int main()
 /// {
 ///     // We are going to calculate the eigenvalues of M
-///     Eigen::MatrixXd A = Eigen::MatrixXd::Random(10, 10);
-///     Eigen::MatrixXd M = A + A.transpose();
+///     Eigen::MatrixXcd A = Eigen::MatrixXcd::Random(10, 10);
+///     Eigen::MatrixXcd M = A + A.adjoint();
 ///
-///     // Construct matrix operation object using the wrapper class DenseSymMatProd
-///     DenseSymMatProd<double> op(M);
+///     // Construct matrix operation object using the wrapper class DenseHermMatProd
+///     using OpType = DenseHermMatProd<std::complex<double>>;
+///     OpType op(M);
 ///
 ///     // Construct eigen solver object, requesting the largest three eigenvalues
-///     SymEigsSolver<DenseSymMatProd<double>> eigs(op, 3, 6);
+///     HermEigsSolver<OpType> eigs(op, 3, 6);
 ///
 ///     // Initialize and compute
 ///     eigs.init();
 ///     int nconv = eigs.compute(SortRule::LargestAlge);
 ///
 ///     // Retrieve results
+///     // Eigenvalues are real-valued, and eigenvectors are complex-valued
 ///     Eigen::VectorXd evalues;
 ///     if (eigs.info() == CompInfo::Successful)
 ///         evalues = eigs.eigenvalues();
 ///
 ///     std::cout << "Eigenvalues found:\n" << evalues << std::endl;
+///
+///     Eigen::MatrixXcd evecs = eigs.eigenvectors();
+///     std::cout << "Eigenvectors:\n" << evecs << std::endl;
 ///
 ///     return 0;
 /// }
@@ -91,24 +76,24 @@ namespace Spectra {
 ///
 /// \code{.cpp}
 /// #include <Eigen/Core>
-/// #include <Spectra/SymEigsSolver.h>
+/// #include <Spectra/HermEigsSolver.h>
 /// #include <iostream>
 ///
 /// using namespace Spectra;
 ///
-/// // M = diag(1, 2, ..., 10)
+/// // M = diag(1+0i, 2+0i, ..., 10+0i)
 /// class MyDiagonalTen
 /// {
 /// public:
-///     using Scalar = double;  // A typedef named "Scalar" is required
+///     using Scalar = std::complex<double>;  // A typedef named "Scalar" is required
 ///     int rows() const { return 10; }
 ///     int cols() const { return 10; }
 ///     // y_out = M * x_in
-///     void perform_op(const double *x_in, double *y_out) const
+///     void perform_op(const Scalar *x_in, Scalar *y_out) const
 ///     {
 ///         for (int i = 0; i < rows(); i++)
 ///         {
-///             y_out[i] = x_in[i] * (i + 1);
+///             y_out[i] = x_in[i] * Scalar(i + 1, 0);
 ///         }
 ///     }
 /// };
@@ -116,7 +101,7 @@ namespace Spectra {
 /// int main()
 /// {
 ///     MyDiagonalTen op;
-///     SymEigsSolver<MyDiagonalTen> eigs(op, 3, 6);
+///     HermEigsSolver<MyDiagonalTen> eigs(op, 3, 6);
 ///     eigs.init();
 ///     eigs.compute(SortRule::LargestAlge);
 ///     if (eigs.info() == CompInfo::Successful)
@@ -124,14 +109,17 @@ namespace Spectra {
 ///         Eigen::VectorXd evalues = eigs.eigenvalues();
 ///         // Will get (10, 9, 8)
 ///         std::cout << "Eigenvalues found:\n" << evalues << std::endl;
+///
+///         Eigen::MatrixXcd evecs = eigs.eigenvectors();
+///         std::cout << "Eigenvectors:\n" << evecs << std::endl;
 ///     }
 ///
 ///     return 0;
 /// }
 /// \endcode
 ///
-template <typename OpType = DenseSymMatProd<double>>
-class SymEigsSolver : public HermEigsBase<OpType, IdentityBOp>
+template <typename OpType = DenseHermMatProd<double>>
+class HermEigsSolver : public HermEigsBase<OpType, IdentityBOp>
 {
 private:
     using Index = Eigen::Index;
@@ -143,9 +131,9 @@ public:
     /// \param op   The matrix operation object that implements
     ///             the matrix-vector multiplication operation of \f$A\f$:
     ///             calculating \f$Av\f$ for any vector \f$v\f$. Users could either
-    ///             create the object from the wrapper class such as DenseSymMatProd, or
+    ///             create the object from the wrapper class such as DenseHermMatProd, or
     ///             define their own that implements all the public members
-    ///             as in DenseSymMatProd.
+    ///             as in DenseHermMatProd.
     /// \param nev  Number of eigenvalues requested. This should satisfy \f$1\le nev \le n-1\f$,
     ///             where \f$n\f$ is the size of matrix.
     /// \param ncv  Parameter that controls the convergence speed of the algorithm.
@@ -154,11 +142,11 @@ public:
     ///             in each iteration. This parameter must satisfy \f$nev < ncv \le n\f$,
     ///             and is advised to take \f$ncv \ge 2\cdot nev\f$.
     ///
-    SymEigsSolver(OpType& op, Index nev, Index ncv) :
+    HermEigsSolver(OpType& op, Index nev, Index ncv) :
         HermEigsBase<OpType, IdentityBOp>(op, IdentityBOp(), nev, ncv)
     {}
 };
 
 }  // namespace Spectra
 
-#endif  // SPECTRA_SYM_EIGS_SOLVER_H
+#endif  // SPECTRA_HERM_EIGS_SOLVER_H

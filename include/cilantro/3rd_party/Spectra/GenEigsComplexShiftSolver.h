@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2022 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2016-2025 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -83,7 +83,7 @@ private:
 
         // Calculate inv(A - r * I) * vj
         Vector v_real(m_n), v_imag(m_n), OPv_real(m_n), OPv_imag(m_n);
-        constexpr Scalar eps = TypeTraits<Scalar>::epsilon();
+        const Scalar eps = TypeTraits<Scalar>::epsilon();
         for (Index i = 0; i < m_nev; i++)
         {
             v_real.noalias() = m_fac.matrix_V() * m_ritz_vec.col(i).real();

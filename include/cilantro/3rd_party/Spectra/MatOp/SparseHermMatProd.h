@@ -1,11 +1,11 @@
-// Copyright (C) 2016-2025 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2024-2025 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#ifndef SPECTRA_SPARSE_SYM_MAT_PROD_H
-#define SPECTRA_SPARSE_SYM_MAT_PROD_H
+#ifndef SPECTRA_SPARSE_HERM_MAT_PROD_H
+#define SPECTRA_SPARSE_HERM_MAT_PROD_H
 
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
@@ -28,7 +28,7 @@ namespace Spectra {
 /// \tparam StorageIndex The type of the indices for the sparse matrix.
 ///
 template <typename Scalar_, int Uplo = Eigen::Lower, int Flags = Eigen::ColMajor, typename StorageIndex = int>
-class SparseSymMatProd
+class SparseHermMatProd
 {
 public:
     ///
@@ -56,12 +56,12 @@ public:
     /// `Eigen::Map<Eigen::SparseMatrix<Scalar, ...> >`.
     ///
     template <typename Derived>
-    SparseSymMatProd(const Eigen::SparseMatrixBase<Derived>& mat) :
+    SparseHermMatProd(const Eigen::SparseMatrixBase<Derived>& mat) :
         m_mat(mat)
     {
         static_assert(
             static_cast<int>(Derived::PlainObject::IsRowMajor) == static_cast<int>(SparseMatrix::IsRowMajor),
-            "SparseSymMatProd: the \"Flags\" template parameter does not match the input matrix (Eigen::ColMajor/Eigen::RowMajor)");
+            "SparseHermMatProd: the \"Flags\" template parameter does not match the input matrix (Eigen::ColMajor/Eigen::RowMajor)");
     }
 
     ///
@@ -86,23 +86,7 @@ public:
         MapVec y(y_out, m_mat.rows());
         y.noalias() = m_mat.template selfadjointView<Uplo>() * x;
     }
-
-    ///
-    /// Perform the matrix-matrix multiplication operation \f$y=Ax\f$.
-    ///
-    Matrix operator*(const Eigen::Ref<const Matrix>& mat_in) const
-    {
-        return m_mat.template selfadjointView<Uplo>() * mat_in;
-    }
-
-    ///
-    /// Extract (i,j) element of the underlying matrix.
-    ///
-    Scalar operator()(Index i, Index j) const
-    {
-        return m_mat.coeff(i, j);
-    }
 };
 }  // namespace Spectra
 
-#endif  // SPECTRA_SPARSE_SYM_MAT_PROD_H
+#endif  // SPECTRA_SPARSE_HERM_MAT_PROD_H

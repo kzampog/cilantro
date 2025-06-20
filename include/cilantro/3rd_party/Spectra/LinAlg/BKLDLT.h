@@ -1,4 +1,4 @@
-// Copyright (C) 2019-2022 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2019-2025 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -10,10 +10,48 @@
 #include <Eigen/Core>
 #include <vector>
 #include <stdexcept>
+#include <type_traits>  // std::is_same
 
 #include "../Util/CompInfo.h"
 
 namespace Spectra {
+
+// We need a generic conj() function for both real and complex values,
+// and hope that conj(x) == x if x is real-valued. However, in STL,
+// conj(x) == std::complex(x, 0) for such cases, meaning that the
+// return value type is not necessarily the same as x. To avoid this
+// inconvenience, we define a simple class that does this task
+//
+// Similarly, define a real(x) function that returns x itself if
+// x is real-valued, and returns std::complex(x, 0) if x is complex-valued
+template <typename Scalar>
+struct ScalarOp
+{
+    static Scalar conj(const Scalar& x)
+    {
+        return x;
+    }
+
+    static Scalar real(const Scalar& x)
+    {
+        return x;
+    }
+};
+// Specialization for complex values
+template <typename RealScalar>
+struct ScalarOp<std::complex<RealScalar>>
+{
+    static std::complex<RealScalar> conj(const std::complex<RealScalar>& x)
+    {
+        using std::conj;
+        return conj(x);
+    }
+
+    static std::complex<RealScalar> real(const std::complex<RealScalar>& x)
+    {
+        return std::complex<RealScalar>(x.real(), RealScalar(0));
+    }
+};
 
 // Bunch-Kaufman LDLT decomposition
 // References:
@@ -27,6 +65,8 @@ template <typename Scalar = double>
 class BKLDLT
 {
 private:
+    // The real part type of the matrix element
+    using RealScalar = typename Eigen::NumTraits<Scalar>::Real;
     using Index = Eigen::Index;
     using Vector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
     using MapVec = Eigen::Map<Vector>;
@@ -70,7 +110,7 @@ private:
 
     // Copy mat - shift * I to m_data
     template <typename Derived>
-    void copy_data(const Eigen::MatrixBase<Derived>& mat, int uplo, const Scalar& shift)
+    void copy_data(const Eigen::MatrixBase<Derived>& mat, int uplo, const RealScalar& shift)
     {
         // If mat is an expression, first evaluate it into a temporary object
         // This can be achieved by assigning mat to a const Eigen::Ref<const Matrix>&
@@ -85,22 +125,23 @@ private:
                 const Scalar* begin = &src.coeffRef(j, j);
                 const Index len = m_n - j;
                 std::copy(begin, begin + len, col_pointer(j));
-                diag_coeff(j) -= shift;
+                diag_coeff(j) -= Scalar(shift);
             }
-            return;
         }
-
-        Scalar* dest = m_data.data();
-        for (Index j = 0; j < m_n; j++)
+        else
         {
-            for (Index i = j; i < m_n; i++, dest++)
+            Scalar* dest = m_data.data();
+            for (Index j = 0; j < m_n; j++)
             {
-                if (uplo == Eigen::Lower)
-                    *dest = src.coeff(i, j);
-                else
-                    *dest = src.coeff(j, i);
+                for (Index i = j; i < m_n; i++, dest++)
+                {
+                    if (uplo == Eigen::Lower)
+                        *dest = src.coeff(i, j);
+                    else
+                        *dest = ScalarOp<Scalar>::conj(src.coeff(j, i));
+                }
+                diag_coeff(j) -= Scalar(shift);
             }
-            diag_coeff(j) -= shift;
         }
     }
 
@@ -121,12 +162,11 @@ private:
     // Assume r >= k
     void pivoting_1x1(Index k, Index r)
     {
+        m_perm[k] = r;
+
         // No permutation
         if (k == r)
-        {
-            m_perm[k] = r;
             return;
-        }
 
         // A[k, k] <-> A[r, r]
         std::swap(diag_coeff(k), diag_coeff(r));
@@ -135,13 +175,32 @@ private:
         std::swap_ranges(&coeff(r + 1, k), col_pointer(k + 1), &coeff(r + 1, r));
 
         // A[(k+1):(r-1), k] <-> A[r, (k+1):(r-1)]
+        // Note: for Hermitian matrices, also need to do conjugate
         Scalar* src = &coeff(k + 1, k);
-        for (Index j = k + 1; j < r; j++, src++)
+        if (std::is_same<Scalar, RealScalar>::value)
         {
-            std::swap(*src, coeff(r, j));
+            // Simple swapping for real values
+            for (Index j = k + 1; j < r; j++, src++)
+            {
+                std::swap(*src, coeff(r, j));
+            }
+        }
+        else
+        {
+            // For complex values
+            for (Index j = k + 1; j < r; j++, src++)
+            {
+                const Scalar src_conj = ScalarOp<Scalar>::conj(*src);
+                *src = ScalarOp<Scalar>::conj(coeff(r, j));
+                coeff(r, j) = src_conj;
+            }
         }
 
-        m_perm[k] = r;
+        // A[r, k] <- Conj(A[r, k])
+        if (!std::is_same<Scalar, RealScalar>::value)
+        {
+            coeff(r, k) = ScalarOp<Scalar>::conj(coeff(r, k));
+        }
     }
 
     // Working on the A[k:end, k:end] submatrix
@@ -178,7 +237,7 @@ private:
     // Largest (in magnitude) off-diagonal element in the first column of the current reduced matrix
     // r is the row index
     // Assume k < end
-    Scalar find_lambda(Index k, Index& r)
+    RealScalar find_lambda(Index k, Index& r)
     {
         using std::abs;
 
@@ -186,11 +245,11 @@ private:
         const Scalar* end = col_pointer(k + 1);
         // Start with r=k+1, lambda=A[k+1, k]
         r = k + 1;
-        Scalar lambda = abs(head[1]);
+        RealScalar lambda = abs(head[1]);
         // Scan remaining elements
         for (const Scalar* ptr = head + 2; ptr < end; ptr++)
         {
-            const Scalar abs_elem = abs(*ptr);
+            const RealScalar abs_elem = abs(*ptr);
             if (lambda < abs_elem)
             {
                 lambda = abs_elem;
@@ -205,20 +264,20 @@ private:
     // Largest (in magnitude) off-diagonal element in the r-th column of the current reduced matrix
     // p is the row index
     // Assume k < r < end
-    Scalar find_sigma(Index k, Index r, Index& p)
+    RealScalar find_sigma(Index k, Index r, Index& p)
     {
         using std::abs;
 
         // First search A[r+1, r], ...,  A[end, r], which has the same task as find_lambda()
         // If r == end, we skip this search
-        Scalar sigma = Scalar(-1);
+        RealScalar sigma = RealScalar(-1);
         if (r < m_n - 1)
             sigma = find_lambda(r, p);
 
         // Then search A[k, r], ..., A[r-1, r], which maps to A[r, k], ..., A[r, r-1]
         for (Index j = k; j < r; j++)
         {
-            const Scalar abs_elem = abs(coeff(r, j));
+            const RealScalar abs_elem = abs(coeff(r, j));
             if (sigma < abs_elem)
             {
                 sigma = abs_elem;
@@ -231,21 +290,21 @@ private:
 
     // Generate permutations and apply to A
     // Return true if the resulting pivoting is 1x1, and false if 2x2
-    bool permutate_mat(Index k, const Scalar& alpha)
+    bool permutate_mat(Index k, const RealScalar& alpha)
     {
         using std::abs;
 
         Index r = k, p = k;
-        const Scalar lambda = find_lambda(k, r);
+        const RealScalar lambda = find_lambda(k, r);
 
         // If lambda=0, no need to interchange
-        if (lambda > Scalar(0))
+        if (lambda > RealScalar(0))
         {
-            const Scalar abs_akk = abs(diag_coeff(k));
+            const RealScalar abs_akk = abs(diag_coeff(k));
             // If |A[k, k]| >= alpha * lambda, no need to interchange
             if (abs_akk < alpha * lambda)
             {
-                const Scalar sigma = find_sigma(k, r, p);
+                const RealScalar sigma = find_sigma(k, r, p);
 
                 // If sigma * |A[k, k]| >= alpha * lambda^2, no need to interchange
                 if (sigma * abs_akk < alpha * lambda * lambda)
@@ -277,7 +336,7 @@ private:
                         // r = k+1, so that only one permutation needs to be performed
                         /* const Index rp_min = std::min(r, p);
                         const Index rp_max = std::max(r, p);
-                        if(rp_min == k + 1)
+                        if (rp_min == k + 1)
                         {
                             r = rp_min; p = rp_max;
                         } else {
@@ -288,6 +347,7 @@ private:
 
                         // Permutation on A
                         pivoting_2x2(k, r, p);
+
                         // Permutation on L
                         interchange_rows(k, p, 0, k - 1);
                         interchange_rows(k + 1, r, 0, k - 1);
@@ -307,31 +367,109 @@ private:
     {
         // inv(E) = [d11, d12], d11 = e22/delta, d21 = -e21/delta, d22 = e11/delta
         //          [d21, d22]
-        const Scalar delta = e11 * e22 - e21 * e21;
+        // delta = e11 * e22 - e12 * e21
+        const Scalar e12 = ScalarOp<Scalar>::conj(e21);
+        const Scalar delta = e11 * e22 - e12 * e21;
         std::swap(e11, e22);
         e11 /= delta;
         e22 /= delta;
         e21 = -e21 / delta;
     }
 
+    // E = [e11, e12]
+    //     [e21, e22]
+    // Overwrite b with x = inv(E) * b, which is equivalent to solving E * x = b
+    void solve_inplace_2x2(
+        const Scalar& e11, const Scalar& e21, const Scalar& e22,
+        Scalar& b1, Scalar& b2) const
+    {
+        using std::abs;
+
+        const Scalar e12 = ScalarOp<Scalar>::conj(e21);
+        const RealScalar e11_abs = abs(e11);
+        const RealScalar e21_abs = abs(e21);
+        // If |e11| >= |e21|, no need to exchange rows
+        if (e11_abs >= e21_abs)
+        {
+            const Scalar fac = e21 / e11;
+            const Scalar x2 = (b2 - fac * b1) / (e22 - fac * e12);
+            const Scalar x1 = (b1 - e12 * x2) / e11;
+            b1 = x1;
+            b2 = x2;
+        }
+        else
+        {
+            // Exchange row 1 and row 2, so the system becomes
+            // E* = [e21, e22], b* = [b2], x* = [x1]
+            //      [e11, e12]       [b1]       [x2]
+            const Scalar fac = e11 / e21;
+            const Scalar x2 = (b1 - fac * b2) / (e12 - fac * e22);
+            const Scalar x1 = (b2 - e22 * x2) / e21;
+            b1 = x1;
+            b2 = x2;
+        }
+    }
+
+    // Compute C * inv(E), which is equivalent to solving X * E = C
+    // X [n x 2], E [2 x 2], C [n x 2]
+    // X = [x1, x2], E = [e11, e12], C = [c1 c2]
+    //                   [e21, e22]
+    void solve_left_2x2(
+        const Scalar& e11, const Scalar& e21, const Scalar& e22,
+        const MapVec& c1, const MapVec& c2,
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 2>& x) const
+    {
+        using std::abs;
+
+        const Scalar e12 = ScalarOp<Scalar>::conj(e21);
+        const RealScalar e11_abs = abs(e11);
+        const RealScalar e12_abs = abs(e12);
+        // If |e11| >= |e12|, no need to exchange rows
+        if (e11_abs >= e12_abs)
+        {
+            const Scalar fac = e12 / e11;
+            // const Scalar x2 = (c2 - fac * c1) / (e22 - fac * e21);
+            // const Scalar x1 = (c1 - e21 * x2) / e11;
+            x.col(1).array() = (c2 - fac * c1).array() / (e22 - fac * e21);
+            x.col(0).array() = (c1 - e21 * x.col(1)).array() / e11;
+        }
+        else
+        {
+            // Exchange column 1 and column 2, so the system becomes
+            // X* = [x1, x2], E* = [e12, e11], C* = [c2 c1]
+            //                     [e22, e21]
+            const Scalar fac = e11 / e12;
+            // const Scalar x2 = (c1 - fac * c2) / (e21 - fac * e22);
+            // const Scalar x1 = (c2 - e22 * x2) / e12;
+            x.col(1).array() = (c1 - fac * c2).array() / (e21 - fac * e22);
+            x.col(0).array() = (c2 - e22 * x.col(1)).array() / e12;
+        }
+    }
+
     // Return value is the status, CompInfo::Successful/NumericalIssue
     CompInfo gaussian_elimination_1x1(Index k)
     {
-        // D = 1 / A[k, k]
-        const Scalar akk = diag_coeff(k);
+        // A[k, k] is known to be real-valued, so we force its imaginary
+        // part to be zero when Scalar is a complex type
+        // Interestingly, this has a significant effect on the accuracy
+        // and numerical stability of the final solution
+        const Scalar akk = ScalarOp<Scalar>::real(diag_coeff(k));
+        diag_coeff(k) = akk;
         // Return CompInfo::NumericalIssue if not invertible
         if (akk == Scalar(0))
             return CompInfo::NumericalIssue;
 
-        diag_coeff(k) = Scalar(1) / akk;
+        // [inverse]
+        // diag_coeff(k) = Scalar(1) / akk;
 
-        // B -= l * l' / A[k, k], B := A[(k+1):end, (k+1):end], l := L[(k+1):end, k]
+        // B -= l * l^H / A[k, k], B := A[(k+1):end, (k+1):end], l := L[(k+1):end, k]
         Scalar* lptr = col_pointer(k) + 1;
         const Index ldim = m_n - k - 1;
         MapVec l(lptr, ldim);
         for (Index j = 0; j < ldim; j++)
         {
-            MapVec(col_pointer(j + k + 1), ldim - j).noalias() -= (lptr[j] / akk) * l.tail(ldim - j);
+            Scalar l_conj = ScalarOp<Scalar>::conj(lptr[j]);
+            MapVec(col_pointer(j + k + 1), ldim - j).noalias() -= (l_conj / akk) * l.tail(ldim - j);
         }
 
         // l /= A[k, k]
@@ -343,15 +481,24 @@ private:
     // Return value is the status, CompInfo::Successful/NumericalIssue
     CompInfo gaussian_elimination_2x2(Index k)
     {
-        // D = inv(E)
         Scalar& e11 = diag_coeff(k);
         Scalar& e21 = coeff(k + 1, k);
         Scalar& e22 = diag_coeff(k + 1);
+
+        // A[k, k] and A[k+1, k+1] are known to be real-valued,
+        // so we force their imaginary parts to be zero when Scalar
+        // is a complex type
+        // Interestingly, this has a significant effect on the accuracy
+        // and numerical stability of the final solution
+        e11 = ScalarOp<Scalar>::real(e11);
+        e22 = ScalarOp<Scalar>::real(e22);
+        Scalar e12 = ScalarOp<Scalar>::conj(e21);
         // Return CompInfo::NumericalIssue if not invertible
-        if (e11 * e22 - e21 * e21 == Scalar(0))
+        if (e11 * e22 - e12 * e21 == Scalar(0))
             return CompInfo::NumericalIssue;
 
-        inverse_inplace_2x2(e11, e21, e22);
+        // [inverse]
+        // inverse_inplace_2x2(e11, e21, e22);
 
         // X = l * inv(E), l := L[(k+2):end, k:(k+1)]
         Scalar* l1ptr = &coeff(k + 2, k);
@@ -360,13 +507,19 @@ private:
         MapVec l1(l1ptr, ldim), l2(l2ptr, ldim);
 
         Eigen::Matrix<Scalar, Eigen::Dynamic, 2> X(ldim, 2);
-        X.col(0).noalias() = l1 * e11 + l2 * e21;
-        X.col(1).noalias() = l1 * e21 + l2 * e22;
+        // [inverse]
+        // e12 = ScalarOp<Scalar>::conj(e21);
+        // X.col(0).noalias() = l1 * e11 + l2 * e21;
+        // X.col(1).noalias() = l1 * e12 + l2 * e22;
+        // [solve]
+        solve_left_2x2(e11, e21, e22, l1, l2, X);
 
-        // B -= l * inv(E) * l' = X * l', B = A[(k+2):end, (k+2):end]
+        // B -= l * inv(E) * l^H = X * l^H, B = A[(k+2):end, (k+2):end]
         for (Index j = 0; j < ldim; j++)
         {
-            MapVec(col_pointer(j + k + 2), ldim - j).noalias() -= (X.col(0).tail(ldim - j) * l1ptr[j] + X.col(1).tail(ldim - j) * l2ptr[j]);
+            const Scalar l1j_conj = ScalarOp<Scalar>::conj(l1ptr[j]);
+            const Scalar l2j_conj = ScalarOp<Scalar>::conj(l2ptr[j]);
+            MapVec(col_pointer(j + k + 2), ldim - j).noalias() -= (X.col(0).tail(ldim - j) * l1j_conj + X.col(1).tail(ldim - j) * l2j_conj);
         }
 
         // l = X
@@ -383,14 +536,14 @@ public:
 
     // Factorize mat - shift * I
     template <typename Derived>
-    BKLDLT(const Eigen::MatrixBase<Derived>& mat, int uplo = Eigen::Lower, const Scalar& shift = Scalar(0)) :
+    BKLDLT(const Eigen::MatrixBase<Derived>& mat, int uplo = Eigen::Lower, const RealScalar& shift = RealScalar(0)) :
         m_n(mat.rows()), m_computed(false), m_info(CompInfo::NotComputed)
     {
         compute(mat, uplo, shift);
     }
 
     template <typename Derived>
-    void compute(const Eigen::MatrixBase<Derived>& mat, int uplo = Eigen::Lower, const Scalar& shift = Scalar(0))
+    void compute(const Eigen::MatrixBase<Derived>& mat, int uplo = Eigen::Lower, const RealScalar& shift = RealScalar(0))
     {
         using std::abs;
 
@@ -406,7 +559,7 @@ public:
         compute_pointer();
         copy_data(mat, uplo, shift);
 
-        const Scalar alpha = (1.0 + std::sqrt(17.0)) / 8.0;
+        const RealScalar alpha = (1.0 + std::sqrt(17.0)) / 8.0;
         Index k = 0;
         for (k = 0; k < m_n - 1; k++)
         {
@@ -431,11 +584,13 @@ public:
         // Invert the last 1x1 block if it exists
         if (k == m_n - 1)
         {
-            const Scalar akk = diag_coeff(k);
+            const Scalar akk = ScalarOp<Scalar>::real(diag_coeff(k));
+            diag_coeff(k) = akk;
             if (akk == Scalar(0))
                 m_info = CompInfo::NumericalIssue;
 
-            diag_coeff(k) = Scalar(1) / diag_coeff(k);
+            // [inverse]
+            // diag_coeff(k) = Scalar(1) / diag_coeff(k);
         }
 
         compress_permutation();
@@ -449,7 +604,8 @@ public:
         if (!m_computed)
             throw std::logic_error("BKLDLT: need to call compute() first");
 
-        // PAP' = LDL'
+        // PAP' = LD(L^H), A = P'LD(L^H)P
+        // Ax = b ==> P'LD(L^H)Px = b ==> LD(L^H)Px = Pb
         // 1. b -> Pb
         Scalar* x = b.data();
         MapVec res(x, m_n);
@@ -459,6 +615,7 @@ public:
             std::swap(x[m_permc[i].first], x[m_permc[i].second]);
         }
 
+        // z = D(L^H)Px
         // 2. Lz = Pb
         // If m_perm[end] < 0, then end with m_n - 3, otherwise end with m_n - 2
         const Index end = (m_perm[m_n - 1] < 0) ? (m_n - 3) : (m_n - 2);
@@ -480,37 +637,47 @@ public:
             }
         }
 
+        // w = (L^H)Px
         // 3. Dw = z
         for (Index i = 0; i < m_n; i++)
         {
             const Scalar e11 = diag_coeff(i);
             if (m_perm[i] >= 0)
             {
-                x[i] *= e11;
+                // [inverse]
+                // x[i] *= e11;
+                // [solve]
+                x[i] /= e11;
             }
             else
             {
                 const Scalar e21 = coeff(i + 1, i), e22 = diag_coeff(i + 1);
-                const Scalar wi = x[i] * e11 + x[i + 1] * e21;
-                x[i + 1] = x[i] * e21 + x[i + 1] * e22;
-                x[i] = wi;
+                // [inverse]
+                // const Scalar e12 = ScalarOp<Scalar>::conj(e21);
+                // const Scalar wi = x[i] * e11 + x[i + 1] * e12;
+                // x[i + 1] = x[i] * e21 + x[i + 1] * e22;
+                // x[i] = wi;
+                // [solve]
+                solve_inplace_2x2(e11, e21, e22, x[i], x[i + 1]);
+
                 i++;
             }
         }
 
-        // 4. L'y = w
+        // y = Px
+        // 4. (L^H)y = w
         // If m_perm[end] < 0, then start with m_n - 3, otherwise start with m_n - 2
         Index i = (m_perm[m_n - 1] < 0) ? (m_n - 3) : (m_n - 2);
         for (; i >= 0; i--)
         {
             const Index ldim = m_n - i - 1;
             MapConstVec l(&coeff(i + 1, i), ldim);
-            x[i] -= res.segment(i + 1, ldim).dot(l);
+            x[i] -= l.dot(res.segment(i + 1, ldim));
 
             if (m_perm[i] < 0)
             {
                 MapConstVec l2(&coeff(i + 1, i - 1), ldim);
-                x[i - 1] -= res.segment(i + 1, ldim).dot(l2);
+                x[i - 1] -= l2.dot(res.segment(i + 1, ldim));
                 i--;
             }
         }

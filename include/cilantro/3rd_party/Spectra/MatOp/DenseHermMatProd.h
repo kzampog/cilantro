@@ -1,37 +1,33 @@
-// Copyright (C) 2016-2025 Yixuan Qiu <yixuan.qiu@cos.name>
+// Copyright (C) 2024-2025 Yixuan Qiu <yixuan.qiu@cos.name>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#ifndef SPECTRA_DENSE_GEN_MAT_PROD_H
-#define SPECTRA_DENSE_GEN_MAT_PROD_H
+#ifndef SPECTRA_DENSE_HERM_MAT_PROD_H
+#define SPECTRA_DENSE_HERM_MAT_PROD_H
 
 #include <Eigen/Core>
 
 namespace Spectra {
 
 ///
-/// \defgroup MatOp Matrix Operations
-///
-/// Define matrix operations on existing matrix objects
-///
-
-///
 /// \ingroup MatOp
 ///
 /// This class defines the matrix-vector multiplication operation on a
-/// general real matrix \f$A\f$, i.e., calculating \f$y=Ax\f$ for any vector
-/// \f$x\f$. It is mainly used in the GenEigsSolver and
-/// SymEigsSolver eigen solvers.
+/// Hermitian complex matrix \f$A\f$, i.e., calculating \f$y=Ax\f$ for any vector
+/// \f$x\f$. It is mainly used in the HermEigsSolver eigen solver.
 ///
 /// \tparam Scalar_ The element type of the matrix, for example,
-///                 `float`, `double`, and `long double`.
+///                 `std::complex<float>`, `std::complex<double>`,
+///                 and `std::complex<long double>`.
+/// \tparam Uplo    Either `Eigen::Lower` or `Eigen::Upper`, indicating which
+///                 triangular part of the matrix is used.
 /// \tparam Flags   Either `Eigen::ColMajor` or `Eigen::RowMajor`, indicating
 ///                 the storage format of the input matrix.
 ///
-template <typename Scalar_, int Flags = Eigen::ColMajor>
-class DenseGenMatProd
+template <typename Scalar_, int Uplo = Eigen::Lower, int Flags = Eigen::ColMajor>
+class DenseHermMatProd
 {
 public:
     ///
@@ -54,17 +50,17 @@ public:
     /// Constructor to create the matrix operation object.
     ///
     /// \param mat An **Eigen** matrix object, whose type can be
-    /// `Eigen::Matrix<Scalar, ...>` (e.g. `Eigen::MatrixXd` and
-    /// `Eigen::MatrixXf`), or its mapped version
-    /// (e.g. `Eigen::Map<Eigen::MatrixXd>`).
+    /// `Eigen::Matrix<Scalar, ...>` (e.g. `Eigen::MatrixXcd` and
+    /// `Eigen::MatrixXcf`), or its mapped version
+    /// (e.g. `Eigen::Map<Eigen::MatrixXcd>`).
     ///
     template <typename Derived>
-    DenseGenMatProd(const Eigen::MatrixBase<Derived>& mat) :
+    DenseHermMatProd(const Eigen::MatrixBase<Derived>& mat) :
         m_mat(mat)
     {
         static_assert(
             static_cast<int>(Derived::PlainObject::IsRowMajor) == static_cast<int>(Matrix::IsRowMajor),
-            "DenseGenMatProd: the \"Flags\" template parameter does not match the input matrix (Eigen::ColMajor/Eigen::RowMajor)");
+            "DenseHermMatProd: the \"Flags\" template parameter does not match the input matrix (Eigen::ColMajor/Eigen::RowMajor)");
     }
 
     ///
@@ -87,26 +83,10 @@ public:
     {
         MapConstVec x(x_in, m_mat.cols());
         MapVec y(y_out, m_mat.rows());
-        y.noalias() = m_mat * x;
-    }
-
-    ///
-    /// Perform the matrix-matrix multiplication operation \f$y=Ax\f$.
-    ///
-    Matrix operator*(const Eigen::Ref<const Matrix>& mat_in) const
-    {
-        return m_mat * mat_in;
-    }
-
-    ///
-    /// Extract (i,j) element of the underlying matrix.
-    ///
-    Scalar operator()(Index i, Index j) const
-    {
-        return m_mat(i, j);
+        y.noalias() = m_mat.template selfadjointView<Uplo>() * x;
     }
 };
 
 }  // namespace Spectra
 
-#endif  // SPECTRA_DENSE_GEN_MAT_PROD_H
+#endif  // SPECTRA_DENSE_HERM_MAT_PROD_H
