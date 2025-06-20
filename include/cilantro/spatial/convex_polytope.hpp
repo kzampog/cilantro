@@ -8,10 +8,8 @@ namespace cilantro {
 template <typename ScalarT, ptrdiff_t EigenDim, typename IndexT = size_t>
 class ConvexPolytope {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
-  typedef IndexT Index;
+  using Scalar = ScalarT;
+  using Index = IndexT;
 
   enum { Dimension = EigenDim };
 

@@ -1,16 +1,13 @@
 #pragma once
 
 #include <vector>
-#include <Eigen/Dense>
 
 namespace cilantro {
 
 template <typename ScalarT, typename IndexT = size_t>
 struct Neighbor {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
-  typedef IndexT Index;
+  using Scalar = ScalarT;
+  using Index = IndexT;
 
   IndexT index;
   ScalarT value;
@@ -60,9 +57,7 @@ using NeighborhoodSet = std::vector<Neighborhood<ScalarT, IndexT>>;
 
 template <typename CountT = size_t>
 struct KNNNeighborhoodSpecification {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef CountT Size;
+  using Size = CountT;
 
   inline KNNNeighborhoodSpecification(CountT k = (CountT)0) : maxNumberOfNeighbors(k) {}
 
@@ -71,9 +66,7 @@ struct KNNNeighborhoodSpecification {
 
 template <typename ScalarT>
 struct RadiusNeighborhoodSpecification {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
+  using Scalar = ScalarT;
 
   inline RadiusNeighborhoodSpecification(ScalarT r = (ScalarT)0) : radius(r) {}
 
@@ -82,10 +75,8 @@ struct RadiusNeighborhoodSpecification {
 
 template <typename ScalarT, typename CountT = size_t>
 struct KNNInRadiusNeighborhoodSpecification {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
-  typedef CountT Size;
+  using Scalar = ScalarT;
+  using Size = CountT;
 
   inline KNNInRadiusNeighborhoodSpecification(CountT k = 0, ScalarT r = (ScalarT)0)
       : maxNumberOfNeighbors(k), radius(r) {}

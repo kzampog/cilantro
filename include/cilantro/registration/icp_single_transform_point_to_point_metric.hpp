@@ -12,15 +12,12 @@ class PointToPointMetricSingleTransformICP
     : public IterativeClosestPointBase<
           PointToPointMetricSingleTransformICP<TransformT, CorrespondenceSearchEngineT>, TransformT,
           CorrespondenceSearchEngineT, VectorSet<typename TransformT::Scalar, 1>> {
-  typedef IterativeClosestPointBase<
+  using Base = IterativeClosestPointBase<
       PointToPointMetricSingleTransformICP<TransformT, CorrespondenceSearchEngineT>, TransformT,
-      CorrespondenceSearchEngineT, VectorSet<typename TransformT::Scalar, 1>>
-      Base;
+      CorrespondenceSearchEngineT, VectorSet<typename TransformT::Scalar, 1>>;
   friend Base;
 
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   PointToPointMetricSingleTransformICP(
       const ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim>& dst,
       const ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim>& src,

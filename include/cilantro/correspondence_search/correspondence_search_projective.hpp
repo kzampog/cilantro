@@ -12,15 +12,13 @@ template <class ScalarT, class EvaluationFeatureAdaptorT = PointFeaturesAdaptor<
           typename IndexT = size_t>
 class CorrespondenceSearchProjective {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  using Evaluator = EvaluatorT;
 
-  typedef EvaluatorT Evaluator;
+  using CorrespondenceScalar = typename EvaluatorT::OutputScalar;
 
-  typedef typename EvaluatorT::OutputScalar CorrespondenceScalar;
+  using CorrespondenceIndex = IndexT;
 
-  typedef IndexT CorrespondenceIndex;
-
-  typedef CorrespondenceSet<CorrespondenceScalar, CorrespondenceIndex> SearchResult;
+  using SearchResult = CorrespondenceSet<CorrespondenceScalar, CorrespondenceIndex>;
 
   template <class EvalFeatAdaptorT = EvaluationFeatureAdaptorT,
             class = typename std::enable_if<

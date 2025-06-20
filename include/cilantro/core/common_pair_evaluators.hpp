@@ -13,10 +13,8 @@ namespace cilantro {
 template <typename ValueT, typename WeightT = ValueT>
 class IdentityWeightEvaluator {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ValueT InputScalar;
-  typedef WeightT OutputScalar;
+  using InputScalar = ValueT;
+  using OutputScalar = WeightT;
 
   inline WeightT operator()(ValueT val) const { return static_cast<WeightT>(val); }
 
@@ -31,10 +29,8 @@ public:
 template <typename ValueT, typename WeightT = ValueT>
 class UnityWeightEvaluator {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ValueT InputScalar;
-  typedef WeightT OutputScalar;
+  using InputScalar = ValueT;
+  using OutputScalar = WeightT;
 
   inline constexpr WeightT operator()(ValueT) const { return (WeightT)1; }
 
@@ -49,10 +45,8 @@ public:
 template <typename ValueT, typename WeightT = ValueT, bool distances_are_squared = true>
 class RBFKernelWeightEvaluator {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ValueT InputScalar;
-  typedef WeightT OutputScalar;
+  using InputScalar = ValueT;
+  using OutputScalar = WeightT;
 
   RBFKernelWeightEvaluator() : coeff_(-(WeightT)(0.5)) {}
 
@@ -98,10 +92,8 @@ using AlwaysTrueEvaluator = UnityWeightEvaluator<ValueT, bool>;
 template <typename ScalarT>
 class PointsProximityEvaluator {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT InputScalar;
-  typedef bool OutputScalar;
+  using InputScalar = ScalarT;
+  using OutputScalar = bool;
 
   PointsProximityEvaluator(ScalarT dist_thresh) : max_distance_(dist_thresh) {}
 
@@ -114,10 +106,8 @@ private:
 template <typename ScalarT, ptrdiff_t EigenDim>
 class NormalsProximityEvaluator {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT InputScalar;
-  typedef bool OutputScalar;
+  using InputScalar = ScalarT;
+  using OutputScalar = bool;
 
   NormalsProximityEvaluator(const ConstVectorSetMatrixMap<ScalarT, EigenDim>& normals,
                             ScalarT angle_thresh)
@@ -140,10 +130,8 @@ private:
 template <typename ScalarT>
 class ColorsProximityEvaluator {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT InputScalar;
-  typedef bool OutputScalar;
+  using InputScalar = ScalarT;
+  using OutputScalar = bool;
 
   ColorsProximityEvaluator(const ConstVectorSetMatrixMap<float, 3>& colors, float dist_thresh)
       : colors_(colors), max_color_diff_(dist_thresh * dist_thresh) {}
@@ -160,10 +148,8 @@ private:
 template <typename ScalarT, ptrdiff_t EigenDim>
 class PointsNormalsProximityEvaluator {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT InputScalar;
-  typedef bool OutputScalar;
+  using InputScalar = ScalarT;
+  using OutputScalar = bool;
 
   PointsNormalsProximityEvaluator(const ConstVectorSetMatrixMap<ScalarT, EigenDim>& normals,
                                   ScalarT dist_thresh, ScalarT angle_thresh)
@@ -188,10 +174,8 @@ private:
 template <typename ScalarT, ptrdiff_t EigenDim>
 class PointsColorsProximityEvaluator {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT InputScalar;
-  typedef bool OutputScalar;
+  using InputScalar = ScalarT;
+  using OutputScalar = bool;
 
   PointsColorsProximityEvaluator(const ConstVectorSetMatrixMap<float, 3>& colors,
                                  ScalarT dist_thresh, float color_thresh)
@@ -211,10 +195,8 @@ private:
 template <typename ScalarT, ptrdiff_t EigenDim>
 class NormalsColorsProximityEvaluator {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT InputScalar;
-  typedef bool OutputScalar;
+  using InputScalar = ScalarT;
+  using OutputScalar = bool;
 
   NormalsColorsProximityEvaluator(const ConstVectorSetMatrixMap<ScalarT, EigenDim>& normals,
                                   const ConstVectorSetMatrixMap<float, 3>& colors,
@@ -244,10 +226,8 @@ private:
 template <typename ScalarT, ptrdiff_t EigenDim>
 class PointsNormalsColorsProximityEvaluator {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT InputScalar;
-  typedef bool OutputScalar;
+  using InputScalar = ScalarT;
+  using OutputScalar = bool;
 
   PointsNormalsColorsProximityEvaluator(const ConstVectorSetMatrixMap<ScalarT, EigenDim>& normals,
                                         const ConstVectorSetMatrixMap<float, 3>& colors,

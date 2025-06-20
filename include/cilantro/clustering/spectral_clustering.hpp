@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include <cilantro/3rd_party/Spectra/SymEigsSolver.h>
 #include <cilantro/3rd_party/Spectra/SymGEigsSolver.h>
 #include <cilantro/core/spectral_embedding_base.hpp>
@@ -323,14 +322,12 @@ class SpectralClustering
       EmbeddingBase;
 
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
+  using Scalar = ScalarT;
 
   enum { EmbeddingDimension = EigenDim };
 
-  typedef KMeans<ScalarT, EigenDim, KDTreeDistanceAdaptors::L2, PointIndexT, ClusterIndexT>
-      Clusterer;
+  using Clusterer =
+      KMeans<ScalarT, EigenDim, KDTreeDistanceAdaptors::L2, PointIndexT, ClusterIndexT>;
 
   // Dense input
   // Number of clusters (embedding dimension) set at compile time (EigenDim template parameter)

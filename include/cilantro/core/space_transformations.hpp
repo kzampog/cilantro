@@ -18,25 +18,17 @@ template <typename T>
 struct HasTranslation<T, decltype((void)std::declval<T>().translation(), 0)> : std::true_type {};
 
 template <class TransformT>
-#ifdef _MSC_VER
-using TransformSetBase = std::vector<TransformT, Eigen::aligned_allocator<TransformT>>;
-#else
-using TransformSetBase =
-    typename std::conditional<TransformT::Dim != Eigen::Dynamic && sizeof(TransformT) % 16 == 0,
-                              std::vector<TransformT, Eigen::aligned_allocator<TransformT>>,
-                              std::vector<TransformT>>::type;
-#endif
+using TransformSetBase = std::vector<TransformT>;
 }  // namespace internal
 
 // Simply a Dim x Dim matrix with extra compile time info
 template <typename ScalarT, ptrdiff_t EigenDim, bool IsPureRotation = false>
 class LinearTransform : public Eigen::Matrix<ScalarT, EigenDim, EigenDim> {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  using Matrix = Eigen::Matrix<ScalarT, EigenDim, EigenDim>;
 
-  typedef Eigen::Matrix<ScalarT, EigenDim, EigenDim> Matrix;
+  using Scalar = ScalarT;
 
-  typedef ScalarT Scalar;
   enum { Dim = EigenDim, IsRotation = IsPureRotation };
 
   template <class... InputArgs>
@@ -78,11 +70,9 @@ typedef AffineTransform<double, 3> AffineTransform3d;
 template <class TransformT>
 class TransformSet : public internal::TransformSetBase<TransformT> {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  using Transform = TransformT;
 
-  typedef TransformT Transform;
-
-  typedef typename TransformT::Scalar Scalar;
+  using Scalar = typename TransformT::Scalar;
 
   enum { Dim = TransformT::Dim };
 

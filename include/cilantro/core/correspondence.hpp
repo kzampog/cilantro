@@ -8,10 +8,8 @@ enum struct CorrespondenceSearchDirection { FIRST_TO_SECOND, SECOND_TO_FIRST, BO
 
 template <typename ScalarT, typename IndexT = size_t>
 struct Correspondence {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
-  typedef IndexT Index;
+  using Scalar = ScalarT;
+  using Index = IndexT;
 
   IndexT indexInFirst;
   IndexT indexInSecond;

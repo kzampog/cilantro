@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Eigen/Dense>
+#include <type_traits>
+#include <utility>
 
 namespace cilantro {
 
@@ -21,69 +22,67 @@ struct HasPointToPlaneCorrespondencesGetter<
 
 template <typename T, typename = int>
 struct PointToPointCorrespondenceScalar {
-  typedef typename T::CorrespondenceScalar Scalar;
+  using Scalar = typename T::CorrespondenceScalar;
 };
 
 template <typename T>
 struct PointToPointCorrespondenceScalar<
     T, decltype((void)std::declval<typename T::PointToPointCorrespondenceScalar>(), 0)> {
-  typedef typename T::PointToPointCorrespondenceScalar Scalar;
+  using Scalar = typename T::PointToPointCorrespondenceScalar;
 };
 
 template <typename T, typename = int>
 struct PointToPointCorrespondenceSearchResult {
-  typedef typename T::SearchResult SearchResult;
+  using SearchResult = typename T::SearchResult;
 };
 
 template <typename T>
 struct PointToPointCorrespondenceSearchResult<
     T, decltype((void)std::declval<typename T::PointToPointCorrespondenceSearchResult>(), 0)> {
-  typedef typename T::PointToPointCorrespondenceSearchResult SearchResult;
+  using SearchResult = typename T::PointToPointCorrespondenceSearchResult;
 };
 
 template <typename T, typename = int>
 struct PointToPlaneCorrespondenceScalar {
-  typedef typename T::CorrespondenceScalar Scalar;
+  using Scalar = typename T::CorrespondenceScalar;
 };
 
 template <typename T>
 struct PointToPlaneCorrespondenceScalar<
     T, decltype((void)std::declval<typename T::PointToPlaneCorrespondenceScalar>(), 0)> {
-  typedef typename T::PointToPlaneCorrespondenceScalar Scalar;
+  using Scalar = typename T::PointToPlaneCorrespondenceScalar;
 };
 
 template <typename T, typename = int>
 struct PointToPlaneCorrespondenceSearchResult {
-  typedef typename T::SearchResult SearchResult;
+  using SearchResult = typename T::SearchResult;
 };
 
 template <typename T>
 struct PointToPlaneCorrespondenceSearchResult<
     T, decltype((void)std::declval<typename T::PointToPlaneCorrespondenceSearchResult>(), 0)> {
-  typedef typename T::PointToPlaneCorrespondenceSearchResult SearchResult;
+  using SearchResult = typename T::PointToPlaneCorrespondenceSearchResult;
 };
 }  // namespace internal
 
 template <class CorrespondenceSearchT>
 class CorrespondenceSearchCombinedMetricAdaptor {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  using PointToPointCorrespondenceScalar =
+      typename internal::PointToPointCorrespondenceScalar<CorrespondenceSearchT>::Scalar;
 
-  typedef typename internal::PointToPointCorrespondenceScalar<CorrespondenceSearchT>::Scalar
-      PointToPointCorrespondenceScalar;
+  using PointToPointCorrespondenceSearchResult =
+      typename internal::PointToPointCorrespondenceSearchResult<
+          CorrespondenceSearchT>::SearchResult;
 
-  typedef
-      typename internal::PointToPointCorrespondenceSearchResult<CorrespondenceSearchT>::SearchResult
-          PointToPointCorrespondenceSearchResult;
+  using PointToPlaneCorrespondenceScalar =
+      typename internal::PointToPlaneCorrespondenceScalar<CorrespondenceSearchT>::Scalar;
 
-  typedef typename internal::PointToPlaneCorrespondenceScalar<CorrespondenceSearchT>::Scalar
-      PointToPlaneCorrespondenceScalar;
+  using PointToPlaneCorrespondenceSearchResult =
+      typename internal::PointToPlaneCorrespondenceSearchResult<
+          CorrespondenceSearchT>::SearchResult;
 
-  typedef
-      typename internal::PointToPlaneCorrespondenceSearchResult<CorrespondenceSearchT>::SearchResult
-          PointToPlaneCorrespondenceSearchResult;
-
-  typedef CorrespondenceSearchT BaseCorrespondenceSearch;
+  using BaseCorrespondenceSearch = CorrespondenceSearchT;
 
   inline CorrespondenceSearchCombinedMetricAdaptor(CorrespondenceSearchT& corr_engine)
       : corr_engine_(corr_engine) {}

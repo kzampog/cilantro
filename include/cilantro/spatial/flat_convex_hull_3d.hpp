@@ -8,8 +8,6 @@ template <typename ScalarT, typename IndexT = size_t>
 class FlatConvexHull3 : public PrincipalComponentAnalysis<ScalarT, 3>,
                         public ConvexHull<ScalarT, 2, IndexT> {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   FlatConvexHull3(const ConstVectorSetMatrixMap<ScalarT, 3>& points, bool compute_topology = false,
                   bool simplicial_facets = false, double merge_tol = 0.0)
       : PrincipalComponentAnalysis<ScalarT, 3>(points),

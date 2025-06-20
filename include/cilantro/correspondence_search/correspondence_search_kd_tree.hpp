@@ -22,21 +22,18 @@ template <class SearchFeatureAdaptorT,
           typename IndexT = size_t>
 class CorrespondenceSearchKDTree {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  using Evaluator = EvaluatorT;
 
-  typedef EvaluatorT Evaluator;
+  using CorrespondenceScalar = typename EvaluatorT::OutputScalar;
 
-  typedef typename EvaluatorT::OutputScalar CorrespondenceScalar;
+  using CorrespondenceIndex = IndexT;
 
-  typedef IndexT CorrespondenceIndex;
+  using SearchResult = CorrespondenceSet<CorrespondenceScalar, CorrespondenceIndex>;
 
-  typedef CorrespondenceSet<CorrespondenceScalar, CorrespondenceIndex> SearchResult;
+  using SearchFeatureScalar = typename SearchFeatureAdaptorT::Scalar;
 
-  typedef typename SearchFeatureAdaptorT::Scalar SearchFeatureScalar;
-
-  typedef KDTree<SearchFeatureScalar, SearchFeatureAdaptorT::FeatureDimension, DistAdaptor,
-                 CorrespondenceIndex>
-      SearchTree;
+  using SearchTree = KDTree<SearchFeatureScalar, SearchFeatureAdaptorT::FeatureDimension,
+                            DistAdaptor, CorrespondenceIndex>;
 
   template <class EvalFeatAdaptorT = EvaluationFeatureAdaptorT,
             class = typename std::enable_if<

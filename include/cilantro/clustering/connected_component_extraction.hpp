@@ -35,7 +35,7 @@ void extractConnectedComponents(
   std::vector<char> seed_active(seeds_ind.size(), 0);
 
 #pragma omp parallel for shared(seeds_ind, current_label, seed_active, \
-                                seeds_to_merge_with) private(frontier_set)
+                                    seeds_to_merge_with) private(frontier_set)
   for (size_t i = 0; i < seeds_ind.size(); i++) {
     if (current_label[seeds_ind[i]] != unassigned) continue;
 
@@ -182,7 +182,7 @@ void extractConnectedComponents(
   Neighborhood<ScalarT, IndexT> nn;
 
 #pragma omp parallel for shared(seeds_ind, current_label, seed_active, \
-                                seeds_to_merge_with) private(nn, frontier_set)
+                                    seeds_to_merge_with) private(nn, frontier_set)
   for (size_t i = 0; i < seeds_ind.size(); i++) {
     if (current_label[seeds_ind[i]] != unassigned) continue;
 
@@ -372,13 +372,11 @@ class ConnectedComponentExtraction
     : public ClusteringBase<ConnectedComponentExtraction<ScalarT, EigenDim, DistAdaptor>,
                             PointIndexT, ClusterIndexT> {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
+  using Scalar = ScalarT;
 
   enum { Dimension = EigenDim };
 
-  typedef KDTree<ScalarT, EigenDim, DistAdaptor, PointIndexT> SearchTree;
+  using SearchTree = KDTree<ScalarT, EigenDim, DistAdaptor, PointIndexT>;
 
   ConnectedComponentExtraction(const ConstVectorSetMatrixMap<ScalarT, EigenDim>& points,
                                size_t max_leaf_size = 10)

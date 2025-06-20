@@ -90,8 +90,6 @@ class MultidimensionalScaling
       EmbeddingBase;
 
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   // Embedding dimension set at compile time (EigenDim template parameter)
   template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
   MultidimensionalScaling(

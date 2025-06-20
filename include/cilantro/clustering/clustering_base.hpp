@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <Eigen/Dense>
 
 namespace cilantro {
 
@@ -62,10 +61,8 @@ std::vector<PointIndexT> getUnlabeledPointIndices(
 template <typename Derived, typename PointIndexT, typename ClusterIndexT>
 class ClusteringBase {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef PointIndexT PointIndex;
-  typedef ClusterIndexT ClusterIndex;
+  using PointIndex = PointIndexT;
+  using ClusterIndex = ClusterIndexT;
 
   typedef std::vector<std::vector<PointIndexT>> ClusterToPointIndicesMap;
   typedef std::vector<ClusterIndexT> PointToClusterIndexMap;

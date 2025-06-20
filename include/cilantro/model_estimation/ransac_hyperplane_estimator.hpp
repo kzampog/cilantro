@@ -14,8 +14,6 @@ class HyperplaneRANSACEstimator
       Base;
 
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   HyperplaneRANSACEstimator(const ConstVectorSetMatrixMap<ScalarT, EigenDim>& points)
       : Base(points.rows(), points.cols() / 2 + points.cols() % 2, 100, 0.1, true),
         points_(points) {}

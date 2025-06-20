@@ -7,18 +7,12 @@ namespace cilantro {
 template <typename ScalarT, ptrdiff_t EigenDim, typename IndexT = size_t>
 class SpaceRegion {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
-  typedef IndexT Index;
+  using Scalar = ScalarT;
+  using Index = IndexT;
 
   enum { Dimension = EigenDim };
 
-  typedef typename std::conditional<
-      EigenDim != Eigen::Dynamic && sizeof(Eigen::Matrix<ptrdiff_t, EigenDim, 1>) % 16 == 0,
-      std::vector<ConvexPolytope<ScalarT, EigenDim, IndexT>,
-                  Eigen::aligned_allocator<ConvexPolytope<ScalarT, EigenDim, IndexT>>>,
-      std::vector<ConvexPolytope<ScalarT, EigenDim, IndexT>>>::type ConvexPolytopeVector;
+  using ConvexPolytopeVector = std::vector<ConvexPolytope<ScalarT, EigenDim, IndexT>>;
 
   template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
   SpaceRegion() : dim_(EigenDim) {}

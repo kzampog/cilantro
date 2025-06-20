@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Eigen/Dense>
+#include <limits>
 
 namespace cilantro {
 
@@ -9,19 +9,17 @@ template <class ICPInstanceT, class TransformT, class CorrespondenceSearchEngine
           class ResidualVectorT>
 class IterativeClosestPointBase {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  using Transform = TransformT;
 
-  typedef TransformT Transform;
+  using Scalar = typename TransformT::Scalar;
 
-  typedef typename TransformT::Scalar Scalar;
-
-  typedef typename TransformT::Scalar PointScalar;
+  using PointScalar = typename TransformT::Scalar;
 
   enum { Dim = Transform::Dim };
 
-  typedef CorrespondenceSearchEngineT CorrespondenceSearchEngine;
+  using CorrespondenceSearchEngine = CorrespondenceSearchEngineT;
 
-  typedef ResidualVectorT ResidualVector;
+  using ResidualVector = ResidualVectorT;
 
   IterativeClosestPointBase(CorrespondenceSearchEngine& corr_engine, size_t max_iter = 15,
                             PointScalar conv_tol = (PointScalar)1e-5)

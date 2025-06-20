@@ -5,8 +5,6 @@
 namespace cilantro {
 
 struct RenderingProperties {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   inline RenderingProperties()
       : pointColor(noColor),
         lineColor(noColor),
@@ -140,16 +138,12 @@ struct RenderingProperties {
 };
 
 struct GPUBufferObjects {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   inline GPUBufferObjects() {}
   virtual inline ~GPUBufferObjects() {}
 };
 
 class Renderable {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   inline Renderable()
       : centroid(Eigen::Vector3f::Zero()), visible(true), drawLast(false), buffersUpToDate(false) {}
 

@@ -10,17 +10,15 @@ template <class ScalarT, class EvaluationFeatureAdaptorT,
           typename IndexT = size_t>
 class CorrespondenceSearchOracle {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  using Evaluator = EvaluatorT;
 
-  typedef EvaluatorT Evaluator;
+  using CorrespondenceScalar = typename EvaluatorT::OutputScalar;
 
-  typedef typename EvaluatorT::OutputScalar CorrespondenceScalar;
+  using CorrespondenceIndex = IndexT;
 
-  typedef IndexT CorrespondenceIndex;
+  using SearchResult = CorrespondenceSet<CorrespondenceScalar, CorrespondenceIndex>;
 
-  typedef CorrespondenceSet<CorrespondenceScalar, CorrespondenceIndex> SearchResult;
-
-  typedef CorrespondenceSet<ScalarT, CorrespondenceIndex> OracleCorrespondences;
+  using OracleCorrespondences = CorrespondenceSet<ScalarT, CorrespondenceIndex>;
 
   CorrespondenceSearchOracle(const OracleCorrespondences& correspondences,
                              EvaluationFeatureAdaptorT& src_eval_features, EvaluatorT& evaluator)

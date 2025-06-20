@@ -3,7 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <random>
-#include <Eigen/Dense>
+#include <utility>
 
 namespace cilantro {
 
@@ -11,13 +11,11 @@ namespace cilantro {
 template <class ModelEstimatorT, class ModelT, typename ResidualScalarT, typename IndexT = size_t>
 class RandomSampleConsensusBase {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ModelT Model;
-  typedef ResidualScalarT ResidualScalar;
-  typedef std::vector<ResidualScalarT> ResidualVector;
-  typedef IndexT Index;
-  typedef std::vector<IndexT> IndexVector;
+  using Model = ModelT;
+  using ResidualScalar = ResidualScalarT;
+  using ResidualVector = std::vector<ResidualScalarT>;
+  using Index = IndexT;
+  using IndexVector = std::vector<IndexT>;
 
   RandomSampleConsensusBase(size_t sample_size, size_t inlier_count_thresh, size_t max_iter,
                             ResidualScalar inlier_dist_thresh, bool re_estimate = true)

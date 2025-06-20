@@ -12,9 +12,7 @@ template <typename ScalarT, ptrdiff_t EigenDim,
 class KMeans
     : public ClusteringBase<KMeans<ScalarT, EigenDim, DistAdaptor>, PointIndexT, ClusterIndexT> {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
+  using Scalar = ScalarT;
 
   enum { Dimension = EigenDim };
 

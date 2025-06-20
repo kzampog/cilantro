@@ -6,11 +6,7 @@ namespace cilantro {
 
 template <typename IndexT = size_t>
 struct IndexAccumulator {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef IndexT Index;
-
-  enum { EigenAlign = 0 };
+  using Index = IndexT;
 
   inline IndexAccumulator() {}
 
@@ -27,9 +23,7 @@ struct IndexAccumulator {
 template <typename IndexT = size_t>
 class IndexAccumulatorProxy {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef IndexAccumulator<IndexT> Accumulator;
+  using Accumulator = IndexAccumulator<IndexT>;
 
   inline Accumulator buildAccumulator(IndexT i) const { return Accumulator(i); }
 
@@ -41,15 +35,9 @@ public:
 
 template <typename ScalarT, ptrdiff_t EigenDim>
 struct PointSumAccumulator {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
+  using Scalar = ScalarT;
 
   enum { Dimension = EigenDim };
-
-  enum {
-    EigenAlign = (EigenDim != Eigen::Dynamic) && (sizeof(Vector<ScalarT, EigenDim>) % 16 == 0)
-  };
 
   inline PointSumAccumulator(size_t dim = 0)
       : pointSum(Vector<ScalarT, EigenDim>::Zero(dim, 1)), pointCount(0) {}
@@ -70,9 +58,7 @@ struct PointSumAccumulator {
 template <typename ScalarT, ptrdiff_t EigenDim>
 class PointSumAccumulatorProxy {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef PointSumAccumulator<ScalarT, EigenDim> Accumulator;
+  using Accumulator = PointSumAccumulator<ScalarT, EigenDim>;
 
   inline PointSumAccumulatorProxy(const ConstVectorSetMatrixMap<ScalarT, EigenDim>& points)
       : points_(points) {}
@@ -91,15 +77,9 @@ private:
 
 template <typename ScalarT, ptrdiff_t EigenDim>
 struct PointNormalSumAccumulator {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
+  using Scalar = ScalarT;
 
   enum { Dimension = EigenDim };
-
-  enum {
-    EigenAlign = (EigenDim != Eigen::Dynamic) && (sizeof(Vector<ScalarT, EigenDim>) % 16 == 0)
-  };
 
   inline PointNormalSumAccumulator(size_t dim = 0)
       : pointSum(Vector<ScalarT, EigenDim>::Zero(dim, 1)),
@@ -129,9 +109,7 @@ struct PointNormalSumAccumulator {
 template <typename ScalarT, ptrdiff_t EigenDim>
 class PointNormalSumAccumulatorProxy {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef PointNormalSumAccumulator<ScalarT, EigenDim> Accumulator;
+  using Accumulator = PointNormalSumAccumulator<ScalarT, EigenDim>;
 
   inline PointNormalSumAccumulatorProxy(const ConstVectorSetMatrixMap<ScalarT, EigenDim>& points,
                                         const ConstVectorSetMatrixMap<ScalarT, EigenDim>& normals)
@@ -159,15 +137,9 @@ private:
 
 template <typename ScalarT, ptrdiff_t EigenDim>
 struct PointColorSumAccumulator {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
+  using Scalar = ScalarT;
 
   enum { Dimension = EigenDim };
-
-  enum {
-    EigenAlign = (EigenDim != Eigen::Dynamic) && (sizeof(Vector<ScalarT, EigenDim>) % 16 == 0)
-  };
 
   inline PointColorSumAccumulator(size_t dim = 0)
       : pointSum(Vector<ScalarT, EigenDim>::Zero(dim, 1)),
@@ -193,9 +165,7 @@ struct PointColorSumAccumulator {
 template <typename ScalarT, ptrdiff_t EigenDim>
 class PointColorSumAccumulatorProxy {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef PointColorSumAccumulator<ScalarT, EigenDim> Accumulator;
+  using Accumulator = PointColorSumAccumulator<ScalarT, EigenDim>;
 
   inline PointColorSumAccumulatorProxy(const ConstVectorSetMatrixMap<ScalarT, EigenDim>& points,
                                        const ConstVectorSetMatrixMap<float, 3>& colors)
@@ -219,15 +189,9 @@ private:
 
 template <typename ScalarT, ptrdiff_t EigenDim>
 struct PointNormalColorSumAccumulator {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
+  using Scalar = ScalarT;
 
   enum { Dimension = EigenDim };
-
-  enum {
-    EigenAlign = (EigenDim != Eigen::Dynamic) && (sizeof(Vector<ScalarT, EigenDim>) % 16 == 0)
-  };
 
   inline PointNormalColorSumAccumulator(size_t dim = 0)
       : pointSum(Vector<ScalarT, EigenDim>::Zero(dim, 1)),
@@ -261,9 +225,7 @@ struct PointNormalColorSumAccumulator {
 template <typename ScalarT, ptrdiff_t EigenDim>
 class PointNormalColorSumAccumulatorProxy {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef PointNormalColorSumAccumulator<ScalarT, EigenDim> Accumulator;
+  using Accumulator = PointNormalColorSumAccumulator<ScalarT, EigenDim>;
 
   inline PointNormalColorSumAccumulatorProxy(
       const ConstVectorSetMatrixMap<ScalarT, EigenDim>& points,

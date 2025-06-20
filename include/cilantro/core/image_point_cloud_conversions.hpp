@@ -6,10 +6,8 @@ namespace cilantro {
 
 template <typename RawDepthT, typename MetricDepthT>
 struct DepthValueConverter {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef RawDepthT RawDepth;
-  typedef MetricDepthT MetricDepth;
+  using RawDepth = RawDepthT;
+  using MetricDepth = MetricDepthT;
 
   DepthValueConverter() : scale((MetricDepthT)(1.0)), inverseScale((MetricDepthT)(1.0)) {}
   DepthValueConverter(MetricDepthT mult) : scale(mult), inverseScale((MetricDepthT)(1.0) / mult) {}
@@ -27,10 +25,8 @@ struct DepthValueConverter {
 
 template <typename RawDepthT, typename MetricDepthT>
 struct TruncatedDepthValueConverter {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef RawDepthT RawDepth;
-  typedef MetricDepthT MetricDepth;
+  using RawDepth = RawDepthT;
+  using MetricDepth = MetricDepthT;
 
   TruncatedDepthValueConverter()
       : scale((MetricDepthT)(1.0)),

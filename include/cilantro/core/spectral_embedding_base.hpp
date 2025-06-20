@@ -8,8 +8,6 @@ namespace cilantro {
 template <typename Derived, typename ScalarT, ptrdiff_t EigenDim = Eigen::Dynamic>
 class SpectralEmbeddingBase {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   typedef ScalarT Scalar;
 
   enum { Dimension = EigenDim };

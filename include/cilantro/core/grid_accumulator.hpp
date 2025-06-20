@@ -54,30 +54,24 @@ template <typename ScalarT, ptrdiff_t EigenDim, class AccumulatorProxyT,
           typename GridPointScalarT = ptrdiff_t>
 class GridAccumulator {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
+  using Scalar = ScalarT;
 
   enum { Dimension = EigenDim };
 
-  typedef typename AccumulatorProxyT::Accumulator Accumulator;
+  using Accumulator = typename AccumulatorProxyT::Accumulator;
 
-  typedef AccumulatorProxyT AccumulatorProxy;
+  using AccumulatorProxy = AccumulatorProxyT;
 
-  typedef GridPointScalarT GridPointScalar;
+  using GridPointScalar = GridPointScalarT;
 
-  typedef Eigen::Matrix<GridPointScalarT, EigenDim, 1> GridPoint;
+  using GridPoint = Eigen::Matrix<GridPointScalarT, EigenDim, 1>;
 
-  typedef typename std::conditional<
-      (EigenDim != Eigen::Dynamic && sizeof(GridPoint) % 16 == 0) || (Accumulator::EigenAlign > 0),
-      std::map<GridPoint, Accumulator, EigenVectorComparator<typename GridPoint::Scalar, EigenDim>,
-               Eigen::aligned_allocator<std::pair<const GridPoint, Accumulator>>>,
-      std::map<GridPoint, Accumulator,
-               EigenVectorComparator<typename GridPoint::Scalar, EigenDim>>>::type GridBinMap;
+  using GridBinMap =
+      std::map<GridPoint, Accumulator, EigenVectorComparator<typename GridPoint::Scalar, EigenDim>>;
 
-  typedef typename GridBinMap::iterator GridBinMapIterator;
+  using GridBinMapIterator = typename GridBinMap::iterator;
 
-  typedef typename GridBinMap::const_iterator GridBinMapConstIterator;
+  using GridBinMapConstIterator = typename GridBinMap::const_iterator;
 
   GridAccumulator(const ConstVectorSetMatrixMap<ScalarT, EigenDim>& data,
                   const Eigen::Ref<const Vector<ScalarT, EigenDim>>& bin_size,

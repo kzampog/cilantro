@@ -1,7 +1,8 @@
 #pragma once
 
-#include <iterator>
+#include <memory>
 #include <set>
+#include <string>
 #include <cilantro/core/image_point_cloud_conversions.hpp>
 #include <cilantro/core/grid_downsampler.hpp>
 #include <cilantro/core/normal_estimation.hpp>
@@ -12,9 +13,7 @@ namespace cilantro {
 template <typename ScalarT, ptrdiff_t EigenDim>
 class PointCloud {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
+  using Scalar = ScalarT;
 
   enum { Dimension = EigenDim };
 

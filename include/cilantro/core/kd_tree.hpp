@@ -10,8 +10,8 @@ namespace KDTreeDataAdaptors {
 // Eigen Map to nanoflann adaptor class
 template <typename ScalarT, ptrdiff_t EigenDim, typename IndexT = size_t>
 struct EigenMap {
-  typedef ScalarT Scalar;
-  typedef IndexT Index;
+  using Scalar = ScalarT;
+  using Index = IndexT;
 
   // A const ref to the data set origin
   const Eigen::Map<const Eigen::Matrix<ScalarT, EigenDim, Eigen::Dynamic>>& obj;
@@ -63,6 +63,9 @@ using SO3 = nanoflann::SO3_Adaptor<typename DataAdaptor::Scalar, DataAdaptor,
 template <typename ScalarT, typename IndexT = size_t, typename CountT = size_t>
 class KNNSearchResultAdaptor {
 public:
+  using DistanceType = ScalarT;
+  using IndexType = IndexT;
+
   KNNSearchResultAdaptor(Neighborhood<ScalarT, IndexT>& results, CountT k,
                          ScalarT max_radius = std::numeric_limits<ScalarT>::max())
       : results_(results), k_(k), count_(0) {
@@ -97,6 +100,8 @@ public:
 
   inline ScalarT worstDist() const { return results_[k_ - 1].value; }
 
+  inline void sort() const {}
+
 private:
   Neighborhood<ScalarT, IndexT>& results_;
   const CountT k_;
@@ -106,6 +111,9 @@ private:
 template <typename ScalarT, typename IndexT = size_t, typename CountT = size_t>
 class RadiusSearchResultAdaptor {
 public:
+  using DistanceType = ScalarT;
+  using IndexType = IndexT;
+
   RadiusSearchResultAdaptor(Neighborhood<ScalarT, IndexT>& results, ScalarT radius)
       : results_(results), radius_(radius) {
     results_.clear();
@@ -123,6 +131,11 @@ public:
 
   inline ScalarT worstDist() const { return radius_; }
 
+  inline void sort() const {
+    std::sort(results_.begin(), results_.end(),
+              typename Neighbor<ScalarT, IndexT>::ValueLessComparator());
+  }
+
 private:
   Neighborhood<ScalarT, IndexT>& results_;
   const ScalarT radius_;
@@ -132,30 +145,29 @@ template <typename ScalarT, ptrdiff_t EigenDim,
           template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename IndexT = size_t>
 class KDTree {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  using Scalar = ScalarT;
+  using Index = IndexT;
 
-  typedef ScalarT Scalar;
-  typedef IndexT Index;
-
-  typedef Neighbor<ScalarT, IndexT> NeighborResult;
-  typedef Neighborhood<ScalarT, IndexT> NeighborhoodResult;
-  typedef NeighborSet<ScalarT, IndexT> NeighborSetResult;
-  typedef NeighborhoodSet<ScalarT, IndexT> NeighborhoodSetResult;
+  using NeighborResult = Neighbor<ScalarT, IndexT>;
+  using NeighborhoodResult = Neighborhood<ScalarT, IndexT>;
+  using NeighborSetResult = NeighborSet<ScalarT, IndexT>;
+  using NeighborhoodSetResult = NeighborhoodSet<ScalarT, IndexT>;
 
   enum { Dimension = EigenDim };
 
-  typedef KDTreeDataAdaptors::EigenMap<ScalarT, EigenDim, IndexT> DataAdaptor;
-  typedef nanoflann::KDTreeSingleIndexAdaptor<DistAdaptor<DataAdaptor>, DataAdaptor, EigenDim,
-                                              IndexT>
-      InternalTree;
+  using DataAdaptor = KDTreeDataAdaptors::EigenMap<ScalarT, EigenDim, IndexT>;
+  using InternalTree =
+      nanoflann::KDTreeSingleIndexAdaptor<DistAdaptor<DataAdaptor>, DataAdaptor, EigenDim, IndexT>;
 
-  KDTree(const ConstVectorSetMatrixMap<ScalarT, EigenDim>& data, size_t max_leaf_size = 10)
+  KDTree(const ConstVectorSetMatrixMap<ScalarT, EigenDim>& data, size_t max_leaf_size = 10,
+         size_t num_build_threads = 1)
       : data_map_(data),
         data_adaptor_(data_map_),
-        kd_tree_(data.rows(), data_adaptor_,
-                 nanoflann::KDTreeSingleIndexAdaptorParams(max_leaf_size)) {
-    params_.sorted = true;
-  }
+        kd_tree_(
+            data.rows(), data_adaptor_,
+            nanoflann::KDTreeSingleIndexAdaptorParams(
+                max_leaf_size, nanoflann::KDTreeSingleIndexAdaptorFlags::None, num_build_threads)),
+        search_params_(ScalarT(0.0), true) {}
 
   inline const ConstVectorSetMatrixMap<ScalarT, EigenDim>& getPointsMatrixMap() const {
     return data_map_;
@@ -204,7 +216,7 @@ public:
   inline const KDTree& kNNSearch(const Eigen::Ref<const Vector<ScalarT, EigenDim>>& query_pt,
                                  CountT k, NeighborhoodResult& results) const {
     KNNSearchResultAdaptor<ScalarT, IndexT, CountT> sra(results, k);
-    kd_tree_.findNeighbors(sra, query_pt.data(), params_);
+    kd_tree_.findNeighbors(sra, query_pt.data(), search_params_);
     results.resize(sra.size());
     return *this;
   }
@@ -239,7 +251,7 @@ public:
   inline const KDTree& radiusSearch(const Eigen::Ref<const Vector<ScalarT, EigenDim>>& query_pt,
                                     ScalarT radius, NeighborhoodResult& results) const {
     RadiusSearchResultAdaptor<ScalarT, IndexT, size_t> sra(results, radius);
-    kd_tree_.findNeighbors(sra, query_pt.data(), params_);
+    kd_tree_.findNeighbors(sra, query_pt.data(), search_params_);
     std::sort(results.begin(), results.end(), typename NeighborResult::ValueLessComparator());
     return *this;
   }
@@ -273,7 +285,7 @@ public:
       const Eigen::Ref<const Vector<ScalarT, EigenDim>>& query_pt, CountT k, ScalarT radius,
       NeighborhoodResult& results) const {
     KNNSearchResultAdaptor<ScalarT, IndexT, CountT> sra(results, k, radius);
-    kd_tree_.findNeighbors(sra, query_pt.data(), params_);
+    kd_tree_.findNeighbors(sra, query_pt.data(), search_params_);
     results.resize(sra.size());
     return *this;
   }
@@ -372,7 +384,7 @@ private:
   ConstVectorSetMatrixMap<ScalarT, EigenDim> data_map_;
   const DataAdaptor data_adaptor_;
   InternalTree kd_tree_;
-  nanoflann::SearchParameters params_;
+  nanoflann::SearchParameters search_params_;
 };
 
 template <template <class> class DistAdaptor = KDTreeDistanceAdaptors::L2, typename IndexT = size_t>

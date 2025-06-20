@@ -10,11 +10,8 @@ class PointsGridDownsampler
     : public GridAccumulator<ScalarT, EigenDim, PointSumAccumulatorProxy<ScalarT, EigenDim>,
                              GridPointScalarT> {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef GridAccumulator<ScalarT, EigenDim, PointSumAccumulatorProxy<ScalarT, EigenDim>,
-                          GridPointScalarT>
-      Base;
+  using Base = GridAccumulator<ScalarT, EigenDim, PointSumAccumulatorProxy<ScalarT, EigenDim>,
+                               GridPointScalarT>;
 
   PointsGridDownsampler(const ConstVectorSetMatrixMap<ScalarT, EigenDim>& points, ScalarT bin_size,
                         bool parallel = true)
@@ -51,11 +48,8 @@ class PointsNormalsGridDownsampler
     : public GridAccumulator<ScalarT, EigenDim, PointNormalSumAccumulatorProxy<ScalarT, EigenDim>,
                              GridPointScalarT> {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef GridAccumulator<ScalarT, EigenDim, PointNormalSumAccumulatorProxy<ScalarT, EigenDim>,
-                          GridPointScalarT>
-      Base;
+  using Base = GridAccumulator<ScalarT, EigenDim, PointNormalSumAccumulatorProxy<ScalarT, EigenDim>,
+                               GridPointScalarT>;
 
   PointsNormalsGridDownsampler(const ConstVectorSetMatrixMap<ScalarT, EigenDim>& points,
                                const ConstVectorSetMatrixMap<ScalarT, EigenDim>& normals,
@@ -142,11 +136,8 @@ class PointsColorsGridDownsampler
     : public GridAccumulator<ScalarT, EigenDim, PointColorSumAccumulatorProxy<ScalarT, EigenDim>,
                              GridPointScalarT> {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef GridAccumulator<ScalarT, EigenDim, PointColorSumAccumulatorProxy<ScalarT, EigenDim>,
-                          GridPointScalarT>
-      Base;
+  using Base = GridAccumulator<ScalarT, EigenDim, PointColorSumAccumulatorProxy<ScalarT, EigenDim>,
+                               GridPointScalarT>;
 
   PointsColorsGridDownsampler(const ConstVectorSetMatrixMap<ScalarT, EigenDim>& points,
                               const ConstVectorSetMatrixMap<float, 3>& colors, ScalarT bin_size,
@@ -234,11 +225,9 @@ class PointsNormalsColorsGridDownsampler
                              PointNormalColorSumAccumulatorProxy<ScalarT, EigenDim>,
                              GridPointScalarT> {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef GridAccumulator<ScalarT, EigenDim, PointNormalColorSumAccumulatorProxy<ScalarT, EigenDim>,
-                          GridPointScalarT>
-      Base;
+  using Base =
+      GridAccumulator<ScalarT, EigenDim, PointNormalColorSumAccumulatorProxy<ScalarT, EigenDim>,
+                      GridPointScalarT>;
 
   PointsNormalsColorsGridDownsampler(const ConstVectorSetMatrixMap<ScalarT, EigenDim>& points,
                                      const ConstVectorSetMatrixMap<ScalarT, EigenDim>& normals,

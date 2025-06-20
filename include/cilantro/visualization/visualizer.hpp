@@ -14,8 +14,6 @@ class Visualizer {
   friend class VisualizerHandler;
 
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   inline Visualizer(const std::string& window_name, const std::string& display_name) {
     init_(window_name, display_name);
   }

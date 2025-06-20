@@ -17,8 +17,6 @@ using DefaultPointToPointMetricICP = PointToPointMetricSingleTransformICP<Transf
 template <class TransformT, class CorrSearchT>
 class DefaultPointToPointMetricICPEntities {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   DefaultPointToPointMetricICPEntities(
       const ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim>& dst_points,
       const ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim>& src_points)
@@ -38,8 +36,6 @@ class SimplePointToPointMetricICPWrapper
     : private DefaultPointToPointMetricICPEntities<TransformT, CorrSearchT>,
       public DefaultPointToPointMetricICP<TransformT, CorrSearchT> {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   SimplePointToPointMetricICPWrapper(
       const ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim>& dst_points,
       const ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim>& src_points)
@@ -57,8 +53,6 @@ using DefaultCombinedMetricICP = CombinedMetricSingleTransformICP<
 template <class TransformT, class CorrSearchT>
 class DefaultCombinedMetricICPEntities {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   DefaultCombinedMetricICPEntities(
       const ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim>& dst_points,
       const ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim>& src_points)
@@ -82,8 +76,6 @@ class SimpleCombinedMetricICPWrapper
     : private DefaultCombinedMetricICPEntities<TransformT, CorrSearchT>,
       public DefaultCombinedMetricICP<TransformT, CorrSearchT> {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   SimpleCombinedMetricICPWrapper(
       const ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim>& dst_points,
       const ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim>& dst_normals,
@@ -114,8 +106,6 @@ using DefaultCombinedMetricDenseWarpFieldICP = CombinedMetricDenseWarpFieldICP<
 template <class TransformT, class CorrSearchT>
 class DefaultCombinedMetricDenseWarpFieldICPEntities {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   DefaultCombinedMetricDenseWarpFieldICPEntities(
       const ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim>& dst_points,
       const ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim>& src_points)
@@ -141,7 +131,6 @@ class SimpleCombinedMetricDenseWarpFieldICPWrapper
     : private DefaultCombinedMetricDenseWarpFieldICPEntities<TransformT, CorrSearchT>,
       public DefaultCombinedMetricDenseWarpFieldICP<TransformT, CorrSearchT> {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   SimpleCombinedMetricDenseWarpFieldICPWrapper(
       const ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim>& dst_points,
       const ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim>& dst_normals,
@@ -166,8 +155,6 @@ using DefaultCombinedMetricSparseWarpFieldICP = CombinedMetricSparseWarpFieldICP
 template <class TransformT, class CorrSearchT>
 class DefaultCombinedMetricSparseWarpFieldICPEntities {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   DefaultCombinedMetricSparseWarpFieldICPEntities(
       const ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim>& dst_points,
       const ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim>& src_points)
@@ -195,8 +182,6 @@ class SimpleCombinedMetricSparseWarpFieldICPWrapper
     : private DefaultCombinedMetricSparseWarpFieldICPEntities<TransformT, CorrSearchT>,
       public DefaultCombinedMetricSparseWarpFieldICP<TransformT, CorrSearchT> {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   SimpleCombinedMetricSparseWarpFieldICPWrapper(
       const ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim>& dst_points,
       const ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim>& dst_normals,

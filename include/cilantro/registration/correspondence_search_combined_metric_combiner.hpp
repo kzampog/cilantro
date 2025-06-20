@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Eigen/Dense>
+#include <type_traits>
 #include <cilantro/registration/correspondence_search_combined_metric_adaptor.hpp>
 
 namespace cilantro {
@@ -8,23 +8,21 @@ namespace cilantro {
 template <class PointToPointCorrespondenceSearchT, class PointToPlaneCorrespondenceSearchT>
 class CorrespondenceSearchCombinedMetricCombiner {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  using PointToPointCorrespondenceSearch = PointToPointCorrespondenceSearchT;
 
-  typedef PointToPointCorrespondenceSearchT PointToPointCorrespondenceSearch;
+  using PointToPlaneCorrespondenceSearch = PointToPlaneCorrespondenceSearchT;
 
-  typedef PointToPlaneCorrespondenceSearchT PointToPlaneCorrespondenceSearch;
+  using PointToPointCorrespondenceScalar = typename CorrespondenceSearchCombinedMetricAdaptor<
+      PointToPointCorrespondenceSearchT>::PointToPointCorrespondenceScalar;
 
-  typedef typename CorrespondenceSearchCombinedMetricAdaptor<PointToPointCorrespondenceSearchT>::
-      PointToPointCorrespondenceScalar PointToPointCorrespondenceScalar;
+  using PointToPointCorrespondenceSearchResult = typename CorrespondenceSearchCombinedMetricAdaptor<
+      PointToPointCorrespondenceSearchT>::PointToPointCorrespondenceSearchResult;
 
-  typedef typename CorrespondenceSearchCombinedMetricAdaptor<PointToPointCorrespondenceSearchT>::
-      PointToPointCorrespondenceSearchResult PointToPointCorrespondenceSearchResult;
+  using PointToPlaneCorrespondenceScalar = typename CorrespondenceSearchCombinedMetricAdaptor<
+      PointToPlaneCorrespondenceSearchT>::PointToPlaneCorrespondenceScalar;
 
-  typedef typename CorrespondenceSearchCombinedMetricAdaptor<PointToPlaneCorrespondenceSearchT>::
-      PointToPlaneCorrespondenceScalar PointToPlaneCorrespondenceScalar;
-
-  typedef typename CorrespondenceSearchCombinedMetricAdaptor<PointToPlaneCorrespondenceSearchT>::
-      PointToPlaneCorrespondenceSearchResult PointToPlaneCorrespondenceSearchResult;
+  using PointToPlaneCorrespondenceSearchResult = typename CorrespondenceSearchCombinedMetricAdaptor<
+      PointToPlaneCorrespondenceSearchT>::PointToPlaneCorrespondenceSearchResult;
 
   inline CorrespondenceSearchCombinedMetricCombiner(
       PointToPointCorrespondenceSearch& point_to_point_corr_search,

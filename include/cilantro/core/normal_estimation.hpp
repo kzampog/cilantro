@@ -9,12 +9,10 @@ template <typename ScalarT, ptrdiff_t EigenDim,
           typename CovarianceT = Covariance<ScalarT, EigenDim>, typename IndexT = size_t>
 class NormalEstimation {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
-  typedef IndexT Index;
-  typedef CovarianceT Covariance;
-  typedef KDTree<ScalarT, EigenDim, KDTreeDistanceAdaptors::L2, IndexT> SearchTree;
+  using Scalar = ScalarT;
+  using Index = IndexT;
+  using Covariance = CovarianceT;
+  using SearchTree = KDTree<ScalarT, EigenDim, KDTreeDistanceAdaptors::L2, IndexT>;
 
   enum { Dimension = EigenDim };
 

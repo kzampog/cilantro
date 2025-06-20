@@ -7,9 +7,7 @@ namespace cilantro {
 template <typename ScalarT, ptrdiff_t EigenDim>
 class PointFeaturesAdaptor {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
+  using Scalar = ScalarT;
 
   enum { FeatureDimension = EigenDim };
 
@@ -62,9 +60,7 @@ protected:
 template <typename ScalarT, ptrdiff_t EigenDim>
 class PointNormalFeaturesAdaptor {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
+  using Scalar = ScalarT;
 
   enum { FeatureDimension = (EigenDim == Eigen::Dynamic) ? Eigen::Dynamic : 2 * EigenDim };
 
@@ -167,9 +163,7 @@ protected:
 template <typename ScalarT, ptrdiff_t EigenDim>
 class PointColorFeaturesAdaptor {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
+  using Scalar = ScalarT;
 
   enum { FeatureDimension = (EigenDim == Eigen::Dynamic) ? Eigen::Dynamic : EigenDim + 3 };
 
@@ -242,9 +236,7 @@ protected:
 template <typename ScalarT, ptrdiff_t EigenDim>
 class PointNormalColorFeaturesAdaptor {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
+  using Scalar = ScalarT;
 
   enum { FeatureDimension = (EigenDim == Eigen::Dynamic) ? Eigen::Dynamic : 2 * EigenDim + 3 };
 

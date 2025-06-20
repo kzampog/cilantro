@@ -486,9 +486,9 @@ estimateDenseWarpFieldCombinedMetric(
   bool has_converged = false;
   size_t iter = 0;
   while (iter < max_gn_iter) {
-#pragma omp parallel shared(At, b) private(                                                        \
-    eq_ind, nz_ind, weight, diff, d_sqrt_huber_loss, rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db, \
-    d_rot_coeffs_dc, trans_s, d_rot_da_s, d_rot_db_s, d_rot_dc_s)
+#pragma omp parallel shared(At, b) private(                                           \
+        eq_ind, nz_ind, weight, diff, d_sqrt_huber_loss, rot_coeffs, d_rot_coeffs_da, \
+            d_rot_coeffs_db, d_rot_coeffs_dc, trans_s, d_rot_da_s, d_rot_db_s, d_rot_dc_s)
     {
       // Data term
       if (has_point_to_point_terms) {
@@ -1166,9 +1166,9 @@ estimateSparseWarpFieldCombinedMetric(
   bool has_converged = false;
   size_t iter = 0;
   while (iter < max_gn_iter) {
-#pragma omp parallel shared(At, b) private(eq_ind, nz_ind, weight, corr_weight_sqrt,             \
-                                           corr_weight_nrm, diff, d_sqrt_huber_loss, angle_curr, \
-                                           trans_curr)
+#pragma omp parallel shared(At, b) private(eq_ind, nz_ind, weight, corr_weight_sqrt,     \
+                                               corr_weight_nrm, diff, d_sqrt_huber_loss, \
+                                               angle_curr, trans_curr)
     {
       // Data term
       if (has_point_to_point_terms) {
@@ -1560,9 +1560,9 @@ estimateSparseWarpFieldCombinedMetric(
   size_t iter = 0;
   while (iter < max_gn_iter) {
 #pragma omp parallel shared(At, b) private(                                                 \
-    eq_ind, nz_ind, weight, corr_weight_sqrt, corr_weight_nrm, diff, d_sqrt_huber_loss,     \
-    angles_curr, trans_curr, rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db, d_rot_coeffs_dc, \
-    trans_s, d_rot_da_s, d_rot_db_s, d_rot_dc_s)
+        eq_ind, nz_ind, weight, corr_weight_sqrt, corr_weight_nrm, diff, d_sqrt_huber_loss, \
+            angles_curr, trans_curr, rot_coeffs, d_rot_coeffs_da, d_rot_coeffs_db,          \
+            d_rot_coeffs_dc, trans_s, d_rot_da_s, d_rot_db_s, d_rot_dc_s)
     {
       // Data term
       if (has_point_to_point_terms) {
@@ -2035,9 +2035,9 @@ estimateSparseWarpFieldCombinedMetric(
   bool has_converged = false;
   size_t iter = 0;
   while (iter < max_gn_iter) {
-#pragma omp parallel shared(At, b) private(eq_ind, nz_ind, weight, corr_weight_sqrt,              \
-                                           corr_weight_nrm, diff, d_sqrt_huber_loss, linear_curr, \
-                                           trans_curr)
+#pragma omp parallel shared(At, b) private(eq_ind, nz_ind, weight, corr_weight_sqrt,     \
+                                               corr_weight_nrm, diff, d_sqrt_huber_loss, \
+                                               linear_curr, trans_curr)
     {
       // Data term
       if (has_point_to_point_terms) {

@@ -15,9 +15,7 @@ namespace cilantro {
 template <typename ScalarT, ptrdiff_t EigenDim>
 class Covariance {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
+  using Scalar = ScalarT;
 
   enum { Dimension = EigenDim };
 
@@ -189,15 +187,13 @@ template <typename ScalarT, ptrdiff_t EigenDim,
           typename RandomGeneratorT = std::default_random_engine>
 class MinimumCovarianceDeterminant {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
+  using Scalar = ScalarT;
 
   enum { Dimension = EigenDim };
 
-  typedef CovarianceT Covariance;
+  using Covariance = CovarianceT;
 
-  typedef RandomGeneratorT RandomGenerator;
+  using RandomGenerator = RandomGeneratorT;
 
   MinimumCovarianceDeterminant() = default;
 

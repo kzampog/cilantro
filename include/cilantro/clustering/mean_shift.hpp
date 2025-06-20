@@ -12,13 +12,11 @@ template <typename ScalarT, ptrdiff_t EigenDim,
 class MeanShift
     : public ClusteringBase<MeanShift<ScalarT, EigenDim, DistAdaptor>, PointIndexT, ClusterIndexT> {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
+  using Scalar = ScalarT;
 
   enum { Dimension = EigenDim };
 
-  typedef KDTree<ScalarT, EigenDim, DistAdaptor, PointIndexT> SearchTree;
+  using SearchTree = KDTree<ScalarT, EigenDim, DistAdaptor, PointIndexT>;
 
   MeanShift(const ConstVectorSetMatrixMap<ScalarT, EigenDim>& points, size_t max_leaf_size = 10)
       : data_map_(points),

@@ -14,10 +14,8 @@ class TransformRANSACEstimator
       Base;
 
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef TransformT Transform;
-  typedef typename TransformT::Scalar Scalar;
+  using Transform = TransformT;
+  using Scalar = typename TransformT::Scalar;
 
   enum {
     Dim = TransformT::Dim,

@@ -27,8 +27,6 @@ template <typename T>
 struct HasColors<T, decltype((void)T::colors, 0)> : std::true_type {};
 
 struct PointCloudGPUBufferObjects : public GPUBufferObjects {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   pangolin::GlBuffer pointBuffer;
   pangolin::GlBuffer normalBuffer;
   pangolin::GlBuffer colorBuffer;
@@ -37,8 +35,6 @@ struct PointCloudGPUBufferObjects : public GPUBufferObjects {
 
 class PointCloudRenderable : public Renderable {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   typedef PointCloudGPUBufferObjects GPUBuffers;
 
   inline PointCloudRenderable(const ConstVectorSetMatrixMap<float, 3>& points,
@@ -93,15 +89,11 @@ private:
 };
 
 struct PointCorrespondencesGPUBufferObjects : public GPUBufferObjects {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   pangolin::GlBuffer lineEndPointBuffer;
 };
 
 class PointCorrespondencesRenderable : public Renderable {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   typedef PointCloudGPUBufferObjects GPUBuffers;
 
   inline PointCorrespondencesRenderable(const ConstVectorSetMatrixMap<float, 3>& dst_points,
@@ -171,8 +163,6 @@ private:
 
 class CoordinateFrameRenderable : public Renderable {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   typedef GPUBufferObjects GPUBuffers;
 
   inline CoordinateFrameRenderable(const Eigen::Matrix4f& tf = Eigen::Matrix4f::Identity(),
@@ -191,8 +181,6 @@ private:
 
 class CameraFrustumRenderable : public Renderable {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   typedef GPUBufferObjects GPUBuffers;
 
   inline CameraFrustumRenderable(size_t width, size_t height, const Eigen::Matrix3f& intrinsics,
@@ -219,8 +207,6 @@ private:
 };
 
 struct TriangleMeshGPUBufferObjects : public GPUBufferObjects {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   pangolin::GlBuffer vertexBuffer;
   pangolin::GlBuffer normalBuffer;
   pangolin::GlBuffer colorBuffer;
@@ -229,8 +215,6 @@ struct TriangleMeshGPUBufferObjects : public GPUBufferObjects {
 
 class TriangleMeshRenderable : public Renderable {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   typedef TriangleMeshGPUBufferObjects GPUBuffers;
 
   inline TriangleMeshRenderable(const ConstVectorSetMatrixMap<float, 3>& vertices,
@@ -339,16 +323,12 @@ private:
 };
 
 struct TextGPUBufferObjects : public GPUBufferObjects {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   std::shared_ptr<pangolin::GlFont> glFont;
   pangolin::GlText glText;
 };
 
 class TextRenderable : public Renderable {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   typedef TextGPUBufferObjects GPUBuffers;
 
   inline TextRenderable(const std::string& text, const Eigen::Ref<const Eigen::Vector3f>& position,

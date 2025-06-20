@@ -8,11 +8,9 @@ namespace cilantro {
 template <typename ScalarT, ptrdiff_t EigenDim>
 class DataMatrixMap : public Eigen::Map<Eigen::Matrix<ScalarT, EigenDim, Eigen::Dynamic>> {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  using Base = Eigen::Map<Eigen::Matrix<ScalarT, EigenDim, Eigen::Dynamic>>;
 
-  typedef Eigen::Map<Eigen::Matrix<ScalarT, EigenDim, Eigen::Dynamic>> Base;
-
-  typedef ScalarT Scalar;
+  using Scalar = ScalarT;
 
   enum { Dimension = EigenDim };
 
@@ -30,15 +28,8 @@ public:
   DataMatrixMap(std::vector<ScalarT>& data, size_t dim)
       : Base((ScalarT*)data.data(), dim, data.size() / dim) {}
 
-  template <ptrdiff_t Dim = EigenDim,
-            class = typename std::enable_if<Dim != Eigen::Dynamic &&
-                                            sizeof(Eigen::Matrix<ScalarT, Dim, 1>) % 16 != 0>::type>
-  DataMatrixMap(std::vector<Eigen::Matrix<ScalarT, EigenDim, 1>>& data)
-      : Base((ScalarT*)data.data(), EigenDim, data.size()) {}
-
   template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
-  DataMatrixMap(std::vector<Eigen::Matrix<ScalarT, EigenDim, 1>,
-                            Eigen::aligned_allocator<Eigen::Matrix<ScalarT, EigenDim, 1>>>& data)
+  DataMatrixMap(std::vector<Eigen::Matrix<ScalarT, EigenDim, 1>>& data)
       : Base((ScalarT*)data.data(), EigenDim, data.size()) {}
 
   template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
@@ -83,11 +74,9 @@ template <typename ScalarT, ptrdiff_t EigenDim>
 class ConstDataMatrixMap
     : public Eigen::Map<const Eigen::Matrix<ScalarT, EigenDim, Eigen::Dynamic>> {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  using Base = Eigen::Map<const Eigen::Matrix<ScalarT, EigenDim, Eigen::Dynamic>>;
 
-  typedef Eigen::Map<const Eigen::Matrix<ScalarT, EigenDim, Eigen::Dynamic>> Base;
-
-  typedef ScalarT Scalar;
+  using Scalar = ScalarT;
 
   enum { Dimension = EigenDim };
 
@@ -107,14 +96,6 @@ public:
   template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim == Eigen::Dynamic>::type>
   ConstDataMatrixMap(const std::vector<ScalarT>& data, size_t dim)
       : Base((const ScalarT*)data.data(), dim, data.size() / dim) {}
-
-  template <ptrdiff_t Dim = EigenDim,
-            class = typename std::enable_if<Dim != Eigen::Dynamic &&
-                                            sizeof(Eigen::Matrix<ScalarT, Dim, 1>) % 16 != 0>::type>
-  ConstDataMatrixMap(
-      const std::vector<Eigen::Matrix<ScalarT, EigenDim, 1>,
-                        Eigen::aligned_allocator<Eigen::Matrix<ScalarT, EigenDim, 1>>>& data)
-      : Base((const ScalarT*)data.data(), EigenDim, data.size()) {}
 
   template <ptrdiff_t Dim = EigenDim, class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
   ConstDataMatrixMap(const std::vector<Eigen::Matrix<ScalarT, EigenDim, 1>>& data)

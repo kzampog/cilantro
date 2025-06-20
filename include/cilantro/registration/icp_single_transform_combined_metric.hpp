@@ -18,20 +18,17 @@ class CombinedMetricSingleTransformICP
                                            PointToPointCorrWeightEvaluatorT,
                                            PointToPlaneCorrWeightEvaluatorT>,
           TransformT, CorrespondenceSearchEngineT, VectorSet<typename TransformT::Scalar, 1>> {
-  typedef IterativeClosestPointBase<
+  using Base = IterativeClosestPointBase<
       CombinedMetricSingleTransformICP<TransformT, CorrespondenceSearchEngineT,
                                        PointToPointCorrWeightEvaluatorT,
                                        PointToPlaneCorrWeightEvaluatorT>,
-      TransformT, CorrespondenceSearchEngineT, VectorSet<typename TransformT::Scalar, 1>>
-      Base;
+      TransformT, CorrespondenceSearchEngineT, VectorSet<typename TransformT::Scalar, 1>>;
   friend Base;
 
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  using PointToPointCorrespondenceWeightEvaluator = PointToPointCorrWeightEvaluatorT;
 
-  typedef PointToPointCorrWeightEvaluatorT PointToPointCorrespondenceWeightEvaluator;
-
-  typedef PointToPlaneCorrWeightEvaluatorT PointToPlaneCorrespondenceWeightEvaluator;
+  using PointToPlaneCorrespondenceWeightEvaluator = PointToPlaneCorrWeightEvaluatorT;
 
   CombinedMetricSingleTransformICP(
       const ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim>& dst_p,

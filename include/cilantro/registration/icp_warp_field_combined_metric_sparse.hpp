@@ -28,27 +28,24 @@ class CombinedMetricSparseWarpFieldICP
                                            ControlWeightEvaluatorT, RegularizationWeightEvaluatorT>,
           TransformSet<TransformT>, CorrespondenceSearchEngineT,
           VectorSet<typename TransformT::Scalar, 1>> {
-  typedef IterativeClosestPointBase<
+  using Base = IterativeClosestPointBase<
       CombinedMetricSparseWarpFieldICP<TransformT, CorrespondenceSearchEngineT,
                                        SrcToCtrlNeighborhoodSetT, CtrlRegNeighborhoodSetT,
                                        PointToPointCorrWeightEvaluatorT,
                                        PointToPlaneCorrWeightEvaluatorT, ControlWeightEvaluatorT,
                                        RegularizationWeightEvaluatorT>,
       TransformSet<TransformT>, CorrespondenceSearchEngineT,
-      VectorSet<typename TransformT::Scalar, 1>>
-      Base;
+      VectorSet<typename TransformT::Scalar, 1>>;
   friend Base;
 
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  using PointToPointCorrespondenceWeightEvaluator = PointToPointCorrWeightEvaluatorT;
 
-  typedef PointToPointCorrWeightEvaluatorT PointToPointCorrespondenceWeightEvaluator;
+  using PointToPlaneCorrespondenceWeightEvaluator = PointToPlaneCorrWeightEvaluatorT;
 
-  typedef PointToPlaneCorrWeightEvaluatorT PointToPlaneCorrespondenceWeightEvaluator;
+  using ControlWeightEvaluator = ControlWeightEvaluatorT;
 
-  typedef ControlWeightEvaluatorT ControlWeightEvaluator;
-
-  typedef RegularizationWeightEvaluatorT RegularizationWeightEvaluator;
+  using RegularizationWeightEvaluator = RegularizationWeightEvaluatorT;
 
   CombinedMetricSparseWarpFieldICP(
       const ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim>& dst_p,

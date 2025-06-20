@@ -8,13 +8,11 @@ namespace cilantro {
 template <typename ScalarT, ptrdiff_t EigenDim>
 class PrincipalComponentAnalysis {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  typedef ScalarT Scalar;
+  using Scalar = ScalarT;
 
   enum { Dimension = EigenDim };
 
-  typedef Eigen::Matrix<ScalarT, EigenDim, EigenDim> CovarianceMatrix;
+  using CovarianceMatrix = Eigen::Matrix<ScalarT, EigenDim, EigenDim>;
 
   template <typename CovarianceT = Covariance<ScalarT, EigenDim>>
   PrincipalComponentAnalysis(const ConstVectorSetMatrixMap<ScalarT, EigenDim>& data,
