@@ -230,6 +230,8 @@ public:
 
   inline const SearchResult& getCorrespondences() const { return correspondences_; }
 
+  inline const Evaluator& evaluator() const { return evaluator_; }
+
   inline Evaluator& evaluator() { return evaluator_; }
 
   inline const CorrespondenceSearchDirection& getSearchDirection() const { return search_dir_; }
@@ -265,6 +267,20 @@ public:
 
   inline CorrespondenceSearchKDTree& setOneToOne(bool one_to_one) {
     one_to_one_ = one_to_one;
+    return *this;
+  }
+
+  inline const std::shared_ptr<SearchTree>& getFirstSearchTree() const { return dst_tree_ptr_; }
+
+  inline CorrespondenceSearchKDTree& setFirstSearchTree(const std::shared_ptr<SearchTree>& tree) {
+    dst_tree_ptr_ = tree;
+    return *this;
+  }
+
+  inline const std::shared_ptr<SearchTree>& getSecondSearchTree() const { return src_tree_ptr_; }
+
+  inline CorrespondenceSearchKDTree& setSecondSearchTree(const std::shared_ptr<SearchTree>& tree) {
+    src_tree_ptr_ = tree;
     return *this;
   }
 

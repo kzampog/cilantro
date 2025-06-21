@@ -215,11 +215,6 @@ using SimplePointToPointMetricICP =
     internal::SimplePointToPointMetricICPWrapper<TransformT,
                                                  internal::DefaultKDTreeSearch<TransformT>>;
 
-// template <class TransformT>
-// using SimplePointToPointMetricProjectiveICP =
-//     internal::SimplePointToPointMetricICPWrapper<TransformT,
-//                                                  internal::DefaultProjectiveSearch<TransformT>>;
-
 template <class TransformT>
 using SimpleCombinedMetricICP =
     internal::SimpleCombinedMetricICPWrapper<TransformT, internal::DefaultKDTreeSearch<TransformT>>;
@@ -259,16 +254,6 @@ typedef SimplePointToPointMetricICP<AffineTransform<float, 2>> SimplePointToPoin
 typedef SimplePointToPointMetricICP<AffineTransform<double, 2>> SimplePointToPointMetricAffineICP2d;
 typedef SimplePointToPointMetricICP<AffineTransform<float, 3>> SimplePointToPointMetricAffineICP3f;
 typedef SimplePointToPointMetricICP<AffineTransform<double, 3>> SimplePointToPointMetricAffineICP3d;
-
-// typedef SimplePointToPointMetricProjectiveICP<RigidTransform<float, 3>>
-//     SimplePointToPointMetricRigidProjectiveICP3f;
-// typedef SimplePointToPointMetricProjectiveICP<RigidTransform<double, 3>>
-//     SimplePointToPointMetricRigidProjectiveICP3d;
-
-// typedef SimplePointToPointMetricProjectiveICP<AffineTransform<float, 3>>
-//     SimplePointToPointMetricAffineProjectiveICP3f;
-// typedef SimplePointToPointMetricProjectiveICP<AffineTransform<double, 3>>
-//     SimplePointToPointMetricAffineProjectiveICP3d;
 
 // Combined metric
 typedef SimpleCombinedMetricICP<RigidTransform<float, 2>> SimpleCombinedMetricRigidICP2f;

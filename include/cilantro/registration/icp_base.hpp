@@ -74,9 +74,9 @@ public:
     icp_instance.initializeComputation();
 
     while (iterations_ < max_iterations_) {
-      // Update correspondences_
+      // Update correspondences
       icp_instance.updateCorrespondences();
-      // Update transform_ and last_delta_norm_ based on correspondences_
+      // Update transform_ and last_delta_norm_ based on correspondences
       icp_instance.updateEstimate();
 
       iterations_++;
