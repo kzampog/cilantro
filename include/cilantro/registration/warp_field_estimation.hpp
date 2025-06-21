@@ -707,7 +707,7 @@ estimateDenseWarpFieldCombinedMetric(
          Eigen::AngleAxis<ScalarT>(tforms_vec[6 * i + 1], Eigen::Matrix<ScalarT, 3, 1>::UnitY()) *
          Eigen::AngleAxis<ScalarT>(tforms_vec[6 * i + 0], Eigen::Matrix<ScalarT, 3, 1>::UnitX()))
             .matrix();
-    transforms[i].linear() = transforms[i].rotation();
+    transforms[i].linear() = LinearTransform<ScalarT, 3, false>(transforms[i].linear()).rotation();
     transforms[i].translation() = tforms_vec.template segment<3>(6 * i + 3);
   }
 
@@ -1838,7 +1838,7 @@ estimateSparseWarpFieldCombinedMetric(
          Eigen::AngleAxis<ScalarT>(tforms_vec[6 * i + 1], Eigen::Matrix<ScalarT, 3, 1>::UnitY()) *
          Eigen::AngleAxis<ScalarT>(tforms_vec[6 * i + 0], Eigen::Matrix<ScalarT, 3, 1>::UnitX()))
             .matrix();
-    transforms[i].linear() = transforms[i].rotation();
+    transforms[i].linear() = LinearTransform<ScalarT, 3, false>(transforms[i].linear()).rotation();
     transforms[i].translation() = tforms_vec.template segment<3>(6 * i + 3);
   }
 

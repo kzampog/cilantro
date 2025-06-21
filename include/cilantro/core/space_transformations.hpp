@@ -121,7 +121,7 @@ public:
 #pragma omp parallel for
     for (size_t i = 0; i < this->size(); i++) {
       (*this)[i] = other[i] * (*this)[i];
-      (*this)[i].linear() = (*this)[i].rotation();
+      (*this)[i].linear() = LinearTransform<Scalar, Dim, false>((*this)[i].linear()).rotation();
     }
     return *this;
   }
@@ -146,7 +146,7 @@ public:
 #pragma omp parallel for
     for (size_t i = 0; i < this->size(); i++) {
       (*this)[i] = (*this)[i] * other[i];
-      (*this)[i].linear() = (*this)[i].rotation();
+      (*this)[i].linear() = LinearTransform<Scalar, Dim, false>((*this)[i].linear()).rotation();
     }
     return *this;
   }

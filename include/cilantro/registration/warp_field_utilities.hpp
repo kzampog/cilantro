@@ -36,8 +36,11 @@ resampleTransforms(const TransformSet<TransformT>& old_transforms,
     } else {
       total_weight = (typename TransformT::Scalar)(1.0) / total_weight;
       new_transforms[i].linear() *= total_weight;
-      if (int(TransformT::Mode) == int(Eigen::Isometry)) {
-        new_transforms[i].linear() = new_transforms[i].rotation();
+      if constexpr (int(TransformT::Mode) == int(Eigen::Isometry)) {
+        new_transforms[i].linear() =
+            LinearTransform<typename TransformT::Scalar, TransformT::Dim, false>(
+                new_transforms[i].linear())
+                .rotation();
       }
       new_transforms[i].translation() *= total_weight;
     }
@@ -88,8 +91,11 @@ resampleTransforms(
     } else {
       total_weight = (typename TransformT::Scalar)(1.0) / total_weight;
       new_transforms[i].linear() *= total_weight;
-      if (int(TransformT::Mode) == int(Eigen::Isometry)) {
-        new_transforms[i].linear() = new_transforms[i].rotation();
+      if constexpr (int(TransformT::Mode) == int(Eigen::Isometry)) {
+        new_transforms[i].linear() =
+            LinearTransform<typename TransformT::Scalar, TransformT::Dim, false>(
+                new_transforms[i].linear())
+                .rotation();
       }
       new_transforms[i].translation() *= total_weight;
     }

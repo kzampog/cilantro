@@ -53,8 +53,10 @@ private:
                                         corr_getter_proxy.getPointToPointCorrespondences(),
                                         tform_iter);
 
-    if (int(Base::Transform::Mode) == int(Eigen::Isometry)) {
-      tform_iter.linear() = tform_iter.rotation();
+    if constexpr (int(Base::Transform::Mode) == int(Eigen::Isometry)) {
+      tform_iter.linear() =
+          LinearTransform<typename TransformT::Scalar, TransformT::Dim, false>(tform_iter.linear())
+              .rotation();
     }
     this->transform_ = tform_iter * this->transform_;
     this->last_delta_norm_ =

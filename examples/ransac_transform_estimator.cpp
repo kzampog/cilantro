@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
       // Randomly transform src
       cilantro::RigidTransform3f tform;
       tform.linear().setRandom();
-      tform.linear() = tform.rotation();
+      tform.linear() = cilantro::LinearTransform<float, 3, false>(tform.linear()).rotation();
       tform.translation().setRandom();
 
       // Build noisy correspondences
