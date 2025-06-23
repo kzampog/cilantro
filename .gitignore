@@ -30,6 +30,7 @@
 
 # Build/IDE folders
 build/*
+.cache/*
 .idea/*
 .vscode/*
 cmake-build-release/*
